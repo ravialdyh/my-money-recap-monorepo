@@ -1,5 +1,5 @@
 {
-  "name": "my-money-tracker",
+  "name": "my-money-recap-monorepo",
   "private": true,
   "version": "0.0.0",
   "description": "Monorepo for My Money Recap: design source, design system, apps and infrastructure.",

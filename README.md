@@ -1,8 +1,9 @@
-# My Money Tracker
+# My Money Recap
 
-Monorepo for **My Money Recap** — a personal money tracker for adults, styled as a
-playful kids' app, that turns one month of income, spending and saving into a
-Wrapped-style monthly recap.
+A personal money tracker for adults, styled as a playful kids' app, that turns one month of
+income, spending and saving into a Wrapped-style monthly recap.
+
+This repository is the monorepo for it: design source, design system, apps and infrastructure.
 
 ## Layout
 
