@@ -1,0 +1,163 @@
+{
+ "cover": {
+  "file": "ill-cover.webp",
+  "bg": "#5153E5",
+  "w": 720,
+  "h": 716,
+  "kb": 21.7,
+  "bbox": [
+   144,
+   125,
+   1901,
+   1872
+  ]
+ },
+ "earned": {
+  "file": "ill-lemonade.webp",
+  "bg": "#FCCA3B",
+  "w": 680,
+  "h": 704,
+  "kb": 19.2,
+  "bbox": [
+   331,
+   233,
+   1816,
+   1773
+  ]
+ },
+ "goals": {
+  "file": "ill-vending.webp",
+  "bg": "#F0604E",
+  "w": 320,
+  "h": 455,
+  "kb": 7.9,
+  "bbox": [
+   426,
+   141,
+   1625,
+   1878
+  ]
+ },
+ "person": {
+  "file": "ill-squirrel.webp",
+  "bg": "#41A76A",
+  "w": 720,
+  "h": 698,
+  "kb": 16.1,
+  "bbox": [
+   118,
+   152,
+   1948,
+   1923
+  ]
+ },
+ "envelope": {
+  "file": "ill-envelope.webp",
+  "bg": "#5B54E2",
+  "w": 640,
+  "h": 576,
+  "kb": 40.8,
+  "bbox": [
+   150,
+   248,
+   1897,
+   1821
+  ],
+  "source": "renders/5-envelope.png"
+ },
+ "avatar-fox": {
+  "file": "ill-avatar-fox.webp",
+  "bg": "#6257E1",
+  "w": 204,
+  "h": 204,
+  "kb": 8.5,
+  "source": "renders/6-avatars-sheet.png",
+  "shape": "circle"
+ },
+ "avatar-otter": {
+  "file": "ill-avatar-otter.webp",
+  "bg": "#FAC949",
+  "w": 204,
+  "h": 204,
+  "kb": 8.8,
+  "source": "renders/6-avatars-sheet.png",
+  "shape": "circle"
+ },
+ "avatar-panda": {
+  "file": "ill-avatar-panda.webp",
+  "bg": "#F3695F",
+  "w": 204,
+  "h": 204,
+  "kb": 8.3,
+  "source": "renders/6-avatars-sheet.png",
+  "shape": "circle"
+ },
+ "avatar-frog": {
+  "file": "ill-avatar-frog.webp",
+  "bg": "#45A96D",
+  "w": 204,
+  "h": 204,
+  "kb": 7.9,
+  "source": "renders/6-avatars-sheet.png",
+  "shape": "circle"
+ },
+ "avatar-owl": {
+  "file": "ill-avatar-owl.webp",
+  "bg": "#CAE4FB",
+  "w": 204,
+  "h": 204,
+  "kb": 8.6,
+  "source": "renders/6-avatars-sheet.png",
+  "shape": "circle"
+ },
+ "avatar-rabbit": {
+  "file": "ill-avatar-rabbit.webp",
+  "bg": "#E5A21D",
+  "w": 204,
+  "h": 204,
+  "kb": 8.6,
+  "source": "renders/6-avatars-sheet.png",
+  "shape": "circle"
+ },
+ "hustler": {
+  "file": "ill-hustler.webp",
+  "bg": "#40A970",
+  "w": 720,
+  "h": 789,
+  "kb": 85.1,
+  "source": "renders/12-hustler-bee.png"
+ },
+ "treat": {
+  "file": "ill-treat.webp",
+  "bg": "#46A86D",
+  "w": 720,
+  "h": 705,
+  "kb": 66.2,
+  "source": "renders/13-treat-cat.png"
+ },
+ "slowburner": {
+  "file": "ill-slowburner.webp",
+  "bg": "#3FA86D",
+  "w": 720,
+  "h": 429,
+  "kb": 43.2,
+  "source": "renders/14-slowburner-tortoise.png"
+ },
+ "jar": {
+  "file": "ill-jar.webp",
+  "bg": "#EF5D4E",
+  "w": 480,
+  "h": 552,
+  "kb": 32.1,
+  "source": "renders/15-jar.png"
+ },
+ "app-icon": {
+  "file": "app-icon-1024.png",
+  "bg": "#5B4FE8",
+  "w": 1024,
+  "h": 1024,
+  "kb": 644.5,
+  "source": "renders/16-app-icon.png",
+  "note": "opaque square for the iOS build, not an Illustration asset"
+ }
+}
