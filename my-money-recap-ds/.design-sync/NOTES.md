@@ -27,6 +27,26 @@
 - **Icon is pinned to `src/index.ts`** in `componentSrcMap` on purpose: its real source dir `src/icons/` would force the group `icons`, and the user wants the card under Foundations. Side effect: the Icon JSDoc is not picked up; `dtsPropsFor.Icon` carries the description instead.
 - **Known render warns:** none (validate exits with zero warnings apart from the informational `[FONT_REMOTE]`).
 
+## Running the re-sync after the monorepo conversion (2026-09-05)
+
+The repo is now an npm workspace, so `react`, `react-dom`, `esbuild` and `typescript` are
+hoisted to the **root** `node_modules`, not `my-money-recap-ds/node_modules`. Pass the root
+one, or `package-build` resolves nothing:
+
+```bash
+export DS_CHROMIUM_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+node .ds-sync/resync.mjs --config .design-sync/config.json \
+  --node-modules ../node_modules --out ./ds-bundle
+```
+
+`.ds-sync/node_modules` (playwright, ts-morph) is separate and unaffected.
+
+**Fetch the anchor first.** Without `--remote <sidecar>` the verdict reports
+`anchor: not_provided` and the diff calls every component `added`, so the upload set is a
+full 35-component re-push and `pendingGrade` lists all of them. Pull the anchor with
+DesignSync `get_file` into a local file and pass it, or you cannot tell a real change from a
+missing baseline.
+
 ## Re-sync risks
 
 - `dist/mmr.css` is gitignored: run `npm run build:tokens` (`cfg.buildCmd`) before the converter or the CSS is stale/missing.
