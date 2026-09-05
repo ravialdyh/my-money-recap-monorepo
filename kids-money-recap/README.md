@@ -8,7 +8,6 @@ The Claude Design canvas, the illustration artwork, and the design spec that the
 | Path | What lives here |
 | --- | --- |
 | `DESIGN.md` | Design system spec: type scale, colour, spacing, components, and the log of resolved decisions |
-| `tokens.json` | Design token source that `DESIGN.md` documents |
 | `canvas/` | Claude Design canvas: `canvas.json` layout plus one `.dc.html` per artboard, and `preview.html` to view all four side by side |
 | `assets/illustrations/` | Shipped artwork — transparent WebP cut-outs, roughly 2× display size |
 | `assets/icons/` | `app-icon-1024.png`, the opaque square for the iOS build |
@@ -44,8 +43,8 @@ Full prompt recipes and the style block are in [`docs/illustration-prompts.md`](
 Open `canvas/preview.html` in a browser for the four artboards side by side, or
 `published/kids-money-recap.html` for the interactive published canvas.
 
-## Known duplication
+## Note on artboard asset paths
 
-`tokens.json` here is a snapshot of the canvas tokens. `kids-money-recap-ds/src/tokens/tokens.json`
-is the same set plus 49 tokens added while building the design system, and is the
-source of truth for anything built. Reconcile or drop this copy when convenient.
+The `.dc.html` artboards reference artwork as `../assets/illustrations/ill-*.webp` so the repo
+keeps one copy of each file. Claude Design resolves project-uploaded assets by bare filename, so
+if you re-import an artboard there, re-point its `<img src>` at the uploaded asset.

@@ -41,18 +41,6 @@ export function SparkleIcon({ fill = 'var(--kmr-palette-white)', ...rest }: Icon
     </svg>
   );
 }
-/** Skateboard marker that rides the goal progress bar. 64x30. */
-export function SkateboardMarker(props: IconProps) {
-  return (
-    <svg width={64} height={30} viewBox="0 0 64 30" fill="none" aria-hidden="true" {...props}>
-      <rect x="4" y="5" width="56" height="9" rx="4.5" fill="var(--kmr-palette-violet-500)" />
-      <rect x="14" y="14" width="10" height="4" rx="1" fill="var(--kmr-palette-ink-500)" />
-      <rect x="40" y="14" width="10" height="4" rx="1" fill="var(--kmr-palette-ink-500)" />
-      <circle cx="16" cy="22" r="6" fill="var(--kmr-palette-yellow-500)" /><circle cx="16" cy="22" r="2.5" fill="var(--kmr-palette-ink-900)" />
-      <circle cx="48" cy="22" r="6" fill="var(--kmr-palette-yellow-500)" /><circle cx="48" cy="22" r="2.5" fill="var(--kmr-palette-ink-900)" />
-    </svg>
-  );
-}
 
 /* ---- Spend Category glyphs (PRD D20). 16px filled, one per Category, each defaulting to its
    own category colour so <IconWell tone={CATEGORY_TONE[c]}><Icon name={c} /></IconWell> agrees. ---- */
@@ -142,7 +130,7 @@ export function PlusIcon(props: IconProps) {
   );
 }
 
-/** Piggy-bank marker that rides the saving-target progress bar. 64x30, replacing the skateboard (PRD D24). */
+/** Piggy-bank marker that rides the saving-target progress bar. 64x30. Rides the saving-target bar (PRD D24). */
 export function PiggyMarker(props: IconProps) {
   return (
     <svg width={64} height={30} viewBox="0 0 64 30" fill="none" aria-hidden="true" {...props}>

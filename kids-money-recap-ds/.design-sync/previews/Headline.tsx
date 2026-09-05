@@ -6,6 +6,6 @@ const ground = (g: 'recap' | 'personality') => ({
 });
 
 export function HeadlineL() { return <div style={ground('recap')}><Headline size="l">Your September in money</Headline></div>; }
-export function HeadlineM() { return <div style={ground('recap')}><Headline size="m">68% of the way to the skateboard</Headline></div>; }
-export function HeadlineCompact() { return <div style={ground('recap')}><Headline size="compact">You earned £24. That's 12 dog walks' worth.</Headline></div>; }
+export function HeadlineM() { return <div style={ground('recap')}><Headline size="m">133% of your saving target</Headline></div>; }
+export function HeadlineCompact() { return <div style={ground('recap')}><Headline size="compact">You kept £640 of £2,400. That's 133% of your target.</Headline></div>; }
 export function Display() { return <div style={ground('personality')}><Headline size="display">The Squirrel</Headline></div>; }

@@ -15,7 +15,7 @@ function Track({ tone, size, percent, animate = false, marker }: TrackProps) {
 
 export interface ProgressBarProps {
   value: number; max: number; tone?: BarTone; animate?: boolean;
-  /** Illustrated marker that rides the end of the fill (e.g. SkateboardMarker). Needs ~30px clearance above. */
+  /** Illustrated marker that rides the end of the fill (e.g. PiggyMarker). Needs ~30px clearance above. */
   marker?: ReactNode;
 }
 /** 22px goal progress bar with an optional illustrated marker. */
@@ -48,7 +48,7 @@ export interface CompareBarsProps {
   scale?: 'total' | 'max';
   animate?: boolean;
 }
-/** Two or more 18px bars: "Saved £25" vs "Spent £11". See `scale` for how the widths are derived. */
+/** Two or more 18px bars: "Saved £640" vs "Spent £1,760". See `scale` for how the widths are derived. */
 export function CompareBars({ rows, scale = 'total', animate }: CompareBarsProps) {
   useStyles();
   const basis = scale === 'max'

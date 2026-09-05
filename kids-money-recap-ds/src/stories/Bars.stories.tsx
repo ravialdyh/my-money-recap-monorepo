@@ -21,6 +21,6 @@ export const Categories: S = { render: () => (
 ) };
 export const Compare: S = { render: () => (
   <div style={{ width: 300 }}>
-    <CompareBars rows={[{ label: 'Saved', value: 25, display: '£25', tone: 'green' }, { label: 'Spent', value: 11, display: '£11', tone: 'coral' }]} />
+    <CompareBars rows={[{ label: 'Saved', value: 640, display: '£640', tone: 'green' }, { label: 'Spent', value: 1760, display: '£1,760', tone: 'coral' }]} />
   </div>
 ) };

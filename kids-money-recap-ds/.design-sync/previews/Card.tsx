@@ -3,7 +3,7 @@ import { Card, CardTitle, Eyebrow, CategoryBar, StatHero, StreakBadge, Illustrat
 const ground = (g: string) => ({ background: `var(--kmr-color-ground-${g})`, fontFamily: 'var(--kmr-font-family-text)', padding: 24, width: '100%', maxWidth: 342, boxSizing: 'border-box' as const, borderRadius: 16 });
 
 export function Surface() {
-  return <div style={ground('recap')}><Card><Eyebrow>Where £11 went</Eyebrow><CardTitle>Mostly snacks</CardTitle></Card></div>;
+  return <div style={ground('recap')}><Card><Eyebrow>Where £1,760 went</Eyebrow><CardTitle>Mostly snacks</CardTitle></Card></div>;
 }
 export function Accent() {
   return (
@@ -25,7 +25,7 @@ export function Split() {
     <div style={ground('goal')}>
       <Card variant="split" style={{ marginTop: 40 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flexGrow: 1, minWidth: 0 }}>
-          <div><Eyebrow>Where £11 went</Eyebrow><CardTitle>Mostly snacks</CardTitle></div>
+          <div><Eyebrow>Where £1,760 went</Eyebrow><CardTitle>Mostly snacks</CardTitle></div>
           <div style={{ display: 'grid', gap: 10 }}>
             <CategoryBar label="Snacks" percent={45} tone="coral" />
             <CategoryBar label="Games" percent={36} tone="violet" />

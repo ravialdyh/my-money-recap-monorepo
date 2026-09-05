@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  design-system:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Tokens and stylesheet are up to date with tokens.json
+        run: |
+          npm run build:tokens
+          git diff --exit-code -- kids-money-recap-ds/src/tokens kids-money-recap-ds/src/styles
+      - name: Inlined artwork is up to date with assets/illustrations
+        run: |
+          npm run build:assets
+          git diff --exit-code -- kids-money-recap-ds/src/assets
+      - run: npm run typecheck

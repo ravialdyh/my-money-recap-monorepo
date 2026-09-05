@@ -10,7 +10,6 @@ export const Droplet: S = { args: { name: 'droplet' } };
 export const Lemon: S = { args: { name: 'lemon' } };
 export const Share: S = { args: { name: 'share', style: { color: '#1E1B3A' } } };
 export const Sparkle: S = { args: { name: 'sparkle', size: 24, style: { background: '#3DAA6A', borderRadius: 4 } } };
-export const Skateboard: S = { args: { name: 'skateboard' } };
 export const Piggy: S = { args: { name: 'piggy' } };
 export const Categories: S = { render: () => (
   <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -36,7 +35,6 @@ export const AllInWells: S = { render: () => (
     <IconWell tone="coral"><Icon name="lemon" /></IconWell>
     <span style={{ color: '#1E1B3A', display: 'inline-flex' }}><Icon name="share" /></span>
     <span style={{ display: 'inline-flex', background: '#3DAA6A', borderRadius: 4 }}><Icon name="sparkle" size={20} /></span>
-    <Icon name="skateboard" />
     <Icon name="piggy" />
     <span style={{ fontSize: 12, color: '#6B6890' }}>{ICON_NAMES.join(' · ')}</span>
   </div>

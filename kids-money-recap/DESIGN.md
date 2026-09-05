@@ -1,7 +1,7 @@
 # Kids Money Recap — Design System Extraction
 
 Status: **Checkpoint 1 resolved.** Extraction plus confirmed design decisions. No v0 built here by choice: the flow continues in Claude Design, where this system is the base for the full end-to-end app.
-Companion file: `tokens.json` (same folder). Resolved decisions are in §6.
+Companion file: `../kids-money-recap-ds/src/tokens/tokens.json` (the token source of truth). Resolved decisions are in §6.
 
 ## 0. Source and scope
 
@@ -173,7 +173,7 @@ Consequence: the system has to tolerate one "dense" screen (2) without changing 
 
 ### 4.1 Semantic colour tokens
 
-Primitives are named by hue; everything in the UI references a semantic alias. Full values in `tokens.json`.
+Primitives are named by hue; everything in the UI references a semantic alias. Full values in `../kids-money-recap-ds/src/tokens/tokens.json`.
 
 **Ground (one per screen)**
 | Semantic | Meaning | Primitive |

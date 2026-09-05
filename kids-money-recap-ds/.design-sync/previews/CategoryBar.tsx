@@ -26,7 +26,7 @@ export function SpendingSplit() {
   return (
     <div style={ground}>
       <Card style={{ gap: 14 }}>
-        <div><Eyebrow>Where £11 went</Eyebrow><CardTitle>Mostly snacks</CardTitle></div>
+        <div><Eyebrow>Where £1,760 went</Eyebrow><CardTitle>Mostly snacks</CardTitle></div>
         <div style={{ display: 'grid', gap: 10 }}>
           <CategoryBar label="Snacks" percent={45} tone="coral" />
           <CategoryBar label="Games" percent={36} tone="violet" />

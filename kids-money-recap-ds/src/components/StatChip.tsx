@@ -8,7 +8,7 @@ export interface StatChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonEleme
   state?: InteractiveState;
   children: ReactNode;
 }
-/** Tinted pill with an 8px status dot: "Earned £24", "Saved £25", "Spent £11". */
+/** Tinted pill with an 8px status dot: "Money in £2,400", "Saved £640", "Spent £1,760". */
 export function StatChip({ tone, state = 'default', children, className = '', ...rest }: StatChipProps) {
   useStyles();
   return (

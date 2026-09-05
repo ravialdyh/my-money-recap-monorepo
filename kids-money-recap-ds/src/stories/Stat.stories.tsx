@@ -9,9 +9,9 @@ export const Hero: S = { args: { eyebrow: 'Money that came your way', value: 36 
 export const HeroCountUp: S = { args: { eyebrow: 'Money that came your way', value: 36, animate: true } };
 export const Chips: S = { render: () => (
   <StatChipRow>
-    <StatChip tone="earned">Earned £24</StatChip>
-    <StatChip tone="saved">Saved £25</StatChip>
-    <StatChip tone="spent">Spent £11</StatChip>
+    <StatChip tone="earned">Money in £2,400</StatChip>
+    <StatChip tone="saved">Saved £640</StatChip>
+    <StatChip tone="spent">Spent £1,760</StatChip>
   </StatChipRow>
 ) };
 export const ChipStates: S = { render: () => (

@@ -8,7 +8,7 @@ const ground = (g: 'goal' | 'personality') => ({
 export function UnderHeadline() {
   return (
     <div style={ground('goal')}>
-      <Headline size="m">68% of the way to the skateboard</Headline>
+      <Headline size="m">133% of your saving target</Headline>
       <SubCopy style={{ marginTop: 10 }}>About 3 weeks to go at this rate.</SubCopy>
     </div>
   );

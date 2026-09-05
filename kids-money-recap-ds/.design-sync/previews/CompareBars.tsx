@@ -6,7 +6,7 @@ export function SavedVsSpent() {
   return (
     <div style={ground}>
       <Card>
-        <CompareBars rows={[{ label: 'Saved', value: 25, display: '£25', tone: 'green' }, { label: 'Spent', value: 11, display: '£11', tone: 'coral' }]} />
+        <CompareBars rows={[{ label: 'Saved', value: 640, display: '£640', tone: 'green' }, { label: 'Spent', value: 1760, display: '£1,760', tone: 'coral' }]} />
       </Card>
     </div>
   );
@@ -16,9 +16,9 @@ export function ThreeWay() {
     <div style={ground}>
       <Card>
         <CompareBars rows={[
-          { label: 'Earned', value: 24, display: '£24', tone: 'yellow' },
-          { label: 'Saved', value: 25, display: '£25', tone: 'green' },
-          { label: 'Spent', value: 11, display: '£11', tone: 'coral' },
+          { label: 'Money in', value: 2400, display: '£2,400', tone: 'yellow' },
+          { label: 'Saved', value: 640, display: '£640', tone: 'green' },
+          { label: 'Spent', value: 1760, display: '£1,760', tone: 'coral' },
         ]} />
       </Card>
     </div>

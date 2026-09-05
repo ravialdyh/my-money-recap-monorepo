@@ -15,7 +15,7 @@ export function Sparkle() {
     </div>
   );
 }
-export function Markers() { return <div style={row}><Icon name="skateboard" /><Icon name="piggy" /></div>; }
+export function Markers() { return <div style={row}><Icon name="piggy" /></div>; }
 /** The eight Spend Categories, each in its own well tone. */
 export function Categories() {
   return (
