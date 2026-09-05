@@ -6,6 +6,6 @@ node_modules/
 npm-debug.log*
 
 # 4K illustration originals (~58 MB). The shipped WebP cut-outs in
-# kids-money-recap/assets/ are committed; these are the raw generator output,
+# my-money-recap/assets/ are committed; these are the raw generator output,
 # kept locally and backed up outside git.
-kids-money-recap/renders/
+my-money-recap/renders/

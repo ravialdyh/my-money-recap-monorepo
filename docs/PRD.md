@@ -1,15 +1,15 @@
-# Kids Money Recap — Product Requirements Document
+# My Money Recap — Product Requirements Document
 
 | | |
 |---|---|
 | Status | Draft v1, all design questions resolved 2026-09-04 |
 | Platform | Native iOS 17+, iPhone and iPad |
 | Vocabulary | `../CONTEXT.md` is the glossary. Terms in **bold caps** below are defined there. |
-| Design system | `../../kids-money-recap-ds/` (`@kids-money-recap/ui`). `../DESIGN.md` holds the design decisions. |
+| Design system | `../../my-money-recap-ds/` (`@my-money-recap/ui`). `../DESIGN.md` holds the design decisions. |
 
 ## 1. Summary
 
-Kids Money Recap is a personal money tracker for adults, dressed as a playful kids' app. A **Member** sets a monthly **Salary**, a **Payday** and a **Saving Target**, logs each **Spend** by hand, and at the end of every calendar month gets a four-screen, Wrapped-style **Recap**: what came in, what was kept, where the rest went, the longest no-spend **Streak**, and a money-personality **Archetype** to share.
+My Money Recap is a personal money tracker for adults, dressed as a playful kids' app. A **Member** sets a monthly **Salary**, a **Payday** and a **Saving Target**, logs each **Spend** by hand, and at the end of every calendar month gets a four-screen, Wrapped-style **Recap**: what came in, what was kept, where the rest went, the longest no-spend **Streak**, and a money-personality **Archetype** to share.
 
 The four Recap screens already exist as artboards and as React components in the design system. This document specifies the whole product around them: sign-in, onboarding, Home, Spend logging, the Recap rules, settings, notifications, and the platform constraints.
 
@@ -123,7 +123,7 @@ Step by step:
 
 ## 6. Screen specifications
 
-Every screen uses `Screen` from the design system with one of the four grounds. Component names refer to exports of `@kids-money-recap/ui`. Component states follow the design system: pressed = scale 0.97 and brightness 0.92, disabled = opacity 0.4. Motion follows `DESIGN.md` §4.4 and honours Reduce Motion.
+Every screen uses `Screen` from the design system with one of the four grounds. Component names refer to exports of `@my-money-recap/ui`. Component states follow the design system: pressed = scale 0.97 and brightness 0.92, disabled = opacity 0.4. Motion follows `DESIGN.md` §4.4 and honours Reduce Motion.
 
 ### 6.1 Sign in
 
@@ -390,7 +390,7 @@ Push permission is requested once, after the first Spend is saved. If denied, th
 
 ## 13. Implications for the design system revision
 
-The PRD keeps the four grounds, two fonts, two radii and white cards. Everything below was **built and synced to the design-system project on 2026-09-04**; `../../kids-money-recap-ds/.design-sync/NOTES.md` records the build. Two changes touch an existing component's behaviour and are called out where they occur; nothing else alters how an existing component looks.
+The PRD keeps the four grounds, two fonts, two radii and white cards. Everything below was **built and synced to the design-system project on 2026-09-04**; `../../my-money-recap-ds/.design-sync/NOTES.md` records the build. Two changes touch an existing component's behaviour and are called out where they occur; nothing else alters how an existing component looks.
 
 **One new surface.** Log a spend, Settings and every settings sub-screen are a white surface, not a fifth ground. `Sheet` (bottom sheet, `radius.card` on the top corners, drag handle) and `Sheet variant="full"` sit *on top of* the violet ground. The four grounds are unchanged.
 
@@ -423,7 +423,7 @@ The PRD keeps the four grounds, two fonts, two radii and white cards. Everything
 - `RecapCoverScreen`: Earned `StatChip` removed.
 - Header `Chip` and `ArchetypePill`: `tappable` prop added. It lifts the hit area to 44pt with a centred pseudo-element, so the drawn pill keeps its size and no existing screen shifts.
 - `CompareBars`: **behaviour change.** It scaled every row against the sum of all rows while its own documentation claimed the largest. A `scale` prop now makes the choice explicit — `total` (the default, so screen 4 renders exactly as before) and `max`, which screen 2 uses because "Kept" is measured against a benchmark, not shown as a share of a whole.
-- The font-inheritance gap noted in the design system's `NOTES.md` is fixed: `font-family` is set on `.kmr-card` and the five text classes, so `Card` text renders in Nunito outside `Screen`.
+- The font-inheritance gap noted in the design system's `NOTES.md` is fixed: `font-family` is set on `.mmr-card` and the five text classes, so `Card` text renders in Nunito outside `Screen`.
 - **Props that hide content take `null`, not `undefined`.** `RecapEarningScreen.targetAmount` and `RecapGoalScreen.splurge` both have defaults, so passing `undefined` silently restored the default and made the "not set" and "no spends" states unreachable. Both are now `T | null`, and the splurge also hides itself whenever Spent is 0.
 
 ## 14. Out of scope, candidates for v2

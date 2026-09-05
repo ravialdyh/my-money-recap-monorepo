@@ -1,0 +1,66 @@
+// Generates src/tokens/tokens.css and src/tokens/index.ts from src/tokens/tokens.json.
+// Aliases like "{palette.violet.500}" become var(--mmr-palette-violet-500).
+import { readFileSync, writeFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const src = resolve(here, '../src/tokens/tokens.json');
+const tokens = JSON.parse(readFileSync(src, 'utf8'));
+
+const vars = []; // [name, cssValue]
+const flat = {}; // dotted path -> resolved raw value (for TS export)
+
+const isToken = (o) => o && typeof o === 'object' && '$value' in o;
+const aliasToVar = (v) => v.replace(/\{([^}]+)\}/g, (_, p) => `var(--mmr-${p.replace(/\./g, '-')})`);
+const resolveAlias = (v, depth = 0) => {
+  if (typeof v !== 'string' || depth > 8) return v;
+  return v.replace(/\{([^}]+)\}/g, (_, p) => {
+    const raw = flatRaw[p];
+    return raw === undefined ? `{${p}}` : String(resolveAlias(raw, depth + 1));
+  });
+};
+const flatRaw = {};
+
+function walk(node, path) {
+  for (const [k, v] of Object.entries(node)) {
+    if (k.startsWith('$')) continue;
+    const p = [...path, k];
+    if (isToken(v)) {
+      flatRaw[p.join('.')] = v.$value;
+    } else if (v && typeof v === 'object') {
+      walk(v, p);
+    }
+  }
+}
+walk(tokens, []);
+
+for (const [p, raw] of Object.entries(flatRaw)) {
+  const name = `--mmr-${p.replace(/\./g, '-')}`;
+  let css;
+  if (typeof raw === 'string') css = aliasToVar(raw);
+  else if (typeof raw === 'number') css = String(raw);
+  else if (Array.isArray(raw)) css = p.startsWith('font.family') ? raw.map((f) => (f.includes(' ') ? `'${f}'` : f)).join(', ') : `cubic-bezier(${raw.join(', ')})`;
+  else if (raw && typeof raw === 'object') {
+    if (p.startsWith('type.')) {
+      // composite typography: emit one var per part
+      for (const [k2, v2] of Object.entries(raw)) {
+        const part = k2.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
+        vars.push([`${name}-${part}`, typeof v2 === 'string' ? aliasToVar(v2) : String(v2)]);
+      }
+      continue;
+    }
+    if ('color' in raw && 'spread' in raw) css = `${raw.offsetX} ${raw.offsetY} ${raw.blur} ${raw.spread} ${aliasToVar(raw.color)}`;
+    else if ('color' in raw && 'width' in raw) css = `${raw.width} ${raw.style} ${aliasToVar(raw.color)}`;
+    else continue;
+  } else continue;
+  vars.push([name, css]);
+  flat[p] = resolveAlias(raw);
+}
+
+const css = `/* Generated from tokens.json by scripts/build-tokens.mjs. Do not edit by hand. */\n:root {\n${vars.map(([n, v]) => `  ${n}: ${v};`).join('\n')}\n}\n`;
+writeFileSync(resolve(here, '../src/tokens/tokens.css'), css);
+
+const ts = `// Generated from tokens.json by scripts/build-tokens.mjs. Do not edit by hand.\n// Resolved raw values (aliases followed) for use in JS. Prefer the CSS variables in components.\nexport const tokens = ${JSON.stringify(flat, null, 2)} as const;\n\nexport type TokenPath = keyof typeof tokens;\n\n/** CSS custom property name for a token path, e.g. cssVar('color.ground.recap') -> 'var(--mmr-color-ground-recap)'. */\nexport const cssVar = (path: TokenPath | string): string => \`var(--mmr-\${String(path).replace(/\\./g, '-')})\`;\n`;
+writeFileSync(resolve(here, '../src/tokens/index.ts'), ts);
+console.log(`tokens.css: ${vars.length} custom properties; index.ts: ${Object.keys(flat).length} resolved tokens`);

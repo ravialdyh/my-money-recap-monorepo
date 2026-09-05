@@ -1,0 +1,48 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "1 · Cover",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    {
+      "file": "Earned.dc.html",
+      "title": "2 · Earned + streak",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    {
+      "file": "Goals.dc.html",
+      "title": "3 · Goal + spending",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    {
+      "file": "Personality.dc.html",
+      "title": "4 · Money personality",
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    }
+  ],
+  "annotations": [
+    {
+      "id": "sample-data",
+      "x": 0,
+      "y": -170,
+      "w": 460,
+      "text": "My money recap, monthly Wrapped-style story cards.\nAll figures are sample data (Maya, September 2026): earned £24 + £12 pocket money, spent £11, saved £25, skateboard fund £41 of £60.\nEach screen carries one story number plus at most two supporting facts."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}

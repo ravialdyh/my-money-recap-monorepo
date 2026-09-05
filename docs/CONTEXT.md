@@ -1,4 +1,4 @@
-# Kids Money Recap
+# My Money Recap
 
 A personal money tracker for adults, styled as a playful kids' app, that turns one month of income, spending and saving into a Wrapped-style monthly recap.
 

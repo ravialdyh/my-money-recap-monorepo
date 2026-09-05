@@ -1,18 +1,18 @@
 {
-  "name": "kids-money-tracker",
+  "name": "my-money-tracker",
   "private": true,
   "version": "0.0.0",
-  "description": "Monorepo for Kids Money Recap: design source, design system, apps and infrastructure.",
+  "description": "Monorepo for My Money Recap: design source, design system, apps and infrastructure.",
   "workspaces": [
-    "kids-money-recap-ds",
+    "my-money-recap-ds",
     "apps/*",
     "packages/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "build:tokens": "npm run build:tokens -w @kids-money-recap/ui",
-    "build:assets": "npm run build:assets -w @kids-money-recap/ui"
+    "build:tokens": "npm run build:tokens -w @my-money-recap/ui",
+    "build:assets": "npm run build:assets -w @my-money-recap/ui"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,74 @@
+{
+  "pkg": "@my-money-recap/ui",
+  "globalName": "MMR",
+  "shape": "package",
+  "entry": "src/index.ts",
+  "buildCmd": "npm run build:tokens",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": "dist/mmr.css",
+  "componentSrcMap": {
+    "ChipRow": null,
+    "StatChipRow": null,
+    "DataRowList": null,
+    "ArchetypeRow": null,
+    "CardTitle": "src/components/Card.tsx",
+    "SubCopy": "src/components/Headline.tsx",
+    "HelperText": "src/components/Headline.tsx",
+    "Eyebrow": "src/components/Headline.tsx",
+    "IconWell": "src/components/DataRow.tsx",
+    "StreakBadge": "src/components/Streak.tsx",
+    "StreakDots": "src/components/Streak.tsx",
+    "ProgressBar": "src/components/Bars.tsx",
+    "CategoryBar": "src/components/Bars.tsx",
+    "CompareBars": "src/components/Bars.tsx",
+    "Icon": "src/index.ts",
+    "RecapCoverScreen": "src/screens/RecapScreens.tsx",
+    "RecapEarningScreen": "src/screens/RecapScreens.tsx",
+    "RecapGoalScreen": "src/screens/RecapScreens.tsx",
+    "RecapPersonalityScreen": "src/screens/RecapScreens.tsx",
+    "TextField": "src/components/TextField.tsx",
+    "AmountField": "src/components/AmountField.tsx",
+    "Slider": "src/components/Slider.tsx",
+    "Toggle": "src/components/Toggle.tsx",
+    "Banner": "src/components/Banner.tsx",
+    "Sheet": "src/components/Sheet.tsx",
+    "ListRow": "src/components/ListRow.tsx",
+    "AvatarGrid": "src/components/AvatarGrid.tsx",
+    "Avatar": "src/components/AvatarGrid.tsx"
+  },
+  "docsDir": ".design-sync/docs",
+  "dtsPropsFor": {
+    "Icon": "  /** Which glyph to draw. The eight Category glyphs (`snacks`/`games`/`toys`/`rides`/`clothes`/`bills`/`gifts`/`other`) and `paw`/`droplet`/`lemon` are 16px filled glyphs for IconWell; `share`/`settings`/`chevron`/`plus` are 20px stroked; `sparkle` is decorative; `piggy` is the 64x30 progress-bar marker. */\n  name: \"paw\" | \"droplet\" | \"lemon\" | \"share\" | \"sparkle\" | \"snacks\" | \"games\" | \"toys\" | \"rides\" | \"clothes\" | \"bills\" | \"gifts\" | \"other\" | \"settings\" | \"chevron\" | \"plus\" | \"piggy\";\n  /** Square size in px. Ignored by the marker (`piggy`). Defaults: 16 for filled glyphs, 20 for stroked ones. */\n  size?: number;\n  /** SVG fill. Category and well glyphs default to their own palette token; stroked glyphs use currentColor. */\n  fill?: string;\n  className?: string;\n  style?: React.CSSProperties;"
+  },
+  "overrides": {
+    "Screen": {
+      "cardMode": "column",
+      "viewport": "440x900"
+    },
+    "RecapCoverScreen": {
+      "cardMode": "single",
+      "viewport": "440x900",
+      "primaryStory": "Default"
+    },
+    "RecapEarningScreen": {
+      "cardMode": "single",
+      "viewport": "440x900",
+      "primaryStory": "Default"
+    },
+    "RecapGoalScreen": {
+      "cardMode": "single",
+      "viewport": "440x900",
+      "primaryStory": "Default"
+    },
+    "RecapPersonalityScreen": {
+      "cardMode": "single",
+      "viewport": "440x900",
+      "primaryStory": "Default"
+    },
+    "ArchetypePill": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md",
+  "projectId": "5f615747-48cd-4708-9369-becee9793f4e"
+}
