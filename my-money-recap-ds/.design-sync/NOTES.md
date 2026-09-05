@@ -41,11 +41,16 @@ node .ds-sync/resync.mjs --config .design-sync/config.json \
 
 `.ds-sync/node_modules` (playwright, ts-morph) is separate and unaffected.
 
-**Fetch the anchor first.** Without `--remote <sidecar>` the verdict reports
-`anchor: not_provided` and the diff calls every component `added`, so the upload set is a
-full 35-component re-push and `pendingGrade` lists all of them. Pull the anchor with
-DesignSync `get_file` into a local file and pass it, or you cannot tell a real change from a
-missing baseline.
+Fetch the anchor first, as the re-sync risks below already require — a run without
+`--remote` reports `anchor: not_provided` and calls every component `added`.
+
+**Do not reuse the cached anchor without checking it.** On 2026-09-05 the file left at
+`.design-sync/.cache/remote-sync.json` held `styleSha 95cf6f1e…` while the live project
+held `5432deb9…` — it was the anchor from *before* the 2026-09-04 upload, not after it, so
+it would have diffed against the wrong baseline while looking valid. It has been renamed to
+`remote-sync.STALE-pre-2026-09-04-upload.json`. Re-fetch with DesignSync `get_file` on
+`_ds_sync.json` every time, and compare `styleSha` against the live project before trusting
+any cached copy.
 
 ## Re-sync risks
 
