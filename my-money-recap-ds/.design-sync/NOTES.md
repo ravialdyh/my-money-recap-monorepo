@@ -52,6 +52,20 @@ it would have diffed against the wrong baseline while looking valid. It has been
 `_ds_sync.json` every time, and compare `styleSha` against the live project before trusting
 any cached copy.
 
+## Renaming the token prefix breaks consuming design pages
+
+`conventions.md` tells the design agent to write layout glue as plain `div`/`span` with
+inline styles using the raw custom properties (`--mmr-color-ground-recap`, `--mmr-space-*`,
+`--mmr-radius-card`, …). Those literals end up hand-written inside the `.dc.html` pages in
+the Claude Design project, which this repo does not contain and `/design-sync` does not
+touch.
+
+So a prefix rename is a **two-sided** change. Uploading the renamed system alone leaves every
+`var(--kmr-…)` in those pages resolving to nothing — grounds, spacing, radii and fonts fall
+back to browser defaults with no error. After any prefix change, immediately ask the design
+agent to replace the old prefix with the new one across every page. Same applies to renaming
+any individual token.
+
 ## Re-sync risks
 
 - `dist/mmr.css` is gitignored: run `npm run build:tokens` (`cfg.buildCmd`) before the converter or the CSS is stale/missing.
