@@ -31,13 +31,15 @@ Never hard-code hex; the palette lives in `--mmr-palette-*`. Depth comes from co
 
 **Illustrations vary in aspect ratio.** Where one slot shows several (the four Archetype mascots), pass `maxHeight` as well as `width`, or a taller subject pushes what follows off the 844pt screen.
 
-**Optional props that hide content take `null`, never `undefined`.** `RecapEarningScreen`'s `targetAmount` and `RecapGoalScreen`'s `splurge` have defaults, so `undefined` is replaced by the default and the empty state never appears. Pass `null` to mean "not set".
+**Optional props that hide content take `null`, never `undefined`.** `RecapEarningScreen`'s `targetAmount` and `RecapGoalScreen`'s `splurge` have defaults, so `undefined` is replaced by the default and the empty state never appears. Pass `null` to mean "not set". Same for `PromptCard`'s `eyebrow` and `helper`, `DayPicker`'s `nextPaydays`, and `InlineError`'s `action`.
 
 **Illustrations** are exported as data URIs on `ILLUSTRATIONS`: `cover`, `lemonade`, `vending`, `squirrel`, `envelope`, `jar`, `hustler`, `treat`, `slowburner`, and the six avatars, which have hyphenated keys read as `ILLUSTRATIONS['avatar-fox' | 'avatar-otter' | 'avatar-panda' | 'avatar-frog' | 'avatar-owl' | 'avatar-rabbit']`. There are no other illustrations; do not invent filenames.
 
 **Icons.** All glyphs come from one component, `<Icon name="…" />`, with seventeen names: the eight Categories (`snacks`, `games`, `toys`, `rides`, `clothes`, `bills`, `gifts`, `other`) plus `paw`, `droplet`, `lemon` are 16px filled glyphs for `IconWell`; `share`, `settings`, `chevron`, `plus` are 20px stroked and take `currentColor`; `sparkle` is decorative; `piggy` is the 64x30 `ProgressBar` marker for the saving-target bar. A cross is `plus` rotated 45 degrees — there is no separate close glyph.
 
-**Forms and settings.** `TextField` (label, `prefix`, `suffix`, `helper`, `state="default" | "focus" | "invalid" | "disabled"`), `AmountField` (currency-aware, minor units per ISO 4217 — GBP 2, IDR 0, BHD 3), `Slider` (the saving-target percentage), `Toggle` (settings switches), `Banner` (the coral Target Warning, `onDismiss` optional), `ListRow` (settings and currency rows: `value`, `trailing="chevron" | "check" | "none"`, `tone="destructive"`), `AvatarGrid` / `Avatar`.
+**Forms and settings.** `TextField` (label, `prefix`, `suffix`, `helper`, `state="default" | "focus" | "invalid" | "disabled"`), `AmountField` (currency-aware, minor units per ISO 4217 — GBP 2, IDR 0, BHD 3), `Slider` (the saving-target percentage), `Toggle` (settings switches), `Banner` (the coral Target Warning, `onDismiss` optional), `ListRow` (settings and currency rows: `value`, `trailing="chevron" | "check" | "none"`, `tone="destructive"` — this is also the currency **select** row; there is no `SelectRow`), `DayPicker` (the Payday picker: 1–31 plus `Last day`, `value` is `number | 'last'`, and `nextPaydays` takes the three dates you computed — it does no calendar arithmetic), `InlineError` (the only error surface; it pushes content down and never overlays), `AvatarGrid` / `Avatar`.
+
+**Empty states are `PromptCard`, never a hand-built card.** It is one tap target, and `size` holds the height of the card it replaces — `hero` 191pt, `target` 136pt, `auto` for a Settings row — so filling one in never moves the screen.
 
 **States are props:** `state="pressed" | "disabled"` on pressables, `selected` on `ArchetypePill` and `AvatarGrid`.
 

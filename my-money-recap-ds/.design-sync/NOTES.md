@@ -264,3 +264,91 @@ uploaded either.
   `--mmr-*` names, every abbreviated family member, and every named component resolve. `--mmr-palette-`
   is a prefix reference, not a token, and is expected to fail a literal lookup.
 - `report_validate` sent as total 35 / bad 0 / thin 0 / variantsIdentical 0 / iterations 2.
+
+## Sixth sync (2026-09-08) — PRD D50, the four components the canvases hand-composed
+
+Scope: PRD §13 / D50 asked for four new components before the 37 `NEW` screens in
+`SCREEN-STATES.md` get drawn. **Three were built; the fourth was not, deliberately.**
+
+**Added** (each with a `componentSrcMap` entry, a `docs/*.md` card and an owned `previews/*.tsx`):
+
+- `PromptCard` — the empty-state card. The card *is* the `<button>`; `size` holds the height of the
+  card it replaces (`hero` 191pt, `target` 136pt, `auto` for a Settings row) so filling one in never
+  moves the screen (PRD §6.8, D54). `eyebrow` and `helper` are `ReactNode | null`, **defaulting to
+  `null`**, so `undefined` can never accidentally show content — the fourth sync's bug class.
+- `DayPicker` — 44pt Payday pills, 1–31 plus `Last day`, nothing disabled (D51). `value` is
+  `number | 'last'`. **`nextPaydays` is a prop, not a computation**: the component does no calendar
+  arithmetic, so `min(Payday, days in month)` stays with the caller (PRD §8.2). `null` removes the
+  helper line.
+- `InlineError` — the app's only error surface now that D67 dropped `Toast`. `action` is
+  `ReactNode | null`, default `null`.
+
+**`SelectRow` was not built — `ListRow` already is it.** PRD §13 describes it as "`ListRow` anatomy
+without the `IconWell`, a violet check in place of the value", which is `ListRow trailing="check"`
+with `selected` (the check is `palette.violet.500`, and the row never had an icon well). Building it
+would have shipped a second name for a shipped component. Recorded in `.design-sync/docs/ListRow.md`
+so the design agent reads it on the ListRow card, and stated in `conventions.md`. The `SelectRow`
+rows in SCREEN-STATES A5 and D5 are `ListRow trailing="check"`.
+
+**Radius 16 without a third radius token.** PRD §13 specifies radius 16 for `InlineError`, but the
+system has exactly two radii (28 card, pill). `.mmr-inline-error` borrows `--mmr-space-6` (16px) —
+the same move `.mmr-row` already makes for its 8px corner via `--mmr-space-3`. **No radius token was
+added**; if a third radius ever becomes real, these two rules are where to look.
+
+**No token changes at all this sync.** coral-100, coral-500 and violet-100 already existed;
+`build:tokens` was still run because `components.css` is concatenated into `css.generated.ts`.
+
+**Two defects found by rendering, both before upload:**
+- `DayPicker`'s centre-on-open landed a card-padding off. `offsetLeft` is measured from the nearest
+  positioned ancestor, and `.mmr-card` is `position: relative`, so the pills were measured against
+  the Card, not the scroll row. Fixed by making `.mmr-day-picker-row` `position: relative` — it has
+  to be the `offsetParent` for the arithmetic to mean anything.
+- `InlineError` with a long unbroken address (`maya@privaterelay.appleid.com`) pushed its `action`
+  outside the block and clipped it. Fixed with `min-width: 0` + `overflow-wrap: anywhere` on
+  `.mmr-inline-error-body`. The `TwoLines` preview exists to keep that case on screen.
+
+**Verification.** `tsc --noEmit` clean (note: it covers `src` only — previews were typechecked
+separately against `src/index.ts` via a scratch tsconfig with a `@my-money-recap/ui` path alias,
+which is worth repeating whenever previews change). Every story was also rendered live in a browser
+and measured: PromptCard heights came back 191 / 136 / 92, wells 44x44, InlineError radius 16px,
+fill `rgb(255,227,224)`, text `rgb(240,102,90)` at Nunito 800 13px, and the DayPicker selection
+measured 0px off the row centre.
+
+Resync verdict `ok: true`, `anchor: ok`, four stages passed; 35 `unchanged`, 3 `added`, 0 `changed`,
+0 `removed`, `deletePaths` empty. Render check 0 of 38 flagged, only warn line `[FONT_REMOTE]`
+(known). Upload: sentinel → 4 (bundle + vendor) → 120 → 72 → sentinel → anchor; 198 files confirmed
+by `list_files` (plus the app's own `_ds_manifest.json` and `_adherence.oxlintrc.json`). Anchor
+moved `c4d54683…` → `388b5144…`, `bundleSha12 30228d8f7acf` → `8979f6c8a370`;
+`.design-sync/.cache/remote-sync.json` refreshed to match.
+
+**`conventions.md` was validated, then extended with the user's approval** (never rewritten): all 20
+literal `--mmr-*` names, all 45 abbreviated family members, all 27 component names and every
+illustration key still resolve; `--mmr-palette-` is the known prefix reference. Added: the three new
+components in "Forms and settings", a new "Empty states are `PromptCard`" paragraph, the
+no-`SelectRow` clarification on `ListRow`, and the new nullable props on the existing null-props
+paragraph. `SelectRow` now appears in the header as a name that deliberately does *not* resolve.
+
+**The `.dc.html` canvases were checked against this upload.** All four reference
+`_ds/my-money-recap-5f615747-…/_ds_bundle.js` and `…/styles.css`; every one of the 34 distinct
+`var(--mmr-*)` tokens they use resolves against the uploaded `_ds_bundle.css`, and all 38 component
+identifiers they name exist in the bundle. **`grep -- --kmr- design-files/*.dc.html` now returns
+nothing** — the two-sided rename from the fifth sync is complete on both sides. The exported handoff
+folder has no `_ds/` directory, so the four files cannot render as local copies; that is what an
+export is, not a break — they render inside the design project.
+
+### Re-sync risks added by this sync
+
+- **`DayPicker` centring depends on a CSS rule, not on JS.** `.mmr-day-picker-row { position:
+  relative }` is what makes `offsetLeft` mean "distance along the scroll row". Delete it and the
+  selection silently lands off-centre, with no error and no render-check failure.
+- **`PromptCard`'s two heights are literal px in `components.css`** (191 / 136), matched to the Home
+  cards in PRD §6.8. If those cards are re-measured, both rules and the PRD table must move together
+  — nothing links them.
+- **`.mmr-inline-error` uses `--mmr-space-6` as a radius.** A search for "which components use a
+  16px radius" will not find it by radius token. Same for `.mmr-row` and `--mmr-space-3`.
+- `previews/` is now 38 files. Unchanged rule: a new component in `src/components/` needs BOTH a
+  `docs/*.md` card and an owned preview, or it groups under `general` and drops to the floor card.
+- `PromptCard` renders its eyebrow/title/helper as `span`s carrying the `mmr-eyebrow` /
+  `mmr-card-title` / `mmr-helper` classes rather than the `Eyebrow` / `CardTitle` / `HelperText`
+  components, because a `<button>` may not contain an `<h2>` or a `<p>`. If those classes are ever
+  restyled with element-dependent rules, PromptCard is the one that breaks.
