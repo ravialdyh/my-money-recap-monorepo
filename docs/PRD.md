@@ -7,7 +7,7 @@
 | Vocabulary | `../CONTEXT.md` is the glossary. Terms in **bold caps** below are defined there. |
 | Design system | `../../my-money-recap-ds/` (`@my-money-recap/ui`). `../DESIGN.md` holds the design decisions. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
-| Design handoff | `design/design_handoff_my_money_recap/` — 62 drawn screens, four canvases, and `GAPS.md` (all 57 gaps now closed out against this document). |
+| Design handoff | `design/design_handoff_my_money_recap/` — the four canvases, the verbatim design notes, and `GAPS.md` (all 57 gaps now closed out against this document). The 62 drawn screens are live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e>; their renders are not in git. |
 
 ## 1. Summary
 

@@ -11,7 +11,7 @@
 
 Each item: **what is missing**, **evidence** (PRD section / screen id / note), and **the decision to make**. Severity: 🔴 blocks implementation, 🟠 visible to users, 🟡 polish/consistency.
 
-Ids like `B1` refer to `data-screen-label` values in the canvases and to `screens/*.png`. "Note" = the yellow annotation, quoted in `DESIGN_NOTES_VERBATIM.md`.
+Ids like `B1` refer to `data-screen-label` values in the canvases, and to the same-named screens in the design project. "Note" = the yellow annotation, quoted in `DESIGN_NOTES_VERBATIM.md`.
 
 ---
 

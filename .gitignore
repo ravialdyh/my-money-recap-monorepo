@@ -9,3 +9,13 @@ npm-debug.log*
 # my-money-recap/assets/ are committed; these are the raw generator output,
 # kept locally and backed up outside git.
 my-money-recap/renders/
+
+# Scratch harnesses. Anything named .tmp-* is a throwaway built to measure or
+# render something once; none of it belongs in a commit.
+.tmp-*
+
+# Handoff screen renders (65 PNGs, 5.3 MB). Nothing links to an individual one,
+# git would keep them forever, and the screens themselves are live and current
+# in the design project:
+# https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e
+docs/design/**/screens/

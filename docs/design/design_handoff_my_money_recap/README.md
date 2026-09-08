@@ -15,7 +15,7 @@ My Money Recap is a personal money tracker for adults with a playful kids'-app v
 
 Two purposes for this package: (1) **complete the spec** — find every state the PRD and the canvases leave undefined and decide it; (2) **implement** the app (native iOS 17+, SwiftUI per PRD D11) once the spec is complete.
 
-> **Status, 2026-09-08.** Purpose (1) is done: the design review closed all 57 items in `GAPS.md` and the decisions live in `../../PRD.md` (D41–D67) and `../../SCREEN-STATES.md`. **Read those two, not this package**, for anything you intend to build. Everything here — this file, `GAPS.md`, `DESIGN_NOTES_VERBATIM.md`, `PRD.md` (an older copy), the canvases and the PNGs — is the record of how the design got here.
+> **Status, 2026-09-08.** Purpose (1) is done: the design review closed all 57 items in `GAPS.md` and the decisions live in `../../PRD.md` (D41–D67) and `../../SCREEN-STATES.md`. **Read those two, not this package**, for anything you intend to build. Everything here — this file, `GAPS.md`, `DESIGN_NOTES_VERBATIM.md`, `PRD.md` (a pointer stub) and the canvases — is the record of how the design got here.
 
 ## About the design files
 
@@ -23,7 +23,7 @@ The `.dc.html` files are **design references built in HTML** on top of the real 
 
 > **The logic class at the bottom of each file (`class Component extends DCLogic`) is NOT a reference implementation of the formulas — do not copy from it.** An earlier version of this paragraph said it was, and that sentence sent readers to broken arithmetic. Verified 2026-09-08: Streak, kept %, Archetype, Splurge and the Category roll-up are computed **nowhere** in the canvases — `archetype="squirrel"` and `splurge="£420 on a flight home…"` are hand-written literal attribute values. The Home canvas hardcodes a 30-day month (`daysLeft = 30 - d + 1`), never computes days-in-month, omits `min(Payday, days in month)`, omits the Saved clamp, and clamps its own `today` prop to 21–30 so the September sample keeps working. **`../../PRD.md` §8 is the only source of the formulas.** What the canvases are good for is layout, copy and composition — not arithmetic.
 
-The design-system bundle (`_ds/…/_ds_bundle.js`, `styles.css`) is **not** included; the HTML will not render without it. Use the PNGs in `screens/` to see the designs. Component and token names below refer to the published library and are the ones to use.
+The design-system bundle (`_ds/…/_ds_bundle.js`, `styles.css`) is **not** included; the HTML will not render as a local copy without it. **To see the designs, open the project itself:** <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e>, which is where they are live and current. Component and token names below refer to that published library and are the ones to use.
 
 ## Fidelity
 
@@ -149,4 +149,4 @@ Illustrations and avatars are data URIs on `MMR.ILLUSTRATIONS` in the design sys
 - `PRD.md` — the product requirements document, Draft v1 (2026-09-04).
 - `DESIGN_NOTES_VERBATIM.md` — every yellow annotation from the four canvases, keyed by screen id.
 - `design-files/*.dc.html` — the four canvases (source of truth for copy, layout and the reference formulas in each file's logic class).
-- `screens/*.png` — one PNG per screen and variant, plus the four flow maps. Named `{id}-{slug}.png`.
+- Screen renders are **not** in git. The 65 PNGs were 5.3 MB of binaries that nothing linked to individually and that git would keep forever; the screens are live in the design project (link above) and re-exportable from the canvas. They remain in this folder on the machine that produced the handoff, ignored via `docs/design/**/screens/`.
