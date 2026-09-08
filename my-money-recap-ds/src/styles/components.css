@@ -555,3 +555,91 @@
   color: var(--mmr-color-text-on-inverse);
 }
 .mmr-chip[data-tone][data-selected="true"] svg { fill: var(--mmr-palette-white); }
+
+/* ---- PromptCard (empty-state card, PRD D50/D54) ----
+   The card is the button, so it has to unset the UA button styling the way .mmr-row does. The two
+   fixed heights are the filled Home cards it stands in for — 191pt hero, 136pt target (PRD §6.8) —
+   so filling one in never moves the rest of the screen. */
+.mmr-prompt-card {
+  border: 0;
+  width: 100%;
+  text-align: left;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mmr-space-6);
+}
+.mmr-prompt-card[data-size="hero"] { height: 191px; }
+.mmr-prompt-card[data-size="target"] { height: 136px; }
+.mmr-prompt-card-body { display: flex; flex-direction: column; gap: var(--mmr-space-2); min-width: 0; }
+.mmr-prompt-card .mmr-well {
+  width: var(--mmr-size-touch-target-min);
+  height: var(--mmr-size-touch-target-min);
+  color: var(--mmr-palette-violet-500);
+}
+.mmr-prompt-card .mmr-well svg { width: var(--mmr-size-icon-button); height: var(--mmr-size-icon-button); }
+
+/* ---- DayPicker (Payday, PRD §6.6, D51) ----
+   1–31 plus `Last day` as 44pt pills on one scrolling row; the selection is the ink pill. */
+.mmr-day-picker { display: flex; flex-direction: column; gap: var(--mmr-space-4); font-family: var(--mmr-font-family-text); }
+.mmr-day-picker-row {
+  /* The offsetParent for the pills: without it `offsetLeft` is measured from the enclosing Card
+     (which is `position: relative`) and the centre-on-open scroll lands a card-padding off. */
+  position: relative;
+  display: flex;
+  gap: var(--mmr-space-3);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.mmr-day-picker-row::-webkit-scrollbar { display: none; }
+.mmr-day-pill {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  min-width: var(--mmr-size-touch-target-min);
+  height: var(--mmr-size-touch-target-min);
+  padding: 0 var(--mmr-space-4);
+  border: 0;
+  border-radius: var(--mmr-radius-pill);
+  background: var(--mmr-color-surface-field);
+  color: var(--mmr-color-text-primary);
+  font-family: var(--mmr-font-family-text);
+  font-size: var(--mmr-type-label-m-font-size);
+  font-weight: var(--mmr-type-label-m-font-weight);
+  font-variant-numeric: tabular-nums;
+}
+.mmr-day-pill[data-wide="true"] { padding: 0 var(--mmr-space-6); }
+.mmr-day-pill[data-selected="true"] {
+  background: var(--mmr-color-surface-button-primary);
+  color: var(--mmr-color-text-on-inverse);
+}
+.mmr-day-picker[data-state="disabled"] { opacity: var(--mmr-color-state-disabled-opacity); }
+.mmr-day-picker-helper { font-variant-numeric: tabular-nums; }
+
+/* ---- InlineError (the only error surface, PRD D67) ----
+   Radius 16 is between the two radii, so it borrows the 16px space step rather than adding a third
+   radius token — the same move .mmr-row makes for its 8px press wash. */
+.mmr-inline-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mmr-space-3);
+  box-sizing: border-box;
+  padding: var(--mmr-space-4) var(--mmr-space-5);
+  border-radius: var(--mmr-space-6);
+  background: var(--mmr-palette-coral-100);
+  color: var(--mmr-color-text-accent-coral);
+  font-family: var(--mmr-font-family-text);
+  font-size: var(--mmr-type-label-s-font-size);
+  font-weight: var(--mmr-type-label-s-font-weight);
+  line-height: var(--mmr-type-label-s-line-height);
+}
+.mmr-inline-error-dot {
+  flex-shrink: 0;
+  width: var(--mmr-size-status-dot);
+  height: var(--mmr-size-status-dot);
+  margin-top: 3px;
+  border-radius: var(--mmr-radius-pill);
+  background: var(--mmr-palette-coral-500);
+}
+.mmr-inline-error-body { flex-grow: 1; min-width: 0; overflow-wrap: anywhere; }
+.mmr-inline-error-action { flex-shrink: 0; font-weight: 800; text-decoration: underline; }

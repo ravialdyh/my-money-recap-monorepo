@@ -33,6 +33,9 @@
     "Banner": "src/components/Banner.tsx",
     "Sheet": "src/components/Sheet.tsx",
     "ListRow": "src/components/ListRow.tsx",
+    "PromptCard": "src/components/PromptCard.tsx",
+    "DayPicker": "src/components/DayPicker.tsx",
+    "InlineError": "src/components/InlineError.tsx",
     "AvatarGrid": "src/components/AvatarGrid.tsx",
     "Avatar": "src/components/AvatarGrid.tsx"
   },
