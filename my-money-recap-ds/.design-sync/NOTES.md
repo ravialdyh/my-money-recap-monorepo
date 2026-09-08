@@ -21,7 +21,7 @@
 
 ## Findings from the first verification pass
 
-- **Font inheritance (DS finding, not fixed here):** `.mmr-eyebrow`, `.mmr-helper`, `.mmr-bar-labels`, `.mmr-compare-label/-value` and `.mmr-card` set no `font-family`; only `.mmr-screen` does. Outside a `Screen` they render in the browser serif. Preview wrappers set `fontFamily: var(--mmr-font-family-text)` to stand in for Screen; the conventions header tells the design agent the same. A fix in `components.css` (font-family on `.mmr-card` and the text classes) would make this go away; then the wrapper style in `.design-sync/previews/*` becomes redundant but harmless.
+- **Font inheritance — FIXED in the third sync; kept for the reasoning only.** `.mmr-eyebrow`, `.mmr-helper`, `.mmr-bar-labels`, `.mmr-compare-label/-value` and `.mmr-card` set no `font-family`; only `.mmr-screen` does. Outside a `Screen` they render in the browser serif. Preview wrappers set `fontFamily: var(--mmr-font-family-text)` to stand in for Screen; the conventions header tells the design agent the same. A fix in `components.css` (font-family on `.mmr-card` and the text classes) would make this go away; then the wrapper style in `.design-sync/previews/*` becomes redundant but harmless.
 - **RecapPersonalityScreen** used to show the squirrel regardless of `archetype`. **Fixed 2026-09-04**: `ARCHETYPE_ILLUSTRATION` in `src/screens/RecapScreens.tsx` maps each Archetype to its own mascot, now that all four exist (`squirrel`, `hustler`, `treat`, `slowburner`).
 - **StatHero `CountUp`** captures mid-animation (part-way to the £2,400 total). Expected; the grade note records it. Not a render warn.
 - **Icon is pinned to `src/index.ts`** in `componentSrcMap` on purpose: its real source dir `src/icons/` would force the group `icons`, and the user wants the card under Foundations. Side effect: the Icon JSDoc is not picked up; `dtsPropsFor.Icon` carries the description instead.
@@ -68,12 +68,45 @@ any individual token.
 
 ## Re-sync risks
 
+The one live watch-list. The per-sync risk sections were folded in here on 2026-09-08 so there is
+exactly one place to look; the sync narratives below are history, not instructions.
+
+**Build and environment**
+
 - `dist/mmr.css` is gitignored: run `npm run build:tokens` (`cfg.buildCmd`) before the converter or the CSS is stale/missing.
 - Fonts load from Google Fonts at runtime; an offline render check produces fallback type and would wrongly fail the Styled criterion.
-- `dtsPropsFor.Icon` is hand-written: update it when `IconName` gains glyphs (the auto contract would otherwise pick them up).
-- The `.design-sync/docs/*.md` stubs enumerate components for grouping; a new component in `src/components/` lands in `general` until a stub is added.
-- Preview wrappers hard-code `maxWidth: 342` (390 minus 2x24 insets) and ground colours via tokens; if screen width or inset tokens change, previews still render but no longer mirror a real screen.
+- `--node-modules` must be the monorepo **root** `../node_modules` — the workspace hoists `react`, `react-dom`, `esbuild` and `typescript` out of this package.
+- `npm run typecheck` covers `src` only; `tsconfig.json` does not include `.design-sync/previews/`, so a prop rename there surfaces as an esbuild failure mid-resync rather than as a type error. Typecheck the previews separately against `src/index.ts` whenever they change.
+
+**Config that is hand-maintained and will go stale**
+
+- `dtsPropsFor.Icon` is hand-written and lists the **17** names in `ICON_NAMES`. Update it whenever `IconName` changes — nothing derives it, so it can disagree with the code silently.
 - Screen-card `viewport: 440x900` and `primaryStory: Default` live in `cfg.overrides`; renaming the `Default` export in a screen preview silently falls back to the alphabetically first cell.
+- `Avatar` and `AvatarGrid` map to the same source file; renaming `AvatarGrid.tsx` breaks both `componentSrcMap` entries.
+
+**Adding a component**
+
+- A new component in `src/components/` needs BOTH a `.design-sync/docs/<Name>.md` card (or it groups under `general`) and an owned `.design-sync/previews/<Name>.tsx` (or it drops to the floor card). `previews/` is 38 files.
+- A new `--mmr-color-surface-*` token needs a component prop, or the design agent cannot reach it.
+
+**Values that live in two places at once**
+
+- `PromptCard`'s two heights are literal px in `components.css` (191 / 136), matched to the Home cards in PRD §6.8. If those cards are re-measured, both the rules and the PRD table must move together — nothing links them.
+- `maxCategoryBars` above 4 overflows the artboard. If the category list must grow, the split card needs a different layout, not a bigger cap.
+- Screen components are measured, not just rendered. Re-run `scripts/measure.tsx` before uploading a change to any `Recap*Screen`, and treat "fits 844 with dots visible" as part of the contract.
+- Preview wrappers hard-code `maxWidth: 342` (390 minus 2x24 insets) and ground colours via tokens; if screen width or inset tokens change, previews still render but no longer mirror a real screen.
+
+**Known warn lines — expected, not new**
+
+- `[FONT_REMOTE]` on validate: Fredoka and Nunito load from a Google Fonts `@import`. Informational.
+- `[DOCS_UNMAPPED]` on build for `RecapCoverScreen`, `RecapEarningScreen`, `RecapGoalScreen`, `RecapPersonalityScreen`: they have no `docs/*.md` card **on purpose**. Group comes from the `src/screens/` path segment, which beats a stub, so a card would add nothing. Do not "fix" this by adding four stubs.
+
+**Silent-failure traps**
+
+- `.mmr-day-picker-row { position: relative }` is what makes `offsetLeft` mean "distance along the scroll row". Delete it and `DayPicker`'s centre-on-open lands a card-padding off, with no error and no render-check failure.
+- **Never put a disabled opacity on a wrapper whose children are `.mmr-pressable`.** Nested opacity multiplies: `DayPicker` shipped at 0.4 x 0.4 = 0.16 until the fix on 2026-09-08. Dim the leaves, not the wrapper.
+- A token-prefix rename is two-sided — see "Renaming the token prefix breaks consuming design pages" above.
+- Do not re-sync while a canvas is being built in the Claude Design project: the design-system files change under an in-progress file. Land changes between parts, not during one.
 
 ## Re-sync recipe (first sync completed 2026-09-04, project "My Money Recap", https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e)
 
@@ -86,7 +119,7 @@ node .ds-sync/resync.mjs --config .design-sync/config.json --node-modules ./node
   --entry ./src/index.ts --out ./ds-bundle --remote .design-sync/.cache/remote-sync.json
 ```
 
-- This folder is not a git repository; the durable set (`config.json`, `NOTES.md`, `conventions.md`, `docs/`, `previews/`) lives only on disk. Initialise git and commit `.design-sync/` if this sync should survive a fresh clone.
+- The durable set (`config.json`, `NOTES.md`, `conventions.md`, `docs/`, `previews/`) is committed to the monorepo git repo, whose root is `my-money-recap-monorepo/`, not this folder. Everything else under `.design-sync/` is gitignored machine state.
 
 ## Second sync (2026-09-04)
 
@@ -131,8 +164,9 @@ a tidier name), and the PRD line was rewritten.
   adding `scale: 'total' | 'max'`, defaulting to `total` so screen 4 renders exactly as before;
   screen 2 ("Kept" against "Target") passes `scale="max"`, which is what a benchmark comparison needs.
 - `RecapGoalScreen` clipped past five CategoryBars — eight bars pushed Toys, Other and the whole
-  splurge block off the 844px artboard. It now draws `maxCategoryBars` (default 5) and rolls the tail
-  into one labelled HelperText line. DESIGN.md §2 sets information-density at 3, so five bars plus a
+  splurge block off the 844px artboard. It now draws `maxCategoryBars` and rolls the tail
+  into one labelled HelperText line. (The default was 5 here; the fourth sync measured five as a 6pt
+  overflow and moved it to **4**, which is what ships.) DESIGN.md §2 sets information-density at 3, so five bars plus a
   roll-up is the systemic answer, not a workaround.
 
 **The font-inheritance gap recorded in the first sync is fixed.** `font-family` is now set on
@@ -151,33 +185,6 @@ Archetype Squirrel by PRD §8.6. Change one number and re-derive the rest.
 passed; `.render-check.json` flagged 0 of 35 components. Upload was 183 files (35 x 4 component
 files, 35 `_preview/`, 2 `_vendor/`, 6 top-level), `deletePaths` empty, sentinel → 120 → 61 →
 sentinel → anchor, confirmed by `list_files`.
-
-### Re-sync risks added by this sync
-
-- `dtsPropsFor.Icon` is hand-written and now lists 18 names. Update it again whenever `IconName` changes.
-- `Avatar` and `AvatarGrid` map to the same source file; a rename of `AvatarGrid.tsx` breaks both.
-- `previews/` now has 35 files. Any component added to `src/components/` needs BOTH a `docs/*.md`
-  stub (or it groups under `general`) and an owned preview (or it drops to the floor card).
-- The recap previews pass the new prop shapes (`moneyIn`/`targetAmount`, `categories` as
-  `{category, percent}`). They are not typechecked by `npm run typecheck` — tsconfig includes only
-  `src` — so a prop rename surfaces as an esbuild failure during the resync build, not before it.
-
-### Open gaps found by the Part 2 canvas build (2026-09-04) — close before Part 4
-
-Claude Design had to inline-style two things the system should own. Neither blocks Part 3 (the recap
-screens use the primary ink `Button` and `CategoryBar`, not these), but Part 4's currency-confirm
-sheet needs the first:
-
-- **`Button` has no secondary variant.** The `--mmr-color-surface-button-secondary` token was added
-  in the third sync but never wired to a component, so the white pill with an ink label (Home's "See
-  last month", the "Cancel" beside "Convert") has no prop. Add `variant?: 'primary' | 'secondary'`.
-- **`Chip` has no Category variant.** The Log-a-spend sheet needs eight chips, each carrying its
-  Category glyph and sitting on its own `*.100` tint when unselected, inverse ink when selected.
-  `Chip`'s variants are only `onGround` / `inverse` / `highlight`. Add a Category tone, or a
-  `CategoryChip` built from `Chip` — decide which by whether the chip is ever used outside the sheet.
-
-Do not re-sync while a canvas is being built in the project: the design-system files change under an
-in-progress file. Land these between parts, not during one.
 
 ## Fourth sync (2026-09-04) — defects the canvases found, and the measurement harness
 
@@ -227,14 +234,6 @@ graded story is the squirrel, which was already under the 300pt cap, so the rend
 The fix is in `_ds_bundle.js` regardless — the per-component `.jsx` are re-export shims, so grepping
 them for a change proves nothing. Grep the bundle.
 
-### Re-sync risks added by this sync
-
-- Any new `--mmr-color-surface-*` token needs a component prop, or the design agent cannot reach it.
-- `maxCategoryBars` above 4 overflows the artboard. If the category list must grow, the split card
-  needs a different layout, not a bigger cap.
-- Screen components are measured, not just rendered. Re-run `scripts/measure.tsx` before uploading a
-  change to any `Recap*Screen`, and treat "fits 844 with dots visible" as part of the contract.
-
 ## Fifth sync (2026-09-07) — the product rename (Kids Money Recap → My Money Recap, kmr → mmr)
 
 First upload since the rename commits (`182f76c`, `a8b2e39`). Nothing in `src/` changed shape; the
@@ -273,60 +272,95 @@ Scope: PRD §13 / D50 asked for four new components before the 37 `NEW` screens 
 **Added** (each with a `componentSrcMap` entry, a `docs/*.md` card and an owned `previews/*.tsx`):
 
 - `PromptCard` — the empty-state card. The card *is* the `<button>`; `size` holds the height of the
-  card it replaces (`hero` 191pt, `target` 136pt, `auto` for a Settings row) so filling one in never
+  card it replaces (`hero` 191pt, `target` 136pt, `auto` hugs its content) so filling one in never
   moves the screen (PRD §6.8, D54). `eyebrow` and `helper` are `ReactNode | null`, **defaulting to
   `null`**, so `undefined` can never accidentally show content — the fourth sync's bug class.
-- `DayPicker` — 44pt Payday pills, 1–31 plus `Last day`, nothing disabled (D51). `value` is
-  `number | 'last'`. **`nextPaydays` is a prop, not a computation**: the component does no calendar
-  arithmetic, so `min(Payday, days in month)` stays with the caller (PRD §8.2). `null` removes the
-  helper line.
+- `DayPicker` — 44pt Payday pills, 1–31 plus `Last day`, no individual day ever disabled (D51).
+  `value` is `number | 'last'`. **`nextPaydays` is a prop, not a computation**: the component does no
+  calendar arithmetic, so `min(Payday, days in month)` stays with the caller (PRD §8.2). `null`
+  removes the helper line.
 - `InlineError` — the app's only error surface now that D67 dropped `Toast`. `action` is
   `ReactNode | null`, default `null`.
 
 **`SelectRow` was not built — `ListRow` already is it.** PRD §13 describes it as "`ListRow` anatomy
 without the `IconWell`, a violet check in place of the value", which is `ListRow trailing="check"`
 with `selected` (the check is `palette.violet.500`, and the row never had an icon well). Building it
-would have shipped a second name for a shipped component. Recorded in `.design-sync/docs/ListRow.md`
-so the design agent reads it on the ListRow card, and stated in `conventions.md`. The `SelectRow`
-rows in SCREEN-STATES A5 and D5 are `ListRow trailing="check"`.
+would have shipped a second name for a shipped component. PRD D50, PRD §13 and SCREEN-STATES rows
+A5 / D5 were all edited in the same pass, so no document still asks for it;
+`.design-sync/docs/ListRow.md` and `conventions.md` carry the reasoning for the design agent.
 
-**Radius 16 without a third radius token.** PRD §13 specifies radius 16 for `InlineError`, but the
-system has exactly two radii (28 card, pill). `.mmr-inline-error` borrows `--mmr-space-6` (16px) —
-the same move `.mmr-row` already makes for its 8px corner via `--mmr-space-3`. **No radius token was
-added**; if a third radius ever becomes real, these two rules are where to look.
+**A third radius token, rather than a laundered one.** PRD §13 specifies radius 16 for `InlineError`,
+and the system had exactly two radius tokens. The first attempt spelled 16 as `--mmr-space-6`, which
+changed the spelling and not the decision — a code review caught it. Resolved properly:
+`radius.inset` (16px) is now a real token, `conventions.md` documents **three** radii, and
+`.mmr-row`'s press-wash corner (8px, previously `--mmr-space-3`) was absorbed into it. **There are
+now zero radii in `components.css` outside the three radius tokens**, and the `.mmr-row` change is
+8px → 16px on a wash of `rgba(30,27,58,0.04)` — 4% ink, invisible in practice. Grades were unaffected:
+`renderHashFor` hashes the preview JS, the preview CSS and the component HTML, not `_ds_bundle.css`,
+so a CSS-only change moves `styleSha` and nothing re-grades.
 
-**No token changes at all this sync.** coral-100, coral-500 and violet-100 already existed;
-`build:tokens` was still run because `components.css` is concatenated into `css.generated.ts`.
-
-**Two defects found by rendering, both before upload:**
+**Three defects found by rendering or review, all fixed before the components were consumed:**
 - `DayPicker`'s centre-on-open landed a card-padding off. `offsetLeft` is measured from the nearest
   positioned ancestor, and `.mmr-card` is `position: relative`, so the pills were measured against
-  the Card, not the scroll row. Fixed by making `.mmr-day-picker-row` `position: relative` — it has
-  to be the `offsetParent` for the arithmetic to mean anything.
+  the Card, not the scroll row. Fixed by making `.mmr-day-picker-row` `position: relative`.
 - `InlineError` with a long unbroken address (`maya@privaterelay.appleid.com`) pushed its `action`
   outside the block and clipped it. Fixed with `min-width: 0` + `overflow-wrap: anywhere` on
   `.mmr-inline-error-body`. The `TwoLines` preview exists to keep that case on screen.
+- **`DayPicker`'s disabled state rendered at 0.16, not 0.4.** The wrapper carried
+  `opacity: var(--mmr-color-state-disabled-opacity)` while each pill is `.mmr-pressable` and already
+  takes the same 0.4 when `disabled` — nested opacity multiplies. Now only the helper line takes the
+  wrapper's dimming and the pills take their own; measured 0.4 for both. This is in the risk list.
 
-**Verification.** `tsc --noEmit` clean (note: it covers `src` only — previews were typechecked
-separately against `src/index.ts` via a scratch tsconfig with a `@my-money-recap/ui` path alias,
-which is worth repeating whenever previews change). Every story was also rendered live in a browser
-and measured: PromptCard heights came back 191 / 136 / 92, wells 44x44, InlineError radius 16px,
-fill `rgb(255,227,224)`, text `rgb(240,102,90)` at Nunito 800 13px, and the DayPicker selection
-measured 0px off the row centre.
+**Two couplings removed after review, by extending the primitives rather than reaching past them:**
+- `PromptCard` first rendered its eyebrow, title and helper as bare `span`s carrying the
+  `mmr-eyebrow` / `mmr-card-title` / `mmr-helper` class names, because a `<button>` may not contain
+  an `<h2>` or a `<p>`. `CardTitle`, `HelperText` and `Eyebrow` now take `as` (matching `Headline`,
+  which always had it) and `PromptCard` asks for `as="span"`. `DayPicker` likewise uses
+  `<HelperText>` instead of `<p className="mmr-helper">`.
+- `PromptCard` first resized the chevron well with a descendant selector. `IconWell` now takes
+  `size` and `glyphSize`; `PromptCard` passes `44` and `20`. The default path emits no inline style
+  at all, so `DataRow` still measures 30x30 around a 16px glyph.
+
+**No colour tokens were added.** coral-100, coral-500 and violet-100 already existed; the only token
+added this sync is `radius.inset`. 222 custom properties, up from 221.
+
+**Verification.** `tsc --noEmit` clean, and the previews typechecked separately against
+`src/index.ts` (tsconfig covers `src` only — see the risk list). Every story was also rendered live
+in a browser and **measured with `getComputedStyle` and `getBoundingClientRect`**, which report
+resolved values, not source text: PromptCard `hero` 191px and `target` 136px (`auto` came out at
+92px for its preview's content — `auto` sets no height, so that number is a measurement, not an API
+value); chevron well 44x44 around a 20px glyph while `DataRow`'s stays 30x30 around 16px;
+`InlineError` `border-radius` 16px, background `rgb(255, 227, 224)` and colour `rgb(240, 102, 90)`
+— the resolved forms of `--mmr-palette-coral-100` and `-500`, since **the CSS itself contains no
+hex, `rgb()` or `hsl()` anywhere**; the DayPicker selection 0px off the row centre; and 0 elements
+on the page with a `<button>` wrapping flow content.
 
 Resync verdict `ok: true`, `anchor: ok`, four stages passed; 35 `unchanged`, 3 `added`, 0 `changed`,
 0 `removed`, `deletePaths` empty. Render check 0 of 38 flagged, only warn line `[FONT_REMOTE]`
-(known). Upload: sentinel → 4 (bundle + vendor) → 120 → 72 → sentinel → anchor; 198 files confirmed
-by `list_files` (plus the app's own `_ds_manifest.json` and `_adherence.oxlintrc.json`). Anchor
-moved `c4d54683…` → `388b5144…`, `bundleSha12 30228d8f7acf` → `8979f6c8a370`;
-`.design-sync/.cache/remote-sync.json` refreshed to match.
+(known). Uploaded twice: once when the components first landed, and again after the code review
+below. Both runs were sentinel → 4 (bundle + vendor) → 120 → 72 → sentinel → anchor, 198 files, the
+first confirmed by `list_files` (plus the app's own `_ds_manifest.json` and
+`_adherence.oxlintrc.json`) and the second by re-reading `IconWell.d.ts` from the project, since the
+path set was identical and `deletePaths` was empty both times. Anchor moved
+`c4d54683…` → `388b5144…` → `284480a8…`.
 
-**`conventions.md` was validated, then extended with the user's approval** (never rewritten): all 20
-literal `--mmr-*` names, all 45 abbreviated family members, all 27 component names and every
-illustration key still resolve; `--mmr-palette-` is the known prefix reference. Added: the three new
-components in "Forms and settings", a new "Empty states are `PromptCard`" paragraph, the
-no-`SelectRow` clarification on `ListRow`, and the new nullable props on the existing null-props
-paragraph. `SelectRow` now appears in the header as a name that deliberately does *not* resolve.
+**A code review after the first upload found four things, and all four are fixed above.** Worth
+recording because two of them are classes of mistake, not one-offs:
+1. `DayPicker`'s disabled state at 0.16 — the nested-opacity trap, now in the risk list.
+2. The 16px radius spelled as `--mmr-space-6` — "the precedent exists" (`.mmr-row` did the same with
+   `--mmr-space-3`) is not the same as "the rule allows it". One undocumented exception does not make
+   a documented rule optional; the fix was to change the rule deliberately and name the value.
+3. `PromptCard` hard-wiring three sibling components' class names, and
+4. `PromptCard` resizing `IconWell` with a descendant selector.
+   Both were solved by extending the sibling's own API (`as`, `size`/`glyphSize`) rather than reaching
+   past it — the pattern `Headline` had already set with its `as` prop.
+
+**`conventions.md` was validated, then extended with the user's approval** (never rewritten): all
+literal `--mmr-*` names, all abbreviated family members, all component names and every illustration
+key resolve; `--mmr-palette-` is the known prefix reference. Added: the three new components in
+"Forms and settings", a new "Empty states are `PromptCard`" paragraph, the no-`SelectRow`
+clarification on `ListRow`, the new nullable props, and the three-radius Radius row. `SelectRow` now
+appears in the header as a name that deliberately does *not* resolve.
 
 **The `.dc.html` canvases were checked against this upload.** All four reference
 `_ds/my-money-recap-5f615747-…/_ds_bundle.js` and `…/styles.css`; every one of the 34 distinct
@@ -336,19 +370,35 @@ nothing** — the two-sided rename from the fifth sync is complete on both sides
 folder has no `_ds/` directory, so the four files cannot render as local copies; that is what an
 export is, not a break — they render inside the design project.
 
-### Re-sync risks added by this sync
+**A documentation pass ran with this sync**, because the radius decision and the dropped `SelectRow`
+both had a blast radius wider than the package:
 
-- **`DayPicker` centring depends on a CSS rule, not on JS.** `.mmr-day-picker-row { position:
-  relative }` is what makes `offsetLeft` mean "distance along the scroll row". Delete it and the
-  selection silently lands off-centre, with no error and no render-check failure.
-- **`PromptCard`'s two heights are literal px in `components.css`** (191 / 136), matched to the Home
-  cards in PRD §6.8. If those cards are re-measured, both rules and the PRD table must move together
-  — nothing links them.
-- **`.mmr-inline-error` uses `--mmr-space-6` as a radius.** A search for "which components use a
-  16px radius" will not find it by radius token. Same for `.mmr-row` and `--mmr-space-3`.
-- `previews/` is now 38 files. Unchanged rule: a new component in `src/components/` needs BOTH a
-  `docs/*.md` card and an owned preview, or it groups under `general` and drops to the floor card.
-- `PromptCard` renders its eyebrow/title/helper as `span`s carrying the `mmr-eyebrow` /
-  `mmr-card-title` / `mmr-helper` classes rather than the `Eyebrow` / `CardTitle` / `HelperText`
-  components, because a `<button>` may not contain an `<h2>` or a `<p>`. If those classes are ever
-  restyled with element-dependent rules, PromptCard is the one that breaks.
+- "Two radii" was asserted in **six** places outside the design system — `docs/PRD.md` §13,
+  `my-money-recap/DESIGN.md` §4.4 and §"Continuing in Claude Design", and all four
+  `my-money-recap/docs/design-prompts/*.md`. The prompts are fed to the design agent, so leaving them
+  would have told it never to draw the radius `InlineError` actually uses. All six now say three.
+- `docs/design/design_handoff_my_money_recap/README.md` claimed the canvases' `class Component extends
+  DCLogic` was "the reference implementation of the formulas". **It is not, and that sentence was the
+  most dangerous line in the repo** — an implementer would have copied broken arithmetic. Verified
+  before rewriting it: `archetype=` and `splurge=` are hand-written literal attribute values, there is
+  no `daysInMonth` anywhere, and the Home canvas hardcodes `daysLeft = 30 - d + 1` while clamping its
+  own `today` prop to 21–30 so the September sample keeps working. The paragraph now says so
+  explicitly and points at PRD §8.
+- `GAPS.md` read as 57 live gaps with 🔴 "blocks implementation" severities; PRD D48 says it is closed
+  history. It now opens with a CLOSED banner.
+- `DESIGN_NOTES_VERBATIM.md` had no header saying it is a quoted transcript, so its `NEWSelectRow`
+  note read as a live instruction. It now has one, and the body is still verbatim.
+- `docs/design/design_handoff_my_money_recap/PRD.md` was **Draft v1** sitting under the same filename
+  as the live Draft v2 — the fastest way to send a reader to the wrong spec. Replaced with a pointer
+  stub; the v1 text is recoverable with
+  `git show db8a2b2:docs/design/design_handoff_my_money_recap/PRD.md`.
+- Inside `.design-sync/`, the per-sync "Re-sync risks added by this sync" sections were folded into the
+  single `## Re-sync risks` list above, the "Open gaps found by the Part 2 canvas build" section was
+  deleted (the fourth sync closed both of its gaps), four stale facts were corrected in place
+  (Icon "18 names" → 17, `maxCategoryBars` default 5 → 4, "not a git repository", the font-inheritance
+  finding the third sync fixed), and `.cache/remote-sync.STALE-pre-2026-09-04-upload.json` was deleted.
+
+**Left undone, deliberately.** D51 says the three payday dates are "computed on device". No such
+helper ships anywhere, because **the iOS app does not exist in this repo yet** — `apps/` and
+`infra/` are README-only and there are zero `.swift` files. `DayPicker` takes the dates as a prop by
+design; the arithmetic belongs to the app when the app is written.

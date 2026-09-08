@@ -14,3 +14,13 @@ export function AllTones() {
     </div>
   );
 }
+
+/** `size` and `glyphSize` scale the well: the 30/16 default beside the 44/20 well PromptCard uses. */
+export function Sizes() {
+  return (
+    <div style={row}>
+      <IconWell tone="violet"><Icon name="paw" /></IconWell>
+      <IconWell tone="violet" size={44} glyphSize={20}><Icon name="chevron" /></IconWell>
+    </div>
+  );
+}

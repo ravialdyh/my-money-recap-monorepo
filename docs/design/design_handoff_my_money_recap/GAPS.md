@@ -1,5 +1,14 @@
 # GAPS — undefined, undrawn and contradictory states
 
+> **CLOSED — historical record. Do not work from this file.**
+> All 57 gaps below were closed out by the design review of 2026-09-08 and their decisions live in
+> `../../PRD.md` (decisions log D41–D67) and `../../SCREEN-STATES.md` (the per-screen contract).
+> PRD D48 makes that split explicit: the PRD owns the rules, SCREEN-STATES owns the states and copy,
+> and this file is kept only for the reasoning that produced them. The 🔴 severities below describe
+> what was blocking **before** that review; nothing here is outstanding. If this file and the PRD
+> disagree, the PRD is right.
+
+
 Each item: **what is missing**, **evidence** (PRD section / screen id / note), and **the decision to make**. Severity: 🔴 blocks implementation, 🟠 visible to users, 🟡 polish/consistency.
 
 Ids like `B1` refer to `data-screen-label` values in the canvases and to `screens/*.png`. "Note" = the yellow annotation, quoted in `DESIGN_NOTES_VERBATIM.md`.

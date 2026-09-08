@@ -14,7 +14,7 @@ Every screen and every state the app can be in, keyed to the ids in `design/desi
 
 **Rules that are not screen states**, but that the design agent must apply everywhere: every onboarding step after the first carries a 44pt back chevron and re-selects the saved answer on resume (PRD §6.4); the Home month chip opens the Spend list's month switcher (PRD §6.8); a Recap always shows the Member's *current* Display Name and Avatar, because nothing about a Recap is stored (PRD §7).
 
-**Before drawing anything new**, build the four components in PRD §13 (`PromptCard`, `DayPicker`, `SelectRow`, `InlineError`). Every `NEW` row below leans on at least one of them, and three of the `REDRAW` rows exist *because* those pieces were hand-composed and drifted.
+**Before drawing anything new**, build the components in PRD §13. Three were built on 2026-09-08 — `PromptCard`, `DayPicker`, `InlineError`. The fourth, `SelectRow`, was **not built**: the shipped `ListRow` with `trailing="check"` and `selected` already is the described row, so the currency list uses `ListRow`. Every `NEW` row below leans on at least one of these, and three of the `REDRAW` rows exist *because* those pieces were hand-composed and drifted.
 
 ---
 
@@ -40,7 +40,7 @@ Violet ground throughout.
 | A3 | **web fallback page** | `NEW` | Not an app screen. A single web page: `Open My Money Recap on your phone to finish signing in.` Violet ground, envelope illustration, no controls. |
 | A4 | Name and avatar | `DRAWN` | `TextField` + `AvatarGrid`, Next disabled until both valid. |
 | A4 | empty | `DRAWN` | Apple/Google shared no name. |
-| A5 | Currency | `DRAWN` | Searchable ISO list as `SelectRow`s, device locale preselected. |
+| A5 | Currency | `DRAWN` | Searchable ISO list as `ListRow trailing="check"`, device locale preselected. There is no `SelectRow`. |
 | A5 | **empty search** | `NEW` | `No currency matches "{query}".` plus a `Clear search` link. |
 | A6 | Salary and payday | `REDRAW` | D51. `DayPicker` gains a `Last day` option after 31, and a computed helper below it: `Next paydays: 25 Sep · 25 Oct · 25 Nov`, updating on every tap. The Draft v1 helper "If the month is shorter, we use its last day" is deleted — the three dates say it better. |
 | A6 | **amount too long** | `NEW` | D57. At 12 digits the field stops accepting keystrokes and shows `That's more than the app can store.` |
@@ -138,7 +138,7 @@ White `Sheet variant="full"` on violet.
 | D3 | Salary and payday | `REDRAW` | D51 `DayPicker` with `Last day` and the three-date helper. D56: a line under the payday card reading `Your new payday starts in {next month}.` |
 | D3 | **which salary is this** | `NEW` | D56. Sheet shown only when the current month's payday has passed. Two `ListRow`s: `The £2,800 I was paid on 25 September` and `My new salary, from 25 October`. Cancel returns without saving. |
 | D4 | Saving target | `REDRAW` | D65. Add the forward-only line: `Your new target starts in {next month}.` |
-| D5 | Currency | `DRAWN` | `SelectRow` list, tapping opens D6. |
+| D5 | Currency | `DRAWN` | `ListRow trailing="check"` list, tapping opens D6. There is no `SelectRow`. |
 | D6 | Currency confirm | `DRAWN` | Rate, before/after rows, Convert + Cancel. |
 | D6 | **rate fetch failed** | `NEW` | `InlineError`: `We couldn't get today's rate.` with `Try again` and `Enter it myself` (→ D7). |
 | D6 | **nothing to convert** | `NEW` | No salary and no spends: the confirm sheet is skipped entirely and the currency changes directly, with a `Sent ✓`-style confirmation on the row. |

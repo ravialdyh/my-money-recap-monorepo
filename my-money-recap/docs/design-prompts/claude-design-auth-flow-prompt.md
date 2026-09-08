@@ -9,7 +9,7 @@ Design the end-to-end authentication and onboarding flow for My Money Recap, fro
 ## Product facts you must respect
 
 - Users are adults (18+). The kids look is a visual theme only. Money words stay plain: "salary", "saving target", "spend". Never "pocket money" or "allowance".
-- Native iOS app, iPhone 390 × 844 artboards, portrait. Fonts Fredoka (headlines, numbers) and Nunito (everything else). Two radii only: cards 28, pills 999. No shadows anywhere; depth comes from white cards on a coloured ground and from illustrations overlapping the card top.
+- Native iOS app, iPhone 390 × 844 artboards, portrait. Fonts Fredoka (headlines, numbers) and Nunito (everything else). Three radii only: cards 28, inset blocks 16 (`InlineError`, row press wash), pills 999. No shadows anywhere; depth comes from white cards on a coloured ground and from illustrations overlapping the card top.
 - One ground colour per screen. Every screen in this flow uses the violet ground (`ground.recap`, #5B4FE8) so the flow rhymes with the recap cover. White text on the ground, dark ink (#1E1B3A) inside cards.
 - Primary button: ink pill (#1E1B3A, white label). Secondary button: white pill with ink label. Pressed = scale 0.97. Disabled = 40% opacity.
 - Every tappable element is at least 44 × 44 pt.

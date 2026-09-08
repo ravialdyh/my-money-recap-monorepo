@@ -17,13 +17,21 @@ export function SubCopy({ children, className = '', ...rest }: HTMLAttributes<HT
   useStyles();
   return <p className={`mmr-subcopy ${className}`} {...rest}>{children}</p>;
 }
-export function HelperText({ children, className = '', ...rest }: HTMLAttributes<HTMLParagraphElement>) {
-  useStyles();
-  return <p className={`mmr-helper ${className}`} {...rest}>{children}</p>;
+export interface HelperTextProps extends HTMLAttributes<HTMLElement> {
+  /** `span` when the helper sits inside a `<button>`, which may not contain a `<p>`. Drawn identically. */
+  as?: 'p' | 'span';
 }
-export interface EyebrowProps extends HTMLAttributes<HTMLDivElement> { tone?: 'secondary' | 'coral'; }
-/** Small label above a stat or callout. `coral` is the uppercase callout style ("THE SPLURGE"). */
-export function Eyebrow({ tone = 'secondary', children, className = '', ...rest }: EyebrowProps) {
+export function HelperText({ as: Tag = 'p', children, className = '', ...rest }: HelperTextProps) {
   useStyles();
-  return <div className={`mmr-eyebrow ${className}`} data-tone={tone} {...rest}>{children}</div>;
+  return <Tag className={`mmr-helper ${className}`} {...rest}>{children}</Tag>;
+}
+export interface EyebrowProps extends HTMLAttributes<HTMLElement> {
+  tone?: 'secondary' | 'coral';
+  /** `span` when the eyebrow sits inside a `<button>`, which may not contain a `<div>`. Drawn identically. */
+  as?: 'div' | 'span';
+}
+/** Small label above a stat or callout. `coral` is the uppercase callout style ("THE SPLURGE"). */
+export function Eyebrow({ tone = 'secondary', as: Tag = 'div', children, className = '', ...rest }: EyebrowProps) {
+  useStyles();
+  return <Tag className={`mmr-eyebrow ${className}`} data-tone={tone} {...rest}>{children}</Tag>;
 }

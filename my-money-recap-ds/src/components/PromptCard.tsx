@@ -2,6 +2,8 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { useStyles } from '../styles/useStyles';
 import { Icon } from '../icons';
 import { IconWell } from './DataRow';
+import { CardTitle } from './Card';
+import { Eyebrow, HelperText } from './Headline';
 import type { InteractiveState } from './types';
 
 export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'title'> {
@@ -24,9 +26,8 @@ export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
  * for a filled `Card` — the Home hero, the Home target card, the onboarding step 4 slider card, the
  * Recap screen 4 mascot, a Settings row — and holds that card's height so the layout never jumps.
  *
- * The card *is* the `<button>`, so the eyebrow, title and helper are spans carrying the `Eyebrow`,
- * `CardTitle` and `HelperText` classes rather than the components themselves: a `<button>` may not
- * contain an `<h2>` or a `<p>`. The drawn result is identical.
+ * The card *is* the `<button>`, which may not contain an `<h2>` or a `<p>`, so `Eyebrow`, `CardTitle`
+ * and `HelperText` are asked for their `span` form. The drawn result is identical.
  */
 export function PromptCard({
   size = 'auto', eyebrow = null, title, helper = null, state = 'default', className = '', ...rest
@@ -39,11 +40,11 @@ export function PromptCard({
       disabled={state === 'disabled' || rest.disabled} {...rest}
     >
       <span className="mmr-prompt-card-body">
-        {eyebrow ? <span className="mmr-eyebrow" data-tone="secondary">{eyebrow}</span> : null}
-        <span className="mmr-card-title">{title}</span>
-        {helper ? <span className="mmr-helper">{helper}</span> : null}
+        {eyebrow ? <Eyebrow as="span">{eyebrow}</Eyebrow> : null}
+        <CardTitle as="span">{title}</CardTitle>
+        {helper ? <HelperText as="span">{helper}</HelperText> : null}
       </span>
-      <IconWell tone="violet"><Icon name="chevron" /></IconWell>
+      <IconWell tone="violet" size={44} glyphSize={20}><Icon name="chevron" /></IconWell>
     </button>
   );
 }

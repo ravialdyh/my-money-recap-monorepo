@@ -14,7 +14,7 @@
 | Data | `--mmr-color-data-earned`, `-saved`, `-spent` |
 | Categories | `--mmr-color-data-category-snacks` (coral), `-games` (violet), `-toys` (yellow), `-rides` (sky), `-clothes` (green), `-bills` (ink), `-gifts` (gold), `-other` (rust). Eight fixed Categories, no two share a hue. |
 | Space | `--mmr-space-2` … `--mmr-space-10`, `--mmr-space-overlap` (illustration hang) |
-| Radius | `--mmr-radius-card` (28px), `--mmr-radius-pill`. Two radii only — nothing in between. |
+| Radius | `--mmr-radius-card` (28px), `--mmr-radius-inset` (16px, a block nested inside a card: the `InlineError` message, the row press wash), `--mmr-radius-pill`. Three radii only — nothing in between, and never a raw px value. |
 | Sizes | `--mmr-size-field-height`, `-toggle-width/-height/-knob`, `-slider-knob`, `-avatar-grid-cell` (68), `-avatar-inline` (56), `-touch-target-min` (44) |
 | Type | `--mmr-font-family-display` (Fredoka, headlines and numbers), `--mmr-font-family-text` (Nunito, everything else) |
 | Motion | `--mmr-motion-duration-press`, `--mmr-motion-easing-standard` |

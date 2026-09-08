@@ -120,6 +120,7 @@ export const tokens = {
   "space.overlap": "44px",
   "space.card-inset-under-illustration": "56px",
   "radius.card": "28px",
+  "radius.inset": "16px",
   "radius.pill": "999px",
   "size.screen-width": "390px",
   "size.screen-height": "844px",

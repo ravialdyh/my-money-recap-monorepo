@@ -11,7 +11,7 @@ Design the Home screen and the whole spend-logging loop for My Money Recap, as a
 ## Product facts you must respect
 
 - Users are adults (18+). The kids look is a visual theme only. Money words stay plain: "salary", "saving target", "spend". Never "pocket money", "allowance", "budget" or "transaction".
-- Native iOS app, iPhone 390 × 844 artboards, portrait. Fonts Fredoka (headlines, numbers) and Nunito (everything else). Two radii only: cards 28, pills 999. No shadows anywhere; depth comes from white cards on a coloured ground and from illustrations overlapping the card top.
+- Native iOS app, iPhone 390 × 844 artboards, portrait. Fonts Fredoka (headlines, numbers) and Nunito (everything else). Three radii only: cards 28, inset blocks 16 (`InlineError`, row press wash), pills 999. No shadows anywhere; depth comes from white cards on a coloured ground and from illustrations overlapping the card top.
 - Home uses the violet ground (`ground.recap`). **The Log-a-spend sheet is not a fifth ground** — it is a `Sheet`, a white surface with `radius.card` on its top corners, sitting over a dimmed Home.
 - Primary button: ink pill. Secondary button: white pill with ink label. Pressed = scale 0.97 and brightness 0.92. Disabled = 40% opacity.
 - Every tappable element is at least 44 × 44 pt. The month chip and the Settings chip are controls, so they take the `tappable` variant.

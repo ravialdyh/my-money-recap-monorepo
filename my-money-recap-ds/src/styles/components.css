@@ -194,7 +194,7 @@
   font-family: var(--mmr-font-family-text);
   text-align: left;
   width: 100%;
-  border-radius: var(--mmr-space-3);
+  border-radius: var(--mmr-radius-inset);
 }
 .mmr-row:last-child { border-bottom: 0; }
 .mmr-row:active, .mmr-row[data-state="pressed"] { background: var(--mmr-color-state-row-pressed-wash); transform: none; filter: none; }
@@ -223,7 +223,7 @@
 .mmr-well[data-tone="gold"] { background: var(--mmr-color-surface-well-gold); }
 .mmr-well[data-tone="rust"] { background: var(--mmr-color-surface-well-rust); }
 .mmr-well[data-tone="ink"] { background: var(--mmr-color-surface-well-ink); }
-.mmr-well svg { width: var(--mmr-size-icon-glyph); height: var(--mmr-size-icon-glyph); }
+.mmr-well svg { width: var(--mmr-well-glyph-size, var(--mmr-size-icon-glyph)); height: var(--mmr-well-glyph-size, var(--mmr-size-icon-glyph)); }
 
 /* ---- Streak badge + dots ---- */
 .mmr-badge {
@@ -572,12 +572,7 @@
 .mmr-prompt-card[data-size="hero"] { height: 191px; }
 .mmr-prompt-card[data-size="target"] { height: 136px; }
 .mmr-prompt-card-body { display: flex; flex-direction: column; gap: var(--mmr-space-2); min-width: 0; }
-.mmr-prompt-card .mmr-well {
-  width: var(--mmr-size-touch-target-min);
-  height: var(--mmr-size-touch-target-min);
-  color: var(--mmr-palette-violet-500);
-}
-.mmr-prompt-card .mmr-well svg { width: var(--mmr-size-icon-button); height: var(--mmr-size-icon-button); }
+.mmr-prompt-card .mmr-well { color: var(--mmr-palette-violet-500); }
 
 /* ---- DayPicker (Payday, PRD §6.6, D51) ----
    1–31 plus `Last day` as 44pt pills on one scrolling row; the selection is the ink pill. */
@@ -613,19 +608,19 @@
   background: var(--mmr-color-surface-button-primary);
   color: var(--mmr-color-text-on-inverse);
 }
-.mmr-day-picker[data-state="disabled"] { opacity: var(--mmr-color-state-disabled-opacity); }
+/* Disabled dims the pills through .mmr-pressable:disabled and the helper line here. Never put the
+   opacity on the wrapper: it multiplies with the pills' own 0.4 and renders them at 0.16. */
+.mmr-day-picker[data-state="disabled"] .mmr-day-picker-helper { opacity: var(--mmr-color-state-disabled-opacity); }
 .mmr-day-picker-helper { font-variant-numeric: tabular-nums; }
 
-/* ---- InlineError (the only error surface, PRD D67) ----
-   Radius 16 is between the two radii, so it borrows the 16px space step rather than adding a third
-   radius token — the same move .mmr-row makes for its 8px press wash. */
+/* ---- InlineError (the only error surface, PRD D67) ---- */
 .mmr-inline-error {
   display: flex;
   align-items: flex-start;
   gap: var(--mmr-space-3);
   box-sizing: border-box;
   padding: var(--mmr-space-4) var(--mmr-space-5);
-  border-radius: var(--mmr-space-6);
+  border-radius: var(--mmr-radius-inset);
   background: var(--mmr-palette-coral-100);
   color: var(--mmr-color-text-accent-coral);
   font-family: var(--mmr-font-family-text);

@@ -11,7 +11,7 @@ Design Settings and the account flows for My Money Recap, as a multi-artboard ca
 ## Product facts you must respect
 
 - Users are adults (18+). Money words stay plain.
-- iPhone 390 × 844 artboards, portrait. Fredoka for headlines and numbers, Nunito for sentences. Two radii: cards 28, pills 999. No shadows.
+- iPhone 390 × 844 artboards, portrait. Fredoka for headlines and numbers, Nunito for sentences. Three radii: cards 28, inset blocks 16 (`InlineError`, row press wash), pills 999. No shadows.
 - **Settings is a white surface, not a fifth ground.** Use `Sheet variant="full"` over the violet ground — a white card filling the screen with `radius.card`. Every sub-screen follows the same pattern, so Settings reads as one white space sitting on the app's violet.
 - Every row is a `ListRow`: label, optional right-aligned value, and a `chevron`. Rows are at least 44 pt tall.
 - Each sub-screen **reuses the matching onboarding card** rather than inventing a new layout: Profile reuses the name field and `AvatarGrid`, Salary reuses the `AmountField` and the day picker, Saving target reuses the `Slider`, Currency reuses the searchable list.

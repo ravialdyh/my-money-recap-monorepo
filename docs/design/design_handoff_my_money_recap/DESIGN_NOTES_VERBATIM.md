@@ -1,3 +1,15 @@
+# Design notes, verbatim from the canvases
+
+> **Historical transcript — quoted, not maintained.** These are the yellow annotation boxes as they
+> were written on the four `.dc.html` canvases, reproduced word for word so nobody has to parse the
+> HTML. They are **not** the current spec and are deliberately never edited: where a note disagrees
+> with `../../PRD.md` or `../../SCREEN-STATES.md`, those files are right and this one is a record of
+> what was thought at the time.
+>
+> Two notes below are known to be superseded. `NEWSelectRow` (A5) was **not built** — the shipped
+> `ListRow` with `trailing="check"` and `selected` already is that row (PRD D50). Any note that
+> describes a component the library now owns has been re-specified in PRD §13.
+
 
 ## Auth and Onboarding.dc.html
 - [A0 · Launch] Shows for at most 800 ms, then A1. No spinner, no tap target.

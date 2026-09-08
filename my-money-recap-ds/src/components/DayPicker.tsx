@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { HTMLAttributes } from 'react';
 import { useStyles } from '../styles/useStyles';
+import { HelperText } from './Headline';
 import type { InteractiveState } from './types';
 
 /** A Payday: a day of the month, or the month's last day (PRD D51). */
@@ -56,7 +57,7 @@ export function DayPicker({
         ))}
       </div>
       {nextPaydays && nextPaydays.length > 0 ? (
-        <p className="mmr-helper mmr-day-picker-helper">Next paydays: {nextPaydays.join(' · ')}</p>
+        <HelperText className="mmr-day-picker-helper">Next paydays: {nextPaydays.join(' · ')}</HelperText>
       ) : null}
     </div>
   );

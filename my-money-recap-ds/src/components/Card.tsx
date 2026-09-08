@@ -19,7 +19,11 @@ export function Card({ variant = 'surface', underIllustration = false, animateIn
     </div>
   );
 }
-export function CardTitle({ children, className = '', ...rest }: HTMLAttributes<HTMLHeadingElement>) {
+export interface CardTitleProps extends HTMLAttributes<HTMLElement> {
+  /** `span` when the title sits inside a `<button>`, which may not contain an `<h2>`. Drawn identically. */
+  as?: 'h2' | 'span';
+}
+export function CardTitle({ as: Tag = 'h2', children, className = '', ...rest }: CardTitleProps) {
   useStyles();
-  return <h2 className={`mmr-card-title ${className}`} {...rest}>{children}</h2>;
+  return <Tag className={`mmr-card-title ${className}`} {...rest}>{children}</Tag>;
 }

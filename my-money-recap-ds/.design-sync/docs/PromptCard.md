@@ -8,7 +8,9 @@ Saving Target, onboarding step 4 when Salary was skipped, Recap screen 4 with no
 Settings row that reads "Not set".
 
 **The whole card is one tap target, not the chevron.** `PromptCard` *is* the `<button>` — do not
-wrap it in one, and do not put a control inside it.
+wrap it in one, and do not put a control inside it. Because a `<button>` may not contain an `<h2>`
+or a `<p>`, it renders `Eyebrow`, `CardTitle` and `HelperText` in their `as="span"` form; the drawn
+result is identical to the same three inside a plain `Card`.
 
 **`size` is the point of the component.** A prompt stands in for a filled card, so it holds that
 card's height and the layout does not jump when the Member fills it in: `size="hero"` is 191pt (the

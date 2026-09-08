@@ -6,9 +6,11 @@ The Payday picker: a horizontally scrolling row of 44pt pills, 1–31 followed b
 the selection drawn as the ink pill. It appears twice in the app — onboarding step 3 and the
 Settings salary screen — and nowhere else.
 
-**Nothing is ever disabled.** 29, 30 and 31 are offered in every month (PRD D51): the picker cannot
-guard the eleven months the Member is not looking at, and disabling them in a February setup would
-lock out anyone genuinely paid on the 30th.
+**No individual day is ever disabled.** 29, 30 and 31 are offered in every month (PRD D51): the
+picker cannot guard the eleven months the Member is not looking at, and disabling them in a February
+setup would lock out anyone genuinely paid on the 30th. That is a separate matter from
+`state="disabled"`, which dims and inerts the *whole control* — the offline Settings case in
+PRD §6.19. There is no per-day disable and there is not meant to be one.
 
 **`nextPaydays` is the answer to "what happens in a short month?"** Pass the three real dates that
 follow the current selection — `['30 Nov', '31 Dec', '31 Jan']` — and the component renders
