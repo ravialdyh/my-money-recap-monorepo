@@ -398,6 +398,17 @@ both had a blast radius wider than the package:
   (Icon "18 names" → 17, `maxCategoryBars` default 5 → 4, "not a git repository", the font-inheritance
   finding the third sync fixed), and `.cache/remote-sync.STALE-pre-2026-09-04-upload.json` was deleted.
 
+**`DataRow.Pressed` and `ListRow.Pressed` were re-shot in list context.** The user looked at the
+uploaded cards and said the pressed row "felt weird compared to the others" — correct instinct, wrong
+suspect. The component is right: `.mmr-row:active` is a 4% ink wash with `transform: none` and
+`filter: none`, deliberately unlike every other pressable, because one row shrinking while its
+neighbours hold still would look broken. What was wrong was the **preview**: a lone pressed row in a
+card has no siblings to read against, so the wash looks like a nested panel. Both stories now press
+the middle row of a real list. Checked while investigating: the 8px → 16px radius change is genuinely
+imperceptible at 1x — screenshots at both values are indistinguishable; the corners only become
+visible past about 2x zoom. **When a state only makes sense among siblings, preview it among
+siblings.**
+
 **Left undone, deliberately.** D51 says the three payday dates are "computed on device". No such
 helper ships anywhere, because **the iOS app does not exist in this repo yet** — `apps/` and
 `infra/` are README-only and there are zero `.swift` files. `DayPicker` takes the dates as a prop by
