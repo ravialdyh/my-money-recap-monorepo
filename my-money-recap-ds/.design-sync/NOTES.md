@@ -234,3 +234,33 @@ them for a change proves nothing. Grep the bundle.
   needs a different layout, not a bigger cap.
 - Screen components are measured, not just rendered. Re-run `scripts/measure.tsx` before uploading a
   change to any `Recap*Screen`, and treat "fits 844 with dots visible" as part of the contract.
+
+## Fifth sync (2026-09-07) — the product rename (Kids Money Recap → My Money Recap, kmr → mmr)
+
+First upload since the rename commits (`182f76c`, `a8b2e39`). Nothing in `src/` changed shape; the
+whole delta was the display name, the `@my-money-recap/ui` package name, `globalName` `MMR`, and the
+`kmr` → `mmr` initialism across tokens, classes and `dist/mmr.css`. Also carried: the skateboard
+marker removal and the £2,400 / £640 / £1,760 sample-data cleanup from `a8b2e39`, which had not been
+uploaded either.
+
+- **A prefix rename re-grades everything, and there is no shortcut.** Every `sourceKey` moved (the
+  rename touched every source file) AND every `renderHash` moved (the captured DOM carries the
+  `.mmr-*` class names), so the diff reported 35 `changed`, 0 `unchanged`, and `pendingGrade` listed
+  all 35. Graded all 35 from the fresh `_screenshots/review/*.png` sheets: every cell `good`, no
+  fixes needed. Budget an hour for this whenever the prefix or `globalName` changes again.
+- **`grep -i kmr` still hits after the rename — those are base64 false positives.** `src/assets/
+  illustrations.ts` and `_ds_bundle.js` embed WebP data URIs, and the letter sequence `kmr`/`KMR`
+  occurs inside them. Grep for the real shapes instead: `--kmr-`, `.kmr-`, `KMR_CSS`, `@kids-money`,
+  `Kids Money`. All four return nothing in `src/`, `ds-bundle/`, `README.md` and the prompts.
+- **The two-sided rename (previous section) is now live on one side only.** This upload replaced
+  every `--kmr-*` custom property in the project with `--mmr-*`. Any `.dc.html` page in the Claude
+  Design project that hand-wrote `var(--kmr-…)` now resolves those to nothing. Next step is in Claude
+  Design, not here: ask the design agent to replace `--kmr-` with `--mmr-` across every page.
+- Verdict: `ok: true`, `anchor: ok`, four stages passed, render check 0 of 35 flagged, only warn
+  line `[FONT_REMOTE]` (known). Upload: sentinel → 124 → 57 → sentinel → anchor, 183 files
+  confirmed by `list_files`, `deletePaths` empty. Anchor moved `5432deb9…` → `c4d54683…`;
+  `.design-sync/.cache/remote-sync.json` refreshed to match.
+- The conventions header was validated against the fresh build, not rewritten: all 20 literal
+  `--mmr-*` names, every abbreviated family member, and every named component resolve. `--mmr-palette-`
+  is a prefix reference, not a token, and is expected to fail a literal lookup.
+- `report_validate` sent as total 35 / bad 0 / thin 0 / variantsIdentical 0 / iterations 2.
