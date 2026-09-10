@@ -23,4 +23,13 @@ export function CurrencyList() {
   );
 }
 export function Destructive() { return <div style={ground}><Card><ListRow label="Delete account" tone="destructive" /></Card></div>; }
-export function Pressed() { return <div style={ground}><Card><ListRow label="Saving target" value="20%" state="pressed" /></Card></div>; }
+/** Same wash as `DataRow`, shown among its siblings — a lone pressed row reads as a nested panel. */
+export function Pressed() {
+  return (
+    <div style={ground}><Card><DataRowList>
+      <ListRow label="Profile" value="Maya" />
+      <ListRow label="Saving target" value="20%" state="pressed" />
+      <ListRow label="Currency" value="GBP" />
+    </DataRowList></Card></div>
+  );
+}

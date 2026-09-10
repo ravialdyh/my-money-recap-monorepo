@@ -1,12 +1,22 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
 import { useStyles } from '../styles/useStyles';
 import type { InteractiveState, WellTone } from './types';
 
-export interface IconWellProps { tone: WellTone; children: ReactNode; }
-/** 30px tinted circle holding a 16px glyph. */
-export function IconWell({ tone, children }: IconWellProps) {
+export interface IconWellProps {
+  tone: WellTone;
+  /** Circle diameter in px. Defaults to the 30px `size.icon-well` token; `PromptCard`'s chevron well is 44. */
+  size?: number;
+  /** Glyph size in px. Defaults to the 16px `size.icon-glyph` token; pass 20 for a stroked glyph in a 44px well. */
+  glyphSize?: number;
+  children: ReactNode;
+}
+/** Tinted circle holding a glyph. 30px around 16px by default. */
+export function IconWell({ tone, size, glyphSize, children }: IconWellProps) {
   useStyles();
-  return <span className="mmr-well" data-tone={tone}>{children}</span>;
+  const style: CSSProperties = {};
+  if (size !== undefined) { style.width = size; style.height = size; }
+  if (glyphSize !== undefined) (style as Record<string, string>)['--mmr-well-glyph-size'] = `${glyphSize}px`;
+  return <span className="mmr-well" data-tone={tone} style={size === undefined && glyphSize === undefined ? undefined : style}>{children}</span>;
 }
 
 export interface DataRowProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {

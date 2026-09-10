@@ -13,7 +13,7 @@ Design the monthly Recap and its share flow for My Money Recap, as a multi-artbo
 - Users are adults (18+). The kids look is a visual theme only. Money words stay plain.
 - iPhone 390 × 844 artboards, portrait, except the share image, which is 1080 × 1920.
 - **One ground per screen, and here they are fixed by the spec:** recap 1 violet, recap 2 yellow, recap 3 coral, recap 4 green. Yellow is the only ground that inverts text to dark ink and forces an ink header chip.
-- Fredoka for headlines and numbers, Nunito for sentences. Two radii: cards 28, pills 999. No shadows.
+- Fredoka for headlines and numbers, Nunito for sentences. Three radii: cards 28, inset blocks 16 (`InlineError`, row press wash), pills 999. No shadows.
 - Recap screens 1 to 3 carry `PageDots` (4 dots). **Screen 4 has none** — it is the shareable one and screenshots must stay clean.
 - A Recap is read-only and computed live on every open. There is no stored copy, no "refresh", and no editing from inside it.
 - The Recap covers a **calendar month**, always. Payday only matters for when Money In appears inside it.

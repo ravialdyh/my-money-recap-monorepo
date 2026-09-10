@@ -33,11 +33,11 @@ One of eight fixed labels a Spend belongs to: Snacks, Games, Toys, Rides, Clothe
 _Avoid_: Tag, type
 
 **Target Warning**:
-The once-a-month alert raised the first time a month's Spends exceed Salary minus Saving Target.
+The once-a-month alert raised the first time a month's Spends exceed the **warning line**, which is Salary minus the Saving Target amount. Its wording differs before and after Payday (PRD D53).
 _Avoid_: Budget alert, overspend alert
 
 **Payday**:
-The day of the month (1 to 31, clamped to the month's last day) on which the Salary is counted as received.
+The day of the month on which the Salary is counted as received. Stored as 1 to 31, or the token `Last day`. A stored 29, 30 or 31 slides to the month's last day in a shorter month; the picker shows the three real dates that follow the selection rather than explaining the rule (PRD D51).
 _Avoid_: Pay date, salary date
 
 **Money In**:
@@ -49,7 +49,7 @@ The single currency an account holds all amounts in. Changing it converts every 
 _Avoid_: Locale, region
 
 **Saved**:
-The computed amount left over in a month: Money In minus the total of Spends. It is never logged directly.
+The computed amount left over in a month: Money In minus the total of Spends. It is never logged directly, and it is **not shown at all while Money In is 0** — before Payday a Member is spending last month's salary, so a negative Saved would state the opposite of their real position (PRD D41).
 _Avoid_: Savings, balance, leftover
 
 **Saving Target**:
@@ -71,8 +71,12 @@ The calendar month a Recap covers, in the Member's local dates. Never a pay peri
 _Avoid_: Period, cycle
 
 **Streak**:
-The longest run of consecutive days in a month with no Spend logged.
+The longest run of consecutive days with no Spend logged, inside the month. In the Member's sign-up month the run starts on the day they signed up, not the 1st, so no badge is ever awarded for days before the app existed (PRD D43).
 _Avoid_: No-spend run
+
+**Partial Recap**:
+The four-screen Recap shown for a month with no Money In — the sign-up month when Payday fell before sign-up, or any month with Spends but no Salary recorded. Built around Spent, with no Saved figure, no Archetype and no sharing. The same four screens serve the current month's live preview (PRD §8.11).
+_Avoid_: Mini recap, partial month, preview recap
 
 **Archetype**:
 The single money personality (Squirrel, Hustler, Treat-Yourself, Slow Burner) assigned to a Member for one month by rules over that month's numbers.

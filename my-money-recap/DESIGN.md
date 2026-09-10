@@ -285,7 +285,7 @@ Off-scale values in the source (5, 7, 9, 10, 18, 20) are fitting artefacts. Roun
 
 ### 4.4 Radius, elevation, motion
 
-- **Radius:** two values only. `radius.card` 28, `radius.pill` 999. Nothing in between.
+- **Radius:** three values only. `radius.card` 28, `radius.inset` 16, `radius.pill` 999. Nothing in between. `radius.inset` is a block nested inside a card — the `InlineError` message and the `DataRow`/`ListRow` press wash — and was added 2026-09-08 for PRD §13's `InlineError`; before it, both of those were spelled as space steps, which kept them off this scale.
 - **Elevation:** none via shadow. Depth comes from `space.overlap` and ground-vs-card colour. Keep it that way; a shadow would read as a different product.
 - **Motion (adopted at Checkpoint 1, applies to the built app, not the static boards):**
   - `motion.enter.screen` 320ms `cubic-bezier(.2,.8,.2,1)`, card slides up 24px and fades.
@@ -386,7 +386,7 @@ Decide whether each is systemic or a one-off before the build.
 
 ### Continuing in Claude Design
 
-- The published canvas is the source of truth. Add new artboards there; keep one ground per screen from the four grounds, white cards, the two radii, the two fonts.
+- The published canvas is the source of truth. Add new artboards there; keep one ground per screen from the four grounds, white cards, the three radii, the two fonts.
 - Any new screen type (onboarding, add-a-chore, goal detail, parent view) should be able to name its ground, its card type, its type roles and its components from this document before drawing. If it cannot, that is a new component, and it belongs in §4.5 first.
 - New illustrations: reuse the style block in `illustration-prompts.md` with the cover render as the style reference. As of the batch-2 renders, the set is complete for the whole product — nothing in Parts 2 to 4 needs a new one.
 
