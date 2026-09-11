@@ -100,7 +100,7 @@ Every design question raised while writing this document, with the decision take
 | **D54** | **The Home hero when no Salary is set** | **Still Spent.** The hero shows the Spent figure and the Salary prompt moves below it as a `PromptCard`. Replacing the whole hero with a prompt (as drawn) hides a Spend the Member just logged. |
 | **D55** | **The month-so-far preview before Payday** | Shows Spent, the Category split and the Streak. The target percentage and the kept-vs-target bar are replaced by `Your salary lands on the {payday}.` A preview opened on the 10th would otherwise read `0% of your saving target`. |
 | **D56** | **Editing Salary after Payday has passed** | **Ask.** Saving after the current month's effective Payday opens a sheet: `The {amount} I was paid on {date}` (applies to this month) or `My new salary, from {next payday}` (applies from next month). A date-based rule cannot tell a correction from a raise. Editing *before* Payday needs no sheet. **Payday changes are always forward-only** — no sheet — so moving Payday from the 25th to the 5th on the 20th cannot make a salary appear for a date that already passed. |
-| **D57** | **Maximum amount** | **12 digits before the decimal separator.** The field refuses further keystrokes and shows `That's more than the app can store.` An 8-digit IDR salary is ordinary; an untrapped typo breaks every layout. |
+| **D57** | **Maximum amount** | **11 digits before the decimal separator.** The field refuses further keystrokes and shows `That's more than the app can store.` An 8-digit IDR salary is ordinary; an untrapped typo breaks every layout. Eleven is the most the hero card can show at its smallest step for a currency with a symbol: `Rp 99.999.999.999` measures 297 of the card's 298pt at 40pt and a twelfth digit overflows (317pt). A currency the formatter prints as a three-letter code (`BHD 99,999,999,999` is 328pt) still overflows above nine digits; those amounts are absurd for a salary and the hero clips rather than wraps (2026-09-11, measured in `scripts/measure.tsx`). |
 | **D58** | **Logging a Spend with no connection** | The `Log a spend` button is disabled at 40% and Home carries a `Banner`: `No connection. You can look, but not log.` A connection that fails *during* a save keeps the existing behaviour — sheet open, values intact, Save enabled to retry. |
 | **D59** | **Reaching a past month's Spends** | **A month switcher at the top of the Spend list.** Today the list is current-month only, so a mistake in last month's data is unreachable although D21 permits editing it. |
 | **D60** | **Signing in during the 24-hour deletion window** | **Signing in cancels the deletion**, after a confirm: `Welcome back — do you want to keep your account after all?` The 24 hours becomes a grace period rather than a queue. Extends D39. |
@@ -225,7 +225,7 @@ Rules
 |---|---|
 | Ground | violet |
 | Components | `Eyebrow` "Step 3 of 4", `Headline` "Your monthly salary", `Card` with `AmountField` (currency symbol fixed), `Card` with `DayPicker`, `Button` "Next", `HelperText` link "Skip for now" |
-| Validation | Amount > 0 and at most 12 digits before the decimal separator (D57). Payday 1–31 or `Last day`, default 25. Both required together, or skip both. |
+| Validation | Amount > 0 and at most 11 digits before the decimal separator (D57). Payday 1–31 or `Last day`, default 25. Both required together, or skip both. |
 | Payday helper | The three dates that follow the current selection, computed on device: `Next paydays: 25 Sep · 25 Oct · 25 Nov`. Updates on every tap. For 29, 30, 31 and `Last day` this is what tells the Member what a short month does (D51). |
 
 ### 6.7 Onboarding 4 · Saving Target
@@ -270,7 +270,7 @@ Rules
 | | |
 |---|---|
 | Presentation | `Sheet` over Home, white surface, `radius.card` top corners, drag handle, scrim |
-| Fields | `AmountField` (numeric keypad, currency symbol fixed, decimals from the Currency, 12-digit cap per D57), Category (eight `Chip tone={hue}` in a wrapping row, one selected, 44pt), Date (defaults to today, picker limited to the last 60 days and today), Note (optional, 80 characters) |
+| Fields | `AmountField` (numeric keypad, currency symbol fixed, decimals from the Currency, 11-digit cap per D57), Category (eight `Chip tone={hue}` in a wrapping row, one selected, 44pt), Date (defaults to today, picker limited to the last 60 days and today), Note (optional, 80 characters) |
 | Action | `Button` "Save". Disabled until amount > 0 and a Category is selected. |
 | After save | Sheet closes, Home numbers animate with `motion.reveal.number`. First ever Spend saved: the push-permission prompt appears after the sheet closes. |
 | Write failure | `InlineError` in the sheet, sheet stays open, values intact, Save stays enabled. |
@@ -366,7 +366,7 @@ Shown immediately after a successful sign-in when `deletion_requested_at` is wit
 
 ## 7. Data model
 
-Amounts are exact decimals (`NUMERIC`, never a float or an integer count of minor units) stored with the Member's ISO 4217 code, capped at 12 digits before the decimal separator (D57). How many decimals a currency shows, its symbol and its separators are the platform formatter's business at print time (§11, D71); nothing in the system stores or looks up a decimal count. Dates are plain calendar dates without timezone (D34). All entities belong to exactly one Member.
+Amounts are exact decimals (`NUMERIC`, never a float or an integer count of minor units) stored with the Member's ISO 4217 code, capped at 11 digits before the decimal separator (D57). How many decimals a currency shows, its symbol and its separators are the platform formatter's business at print time (§11, D71); nothing in the system stores or looks up a decimal count. Dates are plain calendar dates without timezone (D34). All entities belong to exactly one Member.
 
 | Entity | Fields | Notes |
 |---|---|---|
@@ -476,7 +476,7 @@ Copy depends on whether Payday has passed (D53):
 ### 8.10 Editing rules
 
 - Spend date must be within the last 60 days including today; never in the future. A Spend already older than that keeps its date and shows it read-only (§6.10).
-- Amount must be > 0 and at most 12 digits before the separator (D57).
+- Amount must be > 0 and at most 11 digits before the separator (D57).
 - **Salary edits (D56).** Saving before the current month's effective Payday creates a row effective from the current month, with no sheet. Saving on or after it opens the "which salary is this" sheet; the answer decides whether the new row is effective from the current month or the next one.
 - **Payday edits (D56).** Always effective from the next month. The screen says so: "Your new payday starts in {next month}."
 - **Saving Target edits (D65).** Always effective from the next month, no sheet. The screen says so.
@@ -521,7 +521,7 @@ A partial month still sends "Recap ready" — there is something to see (§6.17)
 - **Platform:** iOS 17+, SwiftUI, iPhone and iPad, portrait and landscape. iPad uses the same single-column layout capped at 600pt, centred on the ground; the two Home buttons sit side by side and `Sheet`s anchor to the bottom of the column, not the screen (D40, D49, D68).
 - **Performance:** Home renders from cache instantly and refreshes from the network; any write completes in under 1 second on a normal connection. Recap screens page at 60fps.
 - **Connectivity (D61):** reading works offline from the cache; every write requires the network. A failed write shows an inline error and keeps the sheet open with the values intact.
-- **Long numbers (D45, D57, D71):** `StatHero` draws the printed amount at 80pt, or 56 / 40pt when the full string does not fit its card, measured on screen (SwiftUI `.minimumScaleFactor` over the same three sizes). `AmountField` does 48 → 36 → 28pt the same way. Amounts are capped at 12 digits before the decimal separator. Home, the Recap cover and the share image must each be proven in IDR.
+- **Long numbers (D45, D57, D71):** `StatHero` draws the printed amount at 80pt, or 56 / 40pt when the full string does not fit its card, measured on screen (SwiftUI `.minimumScaleFactor` over the same three sizes). `AmountField` does 48 → 36 → 28pt the same way. Amounts are capped at 11 digits before the decimal separator, the most the hero shows at 40pt in every currency. Home, the Recap cover and the share image must each be proven in IDR.
 - **Accessibility:** Dynamic Type up to the "Large" accessibility size; **at accessibility sizes the four Recap screens become one vertical scroll with `PageDots` as section markers** (D66). VoiceOver labels on every chip, bar and button — a `CategoryBar` reads "Bills, 35 percent, £616"; a `StatChip` reads "Money in, zero pounds"; the hidden Saved chip is absent from the accessibility tree, not present-and-empty. All tappable elements at least 44 × 44pt, except page dots, which own their slice of a 44pt-tall row like the system page control (D71). Reduce Motion replaces reveals with 150ms fades.
 - **Localisation:** v1 ships en-GB copy only. Money is printed by the platform formatter from the amount and the Member's currency code: symbol and decimals come from the currency's CLDR data, separators from the device language (an Indonesian phone prints `Rp 15.000.000`, a British phone printing rupiah `Rp 15,000,000`). Dates follow the device locale.
 - **Privacy:** no analytics SDK in v1. Data stored server-side in one region and cached on device inside the app's container, protected by the device passcode and erased on log out or deletion. The share image never contains Salary or Money In.

@@ -6,7 +6,7 @@ export function Secondary() {
   return <div style={ground('recap')}><Card><Eyebrow>Where £1,760 went</Eyebrow><CardTitle>Mostly snacks</CardTitle></Card></div>;
 }
 export function AboveStat() {
-  return <div style={ground('recap')}><Card><StatHero eyebrow="Money that came your way" value={36} /></Card></div>;
+  return <div style={ground('recap')}><Card><StatHero eyebrow="Money that came your way" value={36} currency="GBP" /></Card></div>;
 }
 export function Coral() {
   return (

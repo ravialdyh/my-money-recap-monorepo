@@ -44,7 +44,7 @@ export function UnderIllustration() {
     <div style={ground('recap')}>
       <Illustration src={ILLUSTRATIONS.cover} width={220} />
       <Card underIllustration>
-        <StatHero eyebrow="Money that came your way" value={36} />
+        <StatHero eyebrow="Money that came your way" value={36} currency="GBP" />
       </Card>
     </div>
   );

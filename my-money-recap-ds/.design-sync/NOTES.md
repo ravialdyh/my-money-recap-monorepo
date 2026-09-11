@@ -470,3 +470,13 @@ they are due a re-capture on the next sync.
 `pendingGrade` empty, `anchor: ok` against the seventh sync's `a1c63a42d9a7`. The anchor the app now holds is bundle
 `7d666797b214`; a copy is in `.cache/remote-sync.json`. The three doc cards that shipped stale in the seventh sync
 (StatHero, AmountField, PromptCard) are now current in the project.
+
+**Ninth sync (2026-09-11, project `5f615747-48cd-4708-9369-becee9793f4e`).** Two product decisions landed together: D57's cap
+went from 12 to 11 digits, and `StatHero` lost its `'GBP'` default (`currency` is required unless `format` is given). Measured
+first, in `scripts/measure.tsx` served from a local static server: at the 40pt step `£999,999,999,999` is 289pt (it fit —
+the earlier "≈350pt" figure in this log's conversation was wrong), `Rp 999.999.999.999` is 317pt (overflows the 298pt card),
+`Rp 99.999.999.999` is 297pt, `BHD 99,999,999,999` is 328pt (three-letter codes overflow above nine digits; D57 records it).
+Same upload order as the eighth, 198 files, no deletes. Re-captured and graded good: `AmountField` (7 cells, `ElevenDigitCap`
+replaces `TwelveDigitCap`), `Card` (4) and `Eyebrow` (3) — the last two only because their previews now pass `currency="GBP"`
+explicitly. `StatHero` re-uploaded bytes without a re-grade (its preview did not change). The anchor the app now holds is
+bundle `18d0b9e044f7`; a copy is in `.cache/remote-sync.json`.

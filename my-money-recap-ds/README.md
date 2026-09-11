@@ -25,7 +25,7 @@ import { Screen, Headline, Card, StatHero } from '@my-money-recap/ui';
 <Screen ground="recap">
   <Headline size="l">Your September in money</Headline>
   <Card underIllustration>
-    <StatHero eyebrow="Money that came your way" value={36} animate />
+    <StatHero eyebrow="Money that came your way" value={36} currency="GBP" animate />
   </Card>
 </Screen>
 ```

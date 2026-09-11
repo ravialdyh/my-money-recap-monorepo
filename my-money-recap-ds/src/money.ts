@@ -62,7 +62,7 @@ export function moneyFormat(currency: string, locale?: string): MoneyFormat {
 /**
  * Turns what a Member typed into a decimal string, using the locale's own separators to tell grouping from
  * the decimal point: parseAmount("2.400,50", "id-ID") -> "2400.50"; parseAmount("2,400.50", "en-GB") -> "2400.50".
- * Returns "" for input with no digits. The 12-digit cap (D57) is the caller's rule.
+ * Returns "" for input with no digits. The 11-digit cap (D57) is the caller's rule.
  */
 export function parseAmount(typed: string, locale?: string): string {
   const parts = new Intl.NumberFormat(locale).formatToParts(1234.5);

@@ -77,15 +77,15 @@ const b1Preview = col('B1 · Home / preview card', screen('recap', `${H('Septemb
 const b2TooLong = col('B2 · Log a spend / amount too long', screen('recap', `${H('September 2026')}
   <div style="position:absolute;inset:0">
   ${X('Sheet', 'title="Log a spend" scrim="{{ true }}"', `<div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      ${X('AmountField', 'value="999999999999" currency="GBP" label="Amount" state="invalid" helper="That\'s more than the app can store." on-change="{{ noop }}"', '', '100%,96px')}
+      ${X('AmountField', 'value="99999999999" currency="GBP" label="Amount" state="invalid" helper="That\'s more than the app can store." on-change="{{ noop }}"', '', '100%,96px')}
       <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8">${X('Chip', 'tone="{{ c.tone }}" selected="{{ c.selected }}" tappable="{{ true }}"', `${X('Icon', 'name="{{ c.key }}"', '', '16px,16px')}{{ c.label }}`, 'auto,44px')}</sc-for></div>
       ${X('ListRow', 'label="Date" value="Today, 26 September" trailing="chevron"', '', '100%,56px')}
       ${X('TextField', 'label="Note" placeholder="What was it? (optional)"', '', '100%,72px')}
       ${X('Button', '', 'Save', '100%,52px')}
     </div>`, '100%,100%')}
   </div>`), [
-  `D57, same rule as A6: at 12 digits before the separator the field stops accepting keystrokes and shows "That's more than the app can store." — the line is coral but the amount is still a valid one, so Save stays enabled once a Category is picked.`,
-  '"£ 999,999,999,999.00" is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The field always shows the currency\'s full decimals while typing.', 'Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills — one of the two has to give; drawn here as shipped.']);
+  `D57, same rule as A6: at 11 digits before the separator the field stops accepting keystrokes and shows "That's more than the app can store." — the line is coral but the amount is still a valid one, so Save stays enabled once a Category is picked.`,
+  '"£ 99,999,999,999.00" is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The field always shows the currency\'s full decimals while typing.', 'Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills — one of the two has to give; drawn here as shipped.']);
 
 // Row 3 · Spend list, empty list, old spend
 const switcher = (open = false) => `<div style="margin-top:12px;display:flex;align-items:center;gap:8px;position:relative">
@@ -165,7 +165,7 @@ export default {
       n80: 80, n900: 900, n1190: 1190, n2000: 2000, n18000: 18000 };
   }`,
   body: page('My Money Recap · Home and the daily loop',
-    'Part 2. The Home states beyond the canonical one: before payday (D41), no salary (D54), the preview card (D47), no target, the before-payday warning (D53), a partial month in the list, offline (D58/D63), the first-load skeleton (D49), the 12-digit cap (D57), the month switcher (D59) and the read-only date on an old spend. Ledger: Maya, GBP, salary £2,400, payday 25, target 20% = £480, Otter; 26 September unless the sticky says otherwise. Yellow stickies are annotations, not UI.',
+    'Part 2. The Home states beyond the canonical one: before payday (D41), no salary (D54), the preview card (D47), no target, the before-payday warning (D53), a partial month in the list, offline (D58/D63), the first-load skeleton (D49), the 11-digit cap (D57), the month switcher (D59) and the read-only date on an old spend. Ledger: Maya, GBP, salary £2,400, payday 25, target 20% = £480, Otter; 26 September unless the sticky says otherwise. Yellow stickies are annotations, not UI.',
     [row('Row 1 · Home, states a decision changed or added', [b1Before, b1NoSalary, b1NoTarget, b1WarnBefore, b1Partial]),
      row('Row 2 · Offline, loading, the preview card and the amount cap', [b1Offline, b1FirstLoad, b1Preview, b2TooLong]),
      row('Row 3 · The Spend list', [b6, b6Open, b6Empty, b7Old]),

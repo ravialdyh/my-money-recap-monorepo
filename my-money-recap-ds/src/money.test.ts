@@ -28,7 +28,7 @@ describe('money formatting (PRD §7, §11, D71)', () => {
 
   it('accepts exact decimal strings, the storage form, without loss', () => {
     expect(formatMoney('12.40', 'GBP', 'en-GB')).toBe('£12.40');
-    expect(formatMoney('999999999999', 'GBP', 'en-GB')).toBe('£999,999,999,999');
+    expect(formatMoney('99999999999', 'GBP', 'en-GB')).toBe('£99,999,999,999');
   });
 
   it('keeps the full decimals in an entry field that draws its own symbol', () => {

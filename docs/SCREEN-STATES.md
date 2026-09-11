@@ -35,7 +35,7 @@ Violet ground throughout.
 | A5 | Currency | Searchable ISO list as `ListRow trailing="check"`, device locale preselected. |
 | A5 | empty search | `No currency matches "{query}".` plus a `Clear search` link. |
 | A6 | Salary and payday | D51. `DayPicker` with a `Last day` option after 31 and a computed helper below it: `Next paydays: 25 Sep · 25 Oct · 25 Nov`, updating on every tap. No other helper line. |
-| A6 | amount too long | D57. At 12 digits the field stops accepting keystrokes and shows `That's more than the app can store.` |
+| A6 | amount too long | D57. At 11 digits the field stops accepting keystrokes and shows `That's more than the app can store.` |
 | A7 | Saving target | Slider, live amount preview. |
 | A7 | salary skipped | D44. The slider card is replaced by a `PromptCard`: `Set a salary first` / `A target is a share of your salary, so we need the salary first.` Tapping returns to A6. The primary button reads `Skip for now`. A percentage can never be set without a salary. |
 | A8 | Home, first run | D43. `Streak day 1` for a member who signed up today: the streak window starts at sign-up, not the 1st. |
