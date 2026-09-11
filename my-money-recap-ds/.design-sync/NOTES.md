@@ -384,11 +384,11 @@ both had a blast radius wider than the package:
   no `daysInMonth` anywhere, and the Home canvas hardcodes `daysLeft = 30 - d + 1` while clamping its
   own `today` prop to 21–30 so the September sample keeps working. The paragraph now says so
   explicitly and points at PRD §8.
-- `GAPS.md` read as 57 live gaps with 🔴 "blocks implementation" severities; PRD D48 says it is closed
+- `GAPS.md` (since deleted, 2026-09-11) read as 57 live gaps with 🔴 "blocks implementation" severities; PRD D48 says it is closed
   history. It now opens with a CLOSED banner.
 - `DESIGN_NOTES_VERBATIM.md` had no header saying it is a quoted transcript, so its `NEWSelectRow`
   note read as a live instruction. It now has one, and the body is still verbatim.
-- `docs/design/design_handoff_my_money_recap/PRD.md` was **Draft v1** sitting under the same filename
+- `docs/design/design_handoff_my_money_recap/PRD.md` (a pointer stub until it was deleted on 2026-09-11) was **Draft v1** sitting under the same filename
   as the live Draft v2 — the fastest way to send a reader to the wrong spec. Replaced with a pointer
   stub; the v1 text is recoverable with
   `git show db8a2b2:docs/design/design_handoff_my_money_recap/PRD.md`.

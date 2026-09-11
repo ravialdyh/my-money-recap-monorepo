@@ -36,7 +36,7 @@ const b1NoTarget = col('B1 · Home / no target set, salary set', screen('recap',
   <div style="margin-top:12px">${X('PromptCard', 'size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month."', '', '100%,136px')}</div>
   ${homeButtons(true)}
   ${plainRecaps()}`), [
-  `${NEW}G-01. 26 September: the hero card is entirely normal — Spent £1,190, Money in £2,400, Saved £1,210. Only the target card becomes the 136pt PromptCard "Set a saving target", so nothing below it moves when the target is set. No daily-allowance sentence (it derives from the target amount) and the Target Warning cannot fire (§8.8).`]);
+  `${NEW}26 September: the hero card is entirely normal — Spent £1,190, Money in £2,400, Saved £1,210. Only the target card becomes the 136pt PromptCard "Set a saving target", so nothing below it moves when the target is set. No daily-allowance sentence (it derives from the target amount) and the Target Warning cannot fire (§8.8).`]);
 const b1WarnBefore = col('B1 · Home / target warning, before payday', screen('recap', `${H('September 2026')}
   ${hero('Spent so far · salary lands in 5 days', 'n2000', [['earned', 'Money in £0']])}
   <div style="margin-top:12px">${X('Banner', 'tone="warning" on-dismiss="{{ noop }}"', "You've spent £2,000 of the £1,920 you meant to spend this month.", '100%,72px')}</div>

@@ -23,7 +23,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 
 <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
   <div style="font:700 34px/1.1 var(--mmr-font-family-display)">My Money Recap · Auth and onboarding</div>
-  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Launch → Sign in → email link or Apple/Google → four onboarding steps → first Home. Every screen sits on the violet recap ground; white cards carry the ink content. Elements built for this flow that don't yet exist in the system are tagged <span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em">NEW</span> in the notes. Yellow stickies are annotations, not UI.</div>
+  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Launch → Sign in → email link or Apple/Google → onboarding. Every screen sits on the violet recap ground; white cards carry the ink content. Step 3 (A6), the first-run Homes (A8, A8 skipped) and the flow map live in <code>2026-09-11/Auth and Onboarding (revised).dc.html</code>. Elements built for this flow that did not exist in the system at the time are tagged <span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em">NEW</span> in the notes. Yellow stickies are annotations, not UI.</div>
 </div>
 
 <!-- ROW 1 -->
@@ -204,50 +204,6 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 </sc-if>
 </div>
 
-<!-- A6 -->
-<div data-screen-label="A6 · Salary and payday" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A6 · Salary and payday</div>
-<x-import component-from-global-scope="MMR.Screen" ground="recap" hint-size="390px,844px">
-  <div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
-    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Step 3 of 4</x-import>
-  </div>
-  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,42px">Your monthly salary</x-import></div>
-  <div style="margin-top:20px">
-  <x-import component-from-global-scope="MMR.Card" hint-size="100%,130px">
-    <span style="font:800 13px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)">Amount, after tax</span>
-    <div style="display:flex;align-items:baseline;gap:8px;border-bottom:2px solid var(--mmr-palette-ink-100);padding-bottom:10px;margin-top:-4px">
-      <span style="font:700 32px/1 var(--mmr-font-family-display);color:var(--mmr-color-text-secondary)">£</span>
-      <span style="font:700 48px/1 var(--mmr-font-family-display);letter-spacing:-.02em;color:var(--mmr-color-text-primary);font-variant-numeric:tabular-nums">{{ salaryText }}</span>
-      <span style="width:2px;height:40px;background:var(--mmr-palette-violet-500);border-radius:999px;align-self:center"></span>
-    </div>
-  </x-import>
-  </div>
-  <div style="margin-top:12px">
-  <x-import component-from-global-scope="MMR.Card" hint-size="100%,150px">
-    <x-import component-from-global-scope="MMR.CardTitle" hint-size="100%,22px">Payday</x-import>
-    <div data-day-picker="a6" style="display:flex;gap:6px;overflow-x:auto;margin:0 -22px;padding:0 22px;scrollbar-width:none">
-      <sc-for list="{{ days }}" as="d" hint-placeholder-count="7">
-        <button onClick="{{ d.select }}" style="flex:none;width:44px;height:44px;border:0;border-radius:999px;background:{{ d.bg }};color:{{ d.color }};font:700 18px var(--mmr-font-family-display);cursor:pointer;padding:0">{{ d.n }}</button>
-      </sc-for>
-    </div>
-    <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,20px">If the month is shorter, we use its last day.</x-import>
-  </x-import>
-  </div>
-  <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">
-    <x-import component-from-global-scope="MMR.Button" hint-size="100%,52px">Next</x-import>
-    <button style="height:44px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);cursor:pointer">Skip for now</button>
-  </div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Amount must be greater than 0; digits and one decimal separator; the currency prefix is fixed from A5. Next disabled until amount &gt; 0. Payday 1 to 31, default 25. Tap a day to try.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">"Skip for now" → A7 and leaves Home's hero card as a prompt (A8 / skipped).</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>AmountField (fixed prefix, Fredoka 48 value, violet caret) and DayPicker (horizontal 44 pt pills, selected = ink pill, scrolls so the selection is centred).</div>
-</div>
-</sc-if>
-</div>
-
 <!-- A7 -->
 <div data-screen-label="A7 · Saving target" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
 <div style="font:800 14px/1.2 var(--mmr-font-family-text)">A7 · Saving target</div>
@@ -280,55 +236,6 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Slider 0 to 100 in steps of 5, default 20. Preview recalculates live: target% × salary from A6. If salary was skipped the preview reads "Add a salary to see the amount." Drag the knob to try.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Slider: ProgressBar track (violet tone) plus a 28 pt ink knob with a 3 px white ring; the hit area is the full 44 pt row.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Done → A8. Skip for now → A8 with the target prompt card.</div>
-</div>
-</sc-if>
-</div>
-
-<!-- A8 -->
-<div data-screen-label="A8 · Home, first run" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A8 · Home, first run</div>
-<x-import component-from-global-scope="MMR.Screen" ground="recap" hint-size="390px,844px">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">September 2026</x-import>
-    <x-import component-from-global-scope="MMR.Chip" variant="inverse" hint-size="auto,30px">Settings</x-import>
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
-    <x-import component-from-global-scope="MMR.Headline" size="m" hint-size="auto,42px">Hi, Maya</x-import>
-    <img src="uploads/ill-avatar-otter.webp" alt="" style="width:56px;height:56px;border-radius:999px;display:block;flex:none">
-  </div>
-  <div style="margin-top:18px">
-  <x-import component-from-global-scope="MMR.Card" hint-size="100%,191px">
-    <x-import component-from-global-scope="MMR.StatHero" eyebrow="Spent so far · salary lands in 21 days" value="{{ n0 }}" format="{{ fmt }}" hint-size="100%,100px"></x-import>
-    <x-import component-from-global-scope="MMR.StatChipRow" hint-size="100%,34px">
-      <x-import component-from-global-scope="MMR.StatChip" tone="earned" hint-size="auto,34px">Money in £0</x-import>
-      <x-import component-from-global-scope="MMR.StatChip" tone="saved" hint-size="auto,34px">Saved £0</x-import>
-    </x-import>
-  </x-import>
-  </div>
-  <div style="margin-top:12px">
-  <x-import component-from-global-scope="MMR.Card" hint-size="100%,136px">
-    <div style="display:flex;justify-content:space-between;align-items:baseline">
-      <x-import component-from-global-scope="MMR.CardTitle" hint-size="auto,22px">Saving target</x-import>
-      <span style="font:800 14px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);font-variant-numeric:tabular-nums">{{ targetZeroText }}</span>
-    </div>
-    <x-import component-from-global-scope="MMR.ProgressBar" value="{{ n0 }}" max="{{ target }}" tone="green" hint-size="100%,22px"></x-import>
-    <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,20px">Nothing spent yet. Streak day 4.</x-import>
-  </x-import>
-  </div>
-  <div style="margin-top: 50px; display: flex; flex-direction: column; gap: 12px">
-    <x-import component-from-global-scope="MMR.Button" hint-size="100%,52px">Log a spend</x-import>
-    <x-import component-from-global-scope="MMR.Button" dc-props="{{ whiteBtn }}" state="disabled" hint-size="100%,52px">See last month</x-import>
-  </div>
-  <div style="margin-top: 45px; display: flex; flex-direction: column; gap: 8px">
-    <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Recaps</div>
-    <div style="border:2px dashed rgba(255,255,255,.4);border-radius:28px;padding:16px 22px;font:700 14px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-on-ground-muted);text-align:center">Your first recap arrives on 1 October.</div>
-  </div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Chip row and greeting only: no nav bar, no tab bar, no header title. The Settings chip is 30 pt tall, so it gets an invisible 44 pt hit slop.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">"See last month" is disabled because no previous month exists yet. Streak counts no-spend days since sign-up.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Otter avatar at 56 pt, the one chosen on A4. The push-permission prompt is not here; it appears after the first spend is logged.</div>
 </div>
 </sc-if>
 </div>
@@ -471,56 +378,6 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 </sc-if>
 </div>
 
-<!-- A8 skipped -->
-<div data-screen-label="A8 · Home / skipped" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A8 · Home / skipped</div>
-<x-import component-from-global-scope="MMR.Screen" ground="recap" hint-size="390px,844px">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">September 2026</x-import>
-    <x-import component-from-global-scope="MMR.Chip" variant="inverse" hint-size="auto,30px">Settings</x-import>
-  </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
-    <x-import component-from-global-scope="MMR.Headline" size="m" hint-size="auto,42px">Hi, Maya</x-import>
-    <img src="uploads/ill-avatar-otter.webp" alt="" style="width:56px;height:56px;border-radius:999px;display:block;flex:none">
-  </div>
-  <div style="margin-top:18px">
-  <x-import component-from-global-scope="MMR.Card" dc-props="{{ heroPromptCard }}" hint-size="100%,191px">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <div style="display:grid;gap:6px">
-        <x-import component-from-global-scope="MMR.Eyebrow" hint-size="auto,17px">Salary</x-import>
-        <x-import component-from-global-scope="MMR.CardTitle" hint-size="auto,22px">Set your monthly salary</x-import>
-      </div>
-      <span style="width:44px;height:44px;border-radius:999px;background:var(--mmr-palette-violet-100);color:var(--mmr-palette-violet-500);display:flex;align-items:center;justify-content:center;flex:none"><svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2l6 6-6 6"></path></svg></span>
-    </div>
-    <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,20px">We'll count down to payday once we know it.</x-import>
-  </x-import>
-  </div>
-  <div style="margin-top:12px">
-  <x-import component-from-global-scope="MMR.Card" dc-props="{{ targetPromptCard }}" hint-size="100%,136px">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <x-import component-from-global-scope="MMR.CardTitle" hint-size="auto,22px">Set a saving target</x-import>
-      <span style="width:44px;height:44px;border-radius:999px;background:var(--mmr-palette-violet-100);color:var(--mmr-palette-violet-500);display:flex;align-items:center;justify-content:center;flex:none"><svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2l6 6-6 6"></path></svg></span>
-    </div>
-    <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,20px">Pick a share of your salary to keep each month.</x-import>
-  </x-import>
-  </div>
-  <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
-    <x-import component-from-global-scope="MMR.Button" hint-size="100%,52px">Log a spend</x-import>
-    <x-import component-from-global-scope="MMR.Button" dc-props="{{ whiteBtn }}" state="disabled" hint-size="100%,52px">See last month</x-import>
-  </div>
-  <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
-    <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Recaps</div>
-    <div style="border:2px dashed rgba(255,255,255,.4);border-radius:28px;padding:16px 22px;font:700 14px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-on-ground-muted);text-align:center">Your first recap arrives on 1 October.</div>
-  </div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Member skipped A6 and A7. Both cards keep the filled versions' heights (191 and 136 pt) so the layout doesn't jump once they are set. Whole card is the tap target; it opens the matching onboarding step.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>PromptCard: Card + Eyebrow/CardTitle + 44 pt violet-100 chevron well (IconWell scaled up) + HelperText.</div>
-</div>
-</sc-if>
-</div>
-
 <!-- A8 after payday -->
 <div data-screen-label="A8 · Home / after payday" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
 <div style="font:800 14px/1.2 var(--mmr-font-family-text)">A8 · Home / after payday</div>
@@ -569,63 +426,14 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 </div>
 </div>
 
-<!-- ROW 3 -->
-<div style="display:flex;flex-direction:column;gap:24px">
-<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 3 · Flow</div>
-<div data-screen-label="Flow · Launch to Home" style="display:flex;flex-direction:column;gap:14px">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">Flow · Launch to Home</div>
-<div style="position:relative;width:1980px;height:660px;background:var(--mmr-palette-white);border-radius:28px;overflow:hidden">
-  <svg width="1980" height="660" viewBox="0 0 1980 660" style="position:absolute;inset:0" fill="none" stroke="var(--mmr-palette-ink-500)" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-    <defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1l8 4-8 4" fill="none" stroke="var(--mmr-palette-ink-500)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></marker></defs>
-    <path d="M156 354H278" marker-end="url(#arw)"></path>
-    <path d="M376 290C440 290 440 144 498 144" marker-end="url(#arw)"></path>
-    <path d="M376 400H938" marker-end="url(#arw)"></path>
-    <path d="M328 458C328 600 1868 600 1868 460" marker-end="url(#arw)"></path>
-    <path d="M596 144H718" marker-end="url(#arw)"></path>
-    <path d="M816 144C880 144 880 320 938 320" marker-end="url(#arw)"></path>
-    <path d="M768 40C768 4 1868 4 1868 248" marker-end="url(#arw)"></path>
-    <path d="M1036 354H1158" marker-end="url(#arw)"></path>
-    <path d="M1256 354H1378" marker-end="url(#arw)"></path>
-    <path d="M1476 354H1598" marker-end="url(#arw)"></path>
-    <path d="M1696 354H1818" marker-end="url(#arw)"></path>
-  </svg>
-  <sc-for list="{{ flowNodes }}" as="f" hint-placeholder-count="9">
-    <div style="position:absolute;left:{{ f.x }};top:{{ f.y }};width:96px;display:flex;flex-direction:column;gap:8px;align-items:center">
-      <div style="width:96px;height:208px;border-radius:12px;background:var(--mmr-palette-violet-500);position:relative;overflow:hidden">
-        <div style="position:absolute;left:10px;top:16px;width:52px;height:8px;border-radius:999px;background:var(--mmr-palette-white)"></div>
-        <div style="position:absolute;left:10px;top:30px;width:36px;height:8px;border-radius:999px;background:var(--mmr-palette-white);opacity:.6"></div>
-        <div style="position:absolute;left:8px;right:8px;top:{{ f.cardTop }};bottom:{{ f.cardBottom }};border-radius:10px;background:var(--mmr-palette-white)"></div>
-        <div style="position:absolute;left:8px;right:8px;bottom:8px;height:14px;border-radius:999px;background:var(--mmr-palette-ink-900);opacity:{{ f.btn }}"></div>
-      </div>
-      <div style="font:800 11px/1.3 var(--mmr-font-family-text);color:var(--mmr-palette-ink-900);text-align:center;text-wrap:balance">{{ f.label }}</div>
-    </div>
-  </sc-for>
-  <sc-for list="{{ flowLabels }}" as="l" hint-placeholder-count="12">
-    <div style="position:absolute;left:{{ l.x }};top:{{ l.y }};transform:translate(-50%,-50%);background:var(--mmr-palette-white);padding:3px 8px;border-radius:999px;font:800 11px/1.2 var(--mmr-font-family-text);color:{{ l.color }};white-space:nowrap">{{ l.text }}</div>
-  </sc-for>
-  <div style="position:absolute;left:60px;top:620px;font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500)">Onboarding progress is saved per screen; a force-quit resumes at the next unanswered step. Thumbnails are schematic; see rows 1 and 2 for the screens.</div>
-</div>
-</div>
-</div>
-
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;},&quot;salary&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:2400,&quot;min&quot;:1,&quot;max&quot;:100000,&quot;step&quot;:100,&quot;unit&quot;:&quot;£&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Data&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;}}">
 class Component extends DCLogic {
-  state = { email: '', firstName: 'Maya', avatar: 1, currency: 0, payday: 25, pct: 20 };
-  componentDidMount() {
-    const scrollTo = (el) => { el.scrollLeft = Math.max(0, (this.state.payday - 1) * 50 - (el.clientWidth / 2 - 22 - 22)); };
-    const found = () => { const el = document.querySelector('[data-day-picker="a6"]'); return el && el.clientWidth > 0 && el.children.length === 31 && el.scrollWidth > el.clientWidth ? el : null; };
-    const once = () => { const el = found(); if (el && !el.dataset.scrolled) { el.dataset.scrolled = '1'; scrollTo(el); } };
-    once();
-    this._mo = new MutationObserver(once);
-    this._mo.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => { if (this._mo) { this._mo.disconnect(); this._mo = null; } }, 60000);
-  }
-  componentWillUnmount() { if (this._mo) this._mo.disconnect(); }
+  state = { email: '', firstName: 'Maya', avatar: 1, currency: 0, pct: 20 };
   renderVals() {
     const K = window.MMR;
-    const salary = Number(this.props.salary ?? 2400);
+    const salary = 2400;
     const showNotes = this.props.showAnnotations ?? true;
     const s = this.state;
     const fmt = (n) => '£' + Math.round(n).toLocaleString('en-GB');
@@ -642,31 +450,33 @@ class Component extends DCLogic {
     const target = Math.round(salary * 0.2);
     const saved = salary - 185;
     const pctAmt = Math.round(salary * s.pct / 100);
-    const pos = [[60, 250, 'A0 · Launch', '38%', '38%', 0], [280, 250, 'A1 · Sign in', '48%', '8px', 1], [500, 40, 'A2 · Enter email', '30%', '40%', 1], [720, 40, 'A3 · Check your inbox', '45%', '40%', 0], [940, 250, 'A4 · Name and avatar', '30%', '16%', 1], [1160, 250, 'A5 · Currency', '30%', '16%', 1], [1380, 250, 'A6 · Salary and payday', '30%', '20%', 1], [1600, 250, 'A7 · Saving target', '30%', '30%', 1], [1820, 250, 'A8 · Home', '28%', '30%', 1]];
-    const ink = 'var(--mmr-palette-ink-900)', mut = 'var(--mmr-palette-ink-500)';
-    const labels = [[218, 340, 'auto'], [420, 200, 'Continue with email'], [658, 384, 'Apple or Google, first sign-in'], [1098, 592, 'Apple or Google, returning member'], [658, 130, 'Send me a link'], [900, 230, 'tap link, first sign-in'], [1318, 20, 'tap link, returning member'], [1097, 340, 'Next'], [1317, 340, 'Next'], [1537, 340, 'Next'], [1537, 372, 'Skip for now', mut], [1757, 340, 'Done'], [1757, 372, 'Skip for now', mut]];
     return {
-      coverSrc: K && K.ILLUSTRATIONS.cover, fmt, showNotes,
-      n0: 0, n100: 100, n185: 185, n260: 260, salary, target, saved,
-      salaryText: salary.toLocaleString('en-GB'),
-      savedChipText: 'Saved ' + fmt(saved), inChipText: 'Money in ' + fmt(salary),
-      targetZeroText: '£0 of ' + fmt(target),
+      coverSrc: K && K.ILLUSTRATIONS.cover,
+ fmt,
+ showNotes,
+ n100: 100,
+ n185: 185,
+ n260: 260,
+ target,
+ saved,
+      savedChipText: 'Saved ' + fmt(saved),
+ inChipText: 'Money in ' + fmt(salary),
       targetFullText: fmt(saved) + ' of ' + fmt(target),
       whiteBtn: { style: { background: 'var(--mmr-palette-white)', color: 'var(--mmr-palette-ink-900)' } },
-      heroPromptCard: { style: { minHeight: 191, justifyContent: 'center' }, role: 'button', tabIndex: 0 },
-      targetPromptCard: { style: { minHeight: 136, justifyContent: 'center' }, role: 'button', tabIndex: 0 },
-      email: s.email, setEmail: (e) => this.setState({ email: e.target.value }),
+      email: s.email,
+ setEmail: (e) => this.setState({ email: e.target.value }),
       sendState: emailValid ? 'default' : 'disabled',
-      firstName: s.firstName, setFirstName: (e) => this.setState({ firstName: e.target.value }),
+      firstName: s.firstName,
+ setFirstName: (e) => this.setState({ firstName: e.target.value }),
       nextA4State: nameValid && s.avatar >= 0 ? 'default' : 'disabled',
-      avatars: mk(s.avatar), avatarsNone: mk(-1),
+      avatars: mk(s.avatar),
+ avatarsNone: mk(-1),
       currencies: curr.map((label, i) => ({ label, check: s.currency === i ? 1 : 0, border: i === curr.length - 1 ? '0' : '1px solid var(--mmr-palette-ink-100)', select: () => this.setState({ currency: i }) })),
-      days: Array.from({ length: 31 }, (_, i) => ({ n: i + 1, bg: s.payday === i + 1 ? 'var(--mmr-palette-ink-900)' : 'transparent', color: s.payday === i + 1 ? 'var(--mmr-palette-white)' : 'var(--mmr-palette-ink-900)', select: () => this.setState({ payday: i + 1 }) })),
-      pct: s.pct, pctText: s.pct + '%', setPct: (e) => this.setState({ pct: Number(e.target.value) }),
+      pct: s.pct,
+ pctText: s.pct + '%',
+ setPct: (e) => this.setState({ pct: Number(e.target.value) }),
       knobLeft: `calc(${s.pct}% - ${(s.pct / 100) * 28}px)`,
-      previewText: `${fmt(pctAmt)} of ${fmt(salary)} each month`,
-      flowNodes: pos.map(([x, y, label, cardTop, cardBottom, btn]) => ({ x: x + 'px', y: y + 'px', label, cardTop, cardBottom, btn })),
-      flowLabels: labels.map(([x, y, text, color]) => ({ x: x + 'px', y: y + 'px', text, color: color || ink }))
+      previewText: `${fmt(pctAmt)} of ${fmt(salary)} each month`
     };
   }
 }
