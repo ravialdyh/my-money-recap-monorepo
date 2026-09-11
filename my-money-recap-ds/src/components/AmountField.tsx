@@ -27,11 +27,11 @@ export function AmountField({ value, currency, locale, label, helper, state = 'd
   const symbol = currencySymbol(currency, locale);
   const formatted = value === '' ? '' : formatAmountNumber(value, currency, locale);
   const mirror = useRef<HTMLSpanElement>(null);
-  const box = useRef<HTMLLabelElement>(null);
-  const step = useFitStep(mirror, box, `${symbol} ${formatted}`);
+  const field = useRef<HTMLSpanElement>(null); // the padded row: what the symbol plus value must fit inside
+  const step = useFitStep(mirror, field, `${symbol} ${formatted}`);
   return (
     <TextField
-      ref={box}
+      fieldRef={field}
       className="mmr-amount"
       data-step={step}
       label={label}

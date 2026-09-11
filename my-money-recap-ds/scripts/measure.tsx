@@ -24,9 +24,9 @@ const cases: Array<[string, JSX.Element]> = [
   ['C4 slowburner (tortoise)', <RecapPersonalityScreen archetype="slowBurner" saved={180} spent={2220} />],
   ['C1 cover · rupiah (X4)', <RecapCoverScreen month="September 2026" childName="Budi" total={15000000} saved={5600000} spent={9400000} currency="IDR" locale="id-ID" />],
   ['C3 goal · no target', <RecapGoalScreen target={null} spentTotal={1760} />],
-  ['C3 goal · rupiah', <RecapGoalScreen currency="IDR" locale="id-ID" saved={5600000} target={3000000} spentTotal={9400000} splurge="Rp 2.500.000,00 on a flight home. Your biggest single buy." />],
+  ['C3 goal · rupiah', <RecapGoalScreen currency="IDR" locale="id-ID" saved={5600000} target={3000000} spentTotal={9400000} splurge="Rp 2.500.000 on a flight home. Your biggest single buy." />],
   ['Long-number pieces · rupiah', <Screen ground="recap">
-    <Card><StatHero eyebrow="Spent so far" value={9400000} currency="IDR" locale="id-ID" /><StatChipRow><StatChip tone="earned">Money in Rp 15.000.000,00</StatChip><StatChip tone="saved">Saved Rp 5.600.000,00</StatChip></StatChipRow></Card>
+    <Card><StatHero eyebrow="Spent so far" value={9400000} currency="IDR" locale="id-ID" /><StatChipRow><StatChip tone="earned">Money in Rp 15.000.000</StatChip><StatChip tone="saved">Saved Rp 5.600.000</StatChip></StatChipRow></Card>
     <div style={{ marginTop: 12 }}><PromptCard size="hero" height={233} title="Set your monthly salary" helper="We'll show what you kept once we know what came in." /></div>
     <div style={{ marginTop: 12 }}><Card><StatHero eyebrow="Fits at 80" value={520000} currency="IDR" locale="id-ID" /><StatHero eyebrow="Steps to 56" value={15000000} currency="IDR" locale="id-ID" /><StatHero eyebrow="Steps to 40" value={999999999999} currency="GBP" locale="en-GB" /></Card></div>
     <div style={{ marginTop: 12 }}><Banner tone="offline">No connection. You can look, but not log.</Banner></div>

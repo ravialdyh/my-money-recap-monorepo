@@ -128,7 +128,7 @@ node .ds-sync/resync.mjs --config .design-sync/config.json --node-modules ./node
 - The per-component `*.jsx` in `ds-bundle/` are re-export shims onto `window.MMR`; the implementation ships in `_ds_bundle.js`. So a DS source edit shows up as `upload.components: []` with `upload.bundle: true` — that is correct, not a missed file.
 - **Do not upload only what the diff's `upload` partition names.** That partition says which bytes *changed*; it is not the writes list. `.ds-sync/storybook/SKILL.md` §6 is explicit: writes are "everything, always" — `components/**`, `tokens/**`, `fonts/**`, `_vendor/**`, `_preview/**`, `guidelines/**`, `_ds_bundle.js`, `_ds_bundle.css`, `styles.css`, `README.md`, `_ds_sync.json`, `_ds_needs_recompile` — because an under-scoped writes list silently and permanently desyncs the project. Re-uploading unchanged files is idempotent and cheap.
 - **Upload sequence is fixed**: `_ds_needs_recompile` first (it fences the app's manifest machinery against a half-uploaded state) -> all content writes in <=256-file chunks -> deletes from `.sync-diff.json`'s `upload.deletePaths` verbatim -> `_ds_needs_recompile` re-arm -> `_ds_sync.json` alone, last. A fresh anchor over a half-applied upload is permanent: no later sync repairs it, because deterministic builds make the next diff report "no change".
-- This project's full set is 138 files (104 `components/`, 26 `_preview/`, 2 `_vendor/`, 5 top-level, the sentinel and the anchor). `ds-bundle/tokens/` is empty and there is no `fonts/`. Confirm with `DesignSync(list_files)` after every upload.
+- This project's full set is 198 files since the seventh sync (152 `components/`, 38 `_preview/`, 2 `_vendor/`, 4 top-level, the sentinel and the anchor); it was 138 before PRD D50/D71 added twelve components. `ds-bundle/tokens/` and `guidelines/` are empty and there is no `fonts/`. Confirm with `DesignSync(list_files)` after every upload; the app adds `_adherence.oxlintrc.json` and `_ds_manifest.json` itself.
 - `.design-sync/.cache/upload-list.json` is regenerated from the live `ds-bundle/` immediately before upload; never reuse a stale list.
 
 ## Third sync (2026-09-04) — PRD §13 build-out for design Parts 2 to 4
@@ -434,5 +434,8 @@ component provided, and a code review of the first fix found two of the fixes di
 - `npm test` (vitest) covers the money helpers and the fit choice; `npm run measure` renders the fragile and
   long-number states in a real browser (it asserts nothing).
 
-The bundle in `ds-bundle/` was rebuilt locally after these changes; the upload to the Claude Design project is
-recorded below when it happens.
+**Seventh sync (2026-09-11, project `5f615747-48cd-4708-9369-becee9793f4e`).** Sentinel -> chunk 0 (bundle js/css, vendor) ->
+chunk 1 (120 files) -> chunk 2 (72 files) -> sentinel re-arm -> `_ds_sync.json` last; no deletes. `list_files` afterwards
+returned the full 198-file set plus the app's own two files. The anchor the app now holds is bundle `a1c63a42d9a7`; a copy is
+in `.cache/remote-sync.json`. Seven cards were re-captured and re-graded for this sync (AmountField, Banner, PageDots,
+PromptCard, RecapCoverScreen, RecapGoalScreen, StatHero); `pendingGrade` was empty before the anchor was written.

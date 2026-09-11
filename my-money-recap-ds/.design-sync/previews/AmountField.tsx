@@ -10,4 +10,5 @@ export function Invalid() { return <div style={ground}><Card><AmountField label=
 
 /** PRD §11, D71: 48px, then 36 and 28 when the symbol plus value does not fit the field — measured. The 12-digit cap (D57) lands at the smallest step. */
 export function RupiahSalary() { return <div style={ground}><Card><AmountField label="Your monthly salary" currency="IDR" locale="id-ID" value="15000000" /></Card></div>; }
-export function TwelveDigitCap() { return <div style={ground}><Card><AmountField label="Amount" currency="GBP" locale="en-GB" value="999999999999" state="invalid" helper="That's more than the app can store." /></Card></div>; }
+/** Shown at the phone's 390pt width: at 28px the capped value just fits the real field (256 of 266px); the 342px preview card would clip it. */
+export function TwelveDigitCap() { return <div style={{ ...ground, maxWidth: 390 }}><Card><AmountField label="Amount" currency="GBP" locale="en-GB" value="999999999999" state="invalid" helper="That's more than the app can store." /></Card></div>; }

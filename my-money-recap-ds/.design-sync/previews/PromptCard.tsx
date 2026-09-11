@@ -1,4 +1,4 @@
-import { Card, CardTitle, HelperText, PromptCard, StatHero, StatChip, StatChipRow } from '@my-money-recap/ui';
+import { Card, CardTitle, HelperText, PromptCard, StatHero, StatChip, StatChipRow, formatMoney } from '@my-money-recap/ui';
 
 const ground = { background: 'var(--mmr-color-ground-recap)', fontFamily: 'var(--mmr-font-family-text)', padding: 24, width: '100%', maxWidth: 342, boxSizing: 'border-box' as const, borderRadius: 16 };
 const stack = { display: 'flex', flexDirection: 'column' as const, gap: 14 };
@@ -19,7 +19,7 @@ export function HomeHeroPromptRupiah() {
   return (
     <div style={ground}><div style={stack}>
       <Card><StatHero eyebrow="Spent so far" value={9400000} currency="IDR" locale="id-ID" />
-        <StatChipRow><StatChip tone="earned">Money in Rp 15.000.000,00</StatChip><StatChip tone="saved">Saved Rp 5.600.000,00</StatChip></StatChipRow>
+        <StatChipRow><StatChip tone="earned">Money in {formatMoney(15000000, 'IDR', 'id-ID')}</StatChip><StatChip tone="saved">Saved {formatMoney(5600000, 'IDR', 'id-ID')}</StatChip></StatChipRow>
       </Card>
       <PromptCard size="hero" height={233} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
     </div></div>

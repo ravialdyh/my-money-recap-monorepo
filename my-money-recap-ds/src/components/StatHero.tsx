@@ -30,10 +30,12 @@ export function StatHero({ eyebrow, value, currency = 'GBP', locale, format, ani
   const ref = useRef<HTMLDivElement>(null);
   const final = fmt(value);
   const step = useFitStep(ref, null, final);
+  // Count-up frames are whole units so an intermediate frame never grows a fraction the final value lacks.
+  const text = shown === value ? final : fmt(Math.round(shown));
   return (
     <div className="mmr-stat-hero">
       <Eyebrow>{eyebrow}</Eyebrow>
-      <div ref={ref} className="mmr-stat-hero-value" data-step={step}>{fmt(shown)}</div>
+      <div ref={ref} className="mmr-stat-hero-value" data-step={step}>{text}</div>
     </div>
   );
 }
