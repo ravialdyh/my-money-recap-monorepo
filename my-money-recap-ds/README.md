@@ -1,7 +1,7 @@
 # My Money Recap — design system package
 
-Tokens and React components for My Money Recap, the adult personal-finance recap app in a kids' visual theme, extracted from the four
-Wrapped-style artboards. Companion documents: `../my-money-recap/DESIGN.md` (the decisions) and
+Tokens and React components for My Money Recap, the adult personal-finance recap app in a kids' visual theme, built for the eleven design
+canvases in `docs/design/design_handoff_my_money_recap/`. Companion documents: `../my-money-recap/DESIGN.md` (the decisions) and
 `src/tokens/tokens.json` (the values).
 
 ## Layout
@@ -13,7 +13,7 @@ src/
   components/    one component per file, states via data-state / :active / :disabled
   icons/         one <Icon name=…> component; glyph drawings live in glyphs.tsx
   screens/       the four recap screens as components (RecapCoverScreen, RecapEarningScreen, RecapGoalScreen, RecapPersonalityScreen)
-  stories/       CSF3 stories: one file per component + Screens/Monthly recap (the four artboards rebuilt)
+  stories/       CSF3 stories: one file per component + Screens/Monthly recap (the four Recap screens)
   index.ts       public exports
 ```
 
@@ -34,8 +34,9 @@ Styles are injected by the components themselves (`useStyles`), so no CSS import
 If you prefer a stylesheet, import `@my-money-recap/ui/tokens.css` and `src/styles/components.css`.
 Fonts: Fredoka and Nunito from Google Fonts, loaded by the injected stylesheet.
 
-The four recap illustrations ship as data URIs in `src/assets/illustrations.ts` (`ILLUSTRATIONS.cover`,
-`.lemonade`, `.vending`, `.squirrel`), so stories and previews need no asset pipeline. For a production app
+Every illustration ships as a data URI in `src/assets/illustrations.ts` (`ILLUSTRATIONS.cover`, `.lemonade`,
+`.vending`, `.squirrel`, `.envelope`, `.jar`, `.hustler`, `.treat`, `.slowburner` and the six `avatar-*`), so
+stories and previews need no asset pipeline. For a production app
 you may prefer to serve the WebP files from `../my-money-recap/` and pass their URLs to `<Illustration src=… />`.
 
 ## States

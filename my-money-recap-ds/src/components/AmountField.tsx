@@ -1,46 +1,48 @@
+import { useRef } from 'react';
 import { useStyles } from '../styles/useStyles';
 import { TextField, type FieldState } from './TextField';
-
-/** Decimal places per ISO 4217 minor unit. IDR 0, GBP 2, BHD 3 (PRD §7). */
-export const MINOR_UNITS: Record<string, number> = { GBP: 2, USD: 2, EUR: 2, SGD: 2, IDR: 0, BHD: 3 };
-export const CURRENCY_SYMBOL: Record<string, string> = { GBP: '£', USD: '$', EUR: '€', SGD: 'S$', IDR: 'Rp', BHD: 'BD' };
-
-/** Formats an integer minor-unit amount for display: 240000 GBP -> "2,400.00", 3000000 IDR -> "3,000,000". */
-export function formatMinor(amountMinor: number, currency: string): string {
-  const digits = MINOR_UNITS[currency] ?? 2;
-  const value = amountMinor / 10 ** digits;
-  return value.toLocaleString('en-GB', { minimumFractionDigits: digits, maximumFractionDigits: digits });
-}
+import { useFitStep } from './fitStep';
+import { currencySymbol, formatAmountNumber, parseAmount } from '../money';
 
 export interface AmountFieldProps {
-  /** Amount in the Currency's minor units. Integer, always. */
-  valueMinor: number;
-  /** ISO 4217 code. Drives both the fixed symbol and the number of decimals. */
+  /** The amount as an exact decimal string ("15000000", "12.40"), the same form it is stored in (PRD §7). */
+  value: string;
+  /** ISO 4217 code. The symbol and the decimals the field shows come from it, via the platform formatter. */
   currency: string;
+  /** Viewer's language tag; omit for the device language. Sets the separators. */
+  locale?: string;
   label?: string;
   helper?: string;
   state?: FieldState;
-  onChange?: (next: number) => void;
+  /** Called with the typed amount as a decimal string; "" when the field is empty. */
+  onChange?: (next: string) => void;
 }
-/** Currency-aware amount entry: a TextField with a fixed symbol and minor-unit formatting. The symbol is never editable. */
-export function AmountField({ valueMinor, currency, label, helper, state = 'default', onChange }: AmountFieldProps) {
+/**
+ * Currency-aware amount entry: a TextField with a fixed symbol and the Currency's decimals, both from the
+ * platform formatter. The value is Fredoka 48px, or 36 / 28px when the symbol plus value does not fit the
+ * field (PRD §11, D71) — measured, not counted.
+ */
+export function AmountField({ value, currency, locale, label, helper, state = 'default', onChange }: AmountFieldProps) {
   useStyles();
-  const digits = MINOR_UNITS[currency] ?? 2;
+  const symbol = currencySymbol(currency, locale);
+  const formatted = value === '' ? '' : formatAmountNumber(value, currency, locale);
+  const mirror = useRef<HTMLSpanElement>(null);
+  const field = useRef<HTMLSpanElement>(null); // the padded row: what the symbol plus value must fit inside
+  const step = useFitStep(mirror, field, `${symbol} ${formatted}`);
   return (
     <TextField
+      fieldRef={field}
       className="mmr-amount"
+      data-step={step}
       label={label}
       helper={helper}
       state={state}
-      prefix={CURRENCY_SYMBOL[currency] ?? currency}
+      prefix={symbol}
       inputMode="decimal"
-      value={formatMinor(valueMinor, currency)}
-      onChange={(e) => {
-        const raw = Number(e.currentTarget.value.replace(/[^0-9]/g, ''));
-        onChange?.(Number.isFinite(raw) ? raw : 0);
-      }}
+      value={formatted}
+      onChange={(e) => onChange?.(parseAmount(e.currentTarget.value, locale))}
       aria-label={label ?? `Amount in ${currency}`}
-      data-minor-digits={digits}
+      mirror={<span ref={mirror} className="mmr-amount-mirror" aria-hidden="true">{symbol} {formatted}</span>}
     />
   );
 }

@@ -56,7 +56,7 @@ const additions = renderToStaticMarkup(
       <CardTitle>Fields</CardTitle>
       <TextField label="First name" defaultValue="Maya" />
       <TextField label="Email address" defaultValue="maya@example" state="invalid" helper="That doesn't look like an email address." />
-      <AmountField label="Your monthly salary" currency="GBP" valueMinor={240000} />
+      <AmountField label="Your monthly salary" currency="GBP" locale="en-GB" value="2400" />
       <Slider value={20} helper="£480 of £2,400 each month" aria-label="Saving target" />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, fontSize: 14 }}><span>Recap ready</span><Toggle checked aria-label="Recap ready" /></div>
     </Card>

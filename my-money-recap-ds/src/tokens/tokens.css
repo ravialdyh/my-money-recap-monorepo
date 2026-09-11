@@ -49,6 +49,7 @@
   --mmr-color-surface-scrim: rgba(30, 27, 58, 0.4);
   --mmr-color-surface-field: var(--mmr-palette-ink-100);
   --mmr-color-surface-banner: var(--mmr-palette-coral-500);
+  --mmr-color-surface-banner-offline: var(--mmr-palette-ink-500);
   --mmr-color-surface-toggle-on: var(--mmr-palette-violet-500);
   --mmr-color-surface-toggle-off: var(--mmr-palette-ink-100);
   --mmr-color-surface-divider: var(--mmr-palette-ink-100);
@@ -182,6 +183,11 @@
   --mmr-radius-inset: 16px;
   --mmr-radius-pill: 999px;
   --mmr-size-screen-width: 390px;
+  --mmr-size-stat-hero-m: 56px;
+  --mmr-size-stat-hero-s: 40px;
+  --mmr-size-amount-l: 48px;
+  --mmr-size-amount-m: 36px;
+  --mmr-size-amount-s: 28px;
   --mmr-size-screen-height: 844px;
   --mmr-size-button-height: 52px;
   --mmr-size-streak-badge: 64px;

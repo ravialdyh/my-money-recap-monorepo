@@ -21,7 +21,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 
 <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
   <div style="font:700 34px/1.1 var(--mmr-font-family-display)">My Money Recap · Home and the daily loop</div>
-  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Part 2 of 4. Picks up from the first-run Home in <a href="Auth and Onboarding.dc.html">Auth and Onboarding</a>. One Member, one ledger: Maya · GBP · salary £2,400 · payday 25 · target 20% = £480 · Otter. Home sits on the violet ground; the Log-a-spend sheet is a white Sheet over a dimmed Home, never a new ground. Yellow stickies are annotations, not UI. Use the Today tweak to move the main Home through the month.</div>
+  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">One Member, one ledger: Maya · GBP · salary £2,400 · payday 25 · target 20% = £480 · Otter. Home sits on the violet ground; the Log-a-spend sheet is a white Sheet over a dimmed Home, never a new ground. The before-payday and no-salary Homes, the Spend list (B6) and the flow map live in <code>2026-09-11/Home and Core Features (revised).dc.html</code>. Yellow stickies are annotations, not UI. Use the Today tweak to move the main Home through the month.</div>
 </div>
 
 <!-- ROW 1 -->
@@ -72,7 +72,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">{{ m.dailyNote }} Days remaining counts today, so {{ m.daysLeft }} on the {{ m.dayOrd }}. The bar reads full all month because Saved starts at the whole salary on payday and only falls — flag if that reads wrong.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">{{ m.dailyNote }} Days remaining counts today, so {{ m.daysLeft }} on the {{ m.dayOrd }}. The bar reads full all month because Saved starts at the whole salary on payday and only falls.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Spent is the hero number — it is the one figure that changes every day and the one the Member can act on. Money in and Saved sit as chips; Saved = Money In − Spent, computed, never logged. Tapping the hero card opens B6. "See last month" is disabled: August has no data.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Month and Settings chips are controls, so they take the tappable variant: the 30 pt pill keeps its size, an invisible 44 pt hit area is added. No tab bar, no nav bar, no header title.</div>
 </div>
@@ -104,7 +104,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n0 }}" currency="GBP" label="Amount" state="focus" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="" currency="GBP" label="Amount" state="focus" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-direction:column;gap:8px">
         <div style="font:800 13px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)">Category</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
@@ -144,7 +144,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0;background:var(--mmr-color-surface-scrim);display:flex;flex-direction:column;justify-content:flex-end;z-index:10">
     <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" dc-props="{{ compactSheet }}" hint-size="100%,420px">
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-        <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ amountMinor }}" currency="GBP" state="focus" on-change="{{ setAmount }}" hint-size="100%,56px"></x-import>
+        <x-import component-from-global-scope="MMR.AmountField" value="{{ amount }}" currency="GBP" state="focus" on-change="{{ setAmount }}" hint-size="100%,56px"></x-import>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
           <sc-for list="{{ catsLive }}" as="c" hint-placeholder-count="8">
             <button onClick="{{ c.select }}" aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -195,7 +195,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n1240 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="12.40" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8">
           <button aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -274,34 +274,6 @@ input::placeholder{color:#6B6890;font-weight:700}
 </sc-if>
 </div>
 
-<!-- B6 -->
-<div data-screen-label="B6 · September spends" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">B6 · September spends</div>
-<x-import component-from-global-scope="MMR.Screen" ground="recap" hint-size="390px,844px">
-  <div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
-    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">September 2026</x-import>
-  </div>
-  <div style="margin-top:16px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,42px">September spends</x-import></div>
-  <div style="margin-top:10px"><x-import component-from-global-scope="MMR.SubCopy" hint-size="100%,22px">{{ m.listSub }}</x-import></div>
-  <div style="margin-top:20px">
-  <x-import component-from-global-scope="MMR.Card" hint-size="100%,420px">
-    <x-import component-from-global-scope="MMR.DataRowList" hint-size="100%,380px">
-      <sc-for list="{{ catRows }}" as="r" hint-placeholder-count="6">
-        <x-import component-from-global-scope="MMR.DataRow" icon="{{ r.icon }}" icon-tone="{{ r.tone }}" label="{{ r.label }}" amount="{{ r.amount }}" on-click="{{ r.open }}" state="{{ r.state }}" hint-size="100%,62px"></x-import>
-      </sc-for>
-    </x-import>
-  </x-import>
-  </div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Opened by tapping the hero card. One row per Category with spends this month, biggest first; the sub-line counts the spends. Each IconWell takes the Category tone and glyph. Categories with nothing logged are not listed.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">{{ m.listSub }}: the sum of every spend dated on or before today. Live: tap a Category row to load it into B6b.</div>
-</div>
-</sc-if>
-</div>
-
 <!-- B6b -->
 <div data-screen-label="B6b · Category detail" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
 <div style="font:800 14px/1.2 var(--mmr-font-family-text)">B6b · Category detail</div>
@@ -345,7 +317,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Edit spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n18000 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="180" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <sc-for list="{{ catsClothes }}" as="c" hint-placeholder-count="8">
           <button aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -376,7 +348,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Edit spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n18000 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="180" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <sc-for list="{{ catsClothes }}" as="c" hint-placeholder-count="8">
           <button aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -409,101 +381,6 @@ input::placeholder{color:#6B6890;font-weight:700}
 <div style="display:flex;flex-direction:column;gap:24px">
 <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 2 · States and variants</div>
 <div style="display:flex;gap:80px;align-items:flex-start">
-
-<!-- B1 before payday -->
-<div data-screen-label="B1 · Home / before payday" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">B1 · Home / before payday</div>
-<x-import component-from-global-scope="MMR.Screen" ground="recap" hint-size="390px,844px">
-  <x-import component-from-global-scope="MMR.ChipRow" hint-size="100%,30px">
-    <x-import component-from-global-scope="MMR.Chip" tappable="{{ true }}" hint-size="auto,30px">September 2026</x-import>
-    <div style="flex-grow:1"></div>
-    <x-import component-from-global-scope="MMR.Chip" variant="inverse" tappable="{{ true }}" hint-size="auto,30px"><x-import component-from-global-scope="MMR.Icon" name="settings" size="{{ n14 }}" hint-size="14px,14px"></x-import><span style="margin-left:6px">Settings</span></x-import>
-  </x-import>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
-    <x-import component-from-global-scope="MMR.Headline" size="m" hint-size="auto,42px">Hi, Maya</x-import>
-    <x-import component-from-global-scope="MMR.Avatar" src="uploads/ill-avatar-otter.webp" label="Otter" size="{{ n56 }}" hint-size="56px,56px"></x-import>
-  </div>
-  <div style="margin-top:18px">
-  <x-import component-from-global-scope="MMR.Card" hint-size="100%,191px">
-    <x-import component-from-global-scope="MMR.StatHero" eyebrow="Spent so far · salary lands in 5 days" value="{{ n900 }}" format="{{ fmt }}" hint-size="100%,100px"></x-import>
-    <x-import component-from-global-scope="MMR.StatChipRow" hint-size="100%,34px">
-      <x-import component-from-global-scope="MMR.StatChip" tone="earned" hint-size="auto,34px">Money in £0</x-import>
-      <x-import component-from-global-scope="MMR.StatChip" tone="saved" hint-size="auto,34px">Saved −£900</x-import>
-    </x-import>
-  </x-import>
-  </div>
-  <div style="margin-top:12px">
-  <x-import component-from-global-scope="MMR.Card" hint-size="100%,136px">
-    <div style="display:flex;justify-content:space-between;align-items:baseline">
-      <x-import component-from-global-scope="MMR.CardTitle" hint-size="auto,22px">Saving target</x-import>
-      <span style="font:800 14px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);font-variant-numeric:tabular-nums">£0 of £480</span>
-    </div>
-    <x-import component-from-global-scope="MMR.ProgressBar" value="{{ n0 }}" max="{{ n480 }}" tone="green" hint-size="100%,22px"></x-import>
-    <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,20px">Nothing to keep yet. Your salary lands on the 25th.</x-import>
-  </x-import>
-  </div>
-  <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
-    <x-import component-from-global-scope="MMR.Button" icon="{{ plusIcon }}" hint-size="100%,52px">Log a spend</x-import>
-    <x-import component-from-global-scope="MMR.Button" dc-props="{{ whiteBtn }}" state="disabled" hint-size="100%,52px">See last month</x-import>
-  </div>
-  <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
-    <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Past recaps</div>
-    <x-import component-from-global-scope="MMR.HelperText" dc-props="{{ onGround }}" hint-size="100%,20px">Your first recap arrives on 1 October.</x-import>
-  </div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">20 September. Spends to date £900. Money In is 0 until payday, so Saved = 0 − 900 = −£900; the minus is correct. The bar clamps at zero, never negative. Set Today to 21–24 on the main B1 to see the same rule live.</div>
-</sc-if>
-</div>
-
-<!-- B1 no salary -->
-<div data-screen-label="B1 · Home / no salary set" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">B1 · Home / no salary set</div>
-<x-import component-from-global-scope="MMR.Screen" ground="recap" hint-size="390px,844px">
-  <x-import component-from-global-scope="MMR.ChipRow" hint-size="100%,30px">
-    <x-import component-from-global-scope="MMR.Chip" tappable="{{ true }}" hint-size="auto,30px">September 2026</x-import>
-    <div style="flex-grow:1"></div>
-    <x-import component-from-global-scope="MMR.Chip" variant="inverse" tappable="{{ true }}" hint-size="auto,30px"><x-import component-from-global-scope="MMR.Icon" name="settings" size="{{ n14 }}" hint-size="14px,14px"></x-import><span style="margin-left:6px">Settings</span></x-import>
-  </x-import>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px">
-    <x-import component-from-global-scope="MMR.Headline" size="m" hint-size="auto,42px">Hi, Maya</x-import>
-    <x-import component-from-global-scope="MMR.Avatar" src="uploads/ill-avatar-otter.webp" label="Otter" size="{{ n56 }}" hint-size="56px,56px"></x-import>
-  </div>
-  <div style="margin-top:18px">
-  <x-import component-from-global-scope="MMR.Card" dc-props="{{ heroPromptCard }}" hint-size="100%,191px">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <x-import component-from-global-scope="MMR.CardTitle" hint-size="auto,22px">Set your monthly salary</x-import>
-        <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,20px">Home fills in once it knows what lands on payday.</x-import>
-      </div>
-      <span style="color:var(--mmr-color-text-secondary);display:inline-flex;flex:none"><x-import component-from-global-scope="MMR.Icon" name="chevron" hint-size="20px,20px"></x-import></span>
-    </div>
-  </x-import>
-  </div>
-  <div style="margin-top:12px">
-  <x-import component-from-global-scope="MMR.Card" dc-props="{{ targetPromptCard }}" hint-size="100%,136px">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <x-import component-from-global-scope="MMR.CardTitle" hint-size="auto,22px">Set a saving target</x-import>
-        <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,20px">A share of your salary to keep each month.</x-import>
-      </div>
-      <span style="color:var(--mmr-color-text-secondary);display:inline-flex;flex:none"><x-import component-from-global-scope="MMR.Icon" name="chevron" hint-size="20px,20px"></x-import></span>
-    </div>
-  </x-import>
-  </div>
-  <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
-    <x-import component-from-global-scope="MMR.Button" icon="{{ plusIcon }}" hint-size="100%,52px">Log a spend</x-import>
-    <x-import component-from-global-scope="MMR.Button" dc-props="{{ whiteBtn }}" state="disabled" hint-size="100%,52px">See last month</x-import>
-  </div>
-  <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
-    <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Past recaps</div>
-    <x-import component-from-global-scope="MMR.HelperText" dc-props="{{ onGround }}" hint-size="100%,20px">Your first recap arrives on 1 October.</x-import>
-  </div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Salary and target were skipped in onboarding. Both prompt cards keep the filled cards' heights (191 and 136) so nothing jumps when they are set. Logging spends still works; Saved simply cannot be computed yet.</div>
-</sc-if>
-</div>
 
 <!-- B1 target warning -->
 <div data-screen-label="B1 · Home / target warning" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
@@ -621,7 +498,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n1240 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="12.40" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8">
           <button aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -640,73 +517,6 @@ input::placeholder{color:#6B6890;font-weight:700}
 </sc-if>
 </div>
 
-<!-- B6 empty -->
-<div data-screen-label="B6 · September spends / empty" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">B6 · September spends / empty</div>
-<x-import component-from-global-scope="MMR.Screen" ground="recap" hint-size="390px,844px">
-  <div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
-    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">September 2026</x-import>
-  </div>
-  <div style="margin-top:16px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,42px">September spends</x-import></div>
-  <div style="margin-top:10px"><x-import component-from-global-scope="MMR.SubCopy" hint-size="100%,22px">£0 so far, no spends</x-import></div>
-  <div style="flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center">
-    <div style="font:700 22px/1.25 var(--mmr-font-family-display);text-wrap:balance;max-width:260px">Nothing spent yet. Streak day 4.</div>
-    <button aria-label="Log a spend" style="width:56px;height:56px;border:0;border-radius:999px;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="plus" hint-size="20px,20px"></x-import></button>
-  </div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">No spends this month yet: the card is replaced by a centred prompt and a plus button that opens B2. Streak counts no-spend days, so it is the only number that grows here.</div>
-</sc-if>
-</div>
-
-</div>
-</div>
-
-<!-- ROW 3 -->
-<div style="display:flex;flex-direction:column;gap:24px">
-<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 3 · Flow</div>
-<div data-screen-label="Flow · Home and the daily loop" style="display:flex;flex-direction:column;gap:14px;width:1440px">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">Flow · Home and the daily loop</div>
-<div style="position:relative;width:1440px;height:920px;background:var(--mmr-palette-white);border-radius:28px;overflow:hidden">
-  <svg width="1440" height="920" viewBox="0 0 1440 920" fill="none" stroke="var(--mmr-palette-ink-500)" stroke-width="2" style="position:absolute;inset:0" aria-hidden="true">
-    <defs><marker id="arw2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8Z" fill="var(--mmr-palette-ink-500)" stroke="none"></path></marker></defs>
-    <path d="M156 404H298" marker-end="url(#arw2)"></path>
-    <path d="M348 300C348 144 440 144 538 144" marker-end="url(#arw2)"></path>
-    <path d="M636 144H778" marker-end="url(#arw2)"></path>
-    <path d="M876 144H1018" marker-end="url(#arw2)"></path>
-    <path d="M876 230C925 230 925 380 878 380" marker-end="url(#arw2)"></path>
-    <path d="M778 200C700 200 560 360 398 360" marker-end="url(#arw2)"></path>
-    <path d="M778 440H398" marker-end="url(#arw2)"></path>
-    <path d="M348 508C348 664 440 664 538 664" marker-end="url(#arw2)"></path>
-    <path d="M636 664H778" marker-end="url(#arw2)"></path>
-    <path d="M876 664H1018" marker-end="url(#arw2)"></path>
-    <path d="M1116 664H1258" marker-end="url(#arw2)"></path>
-    <path d="M1308 804C1308 872 828 872 828 806" marker-end="url(#arw2)"></path>
-    <path d="M300 330C250 330 250 160 232 160" marker-end="url(#arw2)"></path>
-    <path d="M300 480C250 480 250 660 232 660" marker-end="url(#arw2)"></path>
-  </svg>
-  <div style="position:absolute;left:40px;top:140px;width:190px;height:40px;box-sizing:border-box;border:2px dashed var(--mmr-palette-ink-100);border-radius:999px;display:flex;align-items:center;justify-content:center;font:800 11px/1.2 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500)">Settings (part 4)</div>
-  <div style="position:absolute;left:40px;top:640px;width:190px;height:40px;box-sizing:border-box;border:2px dashed var(--mmr-palette-ink-100);border-radius:999px;display:flex;align-items:center;justify-content:center;font:800 11px/1.2 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500)">Recap (part 3)</div>
-  <sc-for list="{{ flowNodes }}" as="f" hint-placeholder-count="10">
-    <div style="position:absolute;left:{{ f.x }};top:{{ f.y }};width:96px;display:flex;flex-direction:column;gap:8px;align-items:center">
-      <div style="width:96px;height:208px;border-radius:12px;background:var(--mmr-palette-violet-500);position:relative;overflow:hidden">
-        <div style="position:absolute;left:10px;top:16px;width:52px;height:8px;border-radius:999px;background:var(--mmr-palette-white)"></div>
-        <div style="position:absolute;left:10px;top:30px;width:36px;height:8px;border-radius:999px;background:var(--mmr-palette-white);opacity:.6"></div>
-        <div style="position:absolute;left:8px;right:8px;top:{{ f.cardTop }};bottom:{{ f.cardBottom }};border-radius:10px;background:var(--mmr-palette-white)"></div>
-        <div style="position:absolute;left:8px;right:8px;bottom:8px;height:14px;border-radius:999px;background:var(--mmr-palette-ink-900);opacity:{{ f.btn }}"></div>
-        <div style="position:absolute;inset:0;background:var(--mmr-color-surface-scrim);opacity:{{ f.dim }}"></div>
-        <div style="position:absolute;left:0;right:0;bottom:0;height:{{ f.sheetH }};border-radius:10px 10px 0 0;background:var(--mmr-palette-white);border:1.5px solid var(--mmr-palette-ink-100);border-bottom:0;box-sizing:border-box"></div>
-        <div style="position:absolute;left:14px;right:14px;top:80px;height:48px;border-radius:8px;background:var(--mmr-palette-white);opacity:{{ f.alert }}"></div>
-      </div>
-      <div style="font:800 11px/1.3 var(--mmr-font-family-text);color:var(--mmr-palette-ink-900);text-align:center;text-wrap:balance">{{ f.label }}</div>
-    </div>
-  </sc-for>
-  <sc-for list="{{ flowLabels }}" as="l" hint-placeholder-count="13">
-    <div style="position:absolute;left:{{ l.x }};top:{{ l.y }};transform:translate(-50%,-50%);background:var(--mmr-palette-white);padding:3px 8px;border-radius:999px;font:800 11px/1.2 var(--mmr-font-family-text);color:var(--mmr-palette-ink-900);white-space:nowrap">{{ l.text }}</div>
-  </sc-for>
-  <div style="position:absolute;left:60px;top:28px;width:420px;font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Home numbers animate to their new values with motion.reveal.number after the sheet closes. Reduce Motion replaces every reveal with a 150 ms fade. Thumbnails are schematic; see rows 1 and 2 for the screens.</div>
-</div>
 </div>
 </div>
 
@@ -714,13 +524,13 @@ input::placeholder{color:#6B6890;font-weight:700}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;},&quot;today&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:26,&quot;min&quot;:21,&quot;max&quot;:30,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Data&quot;,&quot;description&quot;:&quot;Day of September for the main Home, B2–B6 backgrounds and the spend list&quot;}}">
 class Component extends DCLogic {
-  state = { amountMinor: 1240, cat: 'snacks', bannerOn: true, openCat: 'snacks' };
+  state = { amount: '12.40', cat: 'snacks', bannerOn: true, openCat: 'snacks' };
   renderVals() {
     const K = window.MMR, R = React, s = this.state;
     const showNotes = this.props.showAnnotations ?? true;
     const today = Math.min(30, Math.max(21, Math.round(this.props.today ?? 26)));
     const fmt = (n) => (n < 0 ? '−' : '') + '£' + Math.abs(Math.round(n)).toLocaleString('en-GB');
-    const SAL = 2400, TGT = 480, PAYDAY = 25;
+    const SAL = 2400, TGT = 480, PAYDAY = 25, DAYS = new Date(2026, 9, 0).getDate(); // September 2026 has 30 days; computed, never assumed (PRD §8.2)
     const CATS = [['snacks', 'Snacks', 'coral'], ['games', 'Games', 'violet'], ['toys', 'Toys', 'yellow'], ['rides', 'Rides', 'sky'], ['clothes', 'Clothes', 'green'], ['bills', 'Bills', 'ink'], ['gifts', 'Gifts', 'gold'], ['other', 'Other', 'rust']];
     const TONE = Object.fromEntries(CATS.map(c => [c[0], c[2]]));
     const LEDGER = [[2, 'bills', 'Phone and internet', 280], [3, 'snacks', 'Coffee and lunch', 60], [5, 'bills', 'Electricity', 220], [6, 'other', 'Locksmith', 20], [8, 'rides', 'Train to Brighton', 40], [9, 'snacks', 'Groceries top-up', 55], [10, 'clothes', 'Winter jacket', 180], [11, 'snacks', 'Bakery run', 45], [21, 'snacks', 'Dinner out', 50], [22, 'bills', 'Water', 120], [23, 'gifts', 'Ana birthday present', 120], [27, 'rides', 'Flight home', 420], [28, 'snacks', 'Airport sandwich', 40], [29, 'games', 'New release', 80], [30, 'toys', 'Puzzle', 30]];
@@ -728,9 +538,9 @@ class Component extends DCLogic {
     const home = (d) => {
       const rows = LEDGER.filter(r => r[0] <= d);
       const spent = rows.reduce((a, r) => a + r[3], 0);
-      const moneyIn = d >= PAYDAY ? SAL : 0;
-      const saved = moneyIn - spent, daysLeft = 30 - d + 1;
-      const daily = Math.floor((SAL - TGT - spent) / daysLeft);
+      const moneyIn = d >= Math.min(PAYDAY, DAYS) ? SAL : 0; // effective payday = min(Payday, days in month), PRD §8.2
+      const saved = moneyIn - spent, daysLeft = DAYS - d + 1;
+      const daily = Math.max(0, Math.floor((SAL - TGT - spent) / daysLeft)); // never negative, PRD §8.7
       return {
         rows, spent, moneyIn, saved, daysLeft, daily, dayOrd: ord(d),
         eyebrow: moneyIn ? 'Spent so far' : `Spent so far · salary lands in ${PAYDAY - d} days`,
@@ -780,37 +590,37 @@ class Component extends DCLogic {
       label: R.createElement('span', { style: { display: 'flex', flexDirection: 'column', gap: 2 } }, r[2], R.createElement('span', { style: { fontSize: 12, fontWeight: 700, color: 'var(--mmr-color-text-secondary)' } }, `${r[0]} September`)),
       amount: fmt(r[3])
     })) : [];
-    const N = (x, y, label, o = {}) => ({ x: x + 'px', y: y + 'px', label, cardTop: o.cardTop ?? '56px', cardBottom: o.cardBottom ?? '96px', btn: o.btn ?? 1, dim: o.dim ?? 0, sheetH: o.sheetH ?? '0px', alert: o.alert ?? 0 });
-    const flowNodes = [
-      N(60, 300, 'A8 · Home, first run (part 1)'), N(300, 300, 'B1 · Home'),
-      N(540, 40, 'B2 · Log a spend, empty', { dim: 1, sheetH: '130px' }), N(780, 40, 'B3 · Log a spend, filled', { dim: 1, sheetH: '150px' }), N(1020, 40, 'B4 · Date picker', { dim: 1, sheetH: '160px' }),
-      N(780, 300, 'B5 · Push permission', { dim: 1, alert: 1 }),
-      N(540, 560, 'B6 · September spends', { cardTop: '60px', cardBottom: '8px', btn: 0 }), N(780, 560, 'B6b · Category detail', { cardTop: '60px', cardBottom: '8px', btn: 0 }), N(1020, 560, 'B7 · Spend detail', { cardTop: '60px', cardBottom: '8px', btn: 0, dim: 1, sheetH: '150px' }), N(1260, 560, 'B8 · Delete confirm', { cardTop: '60px', cardBottom: '8px', btn: 0, dim: 1, sheetH: '150px', alert: 1 })
-    ];
-    const L = (x, y, text) => ({ x: x + 'px', y: y + 'px', text });
-    const flowLabels = [
-      L(227, 404, 'returning member'), L(490, 144, 'Log a spend'), L(707, 144, 'type an amount'), L(947, 144, 'change the date'),
-      L(958, 305, 'first ever spend'), L(560, 330, 'Save · numbers animate up'), L(588, 440, 'Allow or Don\'t Allow'),
-      L(462, 664, 'tap the hero card'), L(707, 664, 'tap a Category'), L(947, 664, 'tap a spend'), L(1187, 664, 'Delete'), L(1068, 872, 'confirmed'),
-      L(250, 245, 'Settings chip'), L(250, 570, 'See last month')
-    ];
     return {
-      showNotes, fmt, m, spendRows, catRows, cd, wheel, flowNodes, flowLabels,
+      showNotes,
+ fmt,
+ m,
+ cd,
+ wheel,
       todayText: `Today, ${today} September`,
-      n0: 0, n14: 14, n900: 900, n2090: 2090, n56: 56, n80: 80, n310: 310, n480: 480, n1240: 1240, n2400: 2400, n18000: 18000,
+      n0: 0,
+ n14: 14,
+ n2090: 2090,
+ n56: 56,
+ n80: 80,
+ n310: 310,
+ n480: 480,
+ n1240: 1240,
+ n18000: 18000,
       noop: () => {},
       plusIcon: K ? R.createElement(K.Icon, { name: 'plus' }) : null,
       whiteBtn: { style: { background: 'var(--mmr-palette-white)', color: 'var(--mmr-palette-ink-900)' } },
       onGround: { style: { color: 'var(--mmr-color-text-on-ground-muted)' } },
-      heroPromptCard: { style: { minHeight: 191, justifyContent: 'center' }, role: 'button', tabIndex: 0 },
-      targetPromptCard: { style: { minHeight: 136, justifyContent: 'center' }, role: 'button', tabIndex: 0 },
       tightCard: { style: { padding: '4px 22px' } },
       compactSheet: { style: { paddingBottom: 16 } },
-      catsNone: mkCats(null), catsSnacks: mkCats('snacks'), catsClothes: mkCats('clothes'),
+      catsNone: mkCats(null),
+ catsSnacks: mkCats('snacks'),
+ catsClothes: mkCats('clothes'),
       catsLive: mkCats(s.cat, (k) => this.setState({ cat: s.cat === k ? null : k })),
-      amountMinor: s.amountMinor, setAmount: (n) => this.setState({ amountMinor: n }),
-      saveState: s.amountMinor > 0 && s.cat ? 'default' : 'disabled',
-      bannerOn: s.bannerOn, dismissBanner: () => this.setState({ bannerOn: false })
+      amount: s.amount,
+      setAmount: (v) => this.setState({ amount: v }),
+      saveState: Number(s.amount) > 0 && s.cat ? 'default' : 'disabled',
+      bannerOn: s.bannerOn,
+ dismissBanner: () => this.setState({ bannerOn: false })
     };
   }
 }

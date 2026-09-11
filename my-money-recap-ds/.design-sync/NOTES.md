@@ -128,7 +128,7 @@ node .ds-sync/resync.mjs --config .design-sync/config.json --node-modules ./node
 - The per-component `*.jsx` in `ds-bundle/` are re-export shims onto `window.MMR`; the implementation ships in `_ds_bundle.js`. So a DS source edit shows up as `upload.components: []` with `upload.bundle: true` — that is correct, not a missed file.
 - **Do not upload only what the diff's `upload` partition names.** That partition says which bytes *changed*; it is not the writes list. `.ds-sync/storybook/SKILL.md` §6 is explicit: writes are "everything, always" — `components/**`, `tokens/**`, `fonts/**`, `_vendor/**`, `_preview/**`, `guidelines/**`, `_ds_bundle.js`, `_ds_bundle.css`, `styles.css`, `README.md`, `_ds_sync.json`, `_ds_needs_recompile` — because an under-scoped writes list silently and permanently desyncs the project. Re-uploading unchanged files is idempotent and cheap.
 - **Upload sequence is fixed**: `_ds_needs_recompile` first (it fences the app's manifest machinery against a half-uploaded state) -> all content writes in <=256-file chunks -> deletes from `.sync-diff.json`'s `upload.deletePaths` verbatim -> `_ds_needs_recompile` re-arm -> `_ds_sync.json` alone, last. A fresh anchor over a half-applied upload is permanent: no later sync repairs it, because deterministic builds make the next diff report "no change".
-- This project's full set is 138 files (104 `components/`, 26 `_preview/`, 2 `_vendor/`, 5 top-level, the sentinel and the anchor). `ds-bundle/tokens/` is empty and there is no `fonts/`. Confirm with `DesignSync(list_files)` after every upload.
+- This project's full set is 198 files since the seventh sync (152 `components/`, 38 `_preview/`, 2 `_vendor/`, 4 top-level, the sentinel and the anchor); it was 138 before PRD D50/D71 added twelve components. `ds-bundle/tokens/` and `guidelines/` are empty and there is no `fonts/`. Confirm with `DesignSync(list_files)` after every upload; the app adds `_adherence.oxlintrc.json` and `_ds_manifest.json` itself.
 - `.design-sync/.cache/upload-list.json` is regenerated from the live `ds-bundle/` immediately before upload; never reuse a stale list.
 
 ## Third sync (2026-09-04) — PRD §13 build-out for design Parts 2 to 4
@@ -384,11 +384,11 @@ both had a blast radius wider than the package:
   no `daysInMonth` anywhere, and the Home canvas hardcodes `daysLeft = 30 - d + 1` while clamping its
   own `today` prop to 21–30 so the September sample keeps working. The paragraph now says so
   explicitly and points at PRD §8.
-- `GAPS.md` read as 57 live gaps with 🔴 "blocks implementation" severities; PRD D48 says it is closed
+- `GAPS.md` (since deleted, 2026-09-11) read as 57 live gaps with 🔴 "blocks implementation" severities; PRD D48 says it is closed
   history. It now opens with a CLOSED banner.
 - `DESIGN_NOTES_VERBATIM.md` had no header saying it is a quoted transcript, so its `NEWSelectRow`
   note read as a live instruction. It now has one, and the body is still verbatim.
-- `docs/design/design_handoff_my_money_recap/PRD.md` was **Draft v1** sitting under the same filename
+- `docs/design/design_handoff_my_money_recap/PRD.md` (a pointer stub until it was deleted on 2026-09-11) was **Draft v1** sitting under the same filename
   as the live Draft v2 — the fastest way to send a reader to the wrong spec. Replaced with a pointer
   stub; the v1 text is recoverable with
   `git show db8a2b2:docs/design/design_handoff_my_money_recap/PRD.md`.
@@ -413,3 +413,29 @@ siblings.**
 helper ships anywhere, because **the iOS app does not exist in this repo yet** — `apps/` and
 `infra/` are README-only and there are zero `.swift` files. `DayPicker` takes the dates as a prop by
 design; the arithmetic belongs to the app when the app is written.
+
+## 2026-09-11 · money, fit-to-width and the gaps the remaining screens exposed
+
+Drawing every remaining row of `docs/SCREEN-STATES.md` against the shipped components (canvases in
+`docs/design/design_handoff_my_money_recap/design-files/2026-09-11/`) exposed behaviour the PRD requires that no
+component provided, and a code review of the first fix found two of the fixes did not work. The final shape, PRD D71:
+
+- **Money is an exact decimal plus an ISO 4217 code** (`src/money.ts`). The platform formatter (`Intl.NumberFormat`,
+  the same CLDR data as iOS) prints the symbol, the currency's decimals and the viewer locale's separators, with a zero
+  fraction dropped for display (`trailingZeroDisplay: 'stripIfInteger'`). There is no `MINOR_UNITS`, no
+  `CURRENCY_SYMBOL`, no `currencyDigits`: CLDR 48 moved rupiah from 2 decimals to 0, and any table we kept would have
+  been wrong on one platform or the other. `AmountField` takes `value` as a decimal string.
+- **Long numbers are measured, not counted** (`src/components/fitStep.ts`): `StatHero` and `AmountField` draw the
+  largest of three sizes that fits (80/56/40, 48/36/28). The earlier 7-and-10-glyph rule shrank "Rp 15.000.000"
+  even though it fits at 48px — the measurement is in `scripts/measure.tsx`.
+- `PromptCard` requires `height` for `hero`/`target` (the measured card it replaces); `RecapGoalScreen` draws
+  three bars in every currency and takes `target: number | null`; `RecapEarningScreen` uses `PromptCard` for the
+  no-target state; `Banner tone="offline"`; `PageDots onSelect` with each dot owning its own slice of the row.
+- `npm test` (vitest) covers the money helpers and the fit choice; `npm run measure` renders the fragile and
+  long-number states in a real browser (it asserts nothing).
+
+**Seventh sync (2026-09-11, project `5f615747-48cd-4708-9369-becee9793f4e`).** Sentinel -> chunk 0 (bundle js/css, vendor) ->
+chunk 1 (120 files) -> chunk 2 (72 files) -> sentinel re-arm -> `_ds_sync.json` last; no deletes. `list_files` afterwards
+returned the full 198-file set plus the app's own two files. The anchor the app now holds is bundle `a1c63a42d9a7`; a copy is
+in `.cache/remote-sync.json`. Seven cards were re-captured and re-graded for this sync (AmountField, Banner, PageDots,
+PromptCard, RecapCoverScreen, RecapGoalScreen, StatHero); `pendingGrade` was empty before the anchor was written.

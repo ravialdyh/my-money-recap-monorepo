@@ -3,8 +3,9 @@ import { useStyles } from '../styles/useStyles';
 import { Icon } from '../icons';
 
 export interface BannerProps extends HTMLAttributes<HTMLDivElement> {
-  /** `warning` coral (Target Warning). `info` violet, for a neutral notice. */
-  tone?: 'warning' | 'info';
+  /** `warning` coral (Target Warning). `info` violet, for a neutral notice. `offline` grey, for
+   *  "No connection. You can look, but not log." (PRD D58, D63). */
+  tone?: 'warning' | 'info' | 'offline';
   /** Shows the dismiss control. The Target Warning is dismissable for the session only (PRD §6.8). */
   onDismiss?: () => void;
   children: ReactNode;

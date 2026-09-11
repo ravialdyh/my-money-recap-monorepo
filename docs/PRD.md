@@ -2,12 +2,12 @@
 
 | | |
 |---|---|
-| Status | Draft v2, design-review decisions resolved 2026-09-08 |
+| Status | Draft v2. Decisions D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11 |
 | Platform | Native iOS 17+, iPhone and iPad |
-| Vocabulary | `../CONTEXT.md` is the glossary. Terms in **bold caps** below are defined there. |
-| Design system | `../../my-money-recap-ds/` (`@my-money-recap/ui`). `../DESIGN.md` holds the design decisions. |
+| Vocabulary | `CONTEXT.md` (beside this file) is the glossary. Terms in **bold caps** below are defined there. |
+| Design system | `../../my-money-recap-ds/` (`@my-money-recap/ui`). `../my-money-recap/DESIGN.md` holds the visual design decisions. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
-| Design handoff | `design/design_handoff_my_money_recap/` — the four canvases, the verbatim design notes, and `GAPS.md` (all 57 gaps now closed out against this document). The 62 drawn screens are live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e>; their renders are not in git. |
+| Design handoff | `design/design_handoff_my_money_recap/` — eleven canvases holding all 118 screens (four from 2026-09-08, seven under `design-files/2026-09-11/`), plus the quoted canvas notes. Live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>. Renders are not in git. |
 
 ## 1. Summary
 
@@ -45,7 +45,7 @@ One persona: an adult (18+) who wants a light, fun way to see whether they kept 
 
 ## 4. Decisions log
 
-Every design question raised while writing this document, with the decision taken. These are settled; reopen one only with a reason. D1–D40 are from Draft v1 (2026-09-04); D41–D67 are from the design review (2026-09-08) and some of them **supersede** earlier entries, which is marked in place.
+Every design question raised while writing this document, with the decision taken. These are settled; reopen one only with a reason. D1–D40 are from Draft v1 (2026-09-04); D41–D67 from the design review (2026-09-08); D68–D71 from drawing the remaining screens (2026-09-11). Later entries **supersede** earlier ones where marked in place.
 
 | # | Question | Decision |
 |---|---|---|
@@ -57,7 +57,6 @@ Every design question raised while writing this document, with the decision take
 | D6 | Identity provider | Keycloak, run from its official Docker image. No custom authenticator code. |
 | D7 | Email sign-in | Passwordless magic link via the Phase Two magic-link extension. Email must be verified before use. |
 | D8 | Social sign-in | Sign in with Apple (required by App Store guideline 4.8), Google, Email. Three buttons, Apple first. |
-| ~~D9~~ | ~~Session~~ | ~~Stays signed in until logout, force-quit or device restart. Tokens in memory only.~~ **Superseded by D61 and D62.** |
 | D10 | Setup fields | Display Name, Avatar, Currency. Age band dropped. |
 | D11 | Platform | Native iOS 17+, SwiftUI, iPhone and iPad. |
 | D12 | Currency | Chosen by the Member at setup from the full ISO 4217 list. Changeable later; all stored amounts are converted once at that moment's rate and rewritten. |
@@ -67,7 +66,6 @@ Every design question raised while writing this document, with the decision take
 | D16 | Salary label in UI | Plain: "Your monthly salary". Theme lives in illustration and tone, never in renaming money concepts. |
 | D17 | Payday | Member sets a day of month. Money In appears from that day. **Extended by D51.** |
 | D18 | Saving Target unit | Stored as a percentage; entry form shows amount and percentage and converts live. Default suggestion 20%. |
-| ~~D19~~ | ~~Editing Salary or Target mid-month~~ | ~~Applies to the current month and forward.~~ **Superseded by D56 (Salary) and D65 (Target).** |
 | D20 | Categories | Fixed eight: Snacks, Games, Toys, Rides, Clothes, Bills, Gifts, Other. No custom Categories. |
 | D21 | Spend editing | Amount, Category, date, optional note. Backdating up to 60 days. Edit and delete any time. |
 | D22 | Recap freshness | Computed live on every open. A backdated Spend changes last month's Recap. |
@@ -78,7 +76,6 @@ Every design question raised while writing this document, with the decision take
 | D27 | Past Recaps | List, newest first, from Home. Months with no data hidden. |
 | D28 | Sharing | Screen 4 only, as an image through the iOS share sheet, without Salary figures. |
 | D29 | Notifications | Recap ready (on by default), daily reminder (off), Target Warning (on). Permission asked after the first Spend. |
-| ~~D30~~ | ~~Offline~~ | ~~Connection required.~~ **Superseded by D61.** |
 | D31 | Stack named here | Keycloak, SwiftUI, one backend service with a relational database. Everything else belongs to a separate architecture document. |
 | D32 | Magic link landing | iOS universal link opens the app; web fallback page when the app is absent. Link valid 15 minutes, single use. |
 | D33 | Recap period | Calendar month, always. Payday only moves when Money In appears inside it. **Reaffirmed by D41.** |
@@ -88,18 +85,18 @@ Every design question raised while writing this document, with the decision take
 | D37 | Home ground | Violet (`ground.recap`), so Home rhymes with the Recap cover. |
 | D38 | Target Warning | Fires once per month, the first time total Spends exceed Salary × (1 − Saving Target). **Extended by D53.** |
 | D39 | Deletion and export | Both in v1. Deletion removes the Keycloak user and all data within 24 hours. Export is a CSV of all Spends emailed to the Member. **Extended by D60.** |
-| D40 | iPad | Same single-column layout capped at 390pt width, centred on a full-bleed ground, portrait and landscape. |
+| D40 | iPad | Same single-column layout capped at 390pt width, centred on a full-bleed ground, portrait and landscape. **Cap raised to 600pt by D68.** |
 | **D41** | **Does a "month" follow the calendar or the pay cycle?** | **The calendar month, always — D33 stands.** A Member paid on the 25th lives 25 Aug → 24 Sep, but a pay-cycle month would rename every month chip to a date range, break "Your September in money" as a shareable line, and rewrite §8.1, §8.5, D26 and all 62 artboards. Instead the *display* is corrected: **the Saved figure is hidden entirely until Money In > 0** (§8.3, §6.8). |
 | **D42** | **What is the hero number on Home?** | **Spent.** It is the figure that changes daily and the only one the Member can act on. Money In and Saved are chips beneath it. This reverses D14/§6.8 of Draft v1 and matches the drawn design (B1, A8). |
 | **D43** | **Where does the Streak start in the Member's first month?** | **`max(1st of the month, the Member's sign-up date)`.** Counting from the 1st awards no-spend days from before the app existed. Applies to the sign-up month only; every later month starts on the 1st. |
 | **D44** | **Can a Saving Target be set without a Salary?** | **No.** If Salary was skipped, onboarding step 4 shows a prompt back to step 3 and Done goes to Home. A percentage of an unknown Salary has no amount, no `kept%`, no progress bar and no Archetype; forbidding the state removes four undrawn screens. |
-| **D45** | **Which currency do the screens support?** | **The full ISO 4217 list (D12 stands), plus a long-number rule.** `StatHero` steps 80 → 56 → 40pt by glyph count (§11). Home, the Recap cover and the share image must each be drawn in IDR as proof before new work lands; every artboard to date is GBP, and `Rp 3.000.000` is three times the width of `£900`. |
+| **D45** | **Which currency do the screens support?** | **The full ISO 4217 list (D12 stands), plus a long-number rule.** `StatHero` sizes itself to fit its card, 80 → 56 → 40pt (§11). Home, the Recap cover and the share image must each be drawn in IDR as proof before new work lands; every artboard to date is GBP, and `Rp 3.000.000` is three times the width of `£900`. |
 | **D46** | **How does a Member leave a Recap?** | **A 44pt close control, top-left of Recap screens 1–4, and tappable `PageDots`.** The drawn design has no exit control of any kind. |
 | **D47** | **What does a Member look at before their first Recap?** | **A "month so far" preview**, reachable from the Home card that currently reads "Your first recap arrives on 1 October". Read-only, no Archetype, no Share. See D64 for its artboards. |
-| **D48** | **Where does the screen-by-screen contract live?** | **`SCREEN-STATES.md`**, keyed to the handoff's screen ids (A0–A8, B1–B8, C1–C7, D1–D12). This document owns the rules; that file owns the states and the copy. `GAPS.md` is closed out against both and is now a historical record. |
+| **D48** | **Where does the screen-by-screen contract live?** | **`SCREEN-STATES.md`**, keyed to the handoff's screen ids (A0–A8, B1–B8, C1–C7, D1–D12). This document owns the rules; that file owns the states and the copy. The 2026-09-08 gaps list was closed out against both and has since been deleted; its decisions are D41–D67. |
 | **D49** | **How much of the non-happy path is specified now?** | **All of it, weighted.** Loading, offline and error states get artboards (§11, §6.19). Dynamic Type and iPad get written rules plus demonstration artboards, not 62 redraws. |
 | **D50** | **Components the design uses that the library does not have** | **Build `PromptCard`, `DayPicker` and `InlineError`.** Each is hand-composed on the canvases today and appears on two or more screens, so they will drift. Built 2026-09-08. A fourth candidate, `SelectRow`, was dropped on inspection: the shipped `ListRow` with `trailing="check"` and `selected` already has no `IconWell` and already draws a violet check, so it *is* the currency select row. A fifth, `Toast`, is **not** built — see D67. |
-| **D51** | **Payday 29, 30 and 31** | **The picker offers 1–31 plus `Last day`, disables nothing, and shows the three real dates that follow the selection** — e.g. tapping 31 shows `Next paydays: 30 Nov · 31 Dec · 31 Jan`, computed on device. Disabling days is possible but wrong: the picker is on screen twice in the app's life and cannot guard the eleven months the Member is not looking at, while disabling 29–31 in a February setup locks out anyone genuinely paid on the 30th. |
+| **D51** | **Payday 29, 30 and 31** | **The picker offers 1–31 plus `Last day`, disables nothing, and shows the three real dates that follow the selection** — e.g. tapping 31 in September shows `Next paydays: 30 Sep · 31 Oct · 30 Nov`, computed on device. Disabling days is possible but wrong: the picker is on screen twice in the app's life and cannot guard the eleven months the Member is not looking at, while disabling 29–31 in a February setup locks out anyone genuinely paid on the 30th. |
 | **D52** | **The Member's first month, when Payday already passed before sign-up** | **A Partial Recap** (§8.11) built around Spent, not Salary. Money In is 0, there is no Archetype, and screen 1 reads `Your first {n} days`. Showing the full Salary would credit money the app never observed; showing nothing at all would discard real spending data. |
 | **D53** | **Does the Target Warning fire before Payday?** | **Yes, with different copy.** Before Payday: `You've spent {spent} of the {line} you meant to spend this month.` After: `You've passed your saving line. {over} over.` Holding the warning until Payday would silence it for the three weeks it exists to cover. |
 | **D54** | **The Home hero when no Salary is set** | **Still Spent.** The hero shows the Spent figure and the Salary prompt moves below it as a `PromptCard`. Replacing the whole hero with a prompt (as drawn) hides a Spend the Member just logged. |
@@ -116,6 +113,10 @@ Every design question raised while writing this document, with the decision take
 | **D65** | **Editing the Saving Target** | **Forward-only, no sheet.** Unlike a Salary, a Target cannot be *mistyped* — it is a goal the Member chose, so there is no correction case to ask about. Raising it retroactively would turn a met target into a missed one and change a finished month's Archetype. Supersedes D19 for Target. |
 | **D66** | **Dynamic Type on the Recap** | At accessibility text sizes the four Recap screens become **one vertical scroll**, with `PageDots` acting as section markers. At default sizes nothing changes. Scrolling inside a horizontal pager makes a diagonal drag turn the page; capping the type would break §11. |
 | **D67** | **The Toast component** | **Not built.** After D58 gave the offline message to `Banner`, the only remaining use was the export confirmation, which the `Send it` button already covers by changing to `Sent ✓` and dimming for 60 seconds. |
+| **D68** | **iPad column width** (2026-09-11) | **Single column, capped at 600pt instead of 390**, centred, portrait and landscape; the two Home buttons sit side by side and `Sheet`s take the column's width. A two-column iPad layout was sketched and rejected: it needs a second navigation model for little gain. Supersedes the width in D40. |
+| **D69** | **Home with no Salary set** (2026-09-11) | **It scrolls.** The Spent hero (191pt) plus the salary `PromptCard` (191pt) plus the target `PromptCard` (136pt) put the buttons at 740–856pt. `Log a spend` stays above the fold; the layout keeps the prompts at full height so nothing jumps when they are filled in. |
+| **D70** | **Category chips on the Log-a-spend sheet** (2026-09-11) | **The shipped `Chip` tone variant** — 30pt uppercase pill, 44pt hit area via `tappable` — not the 44pt mixed-case pill the 2026-09-08 B2/B3 sheets hand-drew. |
+| **D71** | **Long numbers and money, without hand-written rules** (2026-09-11) | Amounts are exact decimals with an ISO 4217 code (§7); the platform formatter prints them with the viewer's locale and the currency's own decimals, and no table in the system says how many decimals a currency has. `StatHero` and `AmountField` **measure** the printed string and draw it at the largest of 80/56/40pt (48/36/28pt) that fits — never a character count, which was shown to shrink a rupiah salary that fit. `PromptCard` takes the measured height of the card it replaces. `RecapGoalScreen` draws three bars in every currency. Page dots are tappable in their own slice of the row, the one exception to the 44pt width rule. |
 
 ## 5. End-to-end flow
 
@@ -271,7 +272,7 @@ Rules
 | | |
 |---|---|
 | Presentation | `Sheet` over Home, white surface, `radius.card` top corners, drag handle, scrim |
-| Fields | `AmountField` (numeric keypad, currency symbol fixed, minor units per Currency, 12-digit cap per D57), Category (eight `Chip tone={hue}` in a wrapping row, one selected, 44pt), Date (defaults to today, picker limited to the last 60 days and today), Note (optional, 80 characters) |
+| Fields | `AmountField` (numeric keypad, currency symbol fixed, decimals from the Currency, 12-digit cap per D57), Category (eight `Chip tone={hue}` in a wrapping row, one selected, 44pt), Date (defaults to today, picker limited to the last 60 days and today), Note (optional, 80 characters) |
 | Action | `Button` "Save". Disabled until amount > 0 and a Category is selected. |
 | After save | Sheet closes, Home numbers animate with `motion.reveal.number`. First ever Spend saved: the push-permission prompt appears after the sheet closes. |
 | Write failure | `InlineError` in the sheet, sheet stays open, values intact, Save stays enabled. |
@@ -305,7 +306,7 @@ With no Saving Target the headline drops its second sentence and the compare car
 
 `RecapGoalScreen`. Ground coral. Chips "Target", "Spending". Headline "{kept%} of your saving target" with `SubCopy` from §8.7. `Card` "Saving target" with `ProgressBar` and the `piggy` marker. `Card` "Where {Spent} went", `CardTitle` "Mostly {top Category}", one `CategoryBar` per Category with a Spend, sorted descending, showing percentage of Spent — **capped at four**, with the remainder rolled into one line naming those Categories and their combined percentage.
 
-The cap is **four, not five**. Five `CategoryBar`s overflow the 844pt artboard by 6pt and push the page dots off screen; `maxCategoryBars` in the shipped component defaults to 4. Draft v1 §6.13 said five and was wrong.
+The cap is **three** `CategoryBar`s plus the roll-up line (D71): four fit only in pounds, and the screen must fit every currency at 844pt without scrolling; `maxCategoryBars` in the shipped component defaults to 3.
 
 `Card` accent "The splurge": "{amount} on {note or Category}. Your biggest single buy." Hidden when there are no Spends — pass `splurge={null}`, never `undefined`.
 
@@ -367,7 +368,7 @@ Shown immediately after a successful sign-in when `deletion_requested_at` is wit
 
 ## 7. Data model
 
-Amounts are integers in the Currency's minor units (IDR 0 decimals, GBP 2, BHD 3), capped at 12 digits before the separator (D57). Dates are plain calendar dates without timezone (D34). All entities belong to exactly one Member.
+Amounts are exact decimals (`NUMERIC`, never a float or an integer count of minor units) stored with the Member's ISO 4217 code, capped at 12 digits before the decimal separator (D57). How many decimals a currency shows, its symbol and its separators are the platform formatter's business at print time (§11, D71); nothing in the system stores or looks up a decimal count. Dates are plain calendar dates without timezone (D34). All entities belong to exactly one Member.
 
 | Entity | Fields | Notes |
 |---|---|---|
@@ -412,7 +413,7 @@ A **Recap Month** is a calendar month in local dates (D33, D41). Everything belo
 
 ### 8.4 Saving Target amount
 
-Target amount = `round-half-up(Salary in force × percent ÷ 100)` in minor units. `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
+Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Currency's decimals as the platform formatter reports them at the time. `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
 
 *Worked:* £2,400 × 20 ÷ 100 = £480. Saved £640 ÷ £480 × 100 = 133%. Budi: Rp 15.000.000 × 20 ÷ 100 = Rp 3.000.000.
 
@@ -445,7 +446,7 @@ Edge case: Saved < Target amount with zero Spends is impossible, because Spent =
 Used on Home and Recap screen 3. `days remaining` counts today and is never less than 1 — it is `days in M − today + 1`, and the month length is computed, never assumed.
 
 - Before Payday: "Nothing to keep yet. Your salary lands on the {payday}."
-- Current month, on track (Spent ≤ Salary − Target amount): "Keep spending under {daily allowance} a day and you'll make it", where `daily allowance = max(0, floor((Salary − Target amount − Spent) ÷ days remaining))`.
+- Current month, on track (Spent ≤ Salary − Target amount): "Keep spending under {daily allowance} a day and you'll make it.", where `daily allowance = max(0, floor((Salary − Target amount − Spent) ÷ days remaining))`.
 - Current month, over the line: "You're {over} past your line. Next month is a fresh start."
 - Past month, met: "Target met. {Saved − Target amount} to spare."
 - Past month, missed: "{Target amount − Saved} short of your target."
@@ -468,7 +469,7 @@ Copy depends on whether Payday has passed (D53):
 1. Fetch the rate. If the pair is unsupported, ask the Member for a rate. If the fetch fails, show an `InlineError` with Retry.
 2. If the Member has no Salary and no Spends, skip the confirm sheet and change the code directly.
 3. Otherwise the confirm sheet shows the rate and before/after values.
-4. In one transaction: rewrite every SalarySetting amount and every Spend amount as `round-half-up(amount × rate)` in the new Currency's minor units; set `member.currency_code`; write a CurrencyConversion row.
+4. In one transaction: rewrite every SalarySetting amount and every Spend amount as `round-half-up(amount × rate)` to the new Currency's decimals; set `member.currency_code`; write a CurrencyConversion row.
 5. Saving Target percentages are untouched.
 6. Not reversible except by converting again at a new rate.
 
@@ -519,12 +520,12 @@ A partial month still sends "Recap ready" — there is something to see (§6.17)
 
 ## 11. Non-functional requirements
 
-- **Platform:** iOS 17+, SwiftUI, iPhone and iPad, portrait and landscape. iPad uses the same single-column layout capped at 390pt, centred on the ground; `Sheet`s anchor to the bottom of the column, not the screen (D40, D49).
+- **Platform:** iOS 17+, SwiftUI, iPhone and iPad, portrait and landscape. iPad uses the same single-column layout capped at 600pt, centred on the ground; the two Home buttons sit side by side and `Sheet`s anchor to the bottom of the column, not the screen (D40, D49, D68).
 - **Performance:** Home renders from cache instantly and refreshes from the network; any write completes in under 1 second on a normal connection. Recap screens page at 60fps.
 - **Connectivity (D61):** reading works offline from the cache; every write requires the network. A failed write shows an inline error and keeps the sheet open with the values intact.
-- **Long numbers (D45, D57):** `StatHero` steps 80 → 56 → 40pt as the formatted string grows past 7 and 10 glyphs. `AmountField` steps 48 → 36 → 28pt on the same boundaries. Thousands separators follow the Currency's locale. Amounts are capped at 12 digits before the separator. Home, the Recap cover and the share image must each be proven in IDR.
-- **Accessibility:** Dynamic Type up to the "Large" accessibility size; **at accessibility sizes the four Recap screens become one vertical scroll with `PageDots` as section markers** (D66). VoiceOver labels on every chip, bar and button — a `CategoryBar` reads "Bills, 35 percent, £616"; a `StatChip` reads "Money in, zero pounds"; the hidden Saved chip is absent from the accessibility tree, not present-and-empty. All tappable elements at least 44 × 44pt. Reduce Motion replaces reveals with 150ms fades.
-- **Localisation:** v1 ships en-GB copy only. Currency formatting follows the selected Currency; dates follow the device locale.
+- **Long numbers (D45, D57, D71):** `StatHero` draws the printed amount at 80pt, or 56 / 40pt when the full string does not fit its card, measured on screen (SwiftUI `.minimumScaleFactor` over the same three sizes). `AmountField` does 48 → 36 → 28pt the same way. Amounts are capped at 12 digits before the decimal separator. Home, the Recap cover and the share image must each be proven in IDR.
+- **Accessibility:** Dynamic Type up to the "Large" accessibility size; **at accessibility sizes the four Recap screens become one vertical scroll with `PageDots` as section markers** (D66). VoiceOver labels on every chip, bar and button — a `CategoryBar` reads "Bills, 35 percent, £616"; a `StatChip` reads "Money in, zero pounds"; the hidden Saved chip is absent from the accessibility tree, not present-and-empty. All tappable elements at least 44 × 44pt, except page dots, which own their slice of a 44pt-tall row like the system page control (D71). Reduce Motion replaces reveals with 150ms fades.
+- **Localisation:** v1 ships en-GB copy only. Money is printed by the platform formatter from the amount and the Member's currency code: symbol and decimals come from the currency's CLDR data, separators from the device language (an Indonesian phone prints `Rp 15.000.000`, a British phone printing rupiah `Rp 15,000,000`). Dates follow the device locale.
 - **Privacy:** no analytics SDK in v1. Data stored server-side in one region and cached on device inside the app's container, protected by the device passcode and erased on log out or deletion. The share image never contains Salary or Money In.
 - **Security:** TLS everywhere, JWT verification on every request, no secrets in the binary, rate limiting on the magic-link endpoint (5 per email per hour), biometric gate on the persisted session.
 - **App Store compliance:** Sign in with Apple present (4.8), in-app account deletion (5.1.1(v)), privacy nutrition label listing email and financial data as linked to the user.
@@ -557,22 +558,21 @@ The four grounds, two fonts and white cards are unchanged. **The radius scale ga
 **Corrections to Draft v1 §13**, each verified against source:
 
 - `Icon` carries **17** glyph names, not 18. Draft v1's "6 glyphs to 18" was written while `skateboard` still existed; it has been removed. There is no `close` glyph — a cross is `plus` rotated 45°.
-- `maxCategoryBars` defaults to **4**, not 5. Five overflowed the artboard by 6pt.
+- `maxCategoryBars` defaults to **3** (D71).
 - `RecapEarningScreen.targetAmount` and `RecapGoalScreen.splurge` are already `T | null` and their null branches already render. The canvas notes calling these "worth fixing in the system" describe a superseded version.
 - `RecapPersonalityScreen` has **no illustration prop**. Its mascot map is module-private; the only lever is `archetype`. `maxHeight={300}` is already applied and all four mascots measure 816pt.
 - The Category hues are Snacks coral, Games violet, Toys yellow, Rides sky, Clothes green, Bills ink, Gifts gold, Other rust — as built, and as `tokens.json` and the Goal artboard already had them.
 - `Sheet` has **no** `fullSheet` or flex-grow prop. The fill-remaining-height behaviour on the canvases is an inline `flexGrow: 1`; if it is needed as API it must be added deliberately.
 
-**Three new components, built 2026-09-08 (D50), before new artboards are drawn.** Each was hand-composed on the canvases and appears on two or more screens. A fourth candidate, `SelectRow`, turned out to be the shipped `ListRow` and was not built; the row is kept below so nobody proposes it again.
+**Three components added on 2026-09-08 (D50).** Each appears on two or more screens. The currency list is `ListRow trailing="check"`; it needs no component of its own.
 
 | Component | Where it appears | Built from |
 |---|---|---|
 | `PromptCard` | Home hero prompt, Home target prompt, onboarding step 4 blocked state, Recap 4 no-Archetype, Settings empty rows | `Card` + `Eyebrow`/`CardTitle` + a 44pt violet-100 chevron well (`IconWell size={44} glyphSize={20}`) + `HelperText`. `size` keeps the height of the card it replaces (`hero` 191pt, `target` 136pt, `auto` hugs its content) so nothing jumps. The card *is* the button, so the three text parts are asked for their `as="span"` form. |
 | `DayPicker` | Onboarding 3, Settings salary | Horizontal 44pt pills 1–31 plus `Last day`, selected as an ink pill, scrolled to centre the selection, with the three-date helper below (D51). The dates are a **prop**: the component does no calendar arithmetic, so §8.2's `min(Payday, days in month)` stays with the caller. |
-| ~~`SelectRow`~~ | — | **Not built.** `ListRow trailing="check"` with `selected` already renders exactly this: no `IconWell`, a `violet.500` check in place of the value. Use `ListRow` for the currency list in onboarding 2 and Settings. |
 | `InlineError` | Sign in, email, log-a-spend write failure, currency rate failure, export failure | coral-100 fill, `radius.inset` 16, coral-500 dot, coral text Nunito 800 13. Pushes content down; never overlays. |
 
-**Not built (D67):** `Toast`. Its only use was the export confirmation, which the button's own `Sent ✓` state now covers.
+There is no `Toast` (D67): the export confirmation is the button's own `Sent ✓` state.
 
 **No new illustrations.** The existing set covers every screen, including the four Archetype mascots, the magic-link envelope and the saving-target jar.
 

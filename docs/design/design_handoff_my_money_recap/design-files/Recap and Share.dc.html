@@ -20,62 +20,13 @@ a{color:#5B4FE8}a:hover{color:#1E1B3A}
 
 <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
   <div style="font:700 34px/1.1 var(--mmr-font-family-display)">My Money Recap · Recap and share</div>
-  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Part 3 of 4. Reached from Home in <a href="Home and Core Features.dc.html">Home and Core Features</a>. The only part where all four grounds appear: violet, yellow, coral, green — one per screen, fixed. Screens 1 to 3 are built from the system's four Recap screen components with September's data swapped in; screen 4 is the shareable one, so it carries no page dots. Yellow stickies are annotations, not UI.</div>
+  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">The share sheet, the share image and the past-recaps list. The four Recap screens themselves, their variants and the flow map live in <code>2026-09-11/Recap and Share (revised).dc.html</code>. Yellow stickies are annotations, not UI.</div>
 </div>
 
 <!-- ROW 1 -->
 <div style="display:flex;flex-direction:column;gap:24px">
-<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 1 · September 2026, target met</div>
+<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 1 · Share and past recaps</div>
 <div style="display:flex;gap:80px;align-items:flex-start">
-
-<!-- C1 -->
-<div data-screen-label="C1 · Recap 1, cover" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C1 · Recap 1, cover</div>
-<x-import component-from-global-scope="MMR.RecapCoverScreen" month="September 2026" child-name="Maya" total="{{ n2400 }}" saved="{{ n640 }}" spent="{{ n1760 }}" hint-size="390px,844px"></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">The Earned chip is gone — Salary is the only income in v1, so Money In and Earned would always be the same number. Two chips only: Saved £640 and Spent £1,760.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Money In = Salary landed inside the calendar month (£2,400 on the 25th). Saved = Money In − Spent = 2,400 − 1,760 = £640. Read-only, computed live on every open.</div>
-</div>
-</sc-if>
-</div>
-
-<!-- C2 -->
-<div data-screen-label="C2 · Recap 2, kept and streak" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C2 · Recap 2, kept and streak</div>
-<x-import component-from-global-scope="MMR.RecapEarningScreen" month="September" money-in="{{ n2400 }}" saved="{{ n640 }}" target-amount="{{ n480 }}" streak-days="{{ n9 }}" streak-range="{{ septStreak }}" streak-caption="12 to 20 September. New badge unlocked." days-in-month="{{ n30 }}" hint-size="390px,844px"></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">scale="max" matters here: Target is a benchmark, not a slice of a whole. Kept £640 fills the width; Target £480 sits at 75% of it. Kept% = Saved ÷ target amount = 640 ÷ 480 = 133%, clamped 0 to 999.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Streak = longest run of days with no spend, never crossing a month boundary: nothing is dated 12 to 20 September, so 9. Badge copy is "New badge unlocked." at 7 days or more, otherwise "Beat it next month."</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Yellow ground: all text inverts to dark ink and the first chip is the ink inverse one. PageDots take onLight.</div>
-</div>
-</sc-if>
-</div>
-
-<!-- C3 -->
-<div data-screen-label="C3 · Recap 3, target and spending" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C3 · Recap 3, target and spending</div>
-<x-import component-from-global-scope="MMR.RecapGoalScreen" saved="{{ n640 }}" target="{{ n480 }}" helper="Target met. £160 to spare." sub-copy="You kept a third more than you set out to keep." spent-total="{{ n1760 }}" categories="{{ septCats }}" splurge="£420 on a flight home. Your biggest single buy." hint-size="390px,844px"></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Four bars is the cap; more overflow the artboard. The tail rolls into one line — "Gifts, Games, Toys, Other · 15%" — rather than being dropped. Bills 35, Rides 26, Snacks 14, Clothes 10 of £1,760.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">The saving-target bar rides the piggy marker, never the skateboard. 133% clamps the bar at full; "£160 to spare" = Saved − target. Splurge = largest single spend, ties to the earliest date: £420, 27 September, 23.9% of Spent.</div>
-</div>
-</sc-if>
-</div>
-
-<!-- C4 -->
-<div data-screen-label="C4 · Recap 4, archetype" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C4 · Recap 4, archetype</div>
-<x-import component-from-global-scope="MMR.RecapPersonalityScreen" child-name="Maya" archetype="squirrel" saved="{{ n640 }}" spent="{{ n1760 }}" hint-size="390px,844px"></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Archetype rules, in order: Saved ≥ target and Streak ≥ 7 → Squirrel. Saved ≥ target, Streak &lt; 7 → Hustler. Saved &lt; target and splurge ≥ 25% of Spent → Treat-Yourself. Otherwise → Slow Burner. September: 640 ≥ 480 and 9 ≥ 7.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">No page dots: this is the shareable screen and screenshots must stay clean. CompareBars here use the default scale="total" — Saved and Spent are slices of Money In. The share button is the only tappable element on any recap screen.</div>
-</div>
-</sc-if>
-</div>
 
 <!-- C5 -->
 <div data-screen-label="C5 · Share sheet" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
@@ -165,213 +116,6 @@ a{color:#5B4FE8}a:hover{color:#1E1B3A}
 </div>
 </div>
 
-<!-- ROW 2 -->
-<div style="display:flex;flex-direction:column;gap:24px">
-<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 2 · States and variants</div>
-<div style="display:flex;gap:80px;align-items:flex-start">
-
-<!-- C2 no target -->
-<div data-screen-label="C2 · Recap 2 / no target set" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C2 · Recap 2 / no target set</div>
-<x-import component-from-global-scope="MMR.Screen" ground="earning" hint-size="390px,844px">
-  <x-import component-from-global-scope="MMR.ChipRow" hint-size="100%,30px">
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" variant="inverse" hint-size="auto,30px">Kept</x-import>
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">September</x-import>
-  </x-import>
-  <div style="margin-top:10px"><x-import component-from-global-scope="MMR.Headline" size="compact" hint-size="100%,80px">You kept £640 of £2,400.</x-import></div>
-  <x-import component-from-global-scope="MMR.Illustration" src="{{ jarSrc }}" width="{{ n190 }}" dc-props="{{ jarStyle }}" hint-size="100%,190px"></x-import>
-  <x-import component-from-global-scope="MMR.Card" dc-props="{{ gap12 }}" hint-size="100%,130px">
-    <x-import component-from-global-scope="MMR.Eyebrow" hint-size="auto,16px">Saving target</x-import>
-    <x-import component-from-global-scope="MMR.CardTitle" hint-size="100%,22px">Set a target to see how you did</x-import>
-    <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,40px">Pick a share of your salary to keep each month, and next month's recap will score it.</x-import>
-  </x-import>
-  <div style="margin-top:12px">
-  <x-import component-from-global-scope="MMR.Card" variant="accent" hint-size="100%,170px">
-    <div style="display:flex;align-items:center;gap:14px">
-      <x-import component-from-global-scope="MMR.StreakBadge" value="{{ n9 }}" hint-size="64px,64px"></x-import>
-      <div style="display:grid;gap:2px">
-        <x-import component-from-global-scope="MMR.CardTitle" hint-size="auto,22px">Longest no-spend streak</x-import>
-        <div style="font-size:13px;font-weight:700;opacity:.8">12 to 20 September. New badge unlocked.</div>
-      </div>
-    </div>
-    <x-import component-from-global-scope="MMR.StreakDots" total="{{ n30 }}" active-range="{{ septStreak }}" hint-size="100%,36px"></x-import>
-  </x-import>
-  </div>
-  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.PageDots" count="{{ n4 }}" active="{{ n1 }}" on-light="{{ true }}" hint-size="auto,6px"></x-import></div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Saving Target skipped: the headline drops its second sentence and the compare card becomes a prompt. The streak card is unchanged — the streak needs no target.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Composed from primitives: RecapEarningScreen's no-target branch cannot be reached through props (its default targetAmount = 480 fills in before the undefined check). Worth fixing in the system.</div>
-</div>
-</sc-if>
-</div>
-
-<!-- C3 missed -->
-<div data-screen-label="C3 · Recap 3 / target missed" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C3 · Recap 3 / target missed</div>
-<x-import component-from-global-scope="MMR.RecapGoalScreen" saved="{{ n310 }}" target="{{ n480 }}" helper="£170 short of your target." sub-copy="Close, but the coat tipped it." spent-total="{{ n2090 }}" categories="{{ octCats }}" splurge="£560 on a winter coat. Your biggest single buy." hint-size="390px,844px"></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">October: Saved £310 ÷ target £480 = 65%; £170 short = target − Saved. Bar part-full in coral. Bills 29, Clothes 28, Snacks 16, Rides 14 of £2,090; roll-up "Games, Other · 13%". Splurge £560, 26.8% of Spent — over the 25% line.</div>
-</sc-if>
-</div>
-
-<!-- C3 no spends -->
-<div data-screen-label="C3 · Recap 3 / no spends" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C3 · Recap 3 / no spends</div>
-<x-import component-from-global-scope="MMR.Screen" ground="goal" hint-size="390px,844px">
-  <x-import component-from-global-scope="MMR.ChipRow" hint-size="100%,30px">
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Target</x-import>
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" variant="inverse" hint-size="auto,30px">Spending</x-import>
-  </x-import>
-  <div style="margin-top:20px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,42px">500% of your saving target</x-import></div>
-  <div style="margin-top:10px"><x-import component-from-global-scope="MMR.SubCopy" hint-size="100%,22px">Nothing went out this month.</x-import></div>
-  <div style="margin-top:22px">
-  <x-import component-from-global-scope="MMR.Card" hint-size="100%,136px">
-    <div style="display:flex;justify-content:space-between;align-items:baseline">
-      <x-import component-from-global-scope="MMR.CardTitle" hint-size="auto,22px">Saving target</x-import>
-      <span style="font:800 14px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)"><span style="color:var(--mmr-color-text-primary);font-size:18px">£2,400</span> of £480</span>
-    </div>
-    <div style="padding-top:14px"><x-import component-from-global-scope="MMR.ProgressBar" value="{{ n2400 }}" max="{{ n480 }}" marker="{{ piggy }}" hint-size="100%,22px"></x-import></div>
-    <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,20px">Target met. £1,920 to spare.</x-import>
-  </x-import>
-  </div>
-  <div style="margin-top:14px;flex-grow:1;display:flex">
-  <x-import component-from-global-scope="MMR.Card" variant="split" dc-props="{{ growCard }}" hint-size="100%,300px">
-    <div style="display:flex;flex-direction:column;gap:14px;flex-grow:1;min-width:0">
-      <div>
-        <x-import component-from-global-scope="MMR.Eyebrow" hint-size="auto,16px">Where £0 went</x-import>
-        <x-import component-from-global-scope="MMR.CardTitle" hint-size="100%,22px">Nothing spent this month.</x-import>
-      </div>
-      <x-import component-from-global-scope="MMR.HelperText" hint-size="100%,40px">Every pound that came in stayed in. The split and the splurge come back with your first spend.</x-import>
-    </div>
-    <div style="width:168px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;margin-top:-60px"><img src="{{ vendingSrc }}" alt="" style="width:168px;display:block"></div>
-  </x-import>
-  </div>
-  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.PageDots" count="{{ n4 }}" active="{{ n2 }}" hint-size="auto,6px"></x-import></div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Money In and no Spends: Saved = £2,400, 2,400 ÷ 480 = 500%, bar clamps at full, "£1,920 to spare". The split card keeps its title but shows "Nothing spent this month." in place of the bars, and the splurge block is hidden entirely.</div>
-</sc-if>
-</div>
-
-<!-- C4 Treat-Yourself -->
-<div data-screen-label="C4 · Recap 4 / Treat-Yourself" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C4 · Recap 4 / Treat-Yourself</div>
-<x-import component-from-global-scope="MMR.RecapPersonalityScreen" child-name="Maya" archetype="treatYourself" saved="{{ n310 }}" spent="{{ n2090 }}" hint-size="390px,844px"></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">October: Saved £310 &lt; target £480, and the £560 coat is 26.8% of Spent, ≥ 25% → Treat-Yourself. Cat mascot, "Share your Treat-Yourself", the Treat-Yourself pill selected.</div>
-</sc-if>
-</div>
-
-<!-- C4 Hustler -->
-<div data-screen-label="C4 · Recap 4 / Hustler" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C4 · Recap 4 / Hustler</div>
-<x-import component-from-global-scope="MMR.Screen" ground="personality" hint-size="390px,844px">
-  <x-import component-from-global-scope="MMR.ChipRow" hint-size="100%,30px">
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Your money personality</x-import>
-  </x-import>
-  <div style="margin-top:16px;font-size:15px;font-weight:800;opacity:.85">This month, Maya, you were</div>
-  <div style="margin-top:2px"><x-import component-from-global-scope="MMR.Headline" size="display" hint-size="100%,64px">The Hustler</x-import></div>
-  <div style="margin-top:12px;opacity:.9"><x-import component-from-global-scope="MMR.SubCopy" hint-size="100%,44px">You hit your number while still living a little.</x-import></div>
-  <x-import component-from-global-scope="MMR.Illustration" src="{{ hustlerSrc }}" width="{{ n290 }}" hint-size="100%,300px"></x-import>
-  <x-import component-from-global-scope="MMR.Card" under-illustration="{{ true }}" dc-props="{{ gap14 }}" hint-size="100%,170px">
-    <x-import component-from-global-scope="MMR.CompareBars" rows="{{ septRows }}" hint-size="100%,60px"></x-import>
-    <x-import component-from-global-scope="MMR.Button" icon="{{ shareIcon }}" hint-size="100%,52px">Share your Hustler</x-import>
-  </x-import>
-  <div style="margin-top:12px;margin-left:18px">
-    <x-import component-from-global-scope="MMR.ArchetypeRow" hint-size="100%,24px">
-      <x-import component-from-global-scope="MMR.ArchetypePill" archetype="squirrel" hint-size="auto,24px"></x-import>
-      <x-import component-from-global-scope="MMR.ArchetypePill" archetype="hustler" selected="{{ true }}" hint-size="auto,24px"></x-import>
-      <x-import component-from-global-scope="MMR.ArchetypePill" archetype="treatYourself" hint-size="auto,24px"></x-import>
-      <x-import component-from-global-scope="MMR.ArchetypePill" archetype="slowBurner" hint-size="auto,24px"></x-import>
-    </x-import>
-  </div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Saved met the target but the streak was under 7 days → Hustler, bee mascot. Shown with September's totals: only the streak rule differs, no other figure changes.</div>
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Composed from primitives: the bee is taller than the other mascots, so RecapPersonalityScreen's fixed 340 pt illustration pushes the pill row off the 844 artboard. Here the bee sits at 290 pt. Worth a per-archetype width in the system.</div>
-</sc-if>
-</div>
-
-<!-- C4 Slow Burner -->
-<div data-screen-label="C4 · Recap 4 / Slow Burner" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C4 · Recap 4 / Slow Burner</div>
-<x-import component-from-global-scope="MMR.RecapPersonalityScreen" child-name="Maya" archetype="slowBurner" saved="{{ n310 }}" spent="{{ n2090 }}" hint-size="390px,844px"></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Target missed with no single spend at 25% or more of Spent → Slow Burner, tortoise mascot. Shown with October's totals as if the coat had been many small buys.</div>
-</sc-if>
-</div>
-
-<!-- C1 no salary -->
-<div data-screen-label="C1 · Recap 1 / no salary" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">C1 · Recap 1 / no salary</div>
-<x-import component-from-global-scope="MMR.Screen" ground="recap" hint-size="390px,844px">
-  <x-import component-from-global-scope="MMR.ChipRow" hint-size="100%,30px">
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">September 2026</x-import>
-    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" variant="highlight" hint-size="auto,30px">Maya's recap</x-import>
-  </x-import>
-  <div style="margin-top:22px"><x-import component-from-global-scope="MMR.Headline" size="l" hint-size="100%,98px">Your September in money</x-import></div>
-  <x-import component-from-global-scope="MMR.Illustration" src="{{ coverSrc }}" width="{{ n310 }}" hint-size="100%,260px"></x-import>
-  <x-import component-from-global-scope="MMR.Card" under-illustration="{{ true }}" hint-size="100%,230px">
-    <x-import component-from-global-scope="MMR.StatHero" eyebrow="Money that came your way" value="{{ n0 }}" format="{{ fmt }}" hint-size="100%,100px"></x-import>
-    <button style="display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;border:0;background:var(--mmr-color-surface-card-accent);border-radius:20px;padding:16px 18px;text-align:left;cursor:pointer;color:var(--mmr-color-text-on-inverse)">
-      <span style="display:flex;flex-direction:column;gap:3px">
-        <span style="font:800 16px/1.3 var(--mmr-font-family-text)">Set your monthly salary to get a recap</span>
-        <span style="font:700 13px/1.3 var(--mmr-font-family-text);opacity:.85">Opens Settings</span>
-      </span>
-      <span style="display:inline-flex;flex:none;color:var(--mmr-color-text-on-inverse)"><x-import component-from-global-scope="MMR.Icon" name="chevron" hint-size="20px,20px"></x-import></span>
-    </button>
-  </x-import>
-  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.PageDots" count="{{ n4 }}" active="{{ n0 }}" hint-size="auto,6px"></x-import></div>
-</x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">No Salary was ever set, so Money In is £0 and there is no Archetype — screen 4 shows this prompt instead of a mascot. The chips are dropped; the prompt is the one tappable element and opens Settings (part 4).</div>
-</sc-if>
-</div>
-
-</div>
-</div>
-
-<!-- ROW 3 -->
-<div style="display:flex;flex-direction:column;gap:24px">
-<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 3 · Flow</div>
-<div data-screen-label="Flow · Recap and share" style="display:flex;flex-direction:column;gap:14px;width:1700px">
-<div style="font:800 14px/1.2 var(--mmr-font-family-text)">Flow · Recap and share</div>
-<div style="position:relative;width:1700px;height:860px;background:var(--mmr-palette-white);border-radius:28px;overflow:hidden">
-  <svg width="1700" height="860" viewBox="0 0 1700 860" fill="none" stroke="var(--mmr-palette-ink-500)" stroke-width="2" style="position:absolute;inset:0" aria-hidden="true">
-    <defs><marker id="arw3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8Z" fill="var(--mmr-palette-ink-500)" stroke="none"></path></marker></defs>
-    <path d="M156 380H298" marker-end="url(#arw3)"></path>
-    <path d="M156 470C230 470 230 690 298 690" marker-end="url(#arw3)"></path>
-    <path d="M396 690C480 690 480 470 398 470" marker-end="url(#arw3)"></path>
-    <path d="M396 404H538" marker-end="url(#arw3)"></path>
-    <path d="M636 404H778" marker-end="url(#arw3)"></path>
-    <path d="M876 404H1018" marker-end="url(#arw3)"></path>
-    <path d="M1116 404H1258" marker-end="url(#arw3)"></path>
-    <path d="M1356 404H1498" marker-end="url(#arw3)"></path>
-    <path d="M1068 300C1068 200 108 200 108 298" marker-end="url(#arw3)"></path>
-  </svg>
-  <sc-for list="{{ flowNodes }}" as="f" hint-placeholder-count="8">
-    <div style="position:absolute;left:{{ f.x }};top:{{ f.y }};width:96px;display:flex;flex-direction:column;gap:8px;align-items:center">
-      <div style="width:96px;height:208px;border-radius:12px;background:{{ f.bg }};position:relative;overflow:hidden">
-        <div style="position:absolute;left:10px;top:16px;width:52px;height:8px;border-radius:999px;background:var(--mmr-palette-white)"></div>
-        <div style="position:absolute;left:10px;top:30px;width:36px;height:8px;border-radius:999px;background:var(--mmr-palette-white);opacity:.6"></div>
-        <div style="position:absolute;left:8px;right:8px;top:{{ f.cardTop }};bottom:{{ f.cardBottom }};border-radius:10px;background:var(--mmr-palette-white)"></div>
-        <div style="position:absolute;left:8px;right:8px;bottom:8px;height:14px;border-radius:999px;background:var(--mmr-palette-ink-900);opacity:{{ f.btn }}"></div>
-        <div style="position:absolute;inset:0;background:var(--mmr-color-surface-scrim);opacity:{{ f.dim }}"></div>
-        <div style="position:absolute;left:0;right:0;bottom:0;height:{{ f.sheetH }};border-radius:10px 10px 0 0;background:var(--mmr-palette-white);border:1.5px solid var(--mmr-palette-ink-100);border-bottom:0;box-sizing:border-box"></div>
-      </div>
-      <div style="font:800 11px/1.3 var(--mmr-font-family-text);color:var(--mmr-palette-ink-900);text-align:center;text-wrap:balance">{{ f.label }}</div>
-    </div>
-  </sc-for>
-  <sc-for list="{{ flowLabels }}" as="l" hint-placeholder-count="9">
-    <div style="position:absolute;left:{{ l.x }};top:{{ l.y }};transform:translate(-50%,-50%);background:var(--mmr-palette-white);padding:3px 8px;border-radius:999px;font:800 11px/1.2 var(--mmr-font-family-text);color:var(--mmr-palette-ink-900);white-space:nowrap">{{ l.text }}</div>
-  </sc-for>
-  <div style="position:absolute;left:60px;top:28px;width:900px;font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Four horizontally paged screens. Reveal choreography per screen: the card slides up 24 px and fades over 320 ms, the number counts up over 800 ms starting 150 ms later, bars grow from zero over 600 ms staggered 80 ms apart. Reduce Motion replaces all of it with a 150 ms fade. Thumbnails are schematic; see rows 1 and 2 for the screens.</div>
-</div>
-</div>
-</div>
-
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;}}">
@@ -381,29 +125,6 @@ class Component extends DCLogic {
     const showNotes = this.props.showAnnotations ?? true;
     const fmt = (n) => '£' + Math.round(n).toLocaleString('en-GB');
     const I = K ? K.ILLUSTRATIONS : {};
-    const septCats = [['bills', 35], ['rides', 26], ['snacks', 14], ['clothes', 10], ['gifts', 7], ['games', 5], ['toys', 2], ['other', 1]].map(([category, percent]) => ({ category, percent }));
-    const octCats = [['bills', 29], ['clothes', 28], ['snacks', 16], ['rides', 14], ['games', 7], ['other', 6]].map(([category, percent]) => ({ category, percent }));
-    const TONE = { bills: 'ink', rides: 'sky', snacks: 'coral', clothes: 'green', gifts: 'gold', games: 'violet', toys: 'yellow', other: 'rust' };
-    const LABEL = { bills: 'Bills', rides: 'Rides', snacks: 'Snacks', clothes: 'Clothes', gifts: 'Gifts', games: 'Games', toys: 'Toys', other: 'Other' };
-    const bars = (cats) => cats.slice(0, 5).map(c => ({ label: LABEL[c.category], percent: c.percent, tone: TONE[c.category] }));
-    const G = { violet: 'var(--mmr-color-ground-recap)', yellow: 'var(--mmr-color-ground-earning)', coral: 'var(--mmr-color-ground-goal)', green: 'var(--mmr-color-ground-personality)' };
-    const N = (x, y, label, bg, o = {}) => ({ x: x + 'px', y: y + 'px', label, bg, cardTop: o.cardTop ?? '56px', cardBottom: o.cardBottom ?? '96px', btn: o.btn ?? 0, dim: o.dim ?? 0, sheetH: o.sheetH ?? '0px' });
-    const flowNodes = [
-      N(60, 300, 'B1 · Home (part 2)', G.violet, { btn: 1 }),
-      N(300, 300, 'C1 · Recap 1, cover', G.violet, { cardTop: '90px', cardBottom: '30px' }),
-      N(540, 300, 'C2 · Kept and streak', G.yellow, { cardTop: '80px', cardBottom: '30px' }),
-      N(780, 300, 'C3 · Target and spending', G.coral, { cardTop: '60px', cardBottom: '30px' }),
-      N(1020, 300, 'C4 · Archetype', G.green, { cardTop: '110px', cardBottom: '24px', btn: 1 }),
-      N(1260, 300, 'C5 · Share sheet', G.green, { cardTop: '110px', cardBottom: '24px', btn: 1, dim: 1, sheetH: '90px' }),
-      N(1500, 300, 'C6 · Share image', G.green, { cardTop: '150px', cardBottom: '30px' }),
-      N(300, 560, 'C7 · Past recaps', G.violet, { cardTop: '60px', cardBottom: '90px' })
-    ];
-    const L = (x, y, text) => ({ x: x + 'px', y: y + 'px', text });
-    const flowLabels = [
-      L(227, 380, 'See last month'), L(230, 585, 'Past recaps'), L(480, 585, 'tap a month'),
-      L(467, 404, 'swipe'), L(707, 404, 'swipe'), L(947, 404, 'swipe'),
-      L(1187, 404, 'Share your Squirrel'), L(1427, 404, 'the rendered image'), L(588, 200, 'close')
-    ];
     const shareTargets = [
       { label: 'Messages', bg: 'var(--mmr-palette-green-500)', glyph: '…' },
       { label: 'Mail', bg: 'var(--mmr-palette-sky-500)', glyph: '✉' },
@@ -411,19 +132,11 @@ class Component extends DCLogic {
       { label: 'Save Image', bg: 'var(--mmr-palette-ink-500)', glyph: '↓' }
     ];
     return {
-      showNotes, fmt, septCats, octCats, flowNodes, flowLabels, shareTargets,
-      septBars: bars(septCats), octBars: bars(octCats),
-      coverSrc: I.cover, jarSrc: I.jar, vendingSrc: I.vending, squirrelSrc: I.squirrel,
-      septStreak: [12, 20],
-      piggy: K ? R.createElement(K.Icon, { name: 'piggy' }) : null,
-      shareIcon: K ? R.createElement(K.Icon, { name: 'share' }) : null,
-      hustlerSrc: I.hustler, n290: 290,
-      septRows: [{ label: 'Saved', value: 640, display: '£640', tone: 'green' }, { label: 'Spent', value: 1760, display: '£1,760', tone: 'coral' }],
-      gap14: { style: { gap: 14 } },
-      n0: 0, n1: 1, n2: 2, n4: 4, n9: 9, n30: 30, n190: 190, n310: 310, n480: 480, n640: 640, n1760: 1760, n2090: 2090, n2400: 2400,
-      jarStyle: { style: { marginBottom: -10 } },
-      gap12: { style: { gap: 12 } },
-      growCard: { style: { flexGrow: 1 } },
+      showNotes,
+ shareTargets,
+ squirrelSrc: I.squirrel,
+ n640: 640,
+ n1760: 1760,
       tightCard: { style: { padding: '4px 22px' } },
       onGround: { style: { color: 'var(--mmr-color-text-on-ground-muted)' } }
     };

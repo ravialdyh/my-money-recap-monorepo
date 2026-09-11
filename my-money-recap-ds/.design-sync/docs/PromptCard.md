@@ -17,12 +17,16 @@ card's height and the layout does not jump when the Member fills it in: `size="h
 Home hero), `size="target"` is 136pt (the Home target card), `size="auto"` hugs its content for a
 Settings row. Picking the wrong one is the one way to get this component wrong.
 
+**Those two heights are the GBP cards.** In a Currency whose amounts make the stat chips wrap (IDR, PRD
+D45) the hero card is 233pt and the target card 157pt, so Home measures the card it draws and passes
+`height={measured}`; `size` still names which card it is.
+
 **`eyebrow` and `helper` take `null` to remove them**, and `null` is the default — so a card with
 neither is `<PromptCard title="…" />` and a card with both names them explicitly.
 
 ```tsx
 // Home, no Salary set (PRD D54): the hero keeps Spent, the prompt sits below it.
-<Card><StatHero eyebrow="Spent so far" value="£1,760" /></Card>
+<Card><StatHero eyebrow="Spent so far" value={1760} format={formatGbp} /></Card>
 <PromptCard
   size="hero"
   title="Set your monthly salary"
