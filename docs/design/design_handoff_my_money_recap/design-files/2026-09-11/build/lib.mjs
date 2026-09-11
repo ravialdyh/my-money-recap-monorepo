@@ -68,8 +68,9 @@ export const flow = (label, w, h, svgPaths, markerId, caption, nodeCount, labelC
 export const logicCommon = `
     const K = window.MMR, R = window.React, I = K ? K.ILLUSTRATIONS : {};
     const showNotes = this.props.showAnnotations ?? true;
-    const gbp = (n) => (n < 0 ? '−' : '') + '£' + Math.abs(Math.round(n)).toLocaleString('en-GB');
-    const idr = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    // The same formatter the app uses (PRD D71): symbol and decimals from the currency, separators from the locale, zero fractions dropped.
+    const gbp = (n) => K ? K.formatMoney(n, 'GBP', 'en-GB') : String(n);
+    const idr = (n) => K ? K.formatMoney(n, 'IDR', 'id-ID') : String(n);
     const icon = (name, props = {}) => K ? R.createElement(K.Icon, { name, ...props }) : null;
     const G = { violet: 'var(--mmr-color-ground-recap)', yellow: 'var(--mmr-color-ground-earning)', coral: 'var(--mmr-color-ground-goal)', green: 'var(--mmr-color-ground-personality)' };
     // Flow thumbnails: N(x, y, label, options)

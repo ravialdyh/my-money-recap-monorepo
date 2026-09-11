@@ -254,7 +254,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div>
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" scrim="{{ true }}" hint-size="100%,100%"><div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ capMinor }}" currency="GBP" label="Amount" state="invalid" helper="That's more than the app can store." on-change="{{ noop }}" hint-size="100%,96px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="999999999999" currency="GBP" label="Amount" state="invalid" helper="That's more than the app can store." on-change="{{ noop }}" hint-size="100%,96px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8"><x-import component-from-global-scope="MMR.Chip" tone="{{ c.tone }}" selected="{{ c.selected }}" tappable="{{ true }}" hint-size="auto,44px"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" hint-size="16px,16px"></x-import>{{ c.label }}</x-import></sc-for></div>
       <x-import component-from-global-scope="MMR.ListRow" label="Date" value="Today, 26 September" trailing="chevron" hint-size="100%,56px"></x-import>
       <x-import component-from-global-scope="MMR.TextField" label="Note" placeholder="What was it? (optional)" hint-size="100%,72px"></x-import>
@@ -262,7 +262,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     </div></x-import>
   </div></x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D57, same rule as A6: at 12 digits before the separator the field stops accepting keystrokes and shows "That's more than the app can store." — the line is coral but the amount is still a valid one, so Save stays enabled once a Category is picked.</div>
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">AmountField counts symbol + integer part: "£ 999,999,999,999" is 17 glyphs, so it sits at the 28pt step (48 → 36 → 28, §11, D71).</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">"£ 999,999,999,999.00" is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The field always shows the currency's full decimals while typing.</div>
 <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills — one of the two has to give; drawn here as shipped.</div></div></sc-if>
 </div>
 </div>
@@ -335,7 +335,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="margin-top:16px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,42px">Spends</x-import></div>
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Edit spend" scrim="{{ true }}" hint-size="100%,100%"><div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n18000 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="180" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ catsClothes }}" as="c" hint-placeholder-count="8"><x-import component-from-global-scope="MMR.Chip" tone="{{ c.tone }}" selected="{{ c.selected }}" tappable="{{ true }}" hint-size="auto,44px"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" hint-size="16px,16px"></x-import>{{ c.label }}</x-import></sc-for></div>
       <div style="display:flex;flex-direction:column;gap:4px"><x-import component-from-global-scope="MMR.ListRow" label="Date" value="10 July 2026" trailing="none" state="disabled" hint-size="100%,56px"></x-import><x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,20px">Dates older than 60 days can't be changed.</x-import></div>
       <x-import component-from-global-scope="MMR.TextField" label="Note" default-value="Summer jacket" max-length="{{ n80 }}" hint-size="100%,72px"></x-import>
@@ -404,8 +404,9 @@ class Component extends DCLogic {
   renderVals() {
     const K = window.MMR, R = window.React, I = K ? K.ILLUSTRATIONS : {};
     const showNotes = this.props.showAnnotations ?? true;
-    const gbp = (n) => (n < 0 ? '−' : '') + '£' + Math.abs(Math.round(n)).toLocaleString('en-GB');
-    const idr = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    // The same formatter the app uses (PRD D71): symbol and decimals from the currency, separators from the locale, zero fractions dropped.
+    const gbp = (n) => K ? K.formatMoney(n, 'GBP', 'en-GB') : String(n);
+    const idr = (n) => K ? K.formatMoney(n, 'IDR', 'id-ID') : String(n);
     const icon = (name, props = {}) => K ? R.createElement(K.Icon, { name, ...props }) : null;
     const G = { violet: 'var(--mmr-color-ground-recap)', yellow: 'var(--mmr-color-ground-earning)', coral: 'var(--mmr-color-ground-goal)', green: 'var(--mmr-color-ground-personality)' };
     // Flow thumbnails: N(x, y, label, options)
@@ -448,7 +449,6 @@ class Component extends DCLogic {
       L(250, 245, 'Settings chip'), L(250, 780, 'See last month'), L(420, 230, 'preview card'), L(215, 560, 'no connection'), L(620, 556, 'pick a month'),
     ];
     return { ...common, catRows, flowNodes, flowLabels, catsSnacks: mkCats('snacks'), catsClothes: mkCats('clothes'),
-      capMinor: 99999999999900,
       n80: 80, n900: 900, n1190: 1190, n2000: 2000, n18000: 18000 };
   }
 }

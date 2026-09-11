@@ -16,17 +16,17 @@ const x3 = col('X3 · IDR proof · Home', screen('recap', `${homeHeader('Septemb
   ${targetCard}
   ${homeButtons(true)}
   ${previewCard('Your first recap arrives on 1 October.')}`), [
-  'Budi, 26 September: Salary Rp 15.000.000, Payday 25, Target 20% = Rp 3.000.000, Spent Rp 9.400.000. Money In Rp 15.000.000, Saved = 15.000.000 − 9.400.000 = Rp 5.600.000. Daily line = floor((15.000.000 − 3.000.000 − 9.400.000) ÷ 5 days left) = Rp 520.000. Separators follow id-ID: dots for thousands, no decimals.',
-  '<b>What IDR changes.</b> The hero string is 12 glyphs, so StatHero steps to 40pt (PRD §11). The two stat chips no longer fit on one line and wrap, so the hero card grows from 191 to 233pt — PromptCard size="hero" no longer matches it in IDR. In the target card the "{Saved} of {target}" string is 28 glyphs and would collide with the title, so it drops under the title and the card grows 136 → 157pt. Nothing else moves.',
-  'Everything here is the shipped component: StatHero sizes itself from the formatted string, the Home screen passes PromptCard `height={233}` for the measured card, and the Recap screens take `format` for the Currency (PRD D71).',
+  'Budi, 26 September: Salary Rp 15.000.000, Payday 25, Target 20% = Rp 3.000.000, Spent Rp 9.400.000. Money In Rp 15.000.000, Saved = 15.000.000 − 9.400.000 = Rp 5.600.000. Daily line = floor((15.000.000 − 3.000.000 − 9.400.000) ÷ 5 days left) = Rp 520.000. Separators follow the phone\'s language (here id-ID: dots for thousands); the decimals follow the currency\'s CLDR data, and a whole amount drops its zero fraction (D71).',
+  '<b>What IDR changes.</b> "Rp 9.400.000" does not fit the card at 80pt or 56pt, so StatHero draws it at 40pt (measured, PRD §11). The two stat chips no longer fit on one line and wrap, so the hero card grows from 191 to 233pt — which is why Home measures the card and passes PromptCard `height`. In the target card the "{Saved} of {target}" value would collide with the title, so the row wraps and the card grows 136 → 157pt. Nothing else moves.',
+  'Everything here is the shipped component: StatHero measures its printed value and shrinks only if it does not fit, the Home screen passes PromptCard `height={233}` for the measured card, and every screen takes `currency` (PRD D71).',
 ]);
 
-const ladder = col('X3 · StatHero step-down ladder', `<div style="display:flex;flex-direction:column;gap:12px;width:390px;padding:24px;box-sizing:border-box;background:var(--mmr-color-ground-recap);border-radius:28px">
-  ${X('Card', '', `${X('StatHero', 'eyebrow="Up to 7 glyphs · 80pt" value="{{ n0 }}" format="{{ idr }}"', '', '100%,100px')}`, '100%,140px')}
-  ${X('Card', '', `${X('StatHero', 'eyebrow="8 to 10 glyphs · 56pt" value="{{ dailyIdr }}" format="{{ idr }}"', '', '100%,80px')}`, '100%,120px')}
-  ${X('Card', '', `${X('StatHero', 'eyebrow="11 glyphs and up · 40pt" value="{{ moneyInIdr }}" format="{{ idr }}"', '', '100%,60px')}`, '100%,100px')}
+const ladder = col('X3 · StatHero fit-to-width', `<div style="display:flex;flex-direction:column;gap:12px;width:390px;padding:24px;box-sizing:border-box;background:var(--mmr-color-ground-recap);border-radius:28px">
+  ${X('Card', '', `${X('StatHero', 'eyebrow="Fits at 80pt" value="{{ n0 }}" format="{{ idr }}"', '', '100%,100px')}`, '100%,140px')}
+  ${X('Card', '', `${X('StatHero', 'eyebrow="Too wide at 80, fits at 56pt" value="{{ dailyIdr }}" format="{{ idr }}"', '', '100%,80px')}`, '100%,120px')}
+  ${X('Card', '', `${X('StatHero', 'eyebrow="Too wide at 56, drawn at 40pt" value="{{ moneyInIdr }}" format="{{ idr }}"', '', '100%,60px')}`, '100%,100px')}
 </div>`, [
-  'The three steps against the card\'s 298pt inner width: "Rp 0" (4 glyphs) at 80, "Rp 520.000" (10 glyphs) at 56, "Rp 15.000.000" (13 glyphs) at 40. StatHero counts the formatted string, symbol and separators included, and sets the size itself. AmountField does the same at 48 → 36 → 28, counting the symbol plus the integer part (PRD D71).',
+  'The three sizes against the card\'s 298pt inner width, chosen by measuring the printed string: "Rp 0" fits at 80; "Rp 520.000" is wider than 298pt at 80 and fits at 56; "Rp 15.000.000" needs 40. No character counting — the same string can fit or not depending on the font and the card, so the component measures. AmountField does the same over 48 → 36 → 28 (PRD §11, D71).',
 ]);
 
 const x4 = col('X4 · IDR proof · Recap cover', withClose(screen('recap', `${X('ChipRow', '', `${X('Chip', 'as-label="{{ true }}"', 'September 2026', 'auto,30px')}${X('Chip', 'as-label="{{ true }}" variant="highlight"', "Budi's recap", 'auto,30px')}`, '100%,30px')}
@@ -36,8 +36,8 @@ const x4 = col('X4 · IDR proof · Recap cover', withClose(screen('recap', `${X(
     ${X('StatChipRow', '', `${X('StatChip', 'tone="saved"', 'Saved Rp 5.600.000', 'auto,34px')}${X('StatChip', 'tone="spent"', 'Spent Rp 9.400.000', 'auto,34px')}`, '100%,76px')}
     ${X('HelperText', '', 'Swipe to see where it all went.', '100%,20px')}`, '100%,250px')}
   <div style="margin-top:18px">${X('PageDots', 'count="{{ n4 }}" active="{{ n0 }}" on-select="{{ noop }}"', '', 'auto,6px')}</div>`)), [
-  'C1 with Budi\'s ledger, i.e. `<RecapCoverScreen format={idr} … />`; drawn from the same primitives here only to show the 260pt cover illustration the taller card needs.',
-  '"Rp 15.000.000" is 13 glyphs → 40pt. The Saved and Spent chips wrap to two lines, which makes the card 42pt taller; to keep the page dots on the 844pt screen the cover illustration drops from 310 to 260pt wide. That is the one cover layout change IDR forces.',
+  'C1 with Budi\'s ledger, i.e. `<RecapCoverScreen currency="IDR" … />`; drawn from the same primitives here only to show the 260pt cover illustration the taller card needs.',
+  '"Rp 15.000.000" needs 40pt to fit the card. The Saved and Spent chips wrap to two lines, which makes the card 42pt taller; to keep the page dots on the 844pt screen the cover illustration drops from 310 to 260pt wide. That is the one cover layout change IDR forces.',
   'D46: 44pt close control top-left (`plus` rotated 45°), the chip row shifted 34pt right to clear it. PageDots take `onSelect` and are tappable.',
 ]);
 
@@ -61,7 +61,7 @@ const x5 = col('X5 · IDR proof · Share image <span style="color:var(--mmr-pale
 </div>
 </div>`, [
   'C6 with Budi\'s ledger: Squirrel (Saved Rp 5.600.000 ≥ Rp 3.000.000, streak assumed ≥ 7 — the IDR ledger in PRD §8 gives no streak). Archetype, month, name, Saved and Spent only; no Salary, no Money In.',
-  '<b>What IDR changes.</b> The GBP poster sets Saved and Spent side by side at 120px in two 348px columns. "Rp 5.600.000" at 120px is about 720px wide, so in IDR the stats stack — one per row, label left, number right — at 84px (the poster\'s 56pt step, ×1.5). Rule: stack and step down whenever either stat is over 7 glyphs; otherwise the two-column layout stands. The mascot is capped at 620px tall so a taller one (Hustler) cannot push the card off the poster.',
+  '<b>What IDR changes.</b> The GBP poster sets Saved and Spent side by side at 120px in two 348px columns. "Rp 5.600.000" at 120px is about 720px wide, so in IDR the stats stack — one per row, label left, number right — at 84px (the poster\'s 56pt step, ×1.5). Rule: stack and step down whenever either stat is too wide for its column, measured; otherwise the two-column layout stands. The mascot is capped at 620px tall so a taller one (Hustler) cannot push the card off the poster.',
 ], 540);
 
 export default {

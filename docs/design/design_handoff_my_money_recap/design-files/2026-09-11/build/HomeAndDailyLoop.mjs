@@ -77,7 +77,7 @@ const b1Preview = col('B1 · Home / preview card', screen('recap', `${H('Septemb
 const b2TooLong = col('B2 · Log a spend / amount too long', screen('recap', `${H('September 2026')}
   <div style="position:absolute;inset:0">
   ${X('Sheet', 'title="Log a spend" scrim="{{ true }}"', `<div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      ${X('AmountField', 'value-minor="{{ capMinor }}" currency="GBP" label="Amount" state="invalid" helper="That\'s more than the app can store." on-change="{{ noop }}"', '', '100%,96px')}
+      ${X('AmountField', 'value="999999999999" currency="GBP" label="Amount" state="invalid" helper="That\'s more than the app can store." on-change="{{ noop }}"', '', '100%,96px')}
       <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8">${X('Chip', 'tone="{{ c.tone }}" selected="{{ c.selected }}" tappable="{{ true }}"', `${X('Icon', 'name="{{ c.key }}"', '', '16px,16px')}{{ c.label }}`, 'auto,44px')}</sc-for></div>
       ${X('ListRow', 'label="Date" value="Today, 26 September" trailing="chevron"', '', '100%,56px')}
       ${X('TextField', 'label="Note" placeholder="What was it? (optional)"', '', '100%,72px')}
@@ -85,7 +85,7 @@ const b2TooLong = col('B2 · Log a spend / amount too long', screen('recap', `${
     </div>`, '100%,100%')}
   </div>`), [
   `D57, same rule as A6: at 12 digits before the separator the field stops accepting keystrokes and shows "That's more than the app can store." — the line is coral but the amount is still a valid one, so Save stays enabled once a Category is picked.`,
-  'AmountField counts symbol + integer part: "£ 999,999,999,999" is 17 glyphs, so it sits at the 28pt step (48 → 36 → 28, §11, D71).', 'Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills — one of the two has to give; drawn here as shipped.']);
+  '"£ 999,999,999,999.00" is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The field always shows the currency\'s full decimals while typing.', 'Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills — one of the two has to give; drawn here as shipped.']);
 
 // Row 3 · Spend list, empty list, old spend
 const switcher = (open = false) => `<div style="margin-top:12px;display:flex;align-items:center;gap:8px;position:relative">
@@ -120,7 +120,7 @@ const b7Old = col('B7 · Spend detail / older than 60 days', screen('recap', `${
   <div style="margin-top:16px">${X('Headline', 'size="m"', 'Spends', '100%,42px')}</div>
   <div style="position:absolute;inset:0">
   ${X('Sheet', 'title="Edit spend" scrim="{{ true }}"', `<div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      ${X('AmountField', 'value-minor="{{ n18000 }}" currency="GBP" label="Amount" on-change="{{ noop }}"', '', '100%,72px')}
+      ${X('AmountField', 'value="180" currency="GBP" label="Amount" on-change="{{ noop }}"', '', '100%,72px')}
       <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ catsClothes }}" as="c" hint-placeholder-count="8">${X('Chip', 'tone="{{ c.tone }}" selected="{{ c.selected }}" tappable="{{ true }}"', `${X('Icon', 'name="{{ c.key }}"', '', '16px,16px')}{{ c.label }}`, 'auto,44px')}</sc-for></div>
       <div style="display:flex;flex-direction:column;gap:4px">${X('ListRow', 'label="Date" value="10 July 2026" trailing="none" state="disabled"', '', '100%,56px')}${X('HelperText', '', "Dates older than 60 days can't be changed.", '100%,20px')}</div>
       ${X('TextField', 'label="Note" default-value="Summer jacket" max-length="{{ n80 }}"', '', '100%,72px')}
@@ -162,7 +162,6 @@ export default {
       L(250, 245, 'Settings chip'), L(250, 780, 'See last month'), L(420, 230, 'preview card'), L(215, 560, 'no connection'), L(620, 556, 'pick a month'),
     ];
     return { ...common, catRows, flowNodes, flowLabels, catsSnacks: mkCats('snacks'), catsClothes: mkCats('clothes'),
-      capMinor: 99999999999900,
       n80: 80, n900: 900, n1190: 1190, n2000: 2000, n18000: 18000 };
   }`,
   body: page('My Money Recap · Home and the daily loop',

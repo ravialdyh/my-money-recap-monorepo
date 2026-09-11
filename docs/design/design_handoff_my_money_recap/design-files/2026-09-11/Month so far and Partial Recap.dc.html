@@ -91,8 +91,8 @@ input::placeholder{color:#6B6890;font-weight:700}
   <x-import component-from-global-scope="MMR.Card" variant="split" dc-props="{{ growCard }}" hint-size="100%,420px"><div style="display:flex;flex-direction:column;gap:10px;flex-grow:1;min-width:0">
       <div><x-import component-from-global-scope="MMR.Eyebrow"  hint-size="auto,16px">Where £900 went</x-import><x-import component-from-global-scope="MMR.CardTitle"  hint-size="100%,22px">Mostly bills</x-import></div>
       <div style="display:grid;gap:6px">
-        <sc-for list="{{ p3Bars }}" as="b" hint-placeholder-count="4"><x-import component-from-global-scope="MMR.CategoryBar" label="{{ b.label }}" percent="{{ b.percent }}" tone="{{ b.tone }}" hint-size="100%,40px"></x-import></sc-for>
-        <x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,20px">Other · 2%</x-import>
+        <sc-for list="{{ p3Bars }}" as="b" hint-placeholder-count="3"><x-import component-from-global-scope="MMR.CategoryBar" label="{{ b.label }}" percent="{{ b.percent }}" tone="{{ b.tone }}" hint-size="100%,40px"></x-import></sc-for>
+        <x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,20px">Rides, Other · 6%</x-import>
       </div>
       <div style="margin-top:auto;padding-top:4px;display:grid;gap:2px">
         <x-import component-from-global-scope="MMR.Eyebrow" tone="coral" hint-size="auto,16px">The splurge</x-import>
@@ -102,7 +102,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <div style="width:148px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;margin-top:-60px"><img src="{{ vendingSrc }}" alt="" style="width:148px;display:block"></div></x-import>
   </div>
   <div style="margin-top:18px"><x-import component-from-global-scope="MMR.PageDots" count="{{ n4 }}" active="{{ n2 }}" on-select="{{ noop }}" hint-size="auto,6px"></x-import></div></x-import></div>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Same four-bar-plus-roll-up rule and the same Splurge card as C3. 20 September, £900 across 8 spends: Bills £500 (56%), Clothes £180 (20%), Snacks £160 (18%), Rides £40 (4%), Other £20 rolled into one line (2%). Splurge = largest single spend, £280 phone and internet.</div>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Same three-bars-plus-roll-up rule and the same Splurge card as C3 (D71). 20 September, £900 across 8 spends: Bills £500 (56%), Clothes £180 (20%), Snacks £160 (18%), Rides £40 and Other £20 rolled into one line (6%). Splurge = largest single spend, £280 phone and internet.</div>
 <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">No percentage headline and no SubCopy — there is no target amount to score against. D55: before Payday the saving-target card is the one line "Your salary lands on the 25th." In a past partial month (situation 3) the card is omitted and the split card takes its height.</div></div></sc-if>
 </div>
 
@@ -188,8 +188,9 @@ class Component extends DCLogic {
   renderVals() {
     const K = window.MMR, R = window.React, I = K ? K.ILLUSTRATIONS : {};
     const showNotes = this.props.showAnnotations ?? true;
-    const gbp = (n) => (n < 0 ? '−' : '') + '£' + Math.abs(Math.round(n)).toLocaleString('en-GB');
-    const idr = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    // The same formatter the app uses (PRD D71): symbol and decimals from the currency, separators from the locale, zero fractions dropped.
+    const gbp = (n) => K ? K.formatMoney(n, 'GBP', 'en-GB') : String(n);
+    const idr = (n) => K ? K.formatMoney(n, 'IDR', 'id-ID') : String(n);
     const icon = (name, props = {}) => K ? R.createElement(K.Icon, { name, ...props }) : null;
     const G = { violet: 'var(--mmr-color-ground-recap)', yellow: 'var(--mmr-color-ground-earning)', coral: 'var(--mmr-color-ground-goal)', green: 'var(--mmr-color-ground-personality)' };
     // Flow thumbnails: N(x, y, label, options)
@@ -213,7 +214,7 @@ class Component extends DCLogic {
       growCard: { style: { flexGrow: 1 } },
       jarStyle: { style: { marginBottom: -10 } },
     };
-    const p3Bars = [['Bills', 56, 'ink'], ['Clothes', 20, 'green'], ['Snacks', 18, 'coral'], ['Rides', 4, 'sky']].map(([label, percent, tone]) => ({ label, percent, tone }));
+    const p3Bars = [['Bills', 56, 'ink'], ['Clothes', 20, 'green'], ['Snacks', 18, 'coral']].map(([label, percent, tone]) => ({ label, percent, tone }));
     return { ...common, p3Bars, streakRange: [12, 20], n9: 9, n20: 20, n190: 190, n310: 310, n900: 900, n200: 200, n1760: 1760 };
   }
 }

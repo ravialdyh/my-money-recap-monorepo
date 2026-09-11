@@ -74,7 +74,7 @@ const a6TooLong = col('A6 · Salary and payday / amount too long', screen('recap
   ${amountCard('999,999,999,999', '28px', `<span style="font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-accent-coral)">That's more than the app can store.</span>`)}
   ${paydayCard('{{ n25 }}', 'next25')}
   <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">${X('Button', '', 'Next', '100%,52px')}<button style="height:44px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);cursor:pointer">Skip for now</button></div>`), [
-  `D57: at 12 digits before the separator the field refuses further keystrokes and shows "That's more than the app can store." The 16-glyph string (symbol + integer part) sits at the 28pt step of AmountField's 48 → 36 → 28 ladder (§11). The amount is still valid, so Next stays enabled.`]);
+  `D57: at 12 digits before the separator the field refuses further keystrokes and shows "That's more than the app can store." The string is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The amount is still valid, so Next stays enabled.`]);
 const a7Skipped = col('A7 · Saving target / salary skipped', screen('recap', `${backRow('Step 4 of 4')}
   <div style="margin-top:18px">${X('Headline', 'size="m"', 'How much do you want to keep?', '100%,84px')}</div>
   <div style="margin-top:20px">${X('PromptCard', 'title="Set a salary first" helper="A target is a share of your salary, so we need the salary first."', '', '100%,110px')}</div>

@@ -6,19 +6,7 @@ import { CardTitle } from './Card';
 import { Eyebrow, HelperText } from './Headline';
 import type { InteractiveState } from './types';
 
-export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'title'> {
-  /**
-   * Which filled card this one stands in for, and therefore how tall it is (PRD §6.8, D54).
-   * `hero` 191pt and `target` 136pt are the two Home cards exactly, so nothing on the screen moves
-   * when the Member fills them in. `auto` hugs its content, for a Settings row.
-   */
-  size?: 'hero' | 'target' | 'auto';
-  /**
-   * The measured height of the card this prompt replaces, when it differs from `size`'s default.
-   * The defaults are the GBP Home cards; in a currency whose amounts wrap the stat chips (IDR, PRD
-   * D45) the hero card is 233pt and the target card 157pt, so the Home screen passes what it measured.
-   */
-  height?: number;
+type PromptCardBase = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'title'> & {
   /** Small label above the title, e.g. "Step 3 of 4". `null` (the default) removes it. */
   eyebrow?: ReactNode | null;
   /** The prompt itself, e.g. "Set your monthly salary". Styled as a `CardTitle`. */
@@ -26,7 +14,19 @@ export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
   /** Sentence under the title, styled as `HelperText`. `null` (the default) removes it. */
   helper?: ReactNode | null;
   state?: InteractiveState;
-}
+};
+/**
+ * `size` names the filled card this prompt stands in for (PRD §6.8, D54). For `hero` and `target`
+ * the caller passes `height`: the measured height of that card as drawn on this screen, so nothing
+ * moves when the Member fills it in. The height is measured, never assumed — it is 191pt for the
+ * pound Home hero and 233pt for the rupiah one (D45, D71). `auto` hugs its content, for a Settings row
+ * or a Recap screen where no fill-in can happen.
+ */
+export type PromptCardProps = PromptCardBase & (
+  | { size: 'hero' | 'target'; height: number }
+  | { size?: 'auto'; height?: undefined }
+);
+
 /**
  * Empty-state card: the whole card is one tap target, not the chevron (PRD §13, D50). It stands in
  * for a filled `Card` — the Home hero, the Home target card, the onboarding step 4 slider card, the

@@ -156,9 +156,10 @@
   color: var(--mmr-color-text-primary);
   font-variant-numeric: tabular-nums;
 }
-/* PRD §11 step-down, set by StatHero from the formatted string's glyph count. */
-.mmr-stat-hero-value[data-step="m"] { font-size: var(--mmr-type-display-xl-step-m-font-size); }
-.mmr-stat-hero-value[data-step="s"] { font-size: var(--mmr-type-display-xl-step-s-font-size); }
+/* Fit-to-width (PRD §11, D71): StatHero measures the value and sets data-step to the largest size that fits. */
+.mmr-stat-hero-value { white-space: nowrap; }
+.mmr-stat-hero-value[data-step="m"] { font-size: var(--mmr-size-stat-hero-m); }
+.mmr-stat-hero-value[data-step="s"] { font-size: var(--mmr-size-stat-hero-s); }
 
 /* ---- Stat chip ---- */
 .mmr-stat-chip {
@@ -318,9 +319,11 @@
 .mmr-pagedot[data-active="true"] { width: var(--mmr-size-page-dot-active-width); background: var(--mmr-color-indicator-page-active-on-ground); }
 .mmr-pagedots[data-on-light="true"] .mmr-pagedot { background: var(--mmr-color-indicator-page-inactive-on-light); }
 .mmr-pagedots[data-on-light="true"] .mmr-pagedot[data-active="true"] { background: var(--mmr-color-indicator-page-active-on-light); }
-/* Tappable dots (D46): a button that keeps the dot's drawn size; the 44pt hit area comes from the same
-   centred pseudo-element the tappable Chip uses. */
+/* Tappable dots (D46): a button that keeps the dot's drawn size. Its hit area is its own slice of the
+   row — the dot plus half the gap on each side, 44pt tall — like Apple's page control; a 44pt-wide box
+   would overlap the neighbours and the last one would win every tap. */
 button.mmr-pagedot { padding: 0; border: 0; position: relative; flex-shrink: 0; }
+button.mmr-pagedot::before { content: ''; position: absolute; left: calc(-0.5 * var(--mmr-space-2)); right: calc(-0.5 * var(--mmr-space-2)); top: 50%; height: var(--mmr-size-touch-target-min); transform: translateY(-50%); }
 button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform: none; }
 
 /* ---- Motion ---- */
@@ -335,7 +338,7 @@ button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform:
 /* ---- Tappable variants (PRD §13). The drawn pill keeps its size; a centred pseudo-element
    lifts the hit area to the 44pt minimum, so nothing in the recap screens changes shape. ---- */
 .mmr-chip[data-tappable="true"], .mmr-archetype[data-tappable="true"] { position: relative; }
-.mmr-chip[data-tappable="true"]::before, .mmr-archetype[data-tappable="true"]::before, .mmr-pagedot[data-tappable="true"]::before {
+.mmr-chip[data-tappable="true"]::before, .mmr-archetype[data-tappable="true"]::before {
   content: '';
   position: absolute;
   left: 50%; top: 50%;
@@ -386,18 +389,20 @@ button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform:
   color: var(--mmr-color-text-secondary);
 }
 .mmr-field-helper[data-state="invalid"] { color: var(--mmr-color-text-accent-coral); }
-/* The amount is a number, so it takes the display face: 48px, stepping to 36 and 28 as the formatted
-   string passes 7 and 10 glyphs (PRD §11). AmountField sets data-step. */
-.mmr-amount .mmr-field-input, .mmr-amount .mmr-field-affix {
+/* The amount is a number, so it takes the display face: 48px, stepping to 36 and 28 when the symbol plus
+   value does not fit the field (PRD §11, D71). AmountField measures a hidden mirror and sets data-step. */
+.mmr-amount .mmr-field-input, .mmr-amount .mmr-field-affix, .mmr-amount-mirror {
   font-family: var(--mmr-font-family-display);
-  font-size: var(--mmr-type-amount-l-font-size);
+  font-size: var(--mmr-size-amount-l);
   font-weight: 700;
   color: var(--mmr-color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 .mmr-amount .mmr-field { height: auto; padding: var(--mmr-space-4) var(--mmr-space-6); }
-.mmr-amount[data-step="m"] .mmr-field-input, .mmr-amount[data-step="m"] .mmr-field-affix { font-size: var(--mmr-type-amount-step-m-font-size); }
-.mmr-amount[data-step="s"] .mmr-field-input, .mmr-amount[data-step="s"] .mmr-field-affix { font-size: var(--mmr-type-amount-step-s-font-size); }
+.mmr-amount[data-step="m"] .mmr-field-input, .mmr-amount[data-step="m"] .mmr-field-affix, .mmr-amount[data-step="m"] .mmr-amount-mirror { font-size: var(--mmr-size-amount-m); }
+.mmr-amount[data-step="s"] .mmr-field-input, .mmr-amount[data-step="s"] .mmr-field-affix, .mmr-amount[data-step="s"] .mmr-amount-mirror { font-size: var(--mmr-size-amount-s); }
+.mmr-amount .mmr-field { position: relative; }
+.mmr-amount-mirror { position: absolute; left: 0; top: 0; visibility: hidden; white-space: nowrap; pointer-events: none; }
 
 /* ---- Slider ---- */
 .mmr-slider { position: relative; display: flex; flex-direction: column; gap: var(--mmr-space-4); }
@@ -580,8 +585,6 @@ button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform:
   justify-content: space-between;
   gap: var(--mmr-space-6);
 }
-.mmr-prompt-card[data-size="hero"] { height: 191px; }
-.mmr-prompt-card[data-size="target"] { height: 136px; }
 .mmr-prompt-card-body { display: flex; flex-direction: column; gap: var(--mmr-space-2); min-width: 0; }
 .mmr-prompt-card .mmr-well { color: var(--mmr-palette-violet-500); }
 

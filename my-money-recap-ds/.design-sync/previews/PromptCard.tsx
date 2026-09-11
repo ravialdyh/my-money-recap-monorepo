@@ -7,20 +7,19 @@ const stack = { display: 'flex', flexDirection: 'column' as const, gap: 14 };
 export function HomeHeroPrompt() {
   return (
     <div style={ground}><div style={stack}>
-      <Card><StatHero eyebrow="Spent so far" value={1760} format={(n) => `£${n.toLocaleString('en-GB')}`} />
+      <Card><StatHero eyebrow="Spent so far" value={1760} currency="GBP" locale="en-GB" />
         <StatChipRow><StatChip tone="earned">Money in £0</StatChip></StatChipRow>
       </Card>
-      <PromptCard size="hero" title="Set your monthly salary" helper="We'll show what you kept once we know what came in." />
+      <PromptCard size="hero" height={191} title="Set your monthly salary" helper="We'll show what you kept once we know what came in." />
     </div></div>
   );
 }
 /** Home in rupiah (D45): the stat chips wrap, so the hero card measures 233pt and the prompt takes that height. */
 export function HomeHeroPromptRupiah() {
-  const idr = (n: number) => `Rp ${Math.round(n).toLocaleString('id-ID')}`;
   return (
     <div style={ground}><div style={stack}>
-      <Card><StatHero eyebrow="Spent so far" value={9400000} format={idr} />
-        <StatChipRow><StatChip tone="earned">Money in Rp 15.000.000</StatChip><StatChip tone="saved">Saved Rp 5.600.000</StatChip></StatChipRow>
+      <Card><StatHero eyebrow="Spent so far" value={9400000} currency="IDR" locale="id-ID" />
+        <StatChipRow><StatChip tone="earned">Money in Rp 15.000.000,00</StatChip><StatChip tone="saved">Saved Rp 5.600.000,00</StatChip></StatChipRow>
       </Card>
       <PromptCard size="hero" height={233} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
     </div></div>
@@ -30,7 +29,7 @@ export function HomeHeroPromptRupiah() {
 export function HomeTargetPrompt() {
   return (
     <div style={ground}><div style={stack}>
-      <PromptCard size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month." />
+      <PromptCard size="target" height={136} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
       <Card style={{ height: 136 }}>
         <CardTitle>Saving target</CardTitle>
         <HelperText>The filled card it stands in for, at the same 136pt.</HelperText>
@@ -42,7 +41,7 @@ export function HomeTargetPrompt() {
 export function OnboardingSalaryFirst() {
   return (
     <div style={ground}>
-      <PromptCard size="target" eyebrow="Step 4 of 4" title="Set a salary first" helper="A target is a share of your salary, so we need the salary first." />
+      <PromptCard eyebrow="Step 4 of 4" title="Set a salary first" helper="A target is a share of your salary, so we need the salary first." />
     </div>
   );
 }
@@ -50,7 +49,7 @@ export function OnboardingSalaryFirst() {
 export function RecapNoArchetype() {
   return (
     <div style={{ ...ground, background: 'var(--mmr-color-ground-personality)' }}>
-      <PromptCard size="hero" title="Set a saving target to get an archetype" helper="Your archetype comes from what you kept against what you meant to keep." />
+      <PromptCard title="Set a saving target to get an archetype" helper="Your archetype comes from what you kept against what you meant to keep." />
     </div>
   );
 }

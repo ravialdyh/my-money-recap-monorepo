@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "preview": "esbuild scripts/render-screens.tsx --bundle --platform=node --format=esm --jsx=automatic --external:react --external:react-dom --outfile=scripts/preview/render.mjs --log-level=warning && node scripts/preview/render.mjs && echo 'open scripts/preview/index.html'",
     "build:assets": "node scripts/build-assets.mjs",
-    "measure": "esbuild scripts/measure.tsx --bundle --platform=node --format=esm --jsx=automatic --external:react --external:react-dom --outfile=scripts/preview/measure.mjs --log-level=warning && node scripts/preview/measure.mjs"
+    "measure": "esbuild scripts/measure.tsx --bundle --platform=browser --format=iife --jsx=automatic --define:process.env.NODE_ENV=\"\\\"production\\\"\" --outfile=scripts/preview/measure.js --log-level=warning && cp scripts/measure.html scripts/preview/measure.html && echo 'open scripts/preview/measure.html'",
+    "test": "vitest run"
   },
   "peerDependencies": {
     "react": ">=18",
@@ -29,6 +30,7 @@
     "esbuild": "^0.28.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.9"
   }
 }

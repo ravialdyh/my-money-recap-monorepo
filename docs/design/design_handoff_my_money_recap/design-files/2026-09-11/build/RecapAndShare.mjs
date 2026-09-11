@@ -8,7 +8,7 @@ const c1 = col('C1 · Recap 1, cover', withClose(X('RecapCoverScreen', 'month="S
 const c2 = col('C2 · Recap 2, kept and streak', withClose(X('RecapEarningScreen', 'month="September" money-in="{{ n2400 }}" saved="{{ n640 }}" target-amount="{{ n480 }}" streak-days="{{ n9 }}" streak-range="{{ septStreak }}" streak-caption="12 to 20 September. New badge unlocked." days-in-month="{{ n30 }}"', '', '390px,844px'), true), [
   `RecapEarningScreen used directly. kept% = round(640 ÷ 480 × 100) = 133, clamped 0–999. Streak 9 (12–20 September, nothing dated inside), ≥ 7 → "New badge unlocked."`, 'Yellow ground: the close control is ink, like the rest of the text.']);
 const c3 = col('C3 · Recap 3, target and spending', withClose(X('RecapGoalScreen', 'saved="{{ n640 }}" target="{{ n480 }}" helper="Target met. £160 to spare." sub-copy="You kept a third more than you set out to keep." spent-total="{{ n1760 }}" categories="{{ septCats }}" splurge="£420 on a flight home. Your biggest single buy."', '', '390px,844px')), [
-  `RecapGoalScreen with the close control. Four bars plus the roll-up (maxCategoryBars = 4): Bills 35, Rides 26, Snacks 14, Clothes 10, then "Gifts, Games, Toys, Other · 15%". "£160 to spare" = Saved − target. Splurge £420 on the 27th.`]);
+  `RecapGoalScreen with the close control. Three bars plus the roll-up (D71): Bills 35, Rides 26, Snacks 14, then "Clothes, Gifts, Games, Toys, Other · 25%". "£160 to spare" = Saved − target. Splurge £420 on the 27th.`]);
 const c4 = col('C4 · Recap 4, archetype', withClose(X('RecapPersonalityScreen', 'child-name="Maya" archetype="squirrel" saved="{{ n640 }}" spent="{{ n1760 }}"', '', '390px,844px')), [
   `Close control only. Still no PageDots — this is the screenshotted screen. Squirrel: Saved £640 ≥ £480 and Streak 9 ≥ 7 (§8.6, first match wins).`]);
 const c7empty = col('C7 · Past recaps / empty', screen('recap', `${backRow('Recaps')}
@@ -89,7 +89,7 @@ ${X('Screen', 'ground="goal" dc-props="{{ autoScreen }}"', `${dots(2)}
     <div style="padding-top:14px">${X('ProgressBar', 'value="{{ n640 }}" max="{{ n480 }}" marker="{{ piggy }}"', '', '100%,22px')}</div>
     ${X('HelperText', '', 'Target met. £160 to spare.', '100%,20px')}`, '100%,180px')}</div>
   <div style="margin-top:12px">${X('Card', '', `<div>${X('Eyebrow', '', 'Where £1,760 went', 'auto,16px')}${X('CardTitle', '', 'Mostly bills', '100%,22px')}</div>
-    <div style="display:grid;gap:10px"><sc-for list="{{ septBars }}" as="b" hint-placeholder-count="4">${X('CategoryBar', 'label="{{ b.label }}" percent="{{ b.percent }}" tone="{{ b.tone }}"', '', '100%,48px')}</sc-for>${X('HelperText', '', 'Gifts, Games, Toys, Other · 15%', '100%,24px')}</div>
+    <div style="display:grid;gap:10px"><sc-for list="{{ septBars }}" as="b" hint-placeholder-count="3">${X('CategoryBar', 'label="{{ b.label }}" percent="{{ b.percent }}" tone="{{ b.tone }}"', '', '100%,48px')}</sc-for>${X('HelperText', '', 'Clothes, Gifts, Games, Toys, Other · 25%', '100%,24px')}</div>
     <div style="display:grid;gap:2px">${X('Eyebrow', 'tone="coral"', 'The splurge', 'auto,16px')}<div style="font-size:20px;font-weight:800;line-height:1.3">£420 on a flight home. Your biggest single buy.</div></div>`, '100%,460px')}</div>`, '390px,auto')}
 ${X('Screen', 'ground="personality" dc-props="{{ autoScreen }}"', `${dots(3)}
   ${X('ChipRow', '', X('Chip', 'as-label="{{ true }}"', 'Your money personality', 'auto,30px'), '100%,30px')}
@@ -119,7 +119,7 @@ export default {
     const octCats = [['bills', 29], ['clothes', 28], ['snacks', 16], ['rides', 14], ['games', 7], ['other', 6]].map(([category, percent]) => ({ category, percent }));
     const TONE = { bills: 'ink', rides: 'sky', snacks: 'coral', clothes: 'green', gifts: 'gold', games: 'violet', toys: 'yellow', other: 'rust' };
     const LABEL = { bills: 'Bills', rides: 'Rides', snacks: 'Snacks', clothes: 'Clothes', gifts: 'Gifts', games: 'Games', toys: 'Toys', other: 'Other' };
-    const septBars = septCats.slice(0, 4).map(c => ({ label: LABEL[c.category], percent: c.percent, tone: TONE[c.category] }));
+    const septBars = septCats.slice(0, 3).map(c => ({ label: LABEL[c.category], percent: c.percent, tone: TONE[c.category] }));
     const flowNodes = [
       N(60, 300, 'B1 · Home (part 2)', { btn: 1 }),
       N(300, 300, 'C1 · Recap 1, cover', { cardTop: '90px', cardBottom: '30px' }),

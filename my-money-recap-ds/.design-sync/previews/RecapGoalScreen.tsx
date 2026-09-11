@@ -29,8 +29,7 @@ export function NoSpends() {
 
 /** SCREEN-STATES C3 · no target set: the headline names the total, the sub-copy goes, the target card is a PromptCard. */
 export function NoTargetSet() { return <RecapGoalScreen target={null} spentTotal={1760} />; }
-/** D45: the same screen in rupiah through the `format` prop. */
+/** D45: the same screen in rupiah on an Indonesian phone. */
 export function Rupiah() {
-  const idr = (n: number) => `Rp ${Math.round(n).toLocaleString('id-ID')}`;
-  return <RecapGoalScreen format={idr} saved={5600000} target={3000000} helper="Target met. Rp 2.600.000 to spare." spentTotal={9400000} splurge="Rp 2.500.000 on a flight home. Your biggest single buy." />;
+  return <RecapGoalScreen currency="IDR" locale="id-ID" saved={5600000} target={3000000} spentTotal={9400000} splurge="Rp 2.500.000,00 on a flight home. Your biggest single buy." />;
 }

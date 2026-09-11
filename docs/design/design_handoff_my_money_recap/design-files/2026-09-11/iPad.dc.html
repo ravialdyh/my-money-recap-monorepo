@@ -88,7 +88,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div></x-import>
   <div style="position:absolute;inset:0;background:var(--mmr-color-surface-scrim);display:flex;justify-content:center;align-items:flex-end;z-index:10">
     <div style="width:600px"><x-import component-from-global-scope="MMR.Sheet" title="Log a spend" hint-size="390px,auto"><div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n1240 }}" currency="GBP" label="Amount" state="focus" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="12.40" currency="GBP" label="Amount" state="focus" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8"><x-import component-from-global-scope="MMR.Chip" tone="{{ c.tone }}" selected="{{ c.selected }}" tappable="{{ true }}" hint-size="auto,44px"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" hint-size="16px,16px"></x-import>{{ c.label }}</x-import></sc-for></div>
       <x-import component-from-global-scope="MMR.ListRow" label="Date" value="Today, 26 September" trailing="chevron" hint-size="100%,56px"></x-import>
       <x-import component-from-global-scope="MMR.TextField" label="Note" default-value="Coffee and lunch" max-length="{{ n80 }}" hint-size="100%,72px"></x-import>
@@ -108,8 +108,9 @@ class Component extends DCLogic {
   renderVals() {
     const K = window.MMR, R = window.React, I = K ? K.ILLUSTRATIONS : {};
     const showNotes = this.props.showAnnotations ?? true;
-    const gbp = (n) => (n < 0 ? '−' : '') + '£' + Math.abs(Math.round(n)).toLocaleString('en-GB');
-    const idr = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    // The same formatter the app uses (PRD D71): symbol and decimals from the currency, separators from the locale, zero fractions dropped.
+    const gbp = (n) => K ? K.formatMoney(n, 'GBP', 'en-GB') : String(n);
+    const idr = (n) => K ? K.formatMoney(n, 'IDR', 'id-ID') : String(n);
     const icon = (name, props = {}) => K ? R.createElement(K.Icon, { name, ...props }) : null;
     const G = { violet: 'var(--mmr-color-ground-recap)', yellow: 'var(--mmr-color-ground-earning)', coral: 'var(--mmr-color-ground-goal)', green: 'var(--mmr-color-ground-personality)' };
     // Flow thumbnails: N(x, y, label, options)

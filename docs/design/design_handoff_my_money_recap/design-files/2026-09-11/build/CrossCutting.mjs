@@ -13,7 +13,7 @@ const x1 = col('X1 · iPad portrait <span style="color:var(--mmr-palette-ink-500
   `D40 as amended by D68: the same single-column layout, capped at 600pt on iPad instead of 390, centred on a full-bleed violet ground. Every card and field stretches to the column; the two buttons sit side by side, the one place the extra width changes composition. Type sizes, card heights and spacing are the phone's. The column runs the full height, so the recap section sits at the bottom as on the phone.`], 834);
 const sheet = `<div style="position:absolute;inset:0;background:var(--mmr-color-surface-scrim);display:flex;justify-content:center;align-items:flex-end;z-index:10">
     <div style="width:600px">${X('Sheet', 'title="Log a spend"', `<div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      ${X('AmountField', 'value-minor="{{ n1240 }}" currency="GBP" label="Amount" state="focus" on-change="{{ noop }}"', '', '100%,72px')}
+      ${X('AmountField', 'value="12.40" currency="GBP" label="Amount" state="focus" on-change="{{ noop }}"', '', '100%,72px')}
       <div style="display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8">${X('Chip', 'tone="{{ c.tone }}" selected="{{ c.selected }}" tappable="{{ true }}"', `${X('Icon', 'name="{{ c.key }}"', '', '16px,16px')}{{ c.label }}`, 'auto,44px')}</sc-for></div>
       ${X('ListRow', 'label="Date" value="Today, 26 September" trailing="chevron"', '', '100%,56px')}
       ${X('TextField', 'label="Note" default-value="Coffee and lunch" max-length="{{ n80 }}"', '', '100%,72px')}

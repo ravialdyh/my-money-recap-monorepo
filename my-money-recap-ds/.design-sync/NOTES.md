@@ -414,20 +414,25 @@ helper ships anywhere, because **the iOS app does not exist in this repo yet** �
 `infra/` are README-only and there are zero `.swift` files. `DayPicker` takes the dates as a prop by
 design; the arithmetic belongs to the app when the app is written.
 
-## 2026-09-11 · component gaps found by the remaining 56 screens (not yet synced)
+## 2026-09-11 · money, fit-to-width and the gaps the remaining screens exposed
 
-Drawing every `REDRAW`/`NEW` row of `docs/SCREEN-STATES.md` against the shipped components (canvases in
-`docs/design/design_handoff_my_money_recap/design-files/2026-09-11/`) exposed seven things the PRD requires
-that no component did. All fixed on branch `ds/component-gaps-from-screens`, recorded as PRD D71:
+Drawing every remaining row of `docs/SCREEN-STATES.md` against the shipped components (canvases in
+`docs/design/design_handoff_my_money_recap/design-files/2026-09-11/`) exposed behaviour the PRD requires that no
+component provided, and a code review of the first fix found two of the fixes did not work. The final shape, PRD D71:
 
-- `StatHero` and `AmountField` size themselves from the formatted string (`data-step`, tokens
-  `type.display-xl-step-*`, `type.amount-*`). `TextField` routes `data-step` to its wrapper.
-- `PromptCard` takes `height` for the measured card (233/157pt in IDR).
-- The four Recap screens take `format: MoneyFormat` (default `formatGbp`); `RecapGoalScreen` takes
-  `target: number | null` and adapts to long formats (stacked target row, three bars).
-- `Banner tone="offline"` (token `color.surface.banner-offline`); `PageDots onSelect`.
-- `scripts/measure.tsx` (`npm run measure`) now covers the long-number states too.
+- **Money is an exact decimal plus an ISO 4217 code** (`src/money.ts`). The platform formatter (`Intl.NumberFormat`,
+  the same CLDR data as iOS) prints the symbol, the currency's decimals and the viewer locale's separators, with a zero
+  fraction dropped for display (`trailingZeroDisplay: 'stripIfInteger'`). There is no `MINOR_UNITS`, no
+  `CURRENCY_SYMBOL`, no `currencyDigits`: CLDR 48 moved rupiah from 2 decimals to 0, and any table we kept would have
+  been wrong on one platform or the other. `AmountField` takes `value` as a decimal string.
+- **Long numbers are measured, not counted** (`src/components/fitStep.ts`): `StatHero` and `AmountField` draw the
+  largest of three sizes that fits (80/56/40, 48/36/28). The earlier 7-and-10-glyph rule shrank "Rp 15.000.000"
+  even though it fits at 48px — the measurement is in `scripts/measure.tsx`.
+- `PromptCard` requires `height` for `hero`/`target` (the measured card it replaces); `RecapGoalScreen` draws
+  three bars in every currency and takes `target: number | null`; `RecapEarningScreen` uses `PromptCard` for the
+  no-target state; `Banner tone="offline"`; `PageDots onSelect` with each dot owning its own slice of the row.
+- `npm test` (vitest) covers the money helpers and the fit choice; `npm run measure` renders the fragile and
+  long-number states in a real browser (it asserts nothing).
 
-**The bundle was rebuilt locally only** (`resync.mjs … --out ./ds-bundle --no-render-check`, no `--remote`) and
-**not uploaded**: the Claude Design project still holds the 2026-09-08 components. Run the full resync with a
-fresh anchor before the next upload; expect these eight cards to diff as changed.
+The bundle in `ds-bundle/` was rebuilt locally after these changes; the upload to the Claude Design project is
+recorded below when it happens.

@@ -20,7 +20,7 @@ const d1Offline = col('D1 · Settings / offline', screen('recap', full(`${head('
     <div style="display:flex;flex-direction:column;gap:6px">${X('Eyebrow', '', 'Your data', 'auto,16px')}${X('DataRowList', '', `${X('ListRow', 'label="Export spends" state="disabled"', '', '100%,56px')}${X('ListRow', 'label="Delete account" tone="destructive" trailing="none" state="disabled"', '', '100%,56px')}${LR('Log out', '', 'trailing="none"')}`, '100%,168px')}</div>`)), [
   `§6.19: rows render from cache; every row that writes sits at 40% behind the offline Banner. Log out stays live — it erases the Keychain entry and the cache on device, and the end-session call can fail silently.`]);
 
-const salaryCards = (extraLine) => `${X('Card', 'dc-props="{{ tintCard }}"', X('AmountField', 'value-minor="{{ n240000 }}" currency="GBP" label="Monthly salary" on-change="{{ noop }}"', '', '100%,72px'), '100%,110px')}
+const salaryCards = (extraLine) => `${X('Card', 'dc-props="{{ tintCard }}"', X('AmountField', 'value="2400" currency="GBP" label="Monthly salary" on-change="{{ noop }}"', '', '100%,72px'), '100%,110px')}
     ${X('Card', 'dc-props="{{ tintCard }}"', `${X('CardTitle', '', 'Payday', '100%,22px')}${X('DayPicker', 'value="{{ n25 }}" next-paydays="{{ next25 }}"', '', '100%,80px')}`, '100%,150px')}
     ${X('HelperText', '', 'Your new payday starts in October.', '100%,20px')}
     ${extraLine || ''}

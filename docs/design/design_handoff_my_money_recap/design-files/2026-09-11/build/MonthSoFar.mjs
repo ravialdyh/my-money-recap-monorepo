@@ -34,8 +34,8 @@ const p3 = col('P3 · Spending', withClose(screen('goal', `${X('ChipRow', '', `$
   ${X('Card', 'variant="split" dc-props="{{ growCard }}"', `<div style="display:flex;flex-direction:column;gap:10px;flex-grow:1;min-width:0">
       <div>${X('Eyebrow', '', 'Where £900 went', 'auto,16px')}${X('CardTitle', '', 'Mostly bills', '100%,22px')}</div>
       <div style="display:grid;gap:6px">
-        <sc-for list="{{ p3Bars }}" as="b" hint-placeholder-count="4">${X('CategoryBar', 'label="{{ b.label }}" percent="{{ b.percent }}" tone="{{ b.tone }}"', '', '100%,40px')}</sc-for>
-        ${X('HelperText', '', 'Other · 2%', '100%,20px')}
+        <sc-for list="{{ p3Bars }}" as="b" hint-placeholder-count="3">${X('CategoryBar', 'label="{{ b.label }}" percent="{{ b.percent }}" tone="{{ b.tone }}"', '', '100%,40px')}</sc-for>
+        ${X('HelperText', '', 'Rides, Other · 6%', '100%,20px')}
       </div>
       <div style="margin-top:auto;padding-top:4px;display:grid;gap:2px">
         ${X('Eyebrow', 'tone="coral"', 'The splurge', 'auto,16px')}
@@ -45,7 +45,7 @@ const p3 = col('P3 · Spending', withClose(screen('goal', `${X('ChipRow', '', `$
     <div style="width:148px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;margin-top:-60px"><img src="{{ vendingSrc }}" alt="" style="width:148px;display:block"></div>`, '100%,420px')}
   </div>
   <div style="margin-top:18px">${X('PageDots', 'count="{{ n4 }}" active="{{ n2 }}" on-select="{{ noop }}"', '', 'auto,6px')}</div>`)), [
-  'Same four-bar-plus-roll-up rule and the same Splurge card as C3. 20 September, £900 across 8 spends: Bills £500 (56%), Clothes £180 (20%), Snacks £160 (18%), Rides £40 (4%), Other £20 rolled into one line (2%). Splurge = largest single spend, £280 phone and internet.',
+  'Same three-bars-plus-roll-up rule and the same Splurge card as C3 (D71). 20 September, £900 across 8 spends: Bills £500 (56%), Clothes £180 (20%), Snacks £160 (18%), Rides £40 and Other £20 rolled into one line (6%). Splurge = largest single spend, £280 phone and internet.',
   'No percentage headline and no SubCopy — there is no target amount to score against. D55: before Payday the saving-target card is the one line "Your salary lands on the 25th." In a past partial month (situation 3) the card is omitted and the split card takes its height.',
 ]);
 
@@ -90,7 +90,7 @@ const situation23 = [
 export default {
   props: { showAnnotations: { editor: 'boolean', default: true, tsType: 'boolean', section: 'Canvas' } },
   logic: `  renderVals() {${logicCommon}
-    const p3Bars = [['Bills', 56, 'ink'], ['Clothes', 20, 'green'], ['Snacks', 18, 'coral'], ['Rides', 4, 'sky']].map(([label, percent, tone]) => ({ label, percent, tone }));
+    const p3Bars = [['Bills', 56, 'ink'], ['Clothes', 20, 'green'], ['Snacks', 18, 'coral']].map(([label, percent, tone]) => ({ label, percent, tone }));
     return { ...common, p3Bars, streakRange: [12, 20], n9: 9, n20: 20, n190: 190, n310: 310, n900: 900, n200: 200, n1760: 1760 };
   }`,
   body: page('My Money Recap · Month so far and Partial Recap (P1–P4)',

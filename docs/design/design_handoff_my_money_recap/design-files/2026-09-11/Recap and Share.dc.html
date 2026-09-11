@@ -67,7 +67,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 <div data-screen-label="C3 · Recap 3, target and spending" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
 <div style="font:800 14px/1.2 var(--mmr-font-family-text)">C3 · Recap 3, target and spending</div>
 <div class="mmr-with-close" style="position:relative;width:390px;height:844px"><button aria-label="Close" style="position:absolute;left:10px;top:49px;width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;z-index:3"><span style="display:inline-flex;transform:rotate(45deg)"><x-import component-from-global-scope="MMR.Icon" name="plus" hint-size="20px,20px"></x-import></span></button><x-import component-from-global-scope="MMR.RecapGoalScreen" saved="{{ n640 }}" target="{{ n480 }}" helper="Target met. £160 to spare." sub-copy="You kept a third more than you set out to keep." spent-total="{{ n1760 }}" categories="{{ septCats }}" splurge="£420 on a flight home. Your biggest single buy." hint-size="390px,844px"></x-import></div>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">RecapGoalScreen with the close control. Four bars plus the roll-up (maxCategoryBars = 4): Bills 35, Rides 26, Snacks 14, Clothes 10, then "Gifts, Games, Toys, Other · 15%". "£160 to spare" = Saved − target. Splurge £420 on the 27th.</div></div></sc-if>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">RecapGoalScreen with the close control. Three bars plus the roll-up (D71): Bills 35, Rides 26, Snacks 14, then "Clothes, Gifts, Games, Toys, Other · 25%". "£160 to spare" = Saved − target. Splurge £420 on the 27th.</div></div></sc-if>
 </div>
 
 <!-- C4 · Recap 4, archetype -->
@@ -278,7 +278,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <div style="padding-top:14px"><x-import component-from-global-scope="MMR.ProgressBar" value="{{ n640 }}" max="{{ n480 }}" marker="{{ piggy }}" hint-size="100%,22px"></x-import></div>
     <x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,20px">Target met. £160 to spare.</x-import></x-import></div>
   <div style="margin-top:12px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,460px"><div><x-import component-from-global-scope="MMR.Eyebrow"  hint-size="auto,16px">Where £1,760 went</x-import><x-import component-from-global-scope="MMR.CardTitle"  hint-size="100%,22px">Mostly bills</x-import></div>
-    <div style="display:grid;gap:10px"><sc-for list="{{ septBars }}" as="b" hint-placeholder-count="4"><x-import component-from-global-scope="MMR.CategoryBar" label="{{ b.label }}" percent="{{ b.percent }}" tone="{{ b.tone }}" hint-size="100%,48px"></x-import></sc-for><x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,24px">Gifts, Games, Toys, Other · 15%</x-import></div>
+    <div style="display:grid;gap:10px"><sc-for list="{{ septBars }}" as="b" hint-placeholder-count="3"><x-import component-from-global-scope="MMR.CategoryBar" label="{{ b.label }}" percent="{{ b.percent }}" tone="{{ b.tone }}" hint-size="100%,48px"></x-import></sc-for><x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,24px">Clothes, Gifts, Games, Toys, Other · 25%</x-import></div>
     <div style="display:grid;gap:2px"><x-import component-from-global-scope="MMR.Eyebrow" tone="coral" hint-size="auto,16px">The splurge</x-import><div style="font-size:20px;font-weight:800;line-height:1.3">£420 on a flight home. Your biggest single buy.</div></div></x-import></div></x-import>
 <x-import component-from-global-scope="MMR.Screen" ground="personality" dc-props="{{ autoScreen }}" hint-size="390px,auto"><div style="margin-bottom:14px"><x-import component-from-global-scope="MMR.PageDots" count="{{ n4 }}" active="{{ n3 }}" on-select="{{ noop }}" hint-size="auto,6px"></x-import></div>
   <x-import component-from-global-scope="MMR.ChipRow"  hint-size="100%,30px"><x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Your money personality</x-import></x-import>
@@ -342,8 +342,9 @@ class Component extends DCLogic {
   renderVals() {
     const K = window.MMR, R = window.React, I = K ? K.ILLUSTRATIONS : {};
     const showNotes = this.props.showAnnotations ?? true;
-    const gbp = (n) => (n < 0 ? '−' : '') + '£' + Math.abs(Math.round(n)).toLocaleString('en-GB');
-    const idr = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    // The same formatter the app uses (PRD D71): symbol and decimals from the currency, separators from the locale, zero fractions dropped.
+    const gbp = (n) => K ? K.formatMoney(n, 'GBP', 'en-GB') : String(n);
+    const idr = (n) => K ? K.formatMoney(n, 'IDR', 'id-ID') : String(n);
     const icon = (name, props = {}) => K ? R.createElement(K.Icon, { name, ...props }) : null;
     const G = { violet: 'var(--mmr-color-ground-recap)', yellow: 'var(--mmr-color-ground-earning)', coral: 'var(--mmr-color-ground-goal)', green: 'var(--mmr-color-ground-personality)' };
     // Flow thumbnails: N(x, y, label, options)
@@ -371,7 +372,7 @@ class Component extends DCLogic {
     const octCats = [['bills', 29], ['clothes', 28], ['snacks', 16], ['rides', 14], ['games', 7], ['other', 6]].map(([category, percent]) => ({ category, percent }));
     const TONE = { bills: 'ink', rides: 'sky', snacks: 'coral', clothes: 'green', gifts: 'gold', games: 'violet', toys: 'yellow', other: 'rust' };
     const LABEL = { bills: 'Bills', rides: 'Rides', snacks: 'Snacks', clothes: 'Clothes', gifts: 'Gifts', games: 'Games', toys: 'Toys', other: 'Other' };
-    const septBars = septCats.slice(0, 4).map(c => ({ label: LABEL[c.category], percent: c.percent, tone: TONE[c.category] }));
+    const septBars = septCats.slice(0, 3).map(c => ({ label: LABEL[c.category], percent: c.percent, tone: TONE[c.category] }));
     const flowNodes = [
       N(60, 300, 'B1 · Home (part 2)', { btn: 1 }),
       N(300, 300, 'C1 · Recap 1, cover', { cardTop: '90px', cardBottom: '30px' }),

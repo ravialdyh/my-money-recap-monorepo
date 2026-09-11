@@ -104,7 +104,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n0 }}" currency="GBP" label="Amount" state="focus" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="" currency="GBP" label="Amount" state="focus" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-direction:column;gap:8px">
         <div style="font:800 13px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)">Category</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
@@ -144,7 +144,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0;background:var(--mmr-color-surface-scrim);display:flex;flex-direction:column;justify-content:flex-end;z-index:10">
     <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" dc-props="{{ compactSheet }}" hint-size="100%,420px">
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-        <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ amountMinor }}" currency="GBP" state="focus" on-change="{{ setAmount }}" hint-size="100%,56px"></x-import>
+        <x-import component-from-global-scope="MMR.AmountField" value="{{ amount }}" currency="GBP" state="focus" on-change="{{ setAmount }}" hint-size="100%,56px"></x-import>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
           <sc-for list="{{ catsLive }}" as="c" hint-placeholder-count="8">
             <button onClick="{{ c.select }}" aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -195,7 +195,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n1240 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="12.40" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8">
           <button aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -317,7 +317,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Edit spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n18000 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="180" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <sc-for list="{{ catsClothes }}" as="c" hint-placeholder-count="8">
           <button aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -348,7 +348,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Edit spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n18000 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="180" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <sc-for list="{{ catsClothes }}" as="c" hint-placeholder-count="8">
           <button aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -498,7 +498,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Log a spend" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
-      <x-import component-from-global-scope="MMR.AmountField" value-minor="{{ n1240 }}" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
+      <x-import component-from-global-scope="MMR.AmountField" value="12.40" currency="GBP" label="Amount" on-change="{{ noop }}" hint-size="100%,72px"></x-import>
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         <sc-for list="{{ catsSnacks }}" as="c" hint-placeholder-count="8">
           <button aria-pressed="{{ c.selected }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font:800 14px/1 var(--mmr-font-family-text);cursor:pointer"><x-import component-from-global-scope="MMR.Icon" name="{{ c.key }}" fill="{{ c.glyph }}" hint-size="16px,16px"></x-import>{{ c.label }}</button>
@@ -524,13 +524,13 @@ input::placeholder{color:#6B6890;font-weight:700}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showAnnotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Canvas&quot;},&quot;today&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:26,&quot;min&quot;:21,&quot;max&quot;:30,&quot;step&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Data&quot;,&quot;description&quot;:&quot;Day of September for the main Home, B2–B6 backgrounds and the spend list&quot;}}">
 class Component extends DCLogic {
-  state = { amountMinor: 1240, cat: 'snacks', bannerOn: true, openCat: 'snacks' };
+  state = { amount: '12.40', cat: 'snacks', bannerOn: true, openCat: 'snacks' };
   renderVals() {
     const K = window.MMR, R = React, s = this.state;
     const showNotes = this.props.showAnnotations ?? true;
     const today = Math.min(30, Math.max(21, Math.round(this.props.today ?? 26)));
     const fmt = (n) => (n < 0 ? '−' : '') + '£' + Math.abs(Math.round(n)).toLocaleString('en-GB');
-    const SAL = 2400, TGT = 480, PAYDAY = 25;
+    const SAL = 2400, TGT = 480, PAYDAY = 25, DAYS = new Date(2026, 9, 0).getDate(); // September 2026 has 30 days; computed, never assumed (PRD §8.2)
     const CATS = [['snacks', 'Snacks', 'coral'], ['games', 'Games', 'violet'], ['toys', 'Toys', 'yellow'], ['rides', 'Rides', 'sky'], ['clothes', 'Clothes', 'green'], ['bills', 'Bills', 'ink'], ['gifts', 'Gifts', 'gold'], ['other', 'Other', 'rust']];
     const TONE = Object.fromEntries(CATS.map(c => [c[0], c[2]]));
     const LEDGER = [[2, 'bills', 'Phone and internet', 280], [3, 'snacks', 'Coffee and lunch', 60], [5, 'bills', 'Electricity', 220], [6, 'other', 'Locksmith', 20], [8, 'rides', 'Train to Brighton', 40], [9, 'snacks', 'Groceries top-up', 55], [10, 'clothes', 'Winter jacket', 180], [11, 'snacks', 'Bakery run', 45], [21, 'snacks', 'Dinner out', 50], [22, 'bills', 'Water', 120], [23, 'gifts', 'Ana birthday present', 120], [27, 'rides', 'Flight home', 420], [28, 'snacks', 'Airport sandwich', 40], [29, 'games', 'New release', 80], [30, 'toys', 'Puzzle', 30]];
@@ -538,9 +538,9 @@ class Component extends DCLogic {
     const home = (d) => {
       const rows = LEDGER.filter(r => r[0] <= d);
       const spent = rows.reduce((a, r) => a + r[3], 0);
-      const moneyIn = d >= PAYDAY ? SAL : 0;
-      const saved = moneyIn - spent, daysLeft = 30 - d + 1;
-      const daily = Math.floor((SAL - TGT - spent) / daysLeft);
+      const moneyIn = d >= Math.min(PAYDAY, DAYS) ? SAL : 0; // effective payday = min(Payday, days in month), PRD §8.2
+      const saved = moneyIn - spent, daysLeft = DAYS - d + 1;
+      const daily = Math.max(0, Math.floor((SAL - TGT - spent) / daysLeft)); // never negative, PRD §8.7
       return {
         rows, spent, moneyIn, saved, daysLeft, daily, dayOrd: ord(d),
         eyebrow: moneyIn ? 'Spent so far' : `Spent so far · salary lands in ${PAYDAY - d} days`,
@@ -616,9 +616,9 @@ class Component extends DCLogic {
  catsSnacks: mkCats('snacks'),
  catsClothes: mkCats('clothes'),
       catsLive: mkCats(s.cat, (k) => this.setState({ cat: s.cat === k ? null : k })),
-      amountMinor: s.amountMinor,
- setAmount: (n) => this.setState({ amountMinor: n }),
-      saveState: s.amountMinor > 0 && s.cat ? 'default' : 'disabled',
+      amount: s.amount,
+      setAmount: (v) => this.setState({ amount: v }),
+      saveState: Number(s.amount) > 0 && s.cat ? 'default' : 'disabled',
       bannerOn: s.bannerOn,
  dismissBanner: () => this.setState({ bannerOn: false })
     };

@@ -1,31 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStyles } from '../styles/useStyles';
 import { Eyebrow } from './Headline';
-import { stepDownFor } from './stepDown';
+import { useFitStep } from './fitStep';
+import { formatMoney, type MoneyFormat } from '../money';
 
 export interface StatHeroProps {
   eyebrow: string;
-  /** Numeric value, formatted with `format`. */
+  /** Numeric value in major units, formatted with `format`, or as money in `currency`. */
   value: number;
-  format?: (n: number) => string;
+  /** ISO 4217 code the value is formatted in when `format` is not given. */
+  currency?: string;
+  /** Viewer's language tag; omit for the device language. */
+  locale?: string;
+  /** Custom formatter for values that are not money (e.g. "9 days"). Overrides `currency`. */
+  format?: MoneyFormat;
   /** Count up over motion.duration.reveal-number. Respects prefers-reduced-motion. */
   animate?: boolean;
 }
-const defaultFormat = (n: number) => `£${Math.round(n)}`;
 
 /**
- * The one big number on a screen: eyebrow + Fredoka value. 80px up to 7 glyphs of the formatted
- * string, 56px to 10, 40px beyond (PRD §11, D45) — measured on the final value, not the count-up frame,
- * so the size never changes mid-animation.
+ * The one big number on a screen: eyebrow + Fredoka value at 80px, or 56 / 40px when the full
+ * string does not fit the card (PRD §11, D71) — measured on the final value, so a count-up never
+ * resizes mid-animation.
  */
-export function StatHero({ eyebrow, value, format = defaultFormat, animate = false }: StatHeroProps) {
+export function StatHero({ eyebrow, value, currency = 'GBP', locale, format, animate = false }: StatHeroProps) {
   useStyles();
+  const fmt: MoneyFormat = format ?? ((n) => formatMoney(n, currency, locale));
   const shown = useCountUp(value, animate);
-  const step = stepDownFor(format(value));
+  const ref = useRef<HTMLDivElement>(null);
+  const final = fmt(value);
+  const step = useFitStep(ref, null, final);
   return (
     <div className="mmr-stat-hero">
       <Eyebrow>{eyebrow}</Eyebrow>
-      <div className="mmr-stat-hero-value" data-step={step}>{format(shown)}</div>
+      <div ref={ref} className="mmr-stat-hero-value" data-step={step}>{fmt(shown)}</div>
     </div>
   );
 }
