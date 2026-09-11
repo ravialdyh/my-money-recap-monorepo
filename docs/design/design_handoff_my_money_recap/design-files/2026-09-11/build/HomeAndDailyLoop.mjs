@@ -30,7 +30,7 @@ const b1NoSalary = col('B1 · Home / no salary set', screen('recap', `${H('Septe
   ${homeButtons(true)}
   ${plainRecaps()}`), [
   `D54: the hero keeps the StatHero — Spent £1,190, the spend the Member just logged — and the salary PromptCard (size="hero") sits below it. With no Salary there is no Payday, so the eyebrow has no countdown and Money In is £0.`,
-  'This is the tallest Home: hero 191 + prompt 191 + prompt 136 puts the buttons at 740–856pt, so Home scrolls here; "Log a spend" stays above the fold and the recap section sits below it. If scrolling is not wanted, the salary prompt at size="auto" (about 94pt) brings the page back under 844.']);
+  'This is the tallest Home: hero 191 + prompt 191 + prompt 136 puts the buttons at 740–856pt, so Home scrolls here; "Log a spend" stays above the fold and the recap section sits below it. If scrolling is not wanted, the salary prompt at (about 94pt) brings the page back under 844.']);
 const b1NoTarget = col('B1 · Home / no target set, salary set', screen('recap', `${H('September 2026')}
   ${hero('Spent so far', 'n1190', [['earned', 'Money in £2,400'], ['saved', 'Saved £1,210']])}
   <div style="margin-top:12px">${X('PromptCard', 'size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month."', '', '100%,136px')}</div>

@@ -1,11 +1,10 @@
 import { useStyles } from '../styles/useStyles';
 
 /** The six onboarding Avatars (PRD D36). Keys match `ILLUSTRATIONS['avatar-*']`. */
-export type AvatarKey = 'fox' | 'otter' | 'panda' | 'frog' | 'owl' | 'rabbit';
-export const AVATAR_KEYS: readonly AvatarKey[] = ['fox', 'otter', 'panda', 'frog', 'owl', 'rabbit'] as const;
-export const AVATAR_LABEL: Record<AvatarKey, string> = {
+export const AVATAR_LABEL = {
   fox: 'Fox', otter: 'Otter', panda: 'Panda', frog: 'Frog', owl: 'Owl', rabbit: 'Rabbit',
-};
+} as const;
+export type AvatarKey = keyof typeof AVATAR_LABEL;
 
 export interface AvatarGridProps {
   /** One entry per Avatar, in grid order. `src` is the transparent WebP data URI. */

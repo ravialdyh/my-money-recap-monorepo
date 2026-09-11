@@ -67,7 +67,7 @@ const a6 = col('A6 · Salary and payday', screen('recap', `${backRow('Step 3 of 
   ${amountCard('2,400')}
   ${paydayCard('{{ n25 }}', 'next25')}
   <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">${X('Button', '', 'Next', '100%,52px')}<button style="height:44px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);cursor:pointer">Skip for now</button></div>`), [
-  `D51: the shipped DayPicker — 1–31 plus "Last day" after 31, nothing disabled, the selection as the ink pill scrolled to centre — and the computed helper "Next paydays: 25 Sep · 25 Oct · 25 Nov", updating on every tap. The Draft v1 line "If the month is shorter, we use its last day" is deleted; the three dates say it better (tap 31 and read "30 Sep · 31 Oct · 30 Nov").`,
+  `D51: the shipped DayPicker — 1–31 plus "Last day" after 31, nothing disabled, the selection as the ink pill scrolled to centre — and the computed helper "Next paydays: 25 Sep · 25 Oct · 25 Nov", updating on every tap. There is no "If the month is shorter…" helper line; the three dates say it (tap 31 and read "30 Sep · 31 Oct · 30 Nov").`,
   'The dates are a prop: min(Payday, days in month) is computed by the screen, not the picker (§8.2).']);
 const a6TooLong = col('A6 · Salary and payday / amount too long', screen('recap', `${backRow('Step 3 of 4')}
   <div style="margin-top:18px">${X('Headline', 'size="m"', 'Your monthly salary', '100%,42px')}</div>
@@ -96,8 +96,8 @@ const a8Skipped = col('A8 · Home / skipped', screen('recap', `${firstRunHeader}
   <div style="margin-top:12px">${X('PromptCard', 'size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month."', '', '100%,136px')}</div>
   <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">${X('Button', '', 'Log a spend', '100%,52px')}${X('Button', 'variant="secondary" state="disabled"', 'See last month', '100%,52px')}</div>
   ${previewCard('Your first recap arrives on 1 October.', 'Recaps')}`), [
-  `D54: the hero card is no longer replaced wholesale — it keeps the StatHero (Spent £0, Money in £0) and the salary PromptCard moves below it. The target PromptCard is unchanged. Both prompts are the shipped component at size="hero" and size="target".`,
-  'Home scrolls in this state (hero 191 + 191 + 136 before the buttons); "Log a spend" is above the fold, "See last month" and the recap card below it. See the sticky on B1 · no salary for the size="auto" alternative.']);
+  `D54: the hero card is no longer replaced wholesale — it keeps the StatHero (Spent £0, Money in £0) and the salary PromptCard moves below it. The target PromptCard is unchanged. Both prompts are the shipped component at and.`,
+  'Home scrolls in this state (hero 191 + 191 + 136 before the buttons); "Log a spend" is above the fold, "See last month" and the recap card below it. See the sticky on B1 · no salary for the alternative.']);
 
 const a3Web = col('A3 · Web fallback page <span style="color:var(--mmr-palette-ink-500)">· 1200 × 720, shown at 50%</span>', `<div style="width:600px;height:360px;overflow:hidden;flex:none;border-radius:16px"><div style="width:1200px;height:720px;transform:scale(.5);transform-origin:top left;box-sizing:border-box;background:var(--mmr-color-ground-recap);color:var(--mmr-color-text-on-ground);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:80px;font-family:var(--mmr-font-family-text)">
   <img src="{{ envelopeSrc }}" alt="" style="width:300px;display:block">

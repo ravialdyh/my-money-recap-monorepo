@@ -27,7 +27,7 @@ const cases: Array<[string, JSX.Element]> = [
   ['C3 goal · rupiah', <RecapGoalScreen currency="IDR" locale="id-ID" saved={5600000} target={3000000} spentTotal={9400000} splurge="Rp 2.500.000 on a flight home. Your biggest single buy." />],
   ['Long-number pieces · rupiah', <Screen ground="recap">
     <Card><StatHero eyebrow="Spent so far" value={9400000} currency="IDR" locale="id-ID" /><StatChipRow><StatChip tone="earned">Money in Rp 15.000.000</StatChip><StatChip tone="saved">Saved Rp 5.600.000</StatChip></StatChipRow></Card>
-    <div style={{ marginTop: 12 }}><PromptCard size="hero" height={233} title="Set your monthly salary" helper="We'll show what you kept once we know what came in." /></div>
+    <div style={{ marginTop: 12 }}><PromptCard height={233} title="Set your monthly salary" helper="We'll show what you kept once we know what came in." /></div>
     <div style={{ marginTop: 12 }}><Card><StatHero eyebrow="Fits at 80" value={520000} currency="IDR" locale="id-ID" /><StatHero eyebrow="Steps to 56" value={15000000} currency="IDR" locale="id-ID" /><StatHero eyebrow="Steps to 40" value={999999999999} currency="GBP" locale="en-GB" /></Card></div>
     <div style={{ marginTop: 12 }}><Banner tone="offline">No connection. You can look, but not log.</Banner></div>
     <div style={{ marginTop: 12 }}><Card><AmountField label="Salary" currency="IDR" locale="id-ID" value="15000000" /><AmountField label="Amount" currency="GBP" locale="en-GB" value="999999999999" state="invalid" helper="That's more than the app can store." /><AmountField label="Amount" currency="GBP" locale="en-GB" value="2400" /></Card></div>

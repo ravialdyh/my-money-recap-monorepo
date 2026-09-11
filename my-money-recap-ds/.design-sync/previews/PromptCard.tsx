@@ -10,7 +10,7 @@ export function HomeHeroPrompt() {
       <Card><StatHero eyebrow="Spent so far" value={1760} currency="GBP" locale="en-GB" />
         <StatChipRow><StatChip tone="earned">Money in £0</StatChip></StatChipRow>
       </Card>
-      <PromptCard size="hero" height={191} title="Set your monthly salary" helper="We'll show what you kept once we know what came in." />
+      <PromptCard height={191} title="Set your monthly salary" helper="We'll show what you kept once we know what came in." />
     </div></div>
   );
 }
@@ -21,7 +21,7 @@ export function HomeHeroPromptRupiah() {
       <Card><StatHero eyebrow="Spent so far" value={9400000} currency="IDR" locale="id-ID" />
         <StatChipRow><StatChip tone="earned">Money in {formatMoney(15000000, 'IDR', 'id-ID')}</StatChip><StatChip tone="saved">Saved {formatMoney(5600000, 'IDR', 'id-ID')}</StatChip></StatChipRow>
       </Card>
-      <PromptCard size="hero" height={233} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
+      <PromptCard height={233} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
     </div></div>
   );
 }
@@ -29,7 +29,7 @@ export function HomeHeroPromptRupiah() {
 export function HomeTargetPrompt() {
   return (
     <div style={ground}><div style={stack}>
-      <PromptCard size="target" height={136} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
+      <PromptCard height={136} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
       <Card style={{ height: 136 }}>
         <CardTitle>Saving target</CardTitle>
         <HelperText>The filled card it stands in for, at the same 136pt.</HelperText>
@@ -53,7 +53,7 @@ export function RecapNoArchetype() {
     </div>
   );
 }
-/** A Settings row: `auto` hugs its content, with no fixed height to hold. */
+/** A Settings row: no `height`, so the card hugs its content. */
 export function SettingsRow() {
   return <div style={ground}><PromptCard title="Salary and payday" helper="Not set" /></div>;
 }
@@ -66,5 +66,5 @@ export function TitleOnly() {
     </div></div>
   );
 }
-export function Pressed() { return <div style={ground}><PromptCard size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month." state="pressed" /></div>; }
-export function Disabled() { return <div style={ground}><PromptCard size="target" title="Set a saving target" helper="Offline — you can look, but not log." state="disabled" /></div>; }
+export function Pressed() { return <div style={ground}><PromptCard title="Set a saving target" helper="Pick a share of your salary to keep each month." state="pressed" /></div>; }
+export function Disabled() { return <div style={ground}><PromptCard title="Set a saving target" helper="Offline — you can look, but not log." state="disabled" /></div>; }

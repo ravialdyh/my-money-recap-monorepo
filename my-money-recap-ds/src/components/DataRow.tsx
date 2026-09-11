@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { useStyles } from '../styles/useStyles';
 import type { InteractiveState, WellTone } from './types';
 
@@ -13,10 +13,9 @@ export interface IconWellProps {
 /** Tinted circle holding a glyph. 30px around 16px by default. */
 export function IconWell({ tone, size, glyphSize, children }: IconWellProps) {
   useStyles();
-  const style: CSSProperties = {};
-  if (size !== undefined) { style.width = size; style.height = size; }
-  if (glyphSize !== undefined) (style as Record<string, string>)['--mmr-well-glyph-size'] = `${glyphSize}px`;
-  return <span className="mmr-well" data-tone={tone} style={size === undefined && glyphSize === undefined ? undefined : style}>{children}</span>;
+  // React drops undefined values, so the defaults fall through to the CSS tokens.
+  const style = { width: size, height: size, '--mmr-well-glyph-size': glyphSize === undefined ? undefined : `${glyphSize}px` } as React.CSSProperties;
+  return <span className="mmr-well" data-tone={tone} style={style}>{children}</span>;
 }
 
 export interface DataRowProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {

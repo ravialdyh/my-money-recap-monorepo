@@ -10,7 +10,7 @@ import { ProgressBar, CategoryBar, CompareBars } from '../components/Bars';
 import { Button } from '../components/Button';
 import { ArchetypePill, ArchetypeRow } from '../components/ArchetypePill';
 import { PromptCard } from '../components/PromptCard';
-import { formatMoney, type MoneyFormat } from '../money';
+import { moneyFormat } from '../money';
 import { PageDots } from '../components/PageDots';
 import { Icon } from '../icons';
 import { ILLUSTRATIONS } from '../assets/illustrations';
@@ -38,7 +38,7 @@ export interface MoneyProps {
   currency?: string;
   locale?: string;
 }
-const useMoney = ({ currency = 'GBP', locale }: MoneyProps): MoneyFormat => (n) => formatMoney(n, currency, locale);
+const useMoney = ({ currency = 'GBP', locale }: MoneyProps) => moneyFormat(currency, locale);
 
 export interface RecapCoverScreenProps extends MoneyProps {
   month?: string; childName?: string; total?: number; saved?: number; spent?: number; animate?: boolean;

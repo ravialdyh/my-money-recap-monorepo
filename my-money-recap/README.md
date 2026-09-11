@@ -1,21 +1,19 @@
-# my-money-recap — design source
+# my-money-recap — illustration source
 
-The Claude Design canvas, the illustration artwork, and the design spec that the
-`my-money-recap-ds` package is built from.
+The artwork the design system ships, and the scripts and prompts that produce it. Everything else
+about the product lives elsewhere: the rules in `../docs/PRD.md`, the drawings in
+`../docs/design/design_handoff_my_money_recap/`, the visual rules and components in `../my-money-recap-ds/`.
 
 ## Layout
 
 | Path | What lives here |
 | --- | --- |
-| `DESIGN.md` | Design system spec: type scale, colour, spacing, components, and the log of resolved decisions |
-| `canvas/` | Claude Design canvas: `canvas.json` layout plus one `.dc.html` per artboard, and `preview.html` to view all four side by side |
-| `assets/illustrations/` | Shipped artwork — transparent WebP cut-outs, roughly 2× display size |
+| `assets/illustrations/` | Shipped artwork — transparent WebP cut-outs, roughly 2× display size. `build:assets` inlines these into the design system |
 | `assets/icons/` | `app-icon-1024.png`, the opaque square for the iOS build |
 | `assets/illustrations.json` | Manifest: file, sampled background hue, dimensions, weight, source render |
 | `renders/` | 4K originals the WebPs were cut from. **Not in git** — large, and kept locally |
 | `scripts/` | Background-removal scripts that turn a render into a shipped WebP |
-| `docs/` | Illustration prompts, the Claude Design prompts for parts 2–4, and the raw prompt log |
-| `published/` | `my-money-recap.html`, the canvas published as a standalone artifact page, plus its preview |
+| `docs/illustration-prompts.md` | The style block and one subject block per illustration, plus the recipe for adding a new one |
 
 ## Turning a render into a shipped asset
 
@@ -37,14 +35,3 @@ cd ../my-money-recap-ds && npm run build:assets
 ```
 
 Full prompt recipes and the style block are in [`docs/illustration-prompts.md`](docs/illustration-prompts.md).
-
-## Viewing the canvas
-
-Open `canvas/preview.html` in a browser for the four artboards side by side, or
-`published/my-money-recap.html` for the interactive published canvas.
-
-## Note on artboard asset paths
-
-The `.dc.html` artboards reference artwork as `../assets/illustrations/ill-*.webp` so the repo
-keeps one copy of each file. Claude Design resolves project-uploaded assets by bare filename, so
-if you re-import an artboard there, re-point its `<img src>` at the uploaded asset.

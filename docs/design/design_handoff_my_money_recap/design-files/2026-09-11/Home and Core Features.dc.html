@@ -84,8 +84,8 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div>
   <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,191px"><x-import component-from-global-scope="MMR.StatHero" eyebrow="Spent so far" value="{{ n1190 }}" format="{{ gbp }}" hint-size="100%,100px"></x-import>
     <x-import component-from-global-scope="MMR.StatChipRow"  hint-size="100%,34px"><x-import component-from-global-scope="MMR.StatChip" tone="earned" hint-size="auto,34px">Money in £0</x-import></x-import></x-import></div>
-  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.PromptCard" size="hero" title="Set your monthly salary" helper="We'll show what you kept once we know what came in." hint-size="100%,191px"></x-import></div>
-  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.PromptCard" size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month." hint-size="100%,136px"></x-import></div>
+  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.PromptCard" title="Set your monthly salary" helper="We'll show what you kept once we know what came in." hint-size="100%,191px"></x-import></div>
+  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.PromptCard" title="Set a saving target" helper="Pick a share of your salary to keep each month." hint-size="100%,136px"></x-import></div>
   <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
     <x-import component-from-global-scope="MMR.Button" icon="{{ plusIcon }}" hint-size="100%,52px">Log a spend</x-import>
     <x-import component-from-global-scope="MMR.Button" variant="secondary" state="disabled" hint-size="100%,52px">See last month</x-import>
@@ -95,7 +95,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <x-import component-from-global-scope="MMR.HelperText" dc-props="{{ onGround }}" hint-size="100%,20px">Your first recap arrives on 1 October.</x-import>
   </div></x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D54: the hero keeps the StatHero — Spent £1,190, the spend the Member just logged — and the salary PromptCard (size="hero") sits below it. With no Salary there is no Payday, so the eyebrow has no countdown and Money In is £0.</div>
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">This is the tallest Home: hero 191 + prompt 191 + prompt 136 puts the buttons at 740–856pt, so Home scrolls here; "Log a spend" stays above the fold and the recap section sits below it. If scrolling is not wanted, the salary prompt at size="auto" (about 94pt) brings the page back under 844.</div></div></sc-if>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">This is the tallest Home: hero 191 + prompt 191 + prompt 136 puts the buttons at 740–856pt, so Home scrolls here; "Log a spend" stays above the fold and the recap section sits below it. If scrolling is not wanted, the salary prompt at (about 94pt) brings the page back under 844.</div></div></sc-if>
 </div>
 
 <!-- B1 · Home / no target set, salary set -->
@@ -109,7 +109,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div>
   <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,191px"><x-import component-from-global-scope="MMR.StatHero" eyebrow="Spent so far" value="{{ n1190 }}" format="{{ gbp }}" hint-size="100%,100px"></x-import>
     <x-import component-from-global-scope="MMR.StatChipRow"  hint-size="100%,34px"><x-import component-from-global-scope="MMR.StatChip" tone="earned" hint-size="auto,34px">Money in £2,400</x-import><x-import component-from-global-scope="MMR.StatChip" tone="saved" hint-size="auto,34px">Saved £1,210</x-import></x-import></x-import></div>
-  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.PromptCard" size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month." hint-size="100%,136px"></x-import></div>
+  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.PromptCard" title="Set a saving target" helper="Pick a share of your salary to keep each month." hint-size="100%,136px"></x-import></div>
   <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
     <x-import component-from-global-scope="MMR.Button" icon="{{ plusIcon }}" hint-size="100%,52px">Log a spend</x-import>
     <x-import component-from-global-scope="MMR.Button" variant="secondary" state="disabled" hint-size="100%,52px">See last month</x-import>

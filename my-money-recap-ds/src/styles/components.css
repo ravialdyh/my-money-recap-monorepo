@@ -428,19 +428,25 @@ button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform:
 .mmr-slider[data-disabled="true"] { opacity: var(--mmr-color-state-disabled-opacity); pointer-events: none; }
 
 /* ---- Toggle ---- */
+/* A native checkbox; the switch and its knob are drawn here. */
 .mmr-toggle {
+  appearance: none;
+  -webkit-appearance: none;
   position: relative;
   flex-shrink: 0;
   width: var(--mmr-size-toggle-width);
   height: var(--mmr-size-toggle-height);
+  margin: 0;
   padding: 0;
   border: 0;
   border-radius: var(--mmr-radius-pill);
   background: var(--mmr-color-surface-toggle-off);
+  cursor: pointer;
   transition: background var(--mmr-motion-duration-press) var(--mmr-motion-easing-standard);
 }
-.mmr-toggle[data-checked="true"] { background: var(--mmr-color-surface-toggle-on); }
-.mmr-toggle-knob {
+.mmr-toggle:checked { background: var(--mmr-color-surface-toggle-on); }
+.mmr-toggle::before {
+  content: '';
   position: absolute;
   top: 2px; left: 2px;
   width: var(--mmr-size-toggle-knob);
@@ -449,7 +455,7 @@ button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform:
   background: var(--mmr-palette-white);
   transition: left var(--mmr-motion-duration-press) var(--mmr-motion-easing-standard);
 }
-.mmr-toggle[data-checked="true"] .mmr-toggle-knob { left: calc(100% - var(--mmr-size-toggle-knob) - 2px); }
+.mmr-toggle:checked::before { left: calc(100% - var(--mmr-size-toggle-knob) - 2px); }
 
 /* ---- Banner ---- */
 .mmr-banner {

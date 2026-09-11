@@ -8,13 +8,7 @@ import { useEffect, useLayoutEffect, useState, type RefObject } from 'react';
  * type ramp stays discrete.
  */
 export type FitStep = 'l' | 'm' | 's';
-export const FIT_STEPS: readonly FitStep[] = ['l', 'm', 's'];
-
-/** Pure: the first step that fits, or the smallest. `fits` is called in order and may have side effects (setting the step before measuring). */
-export function pickStep<T>(steps: readonly T[], fits: (step: T) => boolean): T {
-  for (const step of steps) if (fits(step)) return step;
-  return steps[steps.length - 1]!;
-}
+const STEPS: readonly FitStep[] = ['l', 'm', 's'];
 
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
@@ -31,13 +25,14 @@ export function useFitStep(text: RefObject<HTMLElement>, box: RefObject<HTMLElem
     if (!el) return;
     const measure = () => {
       const container = box?.current ?? el;
-      const chosen = pickStep(FIT_STEPS, (s) => {
+      // Try each size in order and keep the first that fits; the smallest is the floor.
+      const fits = (s: FitStep) => {
         el.dataset.step = s;
         container.dataset.step = s;
         const available = container === el ? el.clientWidth : innerWidth(container);
         return el.scrollWidth <= available + 0.5;
-      });
-      setStep(chosen);
+      };
+      setStep(STEPS.find(fits) ?? 's');
     };
     measure();
     // Observe the box (it may resize) and the text itself: its width changes when a web font swaps in, which

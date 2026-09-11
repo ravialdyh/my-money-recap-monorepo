@@ -17,18 +17,17 @@ export interface StreakDotsProps {
   total?: number;
   /** 1-based inclusive day range that is active, e.g. [12, 20]. */
   activeRange?: [number, number];
-  /** Or an explicit set of active day numbers. */
-  activeDays?: number[];
 }
 /** 15-column grid of 12px dots. Two rows for a 30-day month. */
-export function StreakDots({ total = 30, activeRange, activeDays }: StreakDotsProps) {
+export function StreakDots({ total = 30, activeRange }: StreakDotsProps) {
   useStyles();
-  const active = new Set<number>(activeDays ?? []);
-  if (activeRange) for (let d = activeRange[0]; d <= activeRange[1]; d++) active.add(d);
+  const [from, to] = activeRange ?? [0, -1];
+  const isActive = (day: number) => day >= from && day <= to;
+  const count = activeRange ? to - from + 1 : 0;
   return (
-    <div className="mmr-dots" role="img" aria-label={`${active.size} active days of ${total}`}>
+    <div className="mmr-dots" role="img" aria-label={`${count} active days of ${total}`}>
       {Array.from({ length: total }, (_, i) => (
-        <span key={i} className="mmr-dot" data-active={active.has(i + 1) ? 'true' : 'false'} />
+        <span key={i} className="mmr-dot" data-active={isActive(i + 1) ? 'true' : 'false'} />
       ))}
     </div>
   );

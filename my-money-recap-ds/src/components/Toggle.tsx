@@ -6,16 +6,13 @@ export interface ToggleProps {
   onChange?: (next: boolean) => void;
   'aria-label'?: string;
 }
-/** iOS-proportioned switch (51x31) tinted violet when on. Settings only. */
+/** iOS-proportioned switch (51x31) tinted violet when on: a native checkbox drawn by CSS. Settings only. */
 export function Toggle({ checked, disabled = false, onChange, ...rest }: ToggleProps) {
   useStyles();
   return (
-    <button
-      type="button" role="switch" aria-checked={checked} disabled={disabled}
-      className="mmr-toggle mmr-pressable" data-checked={checked ? 'true' : 'false'}
-      onClick={() => onChange?.(!checked)} {...rest}
-    >
-      <span className="mmr-toggle-knob" />
-    </button>
+    <input
+      type="checkbox" role="switch" className="mmr-toggle mmr-pressable"
+      checked={checked} disabled={disabled} onChange={(e) => onChange?.(e.currentTarget.checked)} {...rest}
+    />
   );
 }
