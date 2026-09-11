@@ -463,3 +463,10 @@ it); `useStyles`'s duplicate effect; `Toggle` is a native checkbox drawn by CSS.
 (the D8 permission-denied screen uses it), `Sheet.scrim`, and the hand-drawn `Slider` (a native range cannot draw the
 filled portion without the same inline width). Three previews changed (`PromptCard`, `StreakDots`, `Toggle` markup), so
 they are due a re-capture on the next sync.
+
+**Eighth sync (2026-09-11, project `5f615747-48cd-4708-9369-becee9793f4e`).** Same order as the seventh: sentinel -> chunk 0
+(bundle js/css, vendor) -> chunk 1 (96 files) -> chunk 2 (96 files) -> sentinel re-arm -> `_ds_sync.json` last; no deletes,
+198 files. Verdict before upload: 36 unchanged, `PromptCard` and `StreakDots` re-captured and graded good (9 and 2 cells),
+`pendingGrade` empty, `anchor: ok` against the seventh sync's `a1c63a42d9a7`. The anchor the app now holds is bundle
+`7d666797b214`; a copy is in `.cache/remote-sync.json`. The three doc cards that shipped stale in the seventh sync
+(StatHero, AmountField, PromptCard) are now current in the project.
