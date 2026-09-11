@@ -2,37 +2,37 @@
   "pages": [
     {
       "id": "idr",
-      "name": "1 \u00b7 IDR proofs (X3\u2013X5)"
+      "name": "1 · IDR proofs (X3–X5)"
     },
     {
       "id": "monthsofar",
-      "name": "2 \u00b7 Month so far (P1\u2013P4)"
+      "name": "2 · Month so far (P1–P4)"
     },
     {
       "id": "auth",
-      "name": "3 \u00b7 Auth and onboarding"
+      "name": "3 · Auth and onboarding"
     },
     {
       "id": "home",
-      "name": "4 \u00b7 Home and the daily loop"
+      "name": "4 · Home and the daily loop"
     },
     {
       "id": "recap",
-      "name": "5 \u00b7 Recap and share"
+      "name": "5 · Recap and share"
     },
     {
       "id": "settings",
-      "name": "6 \u00b7 Settings and account"
+      "name": "6 · Settings and account"
     },
     {
       "id": "ipad",
-      "name": "7 \u00b7 iPad (X1, X2)"
+      "name": "7 · iPad (X1, X2)"
     }
   ],
   "artboards": [
     {
       "file": "IDR proofs.dc.html",
-      "title": "IDR proofs \u00b7 X3\u2013X5",
+      "title": "IDR proofs · X3–X5",
       "page": "idr",
       "x": 0,
       "y": 0,
@@ -41,7 +41,7 @@
     },
     {
       "file": "Month so far and Partial Recap.dc.html",
-      "title": "Month so far and Partial Recap \u00b7 P1\u2013P4",
+      "title": "Month so far and Partial Recap · P1–P4",
       "page": "monthsofar",
       "x": 0,
       "y": 0,
@@ -49,8 +49,8 @@
       "h": 2820
     },
     {
-      "file": "Auth and Onboarding (revised).dc.html",
-      "title": "Auth and onboarding (revised)",
+      "file": "Auth and Onboarding.dc.html",
+      "title": "Auth and onboarding",
       "page": "auth",
       "x": 0,
       "y": 0,
@@ -58,8 +58,8 @@
       "h": 5020
     },
     {
-      "file": "Home and Core Features (revised).dc.html",
-      "title": "Home and the daily loop (revised)",
+      "file": "Home and Core Features.dc.html",
+      "title": "Home and the daily loop",
       "page": "home",
       "x": 0,
       "y": 0,
@@ -67,8 +67,8 @@
       "h": 5300
     },
     {
-      "file": "Recap and Share (revised).dc.html",
-      "title": "Recap and share (revised)",
+      "file": "Recap and Share.dc.html",
+      "title": "Recap and share",
       "page": "recap",
       "x": 0,
       "y": 0,
@@ -76,8 +76,8 @@
       "h": 9440
     },
     {
-      "file": "Settings and Account (revised).dc.html",
-      "title": "Settings and account (revised)",
+      "file": "Settings and Account.dc.html",
+      "title": "Settings and account",
       "page": "settings",
       "x": 0,
       "y": 0,
@@ -86,7 +86,7 @@
     },
     {
       "file": "iPad.dc.html",
-      "title": "iPad \u00b7 X1, X2",
+      "title": "iPad · X1, X2",
       "page": "ipad",
       "x": 0,
       "y": 0,

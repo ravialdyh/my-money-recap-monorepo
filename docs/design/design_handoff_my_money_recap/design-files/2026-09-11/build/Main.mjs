@@ -1,4 +1,4 @@
-import { X, col, row, page, screen, withClose, homeHeader, homeButtons, previewCard, logicCommon, NEW } from './lib.mjs';
+import { X, col, row, page, screen, withClose, homeHeader, homeButtons, previewCard, logicCommon } from './lib.mjs';
 
 const heroCard = `<div style="margin-top:18px">
   ${X('Card', '', `${X('StatHero', 'eyebrow="Spent so far" value="{{ spentIdr }}" format="{{ idr }}"', '', '100%,100px')}

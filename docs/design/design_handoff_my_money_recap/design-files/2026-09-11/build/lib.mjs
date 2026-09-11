@@ -5,8 +5,6 @@ import path from 'node:path';
 export const DS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../../my-money-recap-ds/ds-bundle');
 export const X = (name, attrs = '', inner = '', size = 'auto,auto') =>
   `<x-import component-from-global-scope="MMR.${name}" ${attrs} hint-size="${size}">${inner}</x-import>`;
-export const NEW = `<span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>`;
-export const REDRAW = `<span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-violet-500);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">REDRAW</span>`;
 export const note = (text) => `<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">${text}</div>`;
 export const notes = (arr) => `<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px">${arr.map(note).join('\n')}</div></sc-if>`;
 export const col = (label, inner, noteArr = [], width = 390) =>

@@ -1,4 +1,4 @@
-import { X, col, row, page, screen, sheetBack, flow, logicCommon, NEW, REDRAW } from './lib.mjs';
+import { X, col, row, page, screen, sheetBack, flow, logicCommon } from './lib.mjs';
 
 const head = (title) => `<div style="display:flex;flex-direction:column;gap:4px">${sheetBack}${X('Headline', 'size="m"', title, '100%,42px')}</div>`;
 const full = (inner) => X('Sheet', 'variant="full" dc-props="{{ fullSheet }}" style="flex-grow:1;display:flex;flex-direction:column"', inner, '100%,100%');
@@ -11,14 +11,14 @@ const d1Push = col('D1 · Settings / push denied', screen('recap', full(`${head(
     ${section('Money', [LR('Salary and payday', '£2,400 · 25th'), LR('Saving target', '20%')], 112)}
     ${section('Alerts', [LR('Notifications', 'Off in iOS Settings')], 56)}
     ${section('Your data', [LR('Export spends', ''), LR('Delete account', '', 'tone="destructive" trailing="none"'), LR('Log out', '', 'trailing="none"')], 168)}`)), [
-  `${NEW}Push was denied at the system prompt, so the Notifications row reads "Off in iOS Settings" instead of a count. The preferences underneath are kept; the row still opens D8, whose toggles deep-link to iOS Settings.`]);
+  `Push was denied at the system prompt, so the Notifications row reads "Off in iOS Settings" instead of a count. The preferences underneath are kept; the row still opens D8, whose toggles deep-link to iOS Settings.`]);
 const d1Offline = col('D1 · Settings / offline', screen('recap', full(`${head('Settings')}
     ${X('Banner', 'tone="offline"', 'No connection. You can look, but not log.', '100%,60px')}
     ${dim(section('You', [LR('Profile', 'Maya'), LR('Currency', 'GBP')], 112))}
     ${dim(section('Money', [LR('Salary and payday', '£2,400 · 25th'), LR('Saving target', '20%')], 112))}
     ${dim(section('Alerts', [LR('Notifications', '2 on')], 56))}
     <div style="display:flex;flex-direction:column;gap:6px">${X('Eyebrow', '', 'Your data', 'auto,16px')}${X('DataRowList', '', `${X('ListRow', 'label="Export spends" state="disabled"', '', '100%,56px')}${X('ListRow', 'label="Delete account" tone="destructive" trailing="none" state="disabled"', '', '100%,56px')}${LR('Log out', '', 'trailing="none"')}`, '100%,168px')}</div>`)), [
-  `${NEW}§6.19: rows render from cache; every row that writes sits at 40% behind the offline Banner. Log out stays live — it erases the Keychain entry and the cache on device, and the end-session call can fail silently.`]);
+  `§6.19: rows render from cache; every row that writes sits at 40% behind the offline Banner. Log out stays live — it erases the Keychain entry and the cache on device, and the end-session call can fail silently.`]);
 
 const salaryCards = (extraLine) => `${X('Card', 'dc-props="{{ tintCard }}"', X('AmountField', 'value-minor="{{ n240000 }}" currency="GBP" label="Monthly salary" on-change="{{ noop }}"', '', '100%,72px'), '100%,110px')}
     ${X('Card', 'dc-props="{{ tintCard }}"', `${X('CardTitle', '', 'Payday', '100%,22px')}${X('DayPicker', 'value="{{ n25 }}" next-paydays="{{ next25 }}"', '', '100%,80px')}`, '100%,150px')}
@@ -26,7 +26,7 @@ const salaryCards = (extraLine) => `${X('Card', 'dc-props="{{ tintCard }}"', X('
     ${extraLine || ''}
     ${X('Button', '', 'Save', '100%,52px')}`;
 const d3 = col('D3 · Salary and payday', screen('recap', full(`${head('Salary and payday')}${salaryCards()}`)), [
-  `${REDRAW}D51: the shipped DayPicker with "Last day" and the three-date helper, as on A6. The three dates are the next three paydays counted from today (27 September), so the list starts at 25 October — the 25 September payday has already happened. D56: Payday changes are forward-only, no sheet, so the line under the payday card reads "Your new payday starts in October.", replacing the old info Banner; the salary asks its own question on Save (next artboard).`,
+  `D51: the shipped DayPicker with "Last day" and the three-date helper, as on A6. The three dates are the next three paydays counted from today (27 September), so the list starts at 25 October — the 25 September payday has already happened. D56: Payday changes are forward-only, no sheet, so the line under the payday card reads "Your new payday starts in October.", replacing the old info Banner; the salary asks its own question on Save (next artboard).`,
   'Editing the salary before this month\'s effective Payday saves with no sheet and applies to the current month; on or after it, Save opens "which salary is this".']);
 const d3Which = col('D3 · Salary and payday / which salary is this', screen('recap', `${full(`${head('Salary and payday')}${salaryCards()}`)}
   <div style="position:absolute;inset:0">${X('Sheet', 'title="Which salary is this?" scrim="{{ true }}"', `<div style="display:flex;flex-direction:column;gap:16px">
@@ -34,13 +34,13 @@ const d3Which = col('D3 · Salary and payday / which salary is this', screen('re
       ${X('Card', 'dc-props="{{ choiceCard }}"', X('DataRowList', '', `${X('ListRow', 'label="{{ rowA }}" trailing="chevron"', '', '100%,64px')}${X('ListRow', 'label="{{ rowB }}" trailing="chevron"', '', '100%,64px')}`, '100%,128px'), '100%,136px')}
       ${X('Button', 'variant="secondary"', 'Cancel', '100%,52px')}
     </div>`, '100%,100%')}</div>`), [
-  `${NEW}D56: shown only when the current month's Payday has already passed — here 27 September, editing £2,400 → £2,800. The first row makes September's Money In £2,800 and its target £560; the second leaves September at £2,400 and Home reads "£2,800 from your next payday, 25 October". Cancel returns without saving.`,
+  `D56: shown only when the current month's Payday has already passed — here 27 September, editing £2,400 → £2,800. The first row makes September's Money In £2,800 and its target £560; the second leaves September at £2,400 and Home reads "£2,800 from your next payday, 25 October". Cancel returns without saving.`,
   'The two rows sit in a tinted card, as rows do everywhere else in the app, each with a one-line consequence beneath the label. The sheet body line and the two sub-lines are proposed copy; SCREEN-STATES fixes only the two row labels.']);
 const d4 = col('D4 · Saving target', screen('recap', full(`${head('Saving target')}
     ${X('Card', 'dc-props="{{ tintCard }}"', `<div style="font:700 64px/1 var(--mmr-font-family-display);letter-spacing:-.01em">20%</div><div style="padding:6px 0">${X('Slider', 'value="{{ n20 }}" min="{{ n0 }}" max="{{ n100 }}" step="{{ n5 }}" on-change="{{ noop }}"', '', '100%,44px')}</div>${X('HelperText', '', '£480 of £2,400 each month', '100%,20px')}`, '100%,200px')}
     ${X('HelperText', '', 'Your new target starts in October.', '100%,20px')}
     ${X('Button', '', 'Save', '100%,52px')}`)), [
-  `${REDRAW}D65: forward-only, no sheet, and the screen says so — "Your new target starts in October." replaces the info Banner. A target cannot be mistyped the way a salary can, so there is no correction case to ask about; raising it retroactively would turn a met month into a missed one.`]);
+  `D65: forward-only, no sheet, and the screen says so — "Your new target starts in October." replaces the info Banner. A target cannot be mistyped the way a salary can, so there is no correction case to ask about; raising it retroactively would turn a met month into a missed one.`]);
 
 const currencyList = (selectedIdr = true, idrValue = '') => `${X('Card', 'dc-props="{{ tintCard }}"', `${X('TextField', 'placeholder="Search by name or code"', '', '100%,52px')}${X('DataRowList', '', `${X('ListRow', `label="GBP · British Pound" trailing="check"${selectedIdr ? '' : ' selected="{{ true }}"'}`, '', '100%,56px')}${X('ListRow', `label="IDR · Indonesian Rupiah" trailing="check"${selectedIdr ? ' selected="{{ true }}"' : ''}${idrValue ? ' value="{{ changedValue }}"' : ''}`, '', '100%,56px')}${X('ListRow', 'label="BHD · Bahraini Dinar" trailing="check"', '', '100%,56px')}${X('ListRow', 'label="USD · US Dollar" trailing="check"', '', '100%,56px')}${X('ListRow', 'label="EUR · Euro" trailing="check"', '', '100%,56px')}${X('ListRow', 'label="SGD · Singapore Dollar" trailing="check"', '', '100%,56px')}`, '100%,336px')}`, '100%,420px')}`;
 const d6Failed = col('D6 · Currency confirm / rate fetch failed', screen('recap', `${full(`${head('Currency')}${currencyList(true)}`)}
@@ -49,22 +49,22 @@ const d6Failed = col('D6 · Currency confirm / rate fetch failed', screen('recap
       <div style="font:700 15px/1.45 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);text-wrap:pretty">All your amounts will be converted once, at the rate we use. <strong style="color:var(--mmr-color-text-primary)">This can't be undone.</strong></div>
       <div style="display:flex;flex-direction:column;gap:10px">${X('Button', '', 'Enter it myself', '100%,52px')}${X('Button', 'variant="secondary"', 'Cancel', '100%,52px')}</div>
     </div>`, '100%,100%')}</div>`), [
-  `${NEW}§8.9 step 1: the fetch failed, so the sheet opens with an InlineError carrying "Try again" in its action slot, and the primary button becomes "Enter it myself", which goes to D7 (manual rate). No before/after rows — there is no rate to compute them from. Cancel closes without changing anything.`]);
+  `§8.9 step 1: the fetch failed, so the sheet opens with an InlineError carrying "Try again" in its action slot, and the primary button becomes "Enter it myself", which goes to D7 (manual rate). No before/after rows — there is no rate to compute them from. Cancel closes without changing anything.`]);
 const d6Nothing = col('D6 · Currency / nothing to convert', screen('recap', full(`${head('Currency')}${currencyList(true, 'Changed ✓')}`)), [
-  `${NEW}No Salary and no Spends: there is nothing to convert, so the confirm sheet is skipped and the currency changes on the tap. The row confirms the way the export button does (D67) — a "Changed ✓" value beside the check, no toast — and the value clears when the list is next opened.`]);
+  `No Salary and no Spends: there is nothing to convert, so the confirm sheet is skipped and the currency changes on the tap. The row confirms the way the export button does (D67) — a "Changed ✓" value beside the check, no toast — and the value clears when the list is next opened.`]);
 
 const exportCard = `${X('Card', 'dc-props="{{ tintCard }}"', `${X('CardTitle', '', 'Email me a CSV of every spend', '100%,22px')}${X('HelperText', '', "It goes to maya@example.com. Every spend you've ever logged, with its date, category, amount and note.", '100%,40px')}`, '100%,130px')}`;
 const d9Sent = col('D9 · Export spends / sent', screen('recap', full(`${head('Export spends')}${exportCard}${X('Button', 'state="disabled"', 'Sent ✓', '100%,52px')}`)), [
-  `${REDRAW}D67: the ink toast is deleted. The button itself becomes "Sent ✓" and dims to 40% for 60 seconds, so a double tap cannot send twice; then it reads "Send it" again. Toast is not built.`]);
+  `D67: the button itself becomes "Sent ✓" and dims to 40% for 60 seconds, so a double tap cannot send twice; then it reads "Send it" again. There is no toast.`]);
 const d9NoAddress = col('D9 · Export spends / no deliverable address', screen('recap', full(`${head('Export spends')}
     ${X('Card', 'dc-props="{{ tintCard }}"', `${X('CardTitle', '', 'Email me a CSV of every spend', '100%,22px')}${X('HelperText', '', "Every spend you've ever logged, with its date, category, amount and note.", '100%,40px')}${X('InlineError', 'action="{{ profileLink }}"', "We can't reach maya@privaterelay.appleid.com.", '100%,44px')}`, '100%,190px')}
     ${X('Button', 'state="disabled"', 'Send it', '100%,52px')}`)), [
-  `${NEW}An Apple private-relay address that has bounced. InlineError inside the card, above the action, with a link to Profile in its action slot; "Send it" is disabled until the account has an address that delivers.`]);
+  `An Apple private-relay address that has bounced. InlineError inside the card, above the action, with a link to Profile in its action slot; "Send it" is disabled until the account has an address that delivers.`]);
 const d11b = col('D11b · Restore account', screen('recap', X('Sheet', 'variant="full" dc-props="{{ coralSheet }}" style="flex-grow:1;display:flex;flex-direction:column"', `<div style="display:flex;flex-direction:column;gap:4px">${X('Headline', 'size="m"', 'Welcome back', '100%,42px')}</div>
     <div style="font:800 16px/1.45 var(--mmr-font-family-text);text-wrap:pretty">You asked us to delete this account today at 09:12. Nothing has gone yet.</div>
     <div style="font:700 15px/1.45 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);text-wrap:pretty">Keep it and every spend, every recap and every setting stays exactly as it was. Continue and it all goes at 09:12 tomorrow, for good.</div>
     <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">${X('Button', '', 'Keep my account', '100%,52px')}${X('Button', 'variant="secondary"', 'Continue with deletion', '100%,52px')}</div>`, '100%,100%')), [
-  `${NEW}D60: shown immediately after a sign-in when deletion was requested under 24 hours ago, before Home or onboarding. Sheet variant="full" on the coral-100 tint; "Keep my account" (ink) clears the flag and continues to Home; "Continue with deletion" (secondary) signs out again. No back chevron — the Member has to answer.`,
+  `D60: shown immediately after a sign-in when deletion was requested under 24 hours ago, before Home or onboarding. Sheet variant="full" on the coral-100 tint; "Keep my account" (ink) clears the flag and continues to Home; "Continue with deletion" (secondary) signs out again. No back chevron — the Member has to answer.`,
   'The two body lines are proposed copy: SCREEN-STATES asks for the deletion time and what is lost, and fixes the headline and the two button labels.']);
 
 const flowD = flow('Flow · Settings and account', 1920, 1000, [
@@ -108,8 +108,8 @@ export default {
       tryAgain: R.createElement('a', { href: '#try-again' }, 'Try again'),
       profileLink: R.createElement('a', { href: '#profile' }, 'Profile') };
   }`,
-  body: page('My Money Recap · Settings and account (revised)',
-    'Part 4, redrawn against SCREEN-STATES.md. Settings is a white Sheet variant="full" on the violet ground; sub-screens reuse the onboarding cards. New: push denied and offline on the Settings list, the "which salary is this" sheet (D56), the two currency failures, the undeliverable export address and the restore-account sheet (D60). Redrawn: salary and payday on the shipped DayPicker with the forward-only line, the forward-only saving target (D65) and the export confirmation without a toast (D67). Today is 27 September 2026 throughout, so "next month" is October. Yellow stickies are annotations, not UI.',
+  body: page('My Money Recap · Settings and account',
+    'Part 4. Settings is a white Sheet variant="full" on the violet ground; sub-screens reuse the onboarding cards. Push denied and offline on the Settings list, salary and payday with the DayPicker and the "which salary is this" sheet (D56), the forward-only saving target (D65), the two currency failures, the export confirmation (D67) and its undeliverable address, and the restore-account sheet (D60). Today is 27 September 2026 throughout, so "next month" is October. Yellow stickies are annotations, not UI.',
     [row('Row 1 · Settings list and money', [d1Push, d1Offline, d3, d3Which, d4]),
      row('Row 2 · Currency, export and the restore sheet', [d6Failed, d6Nothing, d9Sent, d9NoAddress, d11b]),
      row('Row 3 · Flow', [flowD])]),

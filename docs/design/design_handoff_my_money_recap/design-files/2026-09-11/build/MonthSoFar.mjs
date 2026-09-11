@@ -80,10 +80,10 @@ const situation23 = [
     'Situation 2 closing line. October is this Member\'s first full month, so its Recap on 1 November is the first with an Archetype.',
   ]),
   p1('P1 · Cover / past month, no salary', 'Your September spending', 'n1760', '£1,760', '15 spends', [
-    'Situation 3: any past month with Money In 0 and at least one Spend — here Maya\'s September with no Salary ever set. Spent £1,760 across 15 spends. Replaces the retired "C1 · no salary" artboard.',
+    'Situation 3: any past month with Money In 0 and at least one Spend — here Maya\'s September with no Salary ever set. Spent £1,760 across 15 spends.',
   ]),
   p4('P4 · Closing / past month, no salary', 'Set your monthly salary to get a full recap.', [
-    'Situation 3 closing line. The line is a prompt, but this screen stays read-only — the Member sets the Salary in Settings, as on the retired C1 prompt.',
+    'Situation 3 closing line. The line is a prompt, but this screen stays read-only — the Member sets the Salary in Settings.',
   ]),
 ];
 
