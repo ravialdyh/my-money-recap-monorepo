@@ -67,14 +67,14 @@ const a6 = col('A6 · Salary and payday', screen('recap', `${backRow('Step 3 of 
   ${amountCard('2,400')}
   ${paydayCard('{{ n25 }}', 'next25')}
   <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">${X('Button', '', 'Next', '100%,52px')}<button style="height:44px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);cursor:pointer">Skip for now</button></div>`), [
-  `D51: the shipped DayPicker — 1–31 plus "Last day" after 31, nothing disabled, the selection as the ink pill scrolled to centre — and the computed helper "Next paydays: 25 Sep · 25 Oct · 25 Nov", updating on every tap. The Draft v1 line "If the month is shorter, we use its last day" is deleted; the three dates say it better (tap 31 and read "30 Sep · 31 Oct · 30 Nov").`,
+  `D51: the shipped DayPicker — 1–31 plus "Last day" after 31, nothing disabled, the selection as the ink pill scrolled to centre — and the computed helper "Next paydays: 25 Sep · 25 Oct · 25 Nov", updating on every tap. There is no "If the month is shorter…" helper line; the three dates say it (tap 31 and read "30 Sep · 31 Oct · 30 Nov").`,
   'The dates are a prop: min(Payday, days in month) is computed by the screen, not the picker (§8.2).']);
 const a6TooLong = col('A6 · Salary and payday / amount too long', screen('recap', `${backRow('Step 3 of 4')}
   <div style="margin-top:18px">${X('Headline', 'size="m"', 'Your monthly salary', '100%,42px')}</div>
-  ${amountCard('999,999,999,999', '28px', `<span style="font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-accent-coral)">That's more than the app can store.</span>`)}
+  ${amountCard('99,999,999,999', '28px', `<span style="font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-accent-coral)">That's more than the app can store.</span>`)}
   ${paydayCard('{{ n25 }}', 'next25')}
   <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">${X('Button', '', 'Next', '100%,52px')}<button style="height:44px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);cursor:pointer">Skip for now</button></div>`), [
-  `D57: at 12 digits before the separator the field refuses further keystrokes and shows "That's more than the app can store." The string is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The amount is still valid, so Next stays enabled.`]);
+  `D57: at 11 digits before the separator the field refuses further keystrokes and shows "That's more than the app can store." The string is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The amount is still valid, so Next stays enabled.`]);
 const a7Skipped = col('A7 · Saving target / salary skipped', screen('recap', `${backRow('Step 4 of 4')}
   <div style="margin-top:18px">${X('Headline', 'size="m"', 'How much do you want to keep?', '100%,84px')}</div>
   <div style="margin-top:20px">${X('PromptCard', 'title="Set a salary first" helper="A target is a share of your salary, so we need the salary first."', '', '100%,110px')}</div>
@@ -96,8 +96,8 @@ const a8Skipped = col('A8 · Home / skipped', screen('recap', `${firstRunHeader}
   <div style="margin-top:12px">${X('PromptCard', 'size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month."', '', '100%,136px')}</div>
   <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">${X('Button', '', 'Log a spend', '100%,52px')}${X('Button', 'variant="secondary" state="disabled"', 'See last month', '100%,52px')}</div>
   ${previewCard('Your first recap arrives on 1 October.', 'Recaps')}`), [
-  `D54: the hero card is no longer replaced wholesale — it keeps the StatHero (Spent £0, Money in £0) and the salary PromptCard moves below it. The target PromptCard is unchanged. Both prompts are the shipped component at size="hero" and size="target".`,
-  'Home scrolls in this state (hero 191 + 191 + 136 before the buttons); "Log a spend" is above the fold, "See last month" and the recap card below it. See the sticky on B1 · no salary for the size="auto" alternative.']);
+  `D54: the hero card is no longer replaced wholesale — it keeps the StatHero (Spent £0, Money in £0) and the salary PromptCard moves below it. The target PromptCard is unchanged. Both prompts are the shipped component at and.`,
+  'Home scrolls in this state (hero 191 + 191 + 136 before the buttons); "Log a spend" is above the fold, "See last month" and the recap card below it. See the sticky on B1 · no salary for the alternative.']);
 
 const a3Web = col('A3 · Web fallback page <span style="color:var(--mmr-palette-ink-500)">· 1200 × 720, shown at 50%</span>', `<div style="width:600px;height:360px;overflow:hidden;flex:none;border-radius:16px"><div style="width:1200px;height:720px;transform:scale(.5);transform-origin:top left;box-sizing:border-box;background:var(--mmr-color-ground-recap);color:var(--mmr-color-text-on-ground);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:80px;font-family:var(--mmr-font-family-text)">
   <img src="{{ envelopeSrc }}" alt="" style="width:300px;display:block">
@@ -124,7 +124,7 @@ export default {
     return { ...common, flowNodes, flowLabels, n25: 25, n230: 230, centred: { style: { textAlign: 'center' } }, next25: ['25 Sep', '25 Oct', '25 Nov'] };
   }`,
   body: page('My Money Recap · Auth and onboarding',
-    'Part 1. The biometric unlock (D61/D62), the expired-session sign-in, the three magic-link failures and the web fallback page, the empty currency search, step 3 with the DayPicker (D51), the 12-digit cap, the blocked step 4 (D44) and the two first-run Homes (D43, D54). Ledger: Maya, GBP, salary £2,400, payday 25, target 20% = £480, Otter; signed up 4 September. Yellow stickies are annotations, not UI.',
+    'Part 1. The biometric unlock (D61/D62), the expired-session sign-in, the three magic-link failures and the web fallback page, the empty currency search, step 3 with the DayPicker (D51), the 11-digit cap, the blocked step 4 (D44) and the two first-run Homes (D43, D54). Ledger: Maya, GBP, salary £2,400, payday 25, target 20% = £480, Otter; signed up 4 September. Yellow stickies are annotations, not UI.',
     [row('Row 1 · Launch, unlock and sign-in states', [a0b, a0bPasscode, a1Expired, a3Expired, a3Used, a3Rate]),
      row('Row 2 · Onboarding', [a5Empty, a6, a6TooLong, a7Skipped, a3Web]),
      row('Row 3 · First-run Home', [a8First, a8Skipped]),

@@ -5,7 +5,7 @@
 | Status | Draft v2. Decisions D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11 |
 | Platform | Native iOS 17+, iPhone and iPad |
 | Vocabulary | `CONTEXT.md` (beside this file) is the glossary. Terms in **bold caps** below are defined there. |
-| Design system | `../../my-money-recap-ds/` (`@my-money-recap/ui`). `../my-money-recap/DESIGN.md` holds the visual design decisions. |
+| Design system | `../my-money-recap-ds/` (`@my-money-recap/ui`). Its `README.md` carries the visual rules; `src/tokens/tokens.json` the values. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
 | Design handoff | `design/design_handoff_my_money_recap/` — eleven canvases holding all 118 screens (four from 2026-09-08, seven under `design-files/2026-09-11/`), plus the quoted canvas notes. Live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>. Renders are not in git. |
 
@@ -14,8 +14,6 @@
 My Money Recap is a personal money tracker for adults, dressed as a playful kids' app. A **Member** sets a monthly **Salary**, a **Payday** and a **Saving Target**, logs each **Spend** by hand, and at the end of every calendar month gets a four-screen, Wrapped-style **Recap**: what came in, what was kept, where the rest went, the longest no-spend **Streak**, and a money-personality **Archetype** to share.
 
 The four Recap screens exist as artboards and as React components in the design system. This document specifies the whole product around them: sign-in, onboarding, Home, Spend logging, the Recap rules, settings, notifications, offline behaviour, and the platform constraints.
-
-**What changed in v2.** Draft v1 described a member who installs on the 1st, is paid mid-month, and never loses signal. Draft v2 specifies the member who installs on the 4th, was paid on the 25th of *last* month, has an 8-digit salary, and opens the app underground. Sections 8.2, 8.5, 8.7, 8.10, 9 and 11 changed materially; §6.17 and §6.18 are new screens.
 
 ## 2. Goals and non-goals
 
@@ -45,7 +43,7 @@ One persona: an adult (18+) who wants a light, fun way to see whether they kept 
 
 ## 4. Decisions log
 
-Every design question raised while writing this document, with the decision taken. These are settled; reopen one only with a reason. D1–D40 are from Draft v1 (2026-09-04); D41–D67 from the design review (2026-09-08); D68–D71 from drawing the remaining screens (2026-09-11). Later entries **supersede** earlier ones where marked in place.
+Every design question raised while writing this document, with the decision taken. These are settled; reopen one only with a reason. D1–D40 date from 2026-09-04; D41–D67 from the design review of 2026-09-08; D68–D71 from drawing the remaining screens on 2026-09-11. Where a later entry changed an earlier one, the earlier row was rewritten in place, so every row is current.
 
 | # | Question | Decision |
 |---|---|---|
@@ -87,7 +85,7 @@ Every design question raised while writing this document, with the decision take
 | D39 | Deletion and export | Both in v1. Deletion removes the Keycloak user and all data within 24 hours. Export is a CSV of all Spends emailed to the Member. **Extended by D60.** |
 | D40 | iPad | Same single-column layout capped at 390pt width, centred on a full-bleed ground, portrait and landscape. **Cap raised to 600pt by D68.** |
 | **D41** | **Does a "month" follow the calendar or the pay cycle?** | **The calendar month, always — D33 stands.** A Member paid on the 25th lives 25 Aug → 24 Sep, but a pay-cycle month would rename every month chip to a date range, break "Your September in money" as a shareable line, and rewrite §8.1, §8.5, D26 and all 62 artboards. Instead the *display* is corrected: **the Saved figure is hidden entirely until Money In > 0** (§8.3, §6.8). |
-| **D42** | **What is the hero number on Home?** | **Spent.** It is the figure that changes daily and the only one the Member can act on. Money In and Saved are chips beneath it. This reverses D14/§6.8 of Draft v1 and matches the drawn design (B1, A8). |
+| **D42** | **What is the hero number on Home?** | **Spent.** It is the figure that changes daily and the only one the Member can act on. Money In and Saved are chips beneath it. This matches the drawn design (B1, A8). |
 | **D43** | **Where does the Streak start in the Member's first month?** | **`max(1st of the month, the Member's sign-up date)`.** Counting from the 1st awards no-spend days from before the app existed. Applies to the sign-up month only; every later month starts on the 1st. |
 | **D44** | **Can a Saving Target be set without a Salary?** | **No.** If Salary was skipped, onboarding step 4 shows a prompt back to step 3 and Done goes to Home. A percentage of an unknown Salary has no amount, no `kept%`, no progress bar and no Archetype; forbidding the state removes four undrawn screens. |
 | **D45** | **Which currency do the screens support?** | **The full ISO 4217 list (D12 stands), plus a long-number rule.** `StatHero` sizes itself to fit its card, 80 → 56 → 40pt (§11). Home, the Recap cover and the share image must each be drawn in IDR as proof before new work lands; every artboard to date is GBP, and `Rp 3.000.000` is three times the width of `£900`. |
@@ -101,16 +99,16 @@ Every design question raised while writing this document, with the decision take
 | **D53** | **Does the Target Warning fire before Payday?** | **Yes, with different copy.** Before Payday: `You've spent {spent} of the {line} you meant to spend this month.` After: `You've passed your saving line. {over} over.` Holding the warning until Payday would silence it for the three weeks it exists to cover. |
 | **D54** | **The Home hero when no Salary is set** | **Still Spent.** The hero shows the Spent figure and the Salary prompt moves below it as a `PromptCard`. Replacing the whole hero with a prompt (as drawn) hides a Spend the Member just logged. |
 | **D55** | **The month-so-far preview before Payday** | Shows Spent, the Category split and the Streak. The target percentage and the kept-vs-target bar are replaced by `Your salary lands on the {payday}.` A preview opened on the 10th would otherwise read `0% of your saving target`. |
-| **D56** | **Editing Salary after Payday has passed** | **Ask.** Saving after the current month's effective Payday opens a sheet: `The {amount} I was paid on {date}` (applies to this month) or `My new salary, from {next payday}` (applies from next month). A date-based rule cannot tell a correction from a raise. Editing *before* Payday needs no sheet. **Payday changes are always forward-only** — no sheet — so moving Payday from the 25th to the 5th on the 20th cannot make a salary appear for a date that already passed. Supersedes D19 for Salary. |
-| **D57** | **Maximum amount** | **12 digits before the decimal separator.** The field refuses further keystrokes and shows `That's more than the app can store.` An 8-digit IDR salary is ordinary; an untrapped typo breaks every layout. |
+| **D56** | **Editing Salary after Payday has passed** | **Ask.** Saving after the current month's effective Payday opens a sheet: `The {amount} I was paid on {date}` (applies to this month) or `My new salary, from {next payday}` (applies from next month). A date-based rule cannot tell a correction from a raise. Editing *before* Payday needs no sheet. **Payday changes are always forward-only** — no sheet — so moving Payday from the 25th to the 5th on the 20th cannot make a salary appear for a date that already passed. |
+| **D57** | **Maximum amount** | **11 digits before the decimal separator.** The field refuses further keystrokes and shows `That's more than the app can store.` An 8-digit IDR salary is ordinary; an untrapped typo breaks every layout. Eleven is the most the hero card can show at its smallest step for a currency with a symbol: `Rp 99.999.999.999` measures 297 of the card's 298pt at 40pt and a twelfth digit overflows (317pt). A currency the formatter prints as a three-letter code (`BHD 99,999,999,999` is 328pt) still overflows above nine digits; those amounts are absurd for a salary and the hero clips rather than wraps (2026-09-11, measured in `scripts/measure.tsx`). |
 | **D58** | **Logging a Spend with no connection** | The `Log a spend` button is disabled at 40% and Home carries a `Banner`: `No connection. You can look, but not log.` A connection that fails *during* a save keeps the existing behaviour — sheet open, values intact, Save enabled to retry. |
 | **D59** | **Reaching a past month's Spends** | **A month switcher at the top of the Spend list.** Today the list is current-month only, so a mistake in last month's data is unreachable although D21 permits editing it. |
 | **D60** | **Signing in during the 24-hour deletion window** | **Signing in cancels the deletion**, after a confirm: `Welcome back — do you want to keep your account after all?` The 24 hours becomes a grace period rather than a queue. Extends D39. |
-| **D61** | **Offline** | **Read offline, write online.** Every figure the app shows is arithmetic over the Member's own Spends and needs no server. The session is persisted on device behind biometric unlock, and the Member's data is cached, so Home, the Spend list and every past Recap render with no signal. Writes still require the network. Supersedes D9 and D30. Offline *logging* with sync stays out of scope (§14). |
+| **D61** | **Offline** | **Read offline, write online.** Every figure the app shows is arithmetic over the Member's own Spends and needs no server. The session is persisted on device behind biometric unlock, and the Member's data is cached, so Home, the Spend list and every past Recap render with no signal. Writes still require the network. Offline *logging* with sync stays out of scope (§14). |
 | **D62** | **Session lifetime** | **30 days from last use**, not from last sign-in. Face ID (or the device passcode) on each cold launch. Counting from sign-in would force a full re-authentication on the morning the Recap notification arrives. |
 | **D63** | **Stale cache across two devices** | When offline, Home shows `Last updated {day} {time}` under the month chip. D11 supports iPhone and iPad, so an iPad's cache can legitimately lag an iPhone's writes. |
 | **D64** | **The preview and the Partial Recap are the same screens** | **Four artboards serve both**, with the screen-1 headline and the screen-4 closing line swapped by state. The layouts are identical; two copies would drift. |
-| **D65** | **Editing the Saving Target** | **Forward-only, no sheet.** Unlike a Salary, a Target cannot be *mistyped* — it is a goal the Member chose, so there is no correction case to ask about. Raising it retroactively would turn a met target into a missed one and change a finished month's Archetype. Supersedes D19 for Target. |
+| **D65** | **Editing the Saving Target** | **Forward-only, no sheet.** Unlike a Salary, a Target cannot be *mistyped* — it is a goal the Member chose, so there is no correction case to ask about. Raising it retroactively would turn a met target into a missed one and change a finished month's Archetype. |
 | **D66** | **Dynamic Type on the Recap** | At accessibility text sizes the four Recap screens become **one vertical scroll**, with `PageDots` acting as section markers. At default sizes nothing changes. Scrolling inside a horizontal pager makes a diagonal drag turn the page; capping the type would break §11. |
 | **D67** | **The Toast component** | **Not built.** After D58 gave the offline message to `Banner`, the only remaining use was the export confirmation, which the `Send it` button already covers by changing to `Sent ✓` and dimming for 60 seconds. |
 | **D68** | **iPad column width** (2026-09-11) | **Single column, capped at 600pt instead of 390**, centred, portrait and landscape; the two Home buttons sit side by side and `Sheet`s take the column's width. A two-column iPad layout was sketched and rejected: it needs a second navigation model for little gain. Supersedes the width in D40. |
@@ -164,7 +162,7 @@ Step by step:
 
 ## 6. Screen specifications
 
-Every screen uses `Screen` from the design system with one of the four grounds. Component names refer to exports of `@my-money-recap/ui`. Component states follow the design system: pressed = scale 0.97 and brightness 0.92, disabled = opacity 0.4. Motion follows `DESIGN.md` §4.4 and honours Reduce Motion. `SCREEN-STATES.md` carries the exact copy for every state named here and marks which are drawn.
+Every screen uses `Screen` from the design system with one of the four grounds. Component names refer to exports of `@my-money-recap/ui`. Component states follow the design system: pressed = scale 0.97 and brightness 0.92, disabled = opacity 0.4. Motion follows the `motion.*` tokens in `tokens.json` and honours Reduce Motion. `SCREEN-STATES.md` carries the exact copy for every state named here and marks which are drawn.
 
 ### 6.1 Sign in
 
@@ -174,7 +172,7 @@ Every screen uses `Screen` from the design system with one of the four grounds. 
 | Components | `Illustration` (cover art), `Headline` size l, `SubCopy`, three `Button`s |
 | Copy | Headline "Your month in money." Sub "Sign in to start your recap." |
 | Actions | Sign in with Apple (Apple's own button style, listed first), Continue with Google, Continue with email |
-| States | Loading spinner inside the pressed button while Keycloak round-trips. **`InlineError` inside the card** on cancel or failure, buttons re-enabled, cleared on the next tap. (Draft v1 said "error toast"; the drawn design's inline block wins — it can never overlap the buttons.) |
+| States | Loading spinner inside the pressed button while Keycloak round-trips. **`InlineError` inside the card** on cancel or failure, buttons re-enabled, cleared on the next tap. The inline block can never overlap the buttons. |
 
 Rules
 
@@ -227,7 +225,7 @@ Rules
 |---|---|
 | Ground | violet |
 | Components | `Eyebrow` "Step 3 of 4", `Headline` "Your monthly salary", `Card` with `AmountField` (currency symbol fixed), `Card` with `DayPicker`, `Button` "Next", `HelperText` link "Skip for now" |
-| Validation | Amount > 0 and at most 12 digits before the decimal separator (D57). Payday 1–31 or `Last day`, default 25. Both required together, or skip both. |
+| Validation | Amount > 0 and at most 11 digits before the decimal separator (D57). Payday 1–31 or `Last day`, default 25. Both required together, or skip both. |
 | Payday helper | The three dates that follow the current selection, computed on device: `Next paydays: 25 Sep · 25 Oct · 25 Nov`. Updates on every tap. For 29, 30, 31 and `Last day` this is what tells the Member what a short month does (D51). |
 
 ### 6.7 Onboarding 4 · Saving Target
@@ -272,7 +270,7 @@ Rules
 | | |
 |---|---|
 | Presentation | `Sheet` over Home, white surface, `radius.card` top corners, drag handle, scrim |
-| Fields | `AmountField` (numeric keypad, currency symbol fixed, decimals from the Currency, 12-digit cap per D57), Category (eight `Chip tone={hue}` in a wrapping row, one selected, 44pt), Date (defaults to today, picker limited to the last 60 days and today), Note (optional, 80 characters) |
+| Fields | `AmountField` (numeric keypad, currency symbol fixed, decimals from the Currency, 11-digit cap per D57), Category (eight `Chip tone={hue}` in a wrapping row, one selected, 44pt), Date (defaults to today, picker limited to the last 60 days and today), Note (optional, 80 characters) |
 | Action | `Button` "Save". Disabled until amount > 0 and a Category is selected. |
 | After save | Sheet closes, Home numbers animate with `motion.reveal.number`. First ever Spend saved: the push-permission prompt appears after the sheet closes. |
 | Write failure | `InlineError` in the sheet, sheet stays open, values intact, Save stays enabled. |
@@ -280,7 +278,7 @@ Rules
 
 ### 6.10 Spend list, detail and edit
 
-Reached by tapping the Home hero card (D42 makes the hero the Spent figure, so the hero is the natural way in; the Draft v1 "Spent chip opens the list" is withdrawn).
+Reached by tapping the Home hero card (D42 makes the hero the Spent figure, so the hero is the natural way in).
 
 **Spend list.** `Sheet variant="full"`. A **month switcher** sits under the title (D59): the current month by default, tapping it lists every month with data, newest first. Below it, one `DataRow` per Category with Spends that month, largest first, `IconWell` in the Category tone, sub-line "{spent} so far, {n} spends". Empty month: a centred prompt and a plus button that opens 6.9, plus the streak line.
 
@@ -368,7 +366,7 @@ Shown immediately after a successful sign-in when `deletion_requested_at` is wit
 
 ## 7. Data model
 
-Amounts are exact decimals (`NUMERIC`, never a float or an integer count of minor units) stored with the Member's ISO 4217 code, capped at 12 digits before the decimal separator (D57). How many decimals a currency shows, its symbol and its separators are the platform formatter's business at print time (§11, D71); nothing in the system stores or looks up a decimal count. Dates are plain calendar dates without timezone (D34). All entities belong to exactly one Member.
+Amounts are exact decimals (`NUMERIC`, never a float or an integer count of minor units) stored with the Member's ISO 4217 code, capped at 11 digits before the decimal separator (D57). How many decimals a currency shows, its symbol and its separators are the platform formatter's business at print time (§11, D71); nothing in the system stores or looks up a decimal count. Dates are plain calendar dates without timezone (D34). All entities belong to exactly one Member.
 
 | Entity | Fields | Notes |
 |---|---|---|
@@ -478,7 +476,7 @@ Copy depends on whether Payday has passed (D53):
 ### 8.10 Editing rules
 
 - Spend date must be within the last 60 days including today; never in the future. A Spend already older than that keeps its date and shows it read-only (§6.10).
-- Amount must be > 0 and at most 12 digits before the separator (D57).
+- Amount must be > 0 and at most 11 digits before the separator (D57).
 - **Salary edits (D56).** Saving before the current month's effective Payday creates a row effective from the current month, with no sheet. Saving on or after it opens the "which salary is this" sheet; the answer decides whether the new row is effective from the current month or the next one.
 - **Payday edits (D56).** Always effective from the next month. The screen says so: "Your new payday starts in {next month}."
 - **Saving Target edits (D65).** Always effective from the next month, no sheet. The screen says so.
@@ -523,7 +521,7 @@ A partial month still sends "Recap ready" — there is something to see (§6.17)
 - **Platform:** iOS 17+, SwiftUI, iPhone and iPad, portrait and landscape. iPad uses the same single-column layout capped at 600pt, centred on the ground; the two Home buttons sit side by side and `Sheet`s anchor to the bottom of the column, not the screen (D40, D49, D68).
 - **Performance:** Home renders from cache instantly and refreshes from the network; any write completes in under 1 second on a normal connection. Recap screens page at 60fps.
 - **Connectivity (D61):** reading works offline from the cache; every write requires the network. A failed write shows an inline error and keeps the sheet open with the values intact.
-- **Long numbers (D45, D57, D71):** `StatHero` draws the printed amount at 80pt, or 56 / 40pt when the full string does not fit its card, measured on screen (SwiftUI `.minimumScaleFactor` over the same three sizes). `AmountField` does 48 → 36 → 28pt the same way. Amounts are capped at 12 digits before the decimal separator. Home, the Recap cover and the share image must each be proven in IDR.
+- **Long numbers (D45, D57, D71):** `StatHero` draws the printed amount at 80pt, or 56 / 40pt when the full string does not fit its card, measured on screen (SwiftUI `.minimumScaleFactor` over the same three sizes). `AmountField` does 48 → 36 → 28pt the same way. Amounts are capped at 11 digits before the decimal separator, the most the hero shows at 40pt in every currency. Home, the Recap cover and the share image must each be proven in IDR.
 - **Accessibility:** Dynamic Type up to the "Large" accessibility size; **at accessibility sizes the four Recap screens become one vertical scroll with `PageDots` as section markers** (D66). VoiceOver labels on every chip, bar and button — a `CategoryBar` reads "Bills, 35 percent, £616"; a `StatChip` reads "Money in, zero pounds"; the hidden Saved chip is absent from the accessibility tree, not present-and-empty. All tappable elements at least 44 × 44pt, except page dots, which own their slice of a 44pt-tall row like the system page control (D71). Reduce Motion replaces reveals with 150ms fades.
 - **Localisation:** v1 ships en-GB copy only. Money is printed by the platform formatter from the amount and the Member's currency code: symbol and decimals come from the currency's CLDR data, separators from the device language (an Indonesian phone prints `Rp 15.000.000`, a British phone printing rupiah `Rp 15,000,000`). Dates follow the device locale.
 - **Privacy:** no analytics SDK in v1. Data stored server-side in one region and cached on device inside the app's container, protected by the device passcode and erased on log out or deletion. The share image never contains Salary or Money In.
@@ -555,20 +553,20 @@ The four grounds, two fonts and white cards are unchanged. **The radius scale ga
 
 **Already built and verified in the library (2026-09-04 syncs).** `TextField`, `AmountField`, `Slider`, `AvatarGrid`, `Avatar`, `Sheet` (`variant="bottom" | "full"`), `Banner`, `Toggle`, `ListRow`, `Button variant="secondary"`, `Chip tone={hue} selected` and `Chip tappable`, `CompareBars scale="total" | "max"`, `RecapGoalScreen maxCategoryBars`, `Illustration maxHeight`.
 
-**Corrections to Draft v1 §13**, each verified against source:
+**Facts about the library that are easy to get wrong**, each verified against source:
 
-- `Icon` carries **17** glyph names, not 18. Draft v1's "6 glyphs to 18" was written while `skateboard` still existed; it has been removed. There is no `close` glyph — a cross is `plus` rotated 45°.
+- `Icon` carries **17** glyph names. There is no `close` glyph — a cross is `plus` rotated 45°.
 - `maxCategoryBars` defaults to **3** (D71).
-- `RecapEarningScreen.targetAmount` and `RecapGoalScreen.splurge` are already `T | null` and their null branches already render. The canvas notes calling these "worth fixing in the system" describe a superseded version.
+- `RecapEarningScreen.targetAmount` and `RecapGoalScreen.splurge` are `T | null` and their null branches render.
 - `RecapPersonalityScreen` has **no illustration prop**. Its mascot map is module-private; the only lever is `archetype`. `maxHeight={300}` is already applied and all four mascots measure 816pt.
-- The Category hues are Snacks coral, Games violet, Toys yellow, Rides sky, Clothes green, Bills ink, Gifts gold, Other rust — as built, and as `tokens.json` and the Goal artboard already had them.
-- `Sheet` has **no** `fullSheet` or flex-grow prop. The fill-remaining-height behaviour on the canvases is an inline `flexGrow: 1`; if it is needed as API it must be added deliberately.
+- The Category hues are Snacks coral, Games violet, Toys yellow, Rides sky, Clothes green, Bills ink, Gifts gold, Other rust, as `tokens.json` has them.
+- `Sheet` has **no** `fullSheet` or flex-grow prop. The fill-remaining-height behaviour on the canvases is an inline `flexGrow: 1`.
 
 **Three components added on 2026-09-08 (D50).** Each appears on two or more screens. The currency list is `ListRow trailing="check"`; it needs no component of its own.
 
 | Component | Where it appears | Built from |
 |---|---|---|
-| `PromptCard` | Home hero prompt, Home target prompt, onboarding step 4 blocked state, Recap 4 no-Archetype, Settings empty rows | `Card` + `Eyebrow`/`CardTitle` + a 44pt violet-100 chevron well (`IconWell size={44} glyphSize={20}`) + `HelperText`. `size` keeps the height of the card it replaces (`hero` 191pt, `target` 136pt, `auto` hugs its content) so nothing jumps. The card *is* the button, so the three text parts are asked for their `as="span"` form. |
+| `PromptCard` | Home hero prompt, Home target prompt, onboarding step 4 blocked state, Recap 4 no-Archetype, Settings empty rows | `Card` + `Eyebrow`/`CardTitle` + a 44pt violet-100 chevron well (`IconWell size={44} glyphSize={20}`) + `HelperText`. `height` is the measured height of the card it replaces (D71: 191pt for the pound Home hero, 136pt for the target card) so nothing jumps; omitted, the card hugs its content. The card *is* the button, so the three text parts are asked for their `as="span"` form. |
 | `DayPicker` | Onboarding 3, Settings salary | Horizontal 44pt pills 1–31 plus `Last day`, selected as an ink pill, scrolled to centre the selection, with the three-date helper below (D51). The dates are a **prop**: the component does no calendar arithmetic, so §8.2's `min(Payday, days in month)` stays with the caller. |
 | `InlineError` | Sign in, email, log-a-spend write failure, currency rate failure, export failure | coral-100 fill, `radius.inset` 16, coral-500 dot, coral text Nunito 800 13. Pushes content down; never overlays. |
 

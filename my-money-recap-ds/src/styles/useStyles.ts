@@ -1,19 +1,17 @@
-import { useEffect } from 'react';
 import { MMR_CSS } from './css.generated';
 
 const STYLE_ID = 'mmr-design-system-styles';
 
-/** Injects the design-system stylesheet once per document. Safe to call from every component. */
-export function ensureStyles(doc: Document | undefined = typeof document !== 'undefined' ? document : undefined): void {
-  if (!doc || doc.getElementById(STYLE_ID)) return;
-  const el = doc.createElement('style');
+/** Injects the design-system stylesheet once per document. Safe to call from every component; a no-op on the server. */
+export function ensureStyles(): void {
+  if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
+  const el = document.createElement('style');
   el.id = STYLE_ID;
   el.textContent = MMR_CSS;
-  doc.head.appendChild(el);
+  document.head.appendChild(el);
 }
 
+/** Called during render so the stylesheet is present before the first paint. */
 export function useStyles(): void {
-  // Inject synchronously during render for SSR-less previews, then again on mount for safety.
   ensureStyles();
-  useEffect(() => { ensureStyles(); }, []);
 }

@@ -7,7 +7,7 @@
  *
  * - `amount` is a decimal as a string ("15000000", "12.40") or a number for values that are exact in
  *   binary floating point (whole units and cents up to 2^53 are). Strings are preferred at the storage
- *   boundary; the formatter accepts either without loss.
+ *   boundary; every supported runtime's formatter accepts a decimal string without loss (ES2023).
  * - `locale` is the viewer's language tag. Omit it for the runtime default, which on a phone is the
  *   device language: an Indonesian phone prints "Rp 15.000.000", a British phone printing rupiah gets
  *   "Rp 15,000,000" — same value, that phone's conventions.
@@ -34,15 +34,9 @@ function formatter(currency: string, locale: string | undefined, kind: 'display'
   return f;
 }
 
-/** Whether the runtime formatter accepts a decimal string directly (ES2023 `Intl.NumberFormat` v3). */
-const acceptsStrings = (() => {
-  try { return new Intl.NumberFormat('en', { maximumFractionDigits: 20 }).format('1.1234567890123456789' as unknown as number).length > 10; } catch { return false; }
-})();
-const toFormattable = (amount: number | string): number | string => typeof amount === 'string' && !acceptsStrings ? Number(amount) : amount;
-
 /** For display: formatMoney("15000000", "IDR", "id-ID") -> "Rp 15.000.000"; formatMoney(2400, "GBP", "en-GB") -> "£2,400"; formatMoney("12.40", "GBP", "en-GB") -> "£12.40". */
 export function formatMoney(amount: number | string, currency: string, locale?: string): string {
-  return formatter(currency, locale, 'display').format(toFormattable(amount) as number);
+  return formatter(currency, locale, 'display').format(amount as number);
 }
 
 /** The symbol the formatter would print for this currency in this locale ("£", "Rp", "BHD"). */
@@ -54,7 +48,7 @@ export function currencySymbol(currency: string, locale?: string): string {
 /** For an entry field that draws the symbol separately, with the currency's full decimals: formatAmountNumber("2400", "GBP", "en-GB") -> "2,400.00". */
 export function formatAmountNumber(amount: number | string, currency: string, locale?: string): string {
   return formatter(currency, locale, 'entry')
-    .formatToParts(toFormattable(amount) as number)
+    .formatToParts(amount as number)
     .filter((p) => p.type !== 'currency' && p.type !== 'literal')
     .map((p) => p.value)
     .join('');
@@ -68,7 +62,7 @@ export function moneyFormat(currency: string, locale?: string): MoneyFormat {
 /**
  * Turns what a Member typed into a decimal string, using the locale's own separators to tell grouping from
  * the decimal point: parseAmount("2.400,50", "id-ID") -> "2400.50"; parseAmount("2,400.50", "en-GB") -> "2400.50".
- * Returns "" for input with no digits. The 12-digit cap (D57) is the caller's rule.
+ * Returns "" for input with no digits. The 11-digit cap (D57) is the caller's rule.
  */
 export function parseAmount(typed: string, locale?: string): string {
   const parts = new Intl.NumberFormat(locale).formatToParts(1234.5);

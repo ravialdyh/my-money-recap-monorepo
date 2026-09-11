@@ -178,4 +178,4 @@ All of Subjects 5 to 16 are generated, cut and wired in. Nothing in this file is
    - Both need `Pillow` and `numpy` (`python3 -m pip install --user Pillow numpy`).
 3. In `../my-money-recap-ds/scripts/build-assets.mjs`, add the new keys to the `names` map, then run `npm run build:assets` so `src/assets/illustrations.ts` gains them. Hyphenated keys are quoted automatically; read them as `ILLUSTRATIONS['avatar-fox']`.
 4. Re-sync to Claude Design with `/design-sync` from the design-system folder. The `Illustration` card then offers the new keys.
-5. In the Claude Design canvas, replace each "ILLUSTRATION TBD" placeholder with `Illustration` using the matching key. The avatar TBD circles become the six avatar assets at 68 px (A4) and 56 px (A8).
+5. Use it on a canvas as `<Illustration src={ILLUSTRATIONS.<key>} width={…} />`; avatars are 68 px in `AvatarGrid` (A4, D2) and 56 px as the inline `Avatar` (Home).

@@ -5,7 +5,7 @@ avatar, so the cut is geometric: find each circle's bounding box, mask to the
 inscribed circle, inset a few px to drop the anti-aliased cream fringe.
 """
 from PIL import Image, ImageDraw
-import os, subprocess, json
+import os, json
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)

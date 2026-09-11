@@ -1,11 +1,8 @@
-// Renders the four Screens stories to static HTML for a visual check. Not part of the package API.
+// Renders the four Recap screens and the component boards to static HTML for a visual check. Not part of the package API.
 import { renderToStaticMarkup } from 'react-dom/server';
 import { writeFileSync } from 'node:fs';
 import { MMR_CSS } from '../src/styles/css.generated';
-import * as Recap from '../src/stories/Recap.stories';
-import * as ChipS from '../src/stories/Chip.stories';
-import * as ButtonS from '../src/stories/Button.stories';
-import * as PillS from '../src/stories/ArchetypePill.stories';
+import { RecapCoverScreen, RecapEarningScreen, RecapGoalScreen, RecapPersonalityScreen } from '../src/screens/RecapScreens';
 import { Chip } from '../src/components/Chip';
 import { Button } from '../src/components/Button';
 import { ArchetypePill } from '../src/components/ArchetypePill';
@@ -26,7 +23,7 @@ import { CategoryBar } from '../src/components/Bars';
 import { ILLUSTRATIONS } from '../src/assets/illustrations';
 import { CATEGORIES, CATEGORY_LABEL, CATEGORY_TONE } from '../src/components/types';
 
-const screens = [Recap.Cover, Recap.Earning, Recap.GoalAndSpending, Recap.Personality].map((s) => renderToStaticMarkup(s.render!({} as never)));
+const screens = [<RecapCoverScreen />, <RecapEarningScreen />, <RecapGoalScreen />, <RecapPersonalityScreen />].map(renderToStaticMarkup);
 const states = renderToStaticMarkup(
   <div style={{ display: 'grid', gap: 16, padding: 24, background: '#5B4FE8', width: 390, boxSizing: 'border-box' }}>
     <div style={{ display: 'flex', gap: 8 }}><Chip>Default</Chip><Chip state="pressed">Pressed</Chip><Chip state="disabled">Disabled</Chip></div>
@@ -39,7 +36,7 @@ const avatars = (['fox', 'otter', 'panda', 'frog', 'owl', 'rabbit'] as const).ma
 const additions = renderToStaticMarkup(
   <div style={{ display: 'grid', gap: 16, padding: 24, background: '#5B4FE8', width: 390, boxSizing: 'border-box', fontFamily: 'Nunito, sans-serif' }}>
     <Card style={{ gap: 12 }}>
-      <CardTitle>Twelve new glyphs</CardTitle>
+      <CardTitle>Glyphs</CardTitle>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {CATEGORIES.map((c) => <IconWell key={c} tone={CATEGORY_TONE[c]}><Icon name={c} /></IconWell>)}
       </div>
@@ -66,7 +63,6 @@ const additions = renderToStaticMarkup(
     <Sheet title="Log a spend"><TextField label="Amount" prefix="£" defaultValue="4.50" /><div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}><Chip tappable variant="inverse">Snacks</Chip><Chip tappable>Games</Chip><Chip tappable>Rides</Chip></div><Button>Save</Button></Sheet>
   </div>
 );
-void ChipS; void ButtonS; void PillS;
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>${MMR_CSS}</style><style>body{margin:0;background:#ddd;display:flex;gap:20px;padding:20px;align-items:flex-start;width:max-content} body>*{flex-shrink:0}</style></head><body>${screens.join('')}${states}${additions}</body></html>`;
 writeFileSync(new URL('./index.html', import.meta.url), html);
 console.log('rendered', screens.length, 'screens + states board + additions board');

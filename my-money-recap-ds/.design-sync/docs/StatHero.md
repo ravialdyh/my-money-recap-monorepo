@@ -2,8 +2,11 @@
 category: Components
 ---
 
-The one big number on a screen. **It sizes itself from the formatted string** (PRD §11, D45): 80px up
-to 7 glyphs, 56px from 8 to 10, 40px from 11 — counted on the symbol, separators and spaces too, because
-that is what has to fit. "£2,400" is 6 glyphs; "Rp 15.000.000" is 13. Pass `format` for the Member's
-Currency; the default is pounds. The step is measured on the final value, so a count-up never resizes
-mid-animation.
+The one big number on a screen. **It sizes itself to fit its card** (PRD §11, D71): the value is
+drawn at 80px, or at 56px or 40px when the formatted string is wider than the card — measured on the
+rendered text, never counted in characters, so "Rp 15.000.000" and "£2,400" each get the largest size
+that actually fits. `currency` (ISO 4217) is required — there is no default, so a screen that forgets it
+fails to compile instead of silently drawing pounds — and `locale` is optional; the symbol, decimals and
+separators come from the platform formatter, and a whole amount prints without a zero fraction
+("£2,400", "£12.40"). Pass `format` instead of `currency` for values that are not money ("9 days"). The step is
+measured on the final value, so a count-up never resizes mid-animation.

@@ -12,23 +12,21 @@ wrap it in one, and do not put a control inside it. Because a `<button>` may not
 or a `<p>`, it renders `Eyebrow`, `CardTitle` and `HelperText` in their `as="span"` form; the drawn
 result is identical to the same three inside a plain `Card`.
 
-**`size` is the point of the component.** A prompt stands in for a filled card, so it holds that
-card's height and the layout does not jump when the Member fills it in: `size="hero"` is 191pt (the
-Home hero), `size="target"` is 136pt (the Home target card), `size="auto"` hugs its content for a
-Settings row. Picking the wrong one is the one way to get this component wrong.
-
-**Those two heights are the GBP cards.** In a Currency whose amounts make the stat chips wrap (IDR, PRD
-D45) the hero card is 233pt and the target card 157pt, so Home measures the card it draws and passes
-`height={measured}`; `size` still names which card it is.
+**`height` is the point of the component.** A prompt stands in for a filled card, so it holds that
+card's height and the layout does not jump when the Member fills it in. The height is measured from
+the card it replaces as drawn on this screen, never assumed (PRD D71): the pound Home hero is 191pt,
+the rupiah one 233pt because its stat chips wrap (D45), the Home target card 136pt. Omit `height`
+where there is nothing to stand in for — a Settings row, Recap screen 4 — and the card hugs its
+content.
 
 **`eyebrow` and `helper` take `null` to remove them**, and `null` is the default — so a card with
 neither is `<PromptCard title="…" />` and a card with both names them explicitly.
 
 ```tsx
-// Home, no Salary set (PRD D54): the hero keeps Spent, the prompt sits below it.
-<Card><StatHero eyebrow="Spent so far" value={1760} format={formatGbp} /></Card>
+// Home, no Salary set (PRD D54): the hero keeps Spent, the prompt sits below it at the hero's measured height.
+<Card><StatHero eyebrow="Spent so far" value={1760} currency="GBP" /></Card>
 <PromptCard
-  size="hero"
+  height={heroHeight}
   title="Set your monthly salary"
   helper="We'll show what you kept once we know what came in."
   onClick={openSalary}

@@ -1,4 +1,4 @@
-// Generates src/tokens/tokens.css and src/tokens/index.ts from src/tokens/tokens.json.
+// Generates src/tokens/tokens.css from src/tokens/tokens.json.
 // Aliases like "{palette.violet.500}" become var(--mmr-palette-violet-500).
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -9,17 +9,9 @@ const src = resolve(here, '../src/tokens/tokens.json');
 const tokens = JSON.parse(readFileSync(src, 'utf8'));
 
 const vars = []; // [name, cssValue]
-const flat = {}; // dotted path -> resolved raw value (for TS export)
 
 const isToken = (o) => o && typeof o === 'object' && '$value' in o;
 const aliasToVar = (v) => v.replace(/\{([^}]+)\}/g, (_, p) => `var(--mmr-${p.replace(/\./g, '-')})`);
-const resolveAlias = (v, depth = 0) => {
-  if (typeof v !== 'string' || depth > 8) return v;
-  return v.replace(/\{([^}]+)\}/g, (_, p) => {
-    const raw = flatRaw[p];
-    return raw === undefined ? `{${p}}` : String(resolveAlias(raw, depth + 1));
-  });
-};
 const flatRaw = {};
 
 function walk(node, path) {
@@ -55,12 +47,9 @@ for (const [p, raw] of Object.entries(flatRaw)) {
     else continue;
   } else continue;
   vars.push([name, css]);
-  flat[p] = resolveAlias(raw);
 }
 
 const css = `/* Generated from tokens.json by scripts/build-tokens.mjs. Do not edit by hand. */\n:root {\n${vars.map(([n, v]) => `  ${n}: ${v};`).join('\n')}\n}\n`;
 writeFileSync(resolve(here, '../src/tokens/tokens.css'), css);
 
-const ts = `// Generated from tokens.json by scripts/build-tokens.mjs. Do not edit by hand.\n// Resolved raw values (aliases followed) for use in JS. Prefer the CSS variables in components.\nexport const tokens = ${JSON.stringify(flat, null, 2)} as const;\n\nexport type TokenPath = keyof typeof tokens;\n\n/** CSS custom property name for a token path, e.g. cssVar('color.ground.recap') -> 'var(--mmr-color-ground-recap)'. */\nexport const cssVar = (path: TokenPath | string): string => \`var(--mmr-\${String(path).replace(/\\./g, '-')})\`;\n`;
-writeFileSync(resolve(here, '../src/tokens/index.ts'), ts);
-console.log(`tokens.css: ${vars.length} custom properties; index.ts: ${Object.keys(flat).length} resolved tokens`);
+console.log(`tokens.css: ${vars.length} custom properties`);

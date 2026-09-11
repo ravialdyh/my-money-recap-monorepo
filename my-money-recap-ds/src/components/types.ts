@@ -12,13 +12,13 @@ export const ARCHETYPE_LABEL: Record<Archetype, string> = {
 };
 
 /** The eight fixed Spend Categories (PRD D20). No custom Categories exist. */
-export type Category = 'snacks' | 'games' | 'toys' | 'rides' | 'clothes' | 'bills' | 'gifts' | 'other';
-export const CATEGORIES: readonly Category[] = ['snacks', 'games', 'toys', 'rides', 'clothes', 'bills', 'gifts', 'other'] as const;
-export const CATEGORY_LABEL: Record<Category, string> = {
+export const CATEGORY_LABEL = {
   snacks: 'Snacks', games: 'Games', toys: 'Toys', rides: 'Rides',
   clothes: 'Clothes', bills: 'Bills', gifts: 'Gifts', other: 'Other',
-};
-/** Category to hue. Snacks, Games and Toys keep the hues drawn on the Goal artboard; no two categories share one. */
+} as const;
+export type Category = keyof typeof CATEGORY_LABEL;
+export const CATEGORIES = Object.keys(CATEGORY_LABEL) as readonly Category[];
+/** Category to hue (PRD D20). No two categories share one. */
 export const CATEGORY_TONE: Record<Category, Hue> = {
   snacks: 'coral', games: 'violet', toys: 'yellow', rides: 'sky',
   clothes: 'green', bills: 'ink', gifts: 'gold', other: 'rust',
