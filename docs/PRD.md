@@ -7,7 +7,7 @@
 | Vocabulary | `../CONTEXT.md` is the glossary. Terms in **bold caps** below are defined there. |
 | Design system | `../../my-money-recap-ds/` (`@my-money-recap/ui`). `../DESIGN.md` holds the design decisions. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
-| Design handoff | `design/design_handoff_my_money_recap/` — the four canvases, the verbatim design notes, and `GAPS.md` (all 57 gaps now closed out against this document). The 62 drawn screens are live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e>; their renders are not in git. |
+| Design handoff | `design/design_handoff_my_money_recap/` — the four 2026-09-08 canvases, the verbatim design notes, `GAPS.md` (all 57 gaps closed), and `design-files/2026-09-11/` with the seven canvases that draw the remaining 56 states. The 62 original screens are live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e>; the 56 new ones at <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>. Renders are not in git. |
 
 ## 1. Summary
 
@@ -88,7 +88,7 @@ Every design question raised while writing this document, with the decision take
 | D37 | Home ground | Violet (`ground.recap`), so Home rhymes with the Recap cover. |
 | D38 | Target Warning | Fires once per month, the first time total Spends exceed Salary × (1 − Saving Target). **Extended by D53.** |
 | D39 | Deletion and export | Both in v1. Deletion removes the Keycloak user and all data within 24 hours. Export is a CSV of all Spends emailed to the Member. **Extended by D60.** |
-| D40 | iPad | Same single-column layout capped at 390pt width, centred on a full-bleed ground, portrait and landscape. |
+| D40 | iPad | Same single-column layout capped at 390pt width, centred on a full-bleed ground, portrait and landscape. **Cap raised to 600pt by D68.** |
 | **D41** | **Does a "month" follow the calendar or the pay cycle?** | **The calendar month, always — D33 stands.** A Member paid on the 25th lives 25 Aug → 24 Sep, but a pay-cycle month would rename every month chip to a date range, break "Your September in money" as a shareable line, and rewrite §8.1, §8.5, D26 and all 62 artboards. Instead the *display* is corrected: **the Saved figure is hidden entirely until Money In > 0** (§8.3, §6.8). |
 | **D42** | **What is the hero number on Home?** | **Spent.** It is the figure that changes daily and the only one the Member can act on. Money In and Saved are chips beneath it. This reverses D14/§6.8 of Draft v1 and matches the drawn design (B1, A8). |
 | **D43** | **Where does the Streak start in the Member's first month?** | **`max(1st of the month, the Member's sign-up date)`.** Counting from the 1st awards no-spend days from before the app existed. Applies to the sign-up month only; every later month starts on the 1st. |
@@ -116,6 +116,10 @@ Every design question raised while writing this document, with the decision take
 | **D65** | **Editing the Saving Target** | **Forward-only, no sheet.** Unlike a Salary, a Target cannot be *mistyped* — it is a goal the Member chose, so there is no correction case to ask about. Raising it retroactively would turn a met target into a missed one and change a finished month's Archetype. Supersedes D19 for Target. |
 | **D66** | **Dynamic Type on the Recap** | At accessibility text sizes the four Recap screens become **one vertical scroll**, with `PageDots` acting as section markers. At default sizes nothing changes. Scrolling inside a horizontal pager makes a diagonal drag turn the page; capping the type would break §11. |
 | **D67** | **The Toast component** | **Not built.** After D58 gave the offline message to `Banner`, the only remaining use was the export confirmation, which the `Send it` button already covers by changing to `Sent ✓` and dimming for 60 seconds. |
+| **D68** | **iPad column width** (2026-09-11) | **Single column, capped at 600pt instead of 390**, centred, portrait and landscape; the two Home buttons sit side by side and `Sheet`s take the column's width. A two-column iPad layout was sketched and rejected: it needs a second navigation model for little gain. Supersedes the width in D40. |
+| **D69** | **Home with no Salary set** (2026-09-11) | **It scrolls.** The Spent hero (191pt) plus the salary `PromptCard` (191pt) plus the target `PromptCard` (136pt) put the buttons at 740–856pt. `Log a spend` stays above the fold; the layout keeps the prompts at full height so nothing jumps when they are filled in. |
+| **D70** | **Category chips on the Log-a-spend sheet** (2026-09-11) | **The shipped `Chip` tone variant** — 30pt uppercase pill, 44pt hit area via `tappable` — not the 44pt mixed-case pill the 2026-09-08 B2/B3 sheets hand-drew. |
+| **D71** | **What the components must do for long numbers** (2026-09-11) | `StatHero` and `AmountField` size themselves from the formatted string (§11); `AmountField` counts the symbol plus the integer part, never the fixed fraction. `PromptCard` takes the measured height of the card it replaces (233/157pt in IDR). `RecapGoalScreen` on a long format stacks the target row and draws three bars. All shipped 2026-09-11. |
 
 ## 5. End-to-end flow
 
@@ -519,10 +523,10 @@ A partial month still sends "Recap ready" — there is something to see (§6.17)
 
 ## 11. Non-functional requirements
 
-- **Platform:** iOS 17+, SwiftUI, iPhone and iPad, portrait and landscape. iPad uses the same single-column layout capped at 390pt, centred on the ground; `Sheet`s anchor to the bottom of the column, not the screen (D40, D49).
+- **Platform:** iOS 17+, SwiftUI, iPhone and iPad, portrait and landscape. iPad uses the same single-column layout capped at 600pt, centred on the ground; the two Home buttons sit side by side and `Sheet`s anchor to the bottom of the column, not the screen (D40, D49, D68).
 - **Performance:** Home renders from cache instantly and refreshes from the network; any write completes in under 1 second on a normal connection. Recap screens page at 60fps.
 - **Connectivity (D61):** reading works offline from the cache; every write requires the network. A failed write shows an inline error and keeps the sheet open with the values intact.
-- **Long numbers (D45, D57):** `StatHero` steps 80 → 56 → 40pt as the formatted string grows past 7 and 10 glyphs. `AmountField` steps 48 → 36 → 28pt on the same boundaries. Thousands separators follow the Currency's locale. Amounts are capped at 12 digits before the separator. Home, the Recap cover and the share image must each be proven in IDR.
+- **Long numbers (D45, D57):** `StatHero` steps 80 → 56 → 40pt as the formatted string grows past 7 and 10 glyphs. `AmountField` steps 48 → 36 → 28pt on the same boundaries, counted on the symbol plus the integer part (D71). Thousands separators follow the Currency's locale. Amounts are capped at 12 digits before the separator. Home, the Recap cover and the share image must each be proven in IDR.
 - **Accessibility:** Dynamic Type up to the "Large" accessibility size; **at accessibility sizes the four Recap screens become one vertical scroll with `PageDots` as section markers** (D66). VoiceOver labels on every chip, bar and button — a `CategoryBar` reads "Bills, 35 percent, £616"; a `StatChip` reads "Money in, zero pounds"; the hidden Saved chip is absent from the accessibility tree, not present-and-empty. All tappable elements at least 44 × 44pt. Reduce Motion replaces reveals with 150ms fades.
 - **Localisation:** v1 ships en-GB copy only. Currency formatting follows the selected Currency; dates follow the device locale.
 - **Privacy:** no analytics SDK in v1. Data stored server-side in one region and cached on device inside the app's container, protected by the device passcode and erased on log out or deletion. The share image never contains Salary or Money In.

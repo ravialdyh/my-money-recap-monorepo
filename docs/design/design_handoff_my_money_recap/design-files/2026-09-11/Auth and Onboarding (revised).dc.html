@@ -1,0 +1,348 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/my-money-recap-5f615747-48cd-4708-9369-becee9793f4e/styles.css">
+<script src="_ds/my-money-recap-5f615747-48cd-4708-9369-becee9793f4e/_ds_bundle.js"></script>
+<style>
+body{margin:0;background:#EFECF7;font-family:Nunito,'Trebuchet MS',sans-serif;color:#1E1B3A}
+a{color:#5B4FE8}a:hover{color:#1E1B3A}
+input::placeholder{color:#6B6890;font-weight:700}
+/* D46 close control: the first chip row of a recap screen moves right 34pt to clear the 44pt control. */
+.mmr-with-close .mmr-screen > .mmr-chip-row:first-child{margin-left:34px}
+/* B1 first load skeleton (D49): ink.100 blocks in place of numbers. */
+.mmr-skeleton{background:var(--mmr-palette-ink-100);border-radius:999px;display:inline-block}
+
+
+/* D66 demonstration: the "Large" accessibility size, about 1.35× the default ramp. Layout becomes one vertical scroll. */
+.mmr-a11y .mmr-screen{height:auto;min-height:0;padding-top:28px;padding-bottom:28px}
+.mmr-a11y .mmr-headline[data-size="l"]{font-size:64px}
+.mmr-a11y .mmr-headline[data-size="m"]{font-size:54px}
+.mmr-a11y .mmr-headline[data-size="compact"]{font-size:48px}
+.mmr-a11y .mmr-headline[data-size="display"]{font-size:90px}
+.mmr-a11y .mmr-subcopy{font-size:22px}
+.mmr-a11y .mmr-helper,.mmr-a11y .mmr-eyebrow,.mmr-a11y .mmr-field-label{font-size:19px}
+.mmr-a11y .mmr-card-title,.mmr-a11y .mmr-sheet-title{font-size:27px}
+.mmr-a11y .mmr-chip{font-size:16px;padding:10px 18px}
+.mmr-a11y .mmr-stat-chip{font-size:18px;padding:12px 18px}
+.mmr-a11y .mmr-bar-labels,.mmr-a11y .mmr-compare-label,.mmr-a11y .mmr-compare-value,.mmr-a11y .mmr-row-label,.mmr-a11y .mmr-list-row-value{font-size:18px}
+.mmr-a11y .mmr-compare-label{width:74px}.mmr-a11y .mmr-compare-value{width:80px}
+.mmr-a11y .mmr-button{font-size:22px;height:64px}
+.mmr-a11y .mmr-badge{width:84px;height:84px}.mmr-a11y .mmr-badge-value{font-size:40px}.mmr-a11y .mmr-badge-unit{font-size:12px}
+.mmr-a11y .mmr-archetype{font-size:14px;padding:8px 14px}
+.mmr-a11y .mmr-illo{flex-grow:0}
+
+</style>
+</helmet>
+<div style="padding:56px 80px 120px;display:flex;flex-direction:column;gap:96px;font-family:var(--mmr-font-family-text);color:var(--mmr-palette-ink-900)">
+<div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
+  <div style="font:700 34px/1.1 var(--mmr-font-family-display)">My Money Recap · Auth and onboarding (revised)</div>
+  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Part 1, redrawn against SCREEN-STATES.md. New: the biometric unlock (D61/D62), the expired-session sign-in, the three magic-link failures and the web fallback page, the empty currency search, the 12-digit cap and the blocked step 4 (D44). Redrawn: step 3 on the shipped DayPicker (D51) and the two first-run Homes (D43, D54). Ledger: Maya, GBP, salary £2,400, payday 25, target 20% = £480, Otter; signed up 4 September. Yellow stickies are annotations, not UI.</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:24px">
+<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 1 · Launch, unlock and sign-in states</div>
+<div style="display:flex;gap:80px;align-items:flex-start">
+<!-- A0b · Unlock -->
+<div data-screen-label="A0b · Unlock" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A0b · Unlock</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px">
+    <img src="{{ coverSrc }}" alt="" style="width:270px;height:auto;display:block">
+    <div style="font: 700 32px/1.1 var(--mmr-font-family-display); letter-spacing: -.01em; text-align: center">My Money Recap</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding-bottom:12px;color:var(--mmr-palette-white)"><svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10a6 6 0 0 1 6-6h10M44 4h10a6 6 0 0 1 6 6v10M60 44v10a6 6 0 0 1-6 6H44M20 60H10a6 6 0 0 1-6-6V44"></path><path d="M22 26v4M42 26v4M32 26v10h-4"></path><path d="M22 42c3 3 6 4 10 4s7-1 10-4"></path></svg><div style="font:800 14px/1.2 var(--mmr-font-family-text)">Face ID</div></div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>D61 / D62: a session saved within the last 30 days exists, so the cover asks for Face ID (or Touch ID) and goes straight to Home. Works with no network — the unlock releases the Keychain entry and Home renders from cache. Each successful unlock extends the session another 30 days from last use.</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">The Face ID glyph and sheet are iOS-owned (LAContext); drawn for placement only, on the launch screen so nothing flashes between launch and Home. Three failures → A1 Sign in.</div></div></sc-if>
+</div>
+
+<!-- A0b · Unlock / passcode fallback -->
+<div data-screen-label="A0b · Unlock / passcode fallback" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A0b · Unlock / passcode fallback</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px">
+    <img src="{{ coverSrc }}" alt="" style="width:270px;height:auto;display:block">
+    <div style="font: 700 32px/1.1 var(--mmr-font-family-display); letter-spacing: -.01em; text-align: center">My Money Recap</div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <x-import component-from-global-scope="MMR.SubCopy" dc-props="{{ centred }}" hint-size="100%,44px">Enter your passcode to open My Money Recap.</x-import>
+    <x-import component-from-global-scope="MMR.Button" variant="secondary" hint-size="100%,52px">Enter passcode</x-import>
+  </div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Biometrics unavailable or not enrolled: the fallback line and a secondary button that hands off to the device passcode sheet. Same three-failure rule.</div></div></sc-if>
+</div>
+
+<!-- A1 · Sign in / session expired -->
+<div data-screen-label="A1 · Sign in / session expired" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A1 · Sign in / session expired</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><x-import component-from-global-scope="MMR.Headline" size="l" hint-size="100%,98px">Your month in money.</x-import>
+  <div style="margin-top:10px"><x-import component-from-global-scope="MMR.SubCopy"  hint-size="100%,22px">Sign in to start your recap.</x-import></div>
+  <x-import component-from-global-scope="MMR.Illustration" src="{{ coverSrc }}" width="{{ n230 }}" hint-size="100%,190px"></x-import>
+  <x-import component-from-global-scope="MMR.Card" under-illustration="{{ true }}" hint-size="100%,300px"><div style="display:flex;flex-direction:column;gap:12px">
+      <x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,40px">It's been a while — sign in again to pick up where you left off.</x-import>
+      <button style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:52px;border:0;border-radius:999px;background:#000;color:#fff;font:600 17px/1 -apple-system,'SF Pro Text',system-ui,sans-serif;cursor:pointer"><svg width="17" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"></path></svg>Sign in with Apple</button>
+      <button style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:52px;border:2px solid var(--mmr-palette-ink-100);box-sizing:border-box;border-radius:999px;background:var(--mmr-palette-white);color:var(--mmr-palette-ink-900);font:800 16px/1 var(--mmr-font-family-text);cursor:pointer"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>Continue with Google</button>
+      <x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Continue with email</x-import>
+    </div></x-import>
+  <div style="margin-top:14px;font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-on-ground-muted);text-align:center;text-wrap:pretty">By continuing you agree to the Terms and Privacy Policy.</div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>D62: after 30 days of no use the Keychain entry and the cache are erased and the next launch shows Sign in with one line above the buttons. The cover illustration drops from 260 to 230pt to give the card the extra line without moving the buttons off screen.</div></div></sc-if>
+</div>
+
+<!-- A3 · Check your inbox / link expired -->
+<div data-screen-label="A3 · Check your inbox / link expired" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A3 · Check your inbox / link expired</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
+    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
+    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Email</x-import>
+  </div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,84px">Where should we send your link?</x-import></div>
+  <div style="margin-top:24px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,180px"><label style="display:flex;flex-direction:column;gap:8px"><span style="font:800 13px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)">Email address</span><input type="email" inputmode="email" autocomplete="email" value="maya@example.com" style="box-sizing:border-box;width:100%;height:52px;border:2px solid var(--mmr-palette-ink-100);border-radius:999px;background:var(--mmr-palette-ink-100);padding:0 20px;font:700 16px var(--mmr-font-family-text);color:var(--mmr-color-text-primary);outline:none"></label>
+    <x-import component-from-global-scope="MMR.InlineError"  hint-size="100%,44px">That link has expired. Links work for 15 minutes.</x-import></x-import></div>
+  <div style="margin-top:auto"><x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Send me a link</x-import></div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Tapping a link older than 15 minutes returns the Member to A2 with the address prefilled and an InlineError naming the cause. Send is enabled: one tap sends a fresh link.</div></div></sc-if>
+</div>
+
+<!-- A3 · Check your inbox / link already used -->
+<div data-screen-label="A3 · Check your inbox / link already used" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A3 · Check your inbox / link already used</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
+    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
+    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Email</x-import>
+  </div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,84px">Where should we send your link?</x-import></div>
+  <div style="margin-top:24px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,180px"><label style="display:flex;flex-direction:column;gap:8px"><span style="font:800 13px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)">Email address</span><input type="email" inputmode="email" autocomplete="email" value="maya@example.com" style="box-sizing:border-box;width:100%;height:52px;border:2px solid var(--mmr-palette-ink-100);border-radius:999px;background:var(--mmr-palette-ink-100);padding:0 20px;font:700 16px var(--mmr-font-family-text);color:var(--mmr-color-text-primary);outline:none"></label>
+    <x-import component-from-global-scope="MMR.InlineError"  hint-size="100%,44px">That link has already been used. We can send another.</x-import></x-import></div>
+  <div style="margin-top:auto"><x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Send me a link</x-import></div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Links are single use. Same return to A2, Send enabled.</div></div></sc-if>
+</div>
+
+<!-- A3 · Check your inbox / rate limited -->
+<div data-screen-label="A3 · Check your inbox / rate limited" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A3 · Check your inbox / rate limited</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
+    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
+    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Email</x-import>
+  </div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,84px">Where should we send your link?</x-import></div>
+  <div style="margin-top:24px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,180px"><label style="display:flex;flex-direction:column;gap:8px"><span style="font:800 13px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)">Email address</span><input type="email" inputmode="email" autocomplete="email" value="maya@example.com" style="box-sizing:border-box;width:100%;height:52px;border:2px solid var(--mmr-palette-ink-100);border-radius:999px;background:var(--mmr-palette-ink-100);padding:0 20px;font:700 16px var(--mmr-font-family-text);color:var(--mmr-color-text-primary);outline:none"></label>
+    <x-import component-from-global-scope="MMR.InlineError"  hint-size="100%,44px">That's five links in an hour. Try again later.</x-import></x-import></div>
+  <div style="margin-top:auto"><x-import component-from-global-scope="MMR.Button" state="disabled" hint-size="100%,52px">Send me a link</x-import></div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Five links per email per hour (§11). Send is disabled at 40% until the window passes; the address stays so nothing has to be retyped.</div></div></sc-if>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:24px">
+<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 2 · Onboarding</div>
+<div style="display:flex;gap:80px;align-items:flex-start">
+<!-- A5 · Currency / empty search -->
+<div data-screen-label="A5 · Currency / empty search" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A5 · Currency / empty search</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
+    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
+    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Step 2 of 4</x-import>
+  </div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,42px">Which currency?</x-import></div>
+  <div style="margin-top:20px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,220px"><div style="display:flex;align-items:center;gap:10px;height:52px;box-sizing:border-box;border:2px solid var(--mmr-palette-ink-100);border-radius:999px;background:var(--mmr-palette-ink-100);padding:0 18px">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="var(--mmr-palette-ink-500)" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6"></circle><path d="M13 13l5 5"></path></svg>
+      <input type="search" value="ducat" style="flex-grow:1;border:0;background:transparent;font:700 16px var(--mmr-font-family-text);color:var(--mmr-color-text-primary);outline:none;padding:0;min-width:0">
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:48px 0;text-align:center">
+      <x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,20px">No currency matches "ducat".</x-import>
+      <button style="height:44px;padding:0 4px;border:0;background:transparent;color:var(--mmr-palette-violet-500);font:800 14px var(--mmr-font-family-text);text-decoration:underline;text-underline-offset:3px;cursor:pointer">Clear search</button>
+    </div></x-import></div>
+  <div style="margin-top:auto"><x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Next</x-import></div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Search matches on ISO code or name; nothing matches "ducat". One line and a link that clears the field. GBP stays selected underneath, so Next is still enabled.</div></div></sc-if>
+</div>
+
+<!-- A6 · Salary and payday -->
+<div data-screen-label="A6 · Salary and payday" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A6 · Salary and payday</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
+    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
+    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Step 3 of 4</x-import>
+  </div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,42px">Your monthly salary</x-import></div>
+  <div style="margin-top:20px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,130px"><span style="font:800 13px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)">Amount, after tax</span>
+    <div style="display:flex;align-items:baseline;gap:8px;border-bottom:2px solid var(--mmr-palette-ink-100);padding-bottom:10px;margin-top:-4px">
+      <span style="font:700 32px/1 var(--mmr-font-family-display);color:var(--mmr-color-text-secondary)">£</span>
+      <span style="font:700 48px/1 var(--mmr-font-family-display);letter-spacing:-.02em;color:var(--mmr-color-text-primary);font-variant-numeric:tabular-nums">2,400</span>
+      <span style="width:2px;height:40px;background:var(--mmr-palette-violet-500);border-radius:999px;align-self:center"></span>
+    </div></x-import></div>
+  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,150px"><x-import component-from-global-scope="MMR.CardTitle"  hint-size="100%,22px">Payday</x-import><x-import component-from-global-scope="MMR.DayPicker" value="{{ n25 }}" next-paydays="{{ next25 }}" hint-size="100%,80px"></x-import></x-import></div>
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px"><x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Next</x-import><button style="height:44px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);cursor:pointer">Skip for now</button></div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-violet-500);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">REDRAW</span>D51: the shipped DayPicker — 1–31 plus "Last day" after 31, nothing disabled, the selection as the ink pill scrolled to centre — and the computed helper "Next paydays: 25 Sep · 25 Oct · 25 Nov", updating on every tap. The Draft v1 line "If the month is shorter, we use its last day" is deleted; the three dates say it better (tap 31 and read "30 Sep · 31 Oct · 30 Nov").</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">The dates are a prop: min(Payday, days in month) is computed by the screen, not the picker (§8.2). Amount card unchanged from the drawn A6.</div></div></sc-if>
+</div>
+
+<!-- A6 · Salary and payday / amount too long -->
+<div data-screen-label="A6 · Salary and payday / amount too long" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A6 · Salary and payday / amount too long</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
+    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
+    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Step 3 of 4</x-import>
+  </div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,42px">Your monthly salary</x-import></div>
+  <div style="margin-top:20px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,160px"><span style="font:800 13px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary)">Amount, after tax</span>
+    <div style="display:flex;align-items:baseline;gap:8px;border-bottom:2px solid var(--mmr-palette-coral-500);padding-bottom:10px;margin-top:-4px">
+      <span style="font:700 22px/1 var(--mmr-font-family-display);color:var(--mmr-color-text-secondary)">£</span>
+      <span style="font:700 28px/1 var(--mmr-font-family-display);letter-spacing:-.02em;color:var(--mmr-color-text-primary);font-variant-numeric:tabular-nums">999,999,999,999</span>
+      <span style="width:2px;height:26px;background:var(--mmr-palette-violet-500);border-radius:999px;align-self:center"></span>
+    </div><span style="font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-accent-coral)">That's more than the app can store.</span></x-import></div>
+  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,150px"><x-import component-from-global-scope="MMR.CardTitle"  hint-size="100%,22px">Payday</x-import><x-import component-from-global-scope="MMR.DayPicker" value="{{ n25 }}" next-paydays="{{ next25 }}" hint-size="100%,80px"></x-import></x-import></div>
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px"><x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Next</x-import><button style="height:44px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);cursor:pointer">Skip for now</button></div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>D57: at 12 digits before the separator the field refuses further keystrokes and shows "That's more than the app can store." The 16-glyph string (symbol + integer part) sits at the 28pt step of AmountField's 48 → 36 → 28 ladder (§11). The amount is still valid, so Next stays enabled.</div></div></sc-if>
+</div>
+
+<!-- A7 · Saving target / salary skipped -->
+<div data-screen-label="A7 · Saving target / salary skipped" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A7 · Saving target / salary skipped</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;align-items:center;gap:4px;margin-left:-14px">
+    <button aria-label="Back" style="width:44px;height:44px;border:0;background:transparent;color:var(--mmr-palette-white);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 2 10l8 8"></path></svg></button>
+    <x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">Step 4 of 4</x-import>
+  </div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="100%,84px">How much do you want to keep?</x-import></div>
+  <div style="margin-top:20px"><x-import component-from-global-scope="MMR.PromptCard" title="Set a salary first" helper="A target is a share of your salary, so we need the salary first." hint-size="100%,110px"></x-import></div>
+  <div style="margin-top:auto"><x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Skip for now</x-import></div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>D44: a target cannot be set without a Salary. The slider card is replaced by a PromptCard; tapping it returns to step 3. The primary button reads "Skip for now" and goes to Home with both prompts (A8 · skipped). Replaces the drawn behaviour where a percentage could be set with no salary.</div></div></sc-if>
+</div>
+
+<!-- A3 · Web fallback page · 1200 × 720, shown at 50% -->
+<div data-screen-label="A3 · Web fallback page · 1200 × 720, shown at 50%" style="display:flex;flex-direction:column;gap:14px;width:600px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A3 · Web fallback page <span style="color:var(--mmr-palette-ink-500)">· 1200 × 720, shown at 50%</span></div>
+<div style="width:600px;height:360px;overflow:hidden;flex:none;border-radius:16px"><div style="width:1200px;height:720px;transform:scale(.5);transform-origin:top left;box-sizing:border-box;background:var(--mmr-color-ground-recap);color:var(--mmr-color-text-on-ground);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:80px;font-family:var(--mmr-font-family-text)">
+  <img src="{{ envelopeSrc }}" alt="" style="width:300px;display:block">
+  <div style="font:700 56px/1.05 var(--mmr-font-family-display);letter-spacing:-.01em;text-align:center;max-width:820px;text-wrap:balance">Open My Money Recap on your phone to finish signing in.</div>
+  <div style="font:700 22px/1.4 var(--mmr-font-family-text);opacity:.85;text-align:center">The link in your email only works in the app.</div>
+</div></div>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Not an app screen. The magic-link URL doubles as this page when the tap happens on a device without the app (a laptop, D32). Violet ground, the envelope, one line, no controls — there is nothing to do here but pick up the phone.</div></div></sc-if>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:24px">
+<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 3 · First-run Home</div>
+<div style="display:flex;gap:80px;align-items:flex-start">
+<!-- A8 · Home, first run -->
+<div data-screen-label="A8 · Home, first run" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A8 · Home, first run</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;justify-content:space-between;align-items:center"><x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">September 2026</x-import><x-import component-from-global-scope="MMR.Chip" variant="inverse" hint-size="auto,30px">Settings</x-import></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="auto,42px">Hi, Maya</x-import><x-import component-from-global-scope="MMR.Avatar" src="{{ avatarSrc }}" label="Otter" size="{{ n56 }}" hint-size="56px,56px"></x-import></div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,191px"><x-import component-from-global-scope="MMR.StatHero" eyebrow="Spent so far · salary lands in 21 days" value="{{ n0 }}" format="{{ gbp }}" hint-size="100%,100px"></x-import><x-import component-from-global-scope="MMR.StatChipRow"  hint-size="100%,34px"><x-import component-from-global-scope="MMR.StatChip" tone="earned" hint-size="auto,34px">Money in £0</x-import></x-import></x-import></div>
+  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,136px"><div style="display:flex;justify-content:space-between;align-items:baseline"><x-import component-from-global-scope="MMR.CardTitle"  hint-size="auto,22px">Saving target</x-import><span style="font:800 14px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);font-variant-numeric:tabular-nums">£0 of £480</span></div><x-import component-from-global-scope="MMR.ProgressBar" value="{{ n0 }}" max="{{ n480 }}" tone="green" hint-size="100%,22px"></x-import><x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,20px">Nothing spent yet. Streak day 1.</x-import></x-import></div>
+  <div style="margin-top:50px;display:flex;flex-direction:column;gap:12px"><x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Log a spend</x-import><x-import component-from-global-scope="MMR.Button" variant="secondary" state="disabled" hint-size="100%,52px">See last month</x-import></div>
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+    <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Recaps</div>
+    <button style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:2px dashed rgba(255,255,255,.4);border-radius:28px;background:transparent;padding:10px 12px 10px 22px;font:700 14px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-on-ground-muted);text-align:left;cursor:pointer;min-height:56px"><span>Your first recap arrives on 1 October.</span><span style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.14);color:var(--mmr-palette-white);display:inline-flex;align-items:center;justify-content:center;flex:none"><x-import component-from-global-scope="MMR.Icon" name="chevron" hint-size="20px,20px"></x-import></span></button>
+  </div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-violet-500);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">REDRAW</span>D43: "Streak day 1" for a Member who signed up today (4 September). The drawn "day 4" was the day of the month while its own note claimed "since sign-up" — the window is max(1st, sign-up date) to today, so it starts at 1.</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Also applied: D41 hides the Saved chip while Money In is £0, and D47 makes the recap card tappable. Everything else is as drawn.</div></div></sc-if>
+</div>
+
+<!-- A8 · Home / skipped -->
+<div data-screen-label="A8 · Home / skipped" style="display:flex;flex-direction:column;gap:14px;width:390px;flex:none">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">A8 · Home / skipped</div>
+<x-import component-from-global-scope="MMR.Screen" ground="recap"  hint-size="390px,844px"><div style="display:flex;justify-content:space-between;align-items:center"><x-import component-from-global-scope="MMR.Chip" as-label="{{ true }}" hint-size="auto,30px">September 2026</x-import><x-import component-from-global-scope="MMR.Chip" variant="inverse" hint-size="auto,30px">Settings</x-import></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px"><x-import component-from-global-scope="MMR.Headline" size="m" hint-size="auto,42px">Hi, Maya</x-import><x-import component-from-global-scope="MMR.Avatar" src="{{ avatarSrc }}" label="Otter" size="{{ n56 }}" hint-size="56px,56px"></x-import></div>
+  <div style="margin-top:18px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,191px"><x-import component-from-global-scope="MMR.StatHero" eyebrow="Spent so far" value="{{ n0 }}" format="{{ gbp }}" hint-size="100%,100px"></x-import><x-import component-from-global-scope="MMR.StatChipRow"  hint-size="100%,34px"><x-import component-from-global-scope="MMR.StatChip" tone="earned" hint-size="auto,34px">Money in £0</x-import></x-import></x-import></div>
+  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.PromptCard" size="hero" eyebrow="Salary" title="Set your monthly salary" helper="We'll show what you kept once we know what came in." hint-size="100%,191px"></x-import></div>
+  <div style="margin-top:12px"><x-import component-from-global-scope="MMR.PromptCard" size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month." hint-size="100%,136px"></x-import></div>
+  <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px"><x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Log a spend</x-import><x-import component-from-global-scope="MMR.Button" variant="secondary" state="disabled" hint-size="100%,52px">See last month</x-import></div>
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+    <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Recaps</div>
+    <button style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:2px dashed rgba(255,255,255,.4);border-radius:28px;background:transparent;padding:10px 12px 10px 22px;font:700 14px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-on-ground-muted);text-align:left;cursor:pointer;min-height:56px"><span>Your first recap arrives on 1 October.</span><span style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.14);color:var(--mmr-palette-white);display:inline-flex;align-items:center;justify-content:center;flex:none"><x-import component-from-global-scope="MMR.Icon" name="chevron" hint-size="20px,20px"></x-import></span></button>
+  </div></x-import>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-violet-500);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">REDRAW</span>D54: the hero card is no longer replaced wholesale — it keeps the StatHero (Spent £0, Money in £0) and the salary PromptCard moves below it. The target PromptCard is unchanged. Both prompts are the shipped component at size="hero" and size="target".</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Home scrolls in this state (hero 191 + 191 + 136 before the buttons); "Log a spend" is above the fold, "See last month" and the recap card below it. See the sticky on B1 · no salary for the size="auto" alternative.</div></div></sc-if>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:24px">
+<div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;color:var(--mmr-palette-ink-500)">Row 4 · Flow</div>
+<div style="display:flex;gap:80px;align-items:flex-start">
+<div data-screen-label="Flow · Launch to Home" style="display:flex;flex-direction:column;gap:14px;width:1980px">
+<div style="font:800 14px/1.2 var(--mmr-font-family-text)">Flow · Launch to Home</div>
+<div style="position:relative;width:1980px;height:760px;background:var(--mmr-palette-white);border-radius:28px;overflow:hidden">
+  <svg width="1980" height="760" viewBox="0 0 1980 760" fill="none" stroke="var(--mmr-palette-ink-500)" stroke-width="2" style="position:absolute;inset:0" aria-hidden="true">
+    <defs><marker id="arwA" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 8 4 0 8Z" fill="var(--mmr-palette-ink-500)" stroke="none"></path></marker></defs>
+    <path d="M156 354H278" marker-end="url(#arwA)"></path>
+    <path d="M376 290C440 290 440 144 498 144" marker-end="url(#arwA)"></path>
+    <path d="M376 400H938" marker-end="url(#arwA)"></path>
+    <path d="M328 458C328 600 1868 600 1868 460" marker-end="url(#arwA)"></path>
+    <path d="M596 144H718" marker-end="url(#arwA)"></path>
+    <path d="M816 144C880 144 880 320 938 320" marker-end="url(#arwA)"></path>
+    <path d="M768 40C768 4 1868 4 1868 248" marker-end="url(#arwA)"></path>
+    <path d="M1036 354H1158" marker-end="url(#arwA)"></path>
+    <path d="M1256 354H1378" marker-end="url(#arwA)"></path>
+    <path d="M1476 354H1598" marker-end="url(#arwA)"></path>
+    <path d="M1696 354H1818" marker-end="url(#arwA)"></path>
+    <path d="M108 458V488" marker-end="url(#arwA)"></path>
+    <path d="M156 600C600 640 1600 700 1868 462" marker-end="url(#arwA)"></path>
+    <path d="M156 560C230 560 230 430 278 430" marker-end="url(#arwA)"></path>
+    <path d="M1600 300C1560 260 1520 260 1478 300" marker-end="url(#arwA)"></path>
+  </svg>
+  
+  <sc-for list="{{ flowNodes }}" as="f" hint-placeholder-count="10"><div style="position:absolute;left:{{ f.x }};top:{{ f.y }};width:96px;display:flex;flex-direction:column;gap:8px;align-items:center">
+      <div style="width:96px;height:208px;border-radius:12px;background:{{ f.bg }};position:relative;overflow:hidden">
+        <div style="position:absolute;left:{{ f.inset }};right:{{ f.inset }};top:{{ f.sheetTop }};bottom:{{ f.inset }};border-radius:8px;background:var(--mmr-palette-white);opacity:{{ f.sheetOn }}"></div>
+        <div style="position:absolute;left:10px;top:16px;width:52px;height:8px;border-radius:999px;background:var(--mmr-palette-white);opacity:{{ f.pills }}"></div>
+        <div style="position:absolute;left:10px;top:30px;width:36px;height:8px;border-radius:999px;background:var(--mmr-palette-white);opacity:{{ f.pillsDim }}"></div>
+        <div style="position:absolute;left:{{ f.cardX }};right:{{ f.cardX }};top:{{ f.cardTop }};bottom:{{ f.cardBottom }};border-radius:8px;background:{{ f.cardBg }}"></div>
+        <div style="position:absolute;left:8px;right:8px;bottom:8px;height:14px;border-radius:999px;background:{{ f.btnBg }};opacity:{{ f.btn }}"></div>
+        <div style="position:absolute;inset:0;background:var(--mmr-color-surface-scrim);opacity:{{ f.dim }}"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;height:{{ f.sheetH }};border-radius:10px 10px 0 0;background:var(--mmr-palette-white);border:1.5px solid var(--mmr-palette-ink-100);border-bottom:0;box-sizing:border-box"></div>
+        <div style="position:absolute;left:14px;right:14px;top:80px;height:48px;border-radius:8px;background:var(--mmr-palette-white);opacity:{{ f.alert }}"></div>
+        <div style="position:absolute;left:8px;right:8px;top:8px;height:22px;border-radius:6px;background:{{ f.bannerBg }};opacity:{{ f.banner }}"></div>
+      </div>
+      <div style="font:800 11px/1.3 var(--mmr-font-family-text);color:var(--mmr-palette-ink-900);text-align:center;text-wrap:balance">{{ f.label }}</div>
+    </div></sc-for>
+  <sc-for list="{{ flowLabels }}" as="l" hint-placeholder-count="17"><div style="position:absolute;left:{{ l.x }};top:{{ l.y }};transform:translate(-50%,-50%);background:var(--mmr-palette-white);padding:3px 8px;border-radius:999px;font:800 11px/1.2 var(--mmr-font-family-text);color:{{ l.color }};white-space:nowrap">{{ l.text }}</div></sc-for>
+  <div style="position:absolute;left:60px;top:28px;width:420px;font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Launch checks for a saved session first (D61/D62): under 30 days old it unlocks with Face ID or the passcode and goes straight to Home, with no network round-trip; three failures fall back to Sign in. Onboarding progress is saved per screen; every step after the first has a back chevron and re-selects the saved answer on resume. Step 4 is blocked when the salary was skipped (D44): its prompt returns to step 3 and "Skip for now" goes to Home. Thumbnails are schematic; see rows 1–3 for the screens.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"showAnnotations":{"editor":"boolean","default":true,"tsType":"boolean","section":"Canvas"}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const K = window.MMR, R = window.React, I = K ? K.ILLUSTRATIONS : {};
+    const showNotes = this.props.showAnnotations ?? true;
+    const gbp = (n) => (n < 0 ? '−' : '') + '£' + Math.abs(Math.round(n)).toLocaleString('en-GB');
+    const idr = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    const icon = (name, props = {}) => K ? R.createElement(K.Icon, { name, ...props }) : null;
+    const G = { violet: 'var(--mmr-color-ground-recap)', yellow: 'var(--mmr-color-ground-earning)', coral: 'var(--mmr-color-ground-goal)', green: 'var(--mmr-color-ground-personality)' };
+    // Flow thumbnails: N(x, y, label, options)
+    const N = (x, y, label, o = {}) => ({ x: x + 'px', y: y + 'px', label, bg: o.bg || G.violet,
+      inset: o.sheet ? '6px' : '0px', sheetTop: o.sheet ? '14px' : '0px', sheetOn: o.sheet ? 1 : 0, pills: o.sheet ? 0 : 1, pillsDim: o.sheet ? 0 : 0.6,
+      cardX: o.sheet ? '14px' : '8px', cardTop: o.cardTop ?? '56px', cardBottom: o.cardBottom ?? '96px', cardBg: o.sheet ? 'var(--mmr-color-surface-well-violet)' : 'var(--mmr-palette-white)',
+      btnBg: o.coral ? 'var(--mmr-palette-coral-500)' : 'var(--mmr-palette-ink-900)', btn: o.btn ?? 0, dim: o.dim ?? 0, sheetH: o.sheetH ?? '0px', alert: o.alert ?? 0,
+      banner: o.banner ? 1 : 0, bannerBg: o.banner === 'grey' ? 'var(--mmr-palette-ink-500)' : 'var(--mmr-palette-coral-500)' });
+    const L = (x, y, text, color) => ({ x: x + 'px', y: y + 'px', text, color: color || 'var(--mmr-palette-ink-900)' });
+    const common = {
+      showNotes, gbp, idr, plusIcon: icon('plus'), shareIcon: icon('share'), piggy: icon('piggy'),
+      avatarSrc: I['avatar-otter'], pandaSrc: I['avatar-panda'], coverSrc: I.cover, jarSrc: I.jar, vendingSrc: I.vending, envelopeSrc: I.envelope,
+      squirrelSrc: I.squirrel, hustlerSrc: I.hustler, treatSrc: I.treat, slowburnerSrc: I.slowburner,
+      n0: 0, n1: 1, n2: 2, n3: 3, n4: 4, n14: 14, n56: 56, n30: 30, n31: 31, n480: 480,
+      noop: () => {},
+      onGround: { style: { color: 'var(--mmr-color-text-on-ground-muted)' } },
+      tightCard: { style: { padding: '4px 22px' } },
+      fullSheet: { style: { height: 'auto', flexGrow: 1 } },
+      tintCard: { style: { gap: 12 } },
+      gap12: { style: { gap: 12 } }, gap14: { style: { gap: 14 } },
+      growCard: { style: { flexGrow: 1 } },
+      jarStyle: { style: { marginBottom: -10 } },
+    };
+    const pos = [[60, 250, 'A0 · Launch', '38%', '38%', 0], [280, 250, 'A1 · Sign in', '48%', '8px', 1], [500, 40, 'A2 · Enter email', '30%', '40%', 1], [720, 40, 'A3 · Check your inbox', '45%', '40%', 0], [940, 250, 'A4 · Name and avatar', '30%', '16%', 1], [1160, 250, 'A5 · Currency', '30%', '16%', 1], [1380, 250, 'A6 · Salary and payday', '30%', '20%', 1], [1600, 250, 'A7 · Saving target', '30%', '30%', 1], [1820, 250, 'A8 · Home', '28%', '30%', 1], [60, 490, 'A0b · Unlock (Face ID)', '38%', '38%', 0]];
+    const flowNodes = pos.map(([x, y, label, cardTop, cardBottom, btn]) => N(x, y, label, { cardTop, cardBottom, btn }));
+    const mut = 'var(--mmr-palette-ink-500)';
+    const flowLabels = [L(218, 340, 'no session · auto'), L(420, 200, 'Continue with email'), L(658, 384, 'Apple or Google, first sign-in'), L(1098, 592, 'Apple or Google, returning member'), L(658, 130, 'Send me a link'), L(900, 230, 'tap link, first sign-in'), L(1318, 20, 'tap link, returning member'), L(1097, 340, 'Next'), L(1317, 340, 'Next'), L(1537, 340, 'Next'), L(1537, 372, 'Skip for now → A7 blocked', mut), L(1757, 340, 'Done'), L(1757, 372, 'Skip for now', mut), L(225, 473, 'saved session, under 30 days'), L(1000, 668, 'Face ID or passcode · no network needed'), L(232, 530, '3 failures', mut), L(1540, 268, 'Set a salary first', mut)];
+    return { ...common, flowNodes, flowLabels, n25: 25, n230: 230, centred: { style: { textAlign: 'center' } }, next25: ['25 Sep', '25 Oct', '25 Nov'] };
+  }
+}
+</script>
+</body>
+</html>

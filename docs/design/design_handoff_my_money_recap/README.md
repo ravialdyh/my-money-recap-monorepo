@@ -15,6 +15,8 @@ My Money Recap is a personal money tracker for adults with a playful kids'-app v
 
 Two purposes for this package: (1) **complete the spec** — find every state the PRD and the canvases leave undefined and decide it; (2) **implement** the app (native iOS 17+, SwiftUI per PRD D11) once the spec is complete.
 
+> **Status, 2026-09-11.** The remaining 56 states are drawn in [`design-files/2026-09-11/`](design-files/2026-09-11/README.md) (live: <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>). **Nineteen screens in the four canvases below are superseded by that folder and must not be built from:** A6, A8 first run, A8 skipped, Flow A · B1 before payday, B1 no salary set, B1 preview card, B6, B6 empty, Flow B · C1, C1 no salary (retired — now the Partial Recap P1–P4), C2, C2 no target, C3, C3 target missed, C3 no spends, C4 and its three variants, Flow C · D3, D4, D9 sent, Flow D. `SCREEN-STATES.md` marks each with "was REDRAW". Everything else in these four canvases still stands.
+>
 > **Status, 2026-09-08.** Purpose (1) is done: the design review closed all 57 items in `GAPS.md` and the decisions live in `../../PRD.md` (D41–D67) and `../../SCREEN-STATES.md`. **Read those two, not this package**, for anything you intend to build. Everything here — this file, `GAPS.md`, `DESIGN_NOTES_VERBATIM.md`, `PRD.md` (a pointer stub) and the canvases — is the record of how the design got here.
 
 ## About the design files
