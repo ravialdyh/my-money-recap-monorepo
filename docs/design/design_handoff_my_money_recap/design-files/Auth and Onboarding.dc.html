@@ -23,7 +23,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 
 <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
   <div style="font:700 34px/1.1 var(--mmr-font-family-display)">My Money Recap · Auth and onboarding</div>
-  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Launch → Sign in → email link or Apple/Google → onboarding. Every screen sits on the violet recap ground; white cards carry the ink content. Step 3 (A6), the first-run Homes (A8, A8 skipped) and the flow map live in <code>2026-09-11/Auth and Onboarding (revised).dc.html</code>. Elements built for this flow that did not exist in the system at the time are tagged <span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em">NEW</span> in the notes. Yellow stickies are annotations, not UI.</div>
+  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Launch → Sign in → email link or Apple/Google → onboarding. Every screen sits on the violet recap ground; white cards carry the ink content. Step 3 (A6), the first-run Homes (A8, A8 skipped) and the flow map live in <code>2026-09-11/Auth and Onboarding (revised).dc.html</code>. Yellow stickies are annotations, not UI.</div>
 </div>
 
 <!-- ROW 1 -->
@@ -43,7 +43,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Shows for at most 800 ms, then A1. No spinner, no tap target.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Session rule: nothing is persisted, so every cold launch lands on A1 after this.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">A saved session under 30 days old unlocks with Face ID or the passcode and goes straight to Home (A0b, D61); otherwise A1.</div>
 </div>
 </sc-if>
 </div>
@@ -67,7 +67,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Apple button uses Apple's mandated black style, white logo, SF label — the one allowed exception to the system.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Secondary button: Button with white surface, ink label, 2 px ink-100 stroke (so it reads on a white card). Google "G" is Google's own mark.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Secondary button: Button with white surface, ink label, 2 px ink-100 stroke (so it reads on a white card). Google "G" is Google's own mark.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Apple / Google → A4 on first sign-in, → A8 for a returning member. Email → A2.</div>
 </div>
 </sc-if>
@@ -95,7 +95,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">"Send me a link" is disabled (40%) until the field holds a valid email: something@domain.tld. Validates on every keystroke; try typing in the field.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>TextField: 52 pt pill, ink-100 fill and 2 px stroke, Nunito 700 16. Label above in secondary. Email keyboard, autocorrect off.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">TextField: 52 pt pill, ink-100 fill and 2 px stroke, Nunito 700 16. Label above in secondary. Email keyboard, autocorrect off.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Back chevron (44 × 44) returns to A1. No header title.</div>
 </div>
 </sc-if>
@@ -164,7 +164,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Name: 1 to 30 characters; letters, spaces, hyphens and apostrophes only. Next is disabled until the name is valid and an avatar is picked. Tap avatars to try.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Six avatars at 68 pt: Fox, Otter, Panda, Frog, Owl, Rabbit. Selected avatar gets a 2 px white ring on a violet halo.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>AvatarGrid: 68 pt circles in a 3 × 2 grid, 88 pt hit area. Selected = 2 px white ring on a violet halo (ArchetypePill's selected treatment).</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">AvatarGrid: 68 pt circles in a 3 × 2 grid, 88 pt hit area. Selected = 2 px white ring on a violet halo (ArchetypePill's selected treatment).</div>
 </div>
 </sc-if>
 </div>
@@ -199,7 +199,6 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">GBP is preselected from the device region. One row is always selected, so Next is always enabled. Search filters by name or ISO code.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>SelectRow: DataRow anatomy (label, hairline divider, pressed wash) without the icon well; a violet check replaces the amount. SearchField reuses TextField with a leading glyph.</div>
 </div>
 </sc-if>
 </div>
@@ -234,7 +233,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Slider 0 to 100 in steps of 5, default 20. Preview recalculates live: target% × salary from A6. If salary was skipped the preview reads "Add a salary to see the amount." Drag the knob to try.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Slider: ProgressBar track (violet tone) plus a 28 pt ink knob with a 3 px white ring; the hit area is the full 44 pt row.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Slider: ProgressBar track (violet tone) plus a 28 pt ink knob with a 3 px white ring; the hit area is the full 44 pt row.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Done → A8. Skip for now → A8 with the target prompt card.</div>
 </div>
 </sc-if>
@@ -288,7 +287,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Provider cancelled or failed: all three buttons re-enable and an inline error appears under them inside the card, pushing the card taller. Clears on the next tap of any button.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)"><span style="display:inline-block;vertical-align:middle;background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:2px 8px;font:800 10px/1.4 var(--mmr-font-family-text);letter-spacing:.08em;margin-right:6px">NEW</span>Inline error: coral-100 fill, 16 radius, coral-500 dot + coral text Nunito 800 13. Inline so it can never overlap the buttons.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Inline error: coral-100 fill, 16 radius, coral-500 dot + coral text Nunito 800 13. Inline so it can never overlap the buttons.</div>
 </div>
 </sc-if>
 </div>
@@ -419,7 +418,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
   </div>
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Payday has passed: the eyebrow drops its countdown, Money in fills to the salary, saved = salary − spent, the bar is capped at full once saved ≥ target. The daily figure is (saved − target) ÷ days left in the month.</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Payday has passed: the eyebrow drops its countdown, Money in fills to the salary, saved = salary − spent, the bar is capped at full once saved ≥ target. The daily figure is floor((Salary − Target − Spent) ÷ days remaining, today included).</div>
 </sc-if>
 </div>
 

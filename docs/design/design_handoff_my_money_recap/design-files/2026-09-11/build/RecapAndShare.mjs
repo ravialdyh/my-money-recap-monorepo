@@ -40,15 +40,6 @@ const c4NoArchetype = col('C4 · Recap 4 / no archetype, no target', withClose(s
   <div style="margin-top:12px;margin-left:18px;opacity:.4">${X('ArchetypeRow', '', `${X('ArchetypePill', 'archetype="squirrel"', '', 'auto,24px')}${X('ArchetypePill', 'archetype="hustler"', '', 'auto,24px')}${X('ArchetypePill', 'archetype="treatYourself"', '', 'auto,24px')}${X('ArchetypePill', 'archetype="slowBurner"', '', 'auto,24px')}`, '100%,24px')}</div>`)), [
   `${NEW}§6.14: Money In > 0 but no Saving Target, so no Archetype. PromptCard size="hero" takes the mascot's place and opens Settings › Saving target; the Share button is hidden; the four pills sit at 40%. Saved vs Spent still compares — both are computable without a target.`,
   'The "This month, Maya, you were" line and the archetype name are omitted rather than replaced: the PRD names only the prompt for this state, so no headline copy is invented. The prompt\'s helper is the one shipped with PromptCard\'s preview.']);
-const c1Retired = col('C1 · Recap 1 / no salary (retired)', `<div style="position:relative;width:390px;height:844px"><div style="opacity:.55">${screen('recap', `${X('ChipRow', '', `${X('Chip', 'as-label="{{ true }}"', 'September 2026', 'auto,30px')}${X('Chip', 'as-label="{{ true }}" variant="highlight"', "Maya's recap", 'auto,30px')}`, '100%,30px')}
-  <div style="margin-top:22px">${X('Headline', 'size="l"', 'Your September in money', '100%,98px')}</div>
-  ${X('Illustration', 'src="{{ coverSrc }}" width="{{ n310 }}"', '', '100%,260px')}
-  ${X('Card', 'under-illustration="{{ true }}"', `${X('StatHero', 'eyebrow="Money that came your way" value="{{ n0 }}" format="{{ gbp }}"', '', '100%,100px')}
-    ${X('PromptCard', 'title="Set your monthly salary to get a recap" helper="Opens Settings"', '', '100%,90px')}`, '100%,230px')}
-  <div style="margin-top:18px">${X('PageDots', 'count="{{ n4 }}" active="{{ n0 }}" on-select="{{ noop }}"', '', 'auto,6px')}</div>`)}</div>
-  <div style="position:absolute;left:24px;top:400px;right:24px;display:flex;justify-content:center"><span style="background:var(--mmr-palette-ink-900);color:var(--mmr-palette-white);border-radius:999px;padding:10px 18px;font:800 13px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase">Retired · see P1–P4</span></div></div>`, [
-  `${REDRAW}§8.11: a month with Money In 0 and at least one Spend is a partial month, so this case is P1–P4 (situation 3), not a variant of C1. Kept dimmed as the reference for the prompt copy — "Set your monthly salary to get a recap" — which P4's closing line carries as "Set your monthly salary to get a full recap."`]);
-
 // Row 3 · share images for the other three Archetypes (1080 × 1920, shown at 50%).
 const share = (label, mascotKey, name, title, month, saved, spent, noteText) => col(`${label} <span style="color:var(--mmr-palette-ink-500)">· 1080 × 1920, shown at 50%</span>`, `<div style="width:540px;height:960px;overflow:hidden;flex:none">
 <div style="width:1080px;height:1920px;transform:scale(.5);transform-origin:top left;box-sizing:border-box;background:var(--mmr-color-ground-personality);color:var(--mmr-color-text-on-ground);display:flex;flex-direction:column;align-items:center;padding:140px 96px 96px;font-family:var(--mmr-font-family-text)">
@@ -159,9 +150,9 @@ export default {
       n9: 9, n160: 160, n240: 240, n260: 260, n300: 300, n310: 310, n640: 640, n1760: 1760, n2090: 2090, n2400: 2400 };
   }`,
   body: page('My Money Recap · Recap and share (revised)',
-    'Part 3, redrawn against SCREEN-STATES.md. Every Recap screen gains the D46 close control; screens 2–4 are rebuilt on the shipped components rather than hand-composed; the "no salary" cover is retired in favour of the Partial Recap (P1–P4). New here: the no-target screen 3, the no-Archetype screen 4, three more share images, the empty past-recaps list and the D66 accessibility-size demonstration. Ledger: Maya, September (target met) and October (target missed), as in the original canvas. Yellow stickies are annotations, not UI.',
+    'Part 3, redrawn against SCREEN-STATES.md. Every Recap screen gains the D46 close control; screens 2–4 are rebuilt on the shipped components rather than hand-composed; a month with no Salary is the Partial Recap (P1–P4), not a cover variant. New here: the no-target screen 3, the no-Archetype screen 4, three more share images, the empty past-recaps list and the D66 accessibility-size demonstration. Ledger: Maya, September (target met) and October (target missed), as in the original canvas. Yellow stickies are annotations, not UI.',
     [row('Row 1 · September, target met', [c1, c2, c3, c4, c7empty]),
-     row('Row 2 · States and variants', [c2NoTarget, c3Missed, c3NoSpends, c3NoTarget, c1Retired]),
+     row('Row 2 · States and variants', [c2NoTarget, c3Missed, c3NoSpends, c3NoTarget]),
      row('Row 3 · Screen 4 by Archetype, and without one', [c4Treat, c4Hustler, c4Slow, c4NoArchetype]),
      row('Row 4 · Share images for the other three Archetypes', [c6Hustler, c6Treat, c6Slow]),
      row('Row 5 · Accessibility text size and the flow', [a11y, flowC])]),

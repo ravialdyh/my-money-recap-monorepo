@@ -21,7 +21,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 
 <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
   <div style="font:700 34px/1.1 var(--mmr-font-family-display)">My Money Recap · Settings and account</div>
-  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Part 4 of 4. Settings is a white surface, not a fifth ground: every screen is a full Sheet over the violet ground, with a back chevron and a headline as the whole chrome. Salary and payday (D3), Saving target (D4), the export confirmation and the flow map live in <code>2026-09-11/Settings and Account (revised).dc.html</code>. Today is 2 October 2026. Yellow stickies are annotations, not UI.</div>
+  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Settings is a white surface, not a fifth ground: every screen is a full Sheet over the violet ground, with a back chevron and a headline as the whole chrome. Salary and payday (D3), Saving target (D4), the export confirmation and the flow map live in <code>2026-09-11/Settings and Account (revised).dc.html</code>. Today is 2 October 2026. Yellow stickies are annotations, not UI.</div>
 </div>
 
 <!-- ROW 1 -->
@@ -98,7 +98,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Display Name is 1 to 30 characters — letters, spaces, hyphens and apostrophes. Save is disabled until the name is valid and an avatar is chosen. Live: edit the name or tap an avatar.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Reuses A4's name field and AvatarGrid unchanged. Saving updates the Home greeting and the next recap's name; past recaps keep the name they were built with. Cards inside the white sheet keep the default white surface with a soft shadow so fields and tracks stay legible.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Reuses A4's name field and AvatarGrid unchanged. Saving updates the Home greeting and every recap, past ones included — nothing about a recap is stored (PRD §7). Cards inside the white sheet keep the default white surface with a soft shadow so fields and tracks stay legible.</div>
 </div>
 </sc-if>
 </div>
@@ -148,10 +148,10 @@ input::placeholder{color:#6B6890;font-weight:700}
   <div style="position:absolute;inset:0">
   <x-import component-from-global-scope="MMR.Sheet" title="Convert everything to IDR?" scrim="{{ true }}" hint-size="100%,100%">
     <div style="display:flex;flex-direction:column;gap:16px">
-      <div style="font:700 15px/1.45 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);text-wrap:pretty">All your amounts will be converted at today's rate, 1 GBP = 20,150 IDR. Your £2,400 salary becomes Rp 48,360,000. <strong style="color:var(--mmr-color-text-primary)">This can't be undone.</strong></div>
+      <div style="font:700 15px/1.45 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);text-wrap:pretty">All your amounts will be converted at today's rate, 1 GBP = 20,150 IDR. Your £2,400 salary becomes Rp 48.360.000. <strong style="color:var(--mmr-color-text-primary)">This can't be undone.</strong></div>
       <x-import component-from-global-scope="MMR.DataRowList" hint-size="100%,112px">
-        <x-import component-from-global-scope="MMR.ListRow" label="Salary" value="£2,400 → Rp 48,360,000" trailing="none" hint-size="100%,56px"></x-import>
-        <x-import component-from-global-scope="MMR.ListRow" label="September spends" value="£1,760 → Rp 35,464,000" trailing="none" hint-size="100%,56px"></x-import>
+        <x-import component-from-global-scope="MMR.ListRow" label="Salary" value="£2,400 → Rp 48.360.000" trailing="none" hint-size="100%,56px"></x-import>
+        <x-import component-from-global-scope="MMR.ListRow" label="September spends" value="£1,760 → Rp 35.464.000" trailing="none" hint-size="100%,56px"></x-import>
       </x-import>
       <div style="display:flex;flex-direction:column;gap:10px">
         <x-import component-from-global-scope="MMR.Button" hint-size="100%,52px">Convert</x-import>
@@ -164,7 +164,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">The rate is fetched before the sheet is shown. Saving Target percentages are never touched — only amounts convert: every salary row and every spend amount, once, in a single transaction, with the rate recorded.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">IDR has no minor units, so converted amounts show no decimals — the contrast with GBP's two is the point. 2,400 × 20,150 = 48,360,000; 1,760 × 20,150 = 35,464,000. Cancel is Button variant="secondary", a real prop now.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">IDR has no minor units, so converted amounts show no decimals — the contrast with GBP's two is the point. 2,400 × 20,150 = Rp 48.360.000; 1,760 × 20,150 = Rp 35.464.000, with id-ID separators.</div>
 </div>
 </sc-if>
 </div>
@@ -471,7 +471,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div>
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">iOS action sheet, placement only. There is no persisted session by design, so every cold launch already starts at sign-in. Log out just ends this one early and lands on A1.</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">iOS action sheet, placement only. Log out erases the saved session and the cache on the device and lands on A1 (D61).</div>
 </sc-if>
 </div>
 
@@ -490,7 +490,7 @@ class Component extends DCLogic {
     const avatars = ['fox', 'otter', 'panda', 'frog', 'owl', 'rabbit'].map(key => ({ key, src: `uploads/ill-avatar-${key}.webp` }));
     const curr = ['GBP · British Pound', 'IDR · Indonesian Rupiah', 'BHD · Bahraini Dinar', 'USD · US Dollar', 'EUR · Euro', 'SGD · Singapore Dollar'];
     const rateNum = Number(String(s.rate).replace(/[^0-9.]/g, '')) || 0;
-    const rp = (n) => 'Rp ' + Math.round(n).toLocaleString('en-GB');
+    const rp = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
     const times = ['18:00', '19:00', '20:00', '21:00', '22:00'].map(t => ({ text: t, selected: t === '20:00', bg: t === '20:00' ? 'var(--mmr-palette-ink-900)' : 'transparent', color: t === '20:00' ? 'var(--mmr-palette-white)' : 'var(--mmr-palette-ink-900)' }));
     return {
       showNotes,

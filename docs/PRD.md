@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| Status | Draft v2, design-review decisions resolved 2026-09-08 |
+| Status | Draft v2. Decisions D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11 |
 | Platform | Native iOS 17+, iPhone and iPad |
-| Vocabulary | `../CONTEXT.md` is the glossary. Terms in **bold caps** below are defined there. |
-| Design system | `../../my-money-recap-ds/` (`@my-money-recap/ui`). `../DESIGN.md` holds the design decisions. |
+| Vocabulary | `CONTEXT.md` (beside this file) is the glossary. Terms in **bold caps** below are defined there. |
+| Design system | `../../my-money-recap-ds/` (`@my-money-recap/ui`). `../my-money-recap/DESIGN.md` holds the visual design decisions. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
 | Design handoff | `design/design_handoff_my_money_recap/` — eleven canvases holding all 118 screens (four from 2026-09-08, seven under `design-files/2026-09-11/`), plus the quoted canvas notes. Live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>. Renders are not in git. |
 
@@ -45,7 +45,7 @@ One persona: an adult (18+) who wants a light, fun way to see whether they kept 
 
 ## 4. Decisions log
 
-Every design question raised while writing this document, with the decision taken. These are settled; reopen one only with a reason. D1–D40 are from Draft v1 (2026-09-04); D41–D67 are from the design review (2026-09-08) and some of them **supersede** earlier entries, which is marked in place.
+Every design question raised while writing this document, with the decision taken. These are settled; reopen one only with a reason. D1–D40 are from Draft v1 (2026-09-04); D41–D67 from the design review (2026-09-08); D68–D71 from drawing the remaining screens (2026-09-11). Later entries **supersede** earlier ones where marked in place.
 
 | # | Question | Decision |
 |---|---|---|
@@ -99,7 +99,7 @@ Every design question raised while writing this document, with the decision take
 | **D48** | **Where does the screen-by-screen contract live?** | **`SCREEN-STATES.md`**, keyed to the handoff's screen ids (A0–A8, B1–B8, C1–C7, D1–D12). This document owns the rules; that file owns the states and the copy. The 2026-09-08 gaps list was closed out against both and has since been deleted; its decisions are D41–D67. |
 | **D49** | **How much of the non-happy path is specified now?** | **All of it, weighted.** Loading, offline and error states get artboards (§11, §6.19). Dynamic Type and iPad get written rules plus demonstration artboards, not 62 redraws. |
 | **D50** | **Components the design uses that the library does not have** | **Build `PromptCard`, `DayPicker` and `InlineError`.** Each is hand-composed on the canvases today and appears on two or more screens, so they will drift. Built 2026-09-08. A fourth candidate, `SelectRow`, was dropped on inspection: the shipped `ListRow` with `trailing="check"` and `selected` already has no `IconWell` and already draws a violet check, so it *is* the currency select row. A fifth, `Toast`, is **not** built — see D67. |
-| **D51** | **Payday 29, 30 and 31** | **The picker offers 1–31 plus `Last day`, disables nothing, and shows the three real dates that follow the selection** — e.g. tapping 31 shows `Next paydays: 30 Nov · 31 Dec · 31 Jan`, computed on device. Disabling days is possible but wrong: the picker is on screen twice in the app's life and cannot guard the eleven months the Member is not looking at, while disabling 29–31 in a February setup locks out anyone genuinely paid on the 30th. |
+| **D51** | **Payday 29, 30 and 31** | **The picker offers 1–31 plus `Last day`, disables nothing, and shows the three real dates that follow the selection** — e.g. tapping 31 in September shows `Next paydays: 30 Sep · 31 Oct · 30 Nov`, computed on device. Disabling days is possible but wrong: the picker is on screen twice in the app's life and cannot guard the eleven months the Member is not looking at, while disabling 29–31 in a February setup locks out anyone genuinely paid on the 30th. |
 | **D52** | **The Member's first month, when Payday already passed before sign-up** | **A Partial Recap** (§8.11) built around Spent, not Salary. Money In is 0, there is no Archetype, and screen 1 reads `Your first {n} days`. Showing the full Salary would credit money the app never observed; showing nothing at all would discard real spending data. |
 | **D53** | **Does the Target Warning fire before Payday?** | **Yes, with different copy.** Before Payday: `You've spent {spent} of the {line} you meant to spend this month.` After: `You've passed your saving line. {over} over.` Holding the warning until Payday would silence it for the three weeks it exists to cover. |
 | **D54** | **The Home hero when no Salary is set** | **Still Spent.** The hero shows the Spent figure and the Salary prompt moves below it as a `PromptCard`. Replacing the whole hero with a prompt (as drawn) hides a Spend the Member just logged. |
@@ -449,7 +449,7 @@ Edge case: Saved < Target amount with zero Spends is impossible, because Spent =
 Used on Home and Recap screen 3. `days remaining` counts today and is never less than 1 — it is `days in M − today + 1`, and the month length is computed, never assumed.
 
 - Before Payday: "Nothing to keep yet. Your salary lands on the {payday}."
-- Current month, on track (Spent ≤ Salary − Target amount): "Keep spending under {daily allowance} a day and you'll make it", where `daily allowance = max(0, floor((Salary − Target amount − Spent) ÷ days remaining))`.
+- Current month, on track (Spent ≤ Salary − Target amount): "Keep spending under {daily allowance} a day and you'll make it.", where `daily allowance = max(0, floor((Salary − Target amount − Spent) ÷ days remaining))`.
 - Current month, over the line: "You're {over} past your line. Next month is a fresh start."
 - Past month, met: "Target met. {Saved − Target amount} to spare."
 - Past month, missed: "{Target amount − Saved} short of your target."
@@ -567,16 +567,15 @@ The four grounds, two fonts and white cards are unchanged. **The radius scale ga
 - The Category hues are Snacks coral, Games violet, Toys yellow, Rides sky, Clothes green, Bills ink, Gifts gold, Other rust — as built, and as `tokens.json` and the Goal artboard already had them.
 - `Sheet` has **no** `fullSheet` or flex-grow prop. The fill-remaining-height behaviour on the canvases is an inline `flexGrow: 1`; if it is needed as API it must be added deliberately.
 
-**Three new components, built 2026-09-08 (D50), before new artboards are drawn.** Each was hand-composed on the canvases and appears on two or more screens. A fourth candidate, `SelectRow`, turned out to be the shipped `ListRow` and was not built; the row is kept below so nobody proposes it again.
+**Three components added on 2026-09-08 (D50).** Each appears on two or more screens. The currency list is `ListRow trailing="check"`; it needs no component of its own.
 
 | Component | Where it appears | Built from |
 |---|---|---|
 | `PromptCard` | Home hero prompt, Home target prompt, onboarding step 4 blocked state, Recap 4 no-Archetype, Settings empty rows | `Card` + `Eyebrow`/`CardTitle` + a 44pt violet-100 chevron well (`IconWell size={44} glyphSize={20}`) + `HelperText`. `size` keeps the height of the card it replaces (`hero` 191pt, `target` 136pt, `auto` hugs its content) so nothing jumps. The card *is* the button, so the three text parts are asked for their `as="span"` form. |
 | `DayPicker` | Onboarding 3, Settings salary | Horizontal 44pt pills 1–31 plus `Last day`, selected as an ink pill, scrolled to centre the selection, with the three-date helper below (D51). The dates are a **prop**: the component does no calendar arithmetic, so §8.2's `min(Payday, days in month)` stays with the caller. |
-| ~~`SelectRow`~~ | — | **Not built.** `ListRow trailing="check"` with `selected` already renders exactly this: no `IconWell`, a `violet.500` check in place of the value. Use `ListRow` for the currency list in onboarding 2 and Settings. |
 | `InlineError` | Sign in, email, log-a-spend write failure, currency rate failure, export failure | coral-100 fill, `radius.inset` 16, coral-500 dot, coral text Nunito 800 13. Pushes content down; never overlays. |
 
-**Not built (D67):** `Toast`. Its only use was the export confirmation, which the button's own `Sent ✓` state now covers.
+There is no `Toast` (D67): the export confirmation is the button's own `Sent ✓` state.
 
 **No new illustrations.** The existing set covers every screen, including the four Archetype mascots, the magic-link envelope and the saving-target jar.
 

@@ -21,7 +21,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 
 <div style="display:flex;flex-direction:column;gap:6px;max-width:900px">
   <div style="font:700 34px/1.1 var(--mmr-font-family-display)">My Money Recap · Home and the daily loop</div>
-  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Part 2 of 4. One Member, one ledger: Maya · GBP · salary £2,400 · payday 25 · target 20% = £480 · Otter. Home sits on the violet ground; the Log-a-spend sheet is a white Sheet over a dimmed Home, never a new ground. The before-payday and no-salary Homes, the Spend list (B6) and the flow map live in <code>2026-09-11/Home and Core Features (revised).dc.html</code>. Yellow stickies are annotations, not UI. Use the Today tweak to move the main Home through the month.</div>
+  <div style="font:700 15px/1.5 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">One Member, one ledger: Maya · GBP · salary £2,400 · payday 25 · target 20% = £480 · Otter. Home sits on the violet ground; the Log-a-spend sheet is a white Sheet over a dimmed Home, never a new ground. The before-payday and no-salary Homes, the Spend list (B6) and the flow map live in <code>2026-09-11/Home and Core Features (revised).dc.html</code>. Yellow stickies are annotations, not UI. Use the Today tweak to move the main Home through the month.</div>
 </div>
 
 <!-- ROW 1 -->
@@ -72,7 +72,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">{{ m.dailyNote }} Days remaining counts today, so {{ m.daysLeft }} on the {{ m.dayOrd }}. The bar reads full all month because Saved starts at the whole salary on payday and only falls — flag if that reads wrong.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">{{ m.dailyNote }} Days remaining counts today, so {{ m.daysLeft }} on the {{ m.dayOrd }}. The bar reads full all month because Saved starts at the whole salary on payday and only falls.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Spent is the hero number — it is the one figure that changes every day and the one the Member can act on. Money in and Saved sit as chips; Saved = Money In − Spent, computed, never logged. Tapping the hero card opens B6. "See last month" is disabled: August has no data.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Month and Settings chips are controls, so they take the tappable variant: the 30 pt pill keeps its size, an invisible 44 pt hit area is added. No tab bar, no nav bar, no header title.</div>
 </div>
