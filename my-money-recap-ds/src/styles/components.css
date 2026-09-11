@@ -156,6 +156,9 @@
   color: var(--mmr-color-text-primary);
   font-variant-numeric: tabular-nums;
 }
+/* PRD §11 step-down, set by StatHero from the formatted string's glyph count. */
+.mmr-stat-hero-value[data-step="m"] { font-size: var(--mmr-type-display-xl-step-m-font-size); }
+.mmr-stat-hero-value[data-step="s"] { font-size: var(--mmr-type-display-xl-step-s-font-size); }
 
 /* ---- Stat chip ---- */
 .mmr-stat-chip {
@@ -315,6 +318,10 @@
 .mmr-pagedot[data-active="true"] { width: var(--mmr-size-page-dot-active-width); background: var(--mmr-color-indicator-page-active-on-ground); }
 .mmr-pagedots[data-on-light="true"] .mmr-pagedot { background: var(--mmr-color-indicator-page-inactive-on-light); }
 .mmr-pagedots[data-on-light="true"] .mmr-pagedot[data-active="true"] { background: var(--mmr-color-indicator-page-active-on-light); }
+/* Tappable dots (D46): a button that keeps the dot's drawn size; the 44pt hit area comes from the same
+   centred pseudo-element the tappable Chip uses. */
+button.mmr-pagedot { padding: 0; border: 0; position: relative; flex-shrink: 0; }
+button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform: none; }
 
 /* ---- Motion ---- */
 @keyframes mmr-enter { from { opacity: 0; transform: translateY(var(--mmr-motion-enter-offset)); } to { opacity: 1; transform: none; } }
@@ -328,7 +335,7 @@
 /* ---- Tappable variants (PRD §13). The drawn pill keeps its size; a centred pseudo-element
    lifts the hit area to the 44pt minimum, so nothing in the recap screens changes shape. ---- */
 .mmr-chip[data-tappable="true"], .mmr-archetype[data-tappable="true"] { position: relative; }
-.mmr-chip[data-tappable="true"]::before, .mmr-archetype[data-tappable="true"]::before {
+.mmr-chip[data-tappable="true"]::before, .mmr-archetype[data-tappable="true"]::before, .mmr-pagedot[data-tappable="true"]::before {
   content: '';
   position: absolute;
   left: 50%; top: 50%;
@@ -379,15 +386,18 @@
   color: var(--mmr-color-text-secondary);
 }
 .mmr-field-helper[data-state="invalid"] { color: var(--mmr-color-text-accent-coral); }
-/* The amount is a number, so it takes the display face. */
+/* The amount is a number, so it takes the display face: 48px, stepping to 36 and 28 as the formatted
+   string passes 7 and 10 glyphs (PRD §11). AmountField sets data-step. */
 .mmr-amount .mmr-field-input, .mmr-amount .mmr-field-affix {
   font-family: var(--mmr-font-family-display);
-  font-size: var(--mmr-type-stat-badge-font-size);
+  font-size: var(--mmr-type-amount-l-font-size);
   font-weight: 700;
   color: var(--mmr-color-text-primary);
   font-variant-numeric: tabular-nums;
 }
 .mmr-amount .mmr-field { height: auto; padding: var(--mmr-space-4) var(--mmr-space-6); }
+.mmr-amount[data-step="m"] .mmr-field-input, .mmr-amount[data-step="m"] .mmr-field-affix { font-size: var(--mmr-type-amount-step-m-font-size); }
+.mmr-amount[data-step="s"] .mmr-field-input, .mmr-amount[data-step="s"] .mmr-field-affix { font-size: var(--mmr-type-amount-step-s-font-size); }
 
 /* ---- Slider ---- */
 .mmr-slider { position: relative; display: flex; flex-direction: column; gap: var(--mmr-space-4); }
@@ -452,6 +462,7 @@
   line-height: var(--mmr-type-body-s-line-height);
 }
 .mmr-banner[data-tone="info"] { background: var(--mmr-color-surface-card-accent); }
+.mmr-banner[data-tone="offline"] { background: var(--mmr-color-surface-banner-offline); }
 .mmr-banner-body { flex-grow: 1; }
 .mmr-banner-dismiss {
   display: inline-flex;

@@ -9,6 +9,8 @@ import { StreakBadge, StreakDots } from '../components/Streak';
 import { ProgressBar, CategoryBar, CompareBars } from '../components/Bars';
 import { Button } from '../components/Button';
 import { ArchetypePill, ArchetypeRow } from '../components/ArchetypePill';
+import { PromptCard } from '../components/PromptCard';
+import { stepDownFor } from '../components/stepDown';
 import { PageDots } from '../components/PageDots';
 import { Icon } from '../icons';
 import { ILLUSTRATIONS } from '../assets/illustrations';
@@ -28,21 +30,28 @@ export const ARCHETYPE_BLURB: Record<Archetype, string> = {
   slowBurner: 'Lots of little spends added up. Sneaky.',
 };
 
+/** Formats a whole-currency amount for display. The default is pounds, en-GB; pass the Member's Currency
+ *  (`(n) => 'Rp ' + n.toLocaleString('id-ID')`) — every screen takes the same prop (PRD D45). */
+export type MoneyFormat = (n: number) => string;
+export const formatGbp: MoneyFormat = (n) => `£${Math.round(n).toLocaleString('en-GB')}`;
+
 export interface RecapCoverScreenProps {
   month?: string; childName?: string; total?: number; saved?: number; spent?: number; animate?: boolean;
+  /** Currency formatter, see `MoneyFormat`. */
+  format?: MoneyFormat;
 }
 /** Screen 1. Money In is the one big number; the Earned chip is gone because Salary is the only income (D2). */
-export function RecapCoverScreen({ month = 'September 2026', childName = 'Maya', total = 2400, saved = 640, spent = 1760, animate = false }: RecapCoverScreenProps) {
+export function RecapCoverScreen({ month = 'September 2026', childName = 'Maya', total = 2400, saved = 640, spent = 1760, animate = false, format = formatGbp }: RecapCoverScreenProps) {
   return (
     <Screen ground="recap">
       <ChipRow><Chip asLabel>{month}</Chip><Chip asLabel variant="highlight">{childName}'s recap</Chip></ChipRow>
       <Headline size="l" style={{ marginTop: 22 }}>Your {month.split(' ')[0]} in money</Headline>
       <Illustration src={ILLUSTRATIONS.cover} width={310} />
       <Card underIllustration animateIn={animate}>
-        <StatHero eyebrow="Money that came your way" value={total} animate={animate} format={(n) => `£${Math.round(n).toLocaleString('en-GB')}`} />
+        <StatHero eyebrow="Money that came your way" value={total} animate={animate} format={format} />
         <StatChipRow>
-          <StatChip tone="saved">Saved £{saved.toLocaleString('en-GB')}</StatChip>
-          <StatChip tone="spent">Spent £{spent.toLocaleString('en-GB')}</StatChip>
+          <StatChip tone="saved">Saved {format(saved)}</StatChip>
+          <StatChip tone="spent">Spent {format(spent)}</StatChip>
         </StatChipRow>
         <HelperText>Swipe to see where it all went.</HelperText>
       </Card>
@@ -65,16 +74,16 @@ export interface RecapEarningScreenProps {
   streakCaption?: string;
   daysInMonth?: number;
   animate?: boolean;
+  format?: MoneyFormat;
 }
 /** Screen 2. What was kept against the Saving Target, plus the longest no-spend Streak (D23). */
 export function RecapEarningScreen({
   month = 'September', moneyIn = 2400, saved = 640, targetAmount = 480,
   streakDays = 9, streakRange = [12, 20], streakCaption = '12 to 20 September. New badge unlocked.',
-  daysInMonth = 30, animate = false,
+  daysInMonth = 30, animate = false, format: money = formatGbp,
 }: RecapEarningScreenProps) {
   const noTarget = targetAmount == null || targetAmount <= 0;
   const keptPct = noTarget ? undefined : Math.min(999, Math.round((saved / targetAmount) * 100));
-  const money = (n: number) => `£${n.toLocaleString('en-GB')}`;
   return (
     <Screen ground="earning">
       <ChipRow><Chip asLabel variant="inverse">Kept</Chip><Chip asLabel>{month}</Chip></ChipRow>
@@ -123,15 +132,21 @@ export function RecapEarningScreen({
 export interface RecapGoalScreenProps {
   /** Saved for the month. */
   saved?: number;
-  /** Saving Target amount. */
-  target?: number;
-  /** One sentence from PRD §8.7. */
+  /** Saving Target amount. Pass `null` for a Member who has not set one (SCREEN-STATES C3 · no target set):
+   *  the headline becomes "Where {Spent} went", the sub-copy is dropped and the target card becomes a
+   *  `PromptCard`. `null`, not `undefined` — `undefined` is replaced by the default. */
+  target?: number | null;
+  /** One sentence from PRD §8.7. Unused when `target` is null. */
   helper?: string;
+  /** Opens Settings › Saving target from the no-target prompt. */
+  onSetTarget?: () => void;
+  format?: MoneyFormat;
   subCopy?: string;
   spentTotal?: number;
   /** Every Category with a Spend, sorted descending by percent of Spent. */
   categories?: Array<{ category: Category; percent: number }>;
-  /** Bars drawn before the tail is rolled into one line. Four is what the split card holds at 844pt. */
+  /** Bars drawn before the tail is rolled into one line. Four is what the split card holds at 844pt in
+   *  pounds; a long Currency format (IDR) drops it to three so the screen still fits. */
   maxCategoryBars?: number;
   /** The largest single Spend. Pass `null` when the month has no Spends (§6.13); like `targetAmount`,
    *  `undefined` would be replaced by the default below. It is hidden automatically when Spent is 0. */
@@ -153,29 +168,46 @@ export function RecapGoalScreen({
     { category: 'other', percent: 1 },
   ],
   splurge = '£420 on a flight home. Your biggest single buy.',
-  maxCategoryBars = 4,
+  maxCategoryBars = 4, onSetTarget, format: money = formatGbp,
 }: RecapGoalScreenProps) {
-  const pct = Math.min(999, Math.round((saved / target) * 100));
-  const money = (n: number) => `£${n.toLocaleString('en-GB')}`;
+  const noTarget = target == null || target <= 0;
+  const pct = noTarget ? 0 : Math.min(999, Math.round((saved / target) * 100));
+  // Long formats (PRD D45): "Rp 5.600.000 of Rp 3.000.000" cannot share a line with the title, so the value
+  // drops under it, and the vending machine gives the text column 28pt back so the eyebrow and the splurge
+  // keep their line counts; the split card draws three bars instead of four. GBP strings never trigger this.
+  const long = stepDownFor(money(Math.max(saved, spentTotal))) !== 'l';
+  const bars = long ? Math.min(maxCategoryBars, 3) : maxCategoryBars;
   const noSpends = spentTotal <= 0 || categories.length === 0;
-  const shown = categories.slice(0, maxCategoryBars);
-  const rest = categories.slice(maxCategoryBars);
+  const shown = categories.slice(0, bars);
+  const rest = categories.slice(bars);
   const restPct = rest.reduce((sum, c) => sum + c.percent, 0);
   return (
     <Screen ground="goal">
       <ChipRow><Chip asLabel>Target</Chip><Chip asLabel variant="inverse">Spending</Chip></ChipRow>
-      <Headline size="compact" style={{ marginTop: 16 }}>{pct}% of your saving target</Headline>
-      <SubCopy style={{ marginTop: 8 }}>{subCopy}</SubCopy>
-      <Card style={{ marginTop: 18 }} animateIn={animate}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <CardTitle>Saving target</CardTitle>
-          <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--mmr-color-text-secondary)' }}>
-            <span style={{ color: 'var(--mmr-color-text-primary)', fontSize: 18 }}>{money(saved)}</span> of {money(target)}
-          </span>
+      {noTarget ? (
+        <Headline size="compact" style={{ marginTop: 16 }}>Where {money(spentTotal)} went</Headline>
+      ) : (
+        <>
+          <Headline size="compact" style={{ marginTop: 16 }}>{pct}% of your saving target</Headline>
+          <SubCopy style={{ marginTop: 8 }}>{subCopy}</SubCopy>
+        </>
+      )}
+      {noTarget ? (
+        <div style={{ marginTop: 18 }}>
+          <PromptCard size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month." onClick={onSetTarget} />
         </div>
-        <div style={{ paddingTop: 14 }}><ProgressBar value={saved} max={target} animate={animate} marker={<Icon name="piggy" />} /></div>
-        <HelperText>{helper}</HelperText>
-      </Card>
+      ) : (
+        <Card style={{ marginTop: 18 }} animateIn={animate}>
+          <div style={long ? { display: 'flex', flexDirection: 'column', gap: 4 } : { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <CardTitle>Saving target</CardTitle>
+            <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--mmr-color-text-secondary)' }}>
+              <span style={{ color: 'var(--mmr-color-text-primary)', fontSize: 18 }}>{money(saved)}</span> of {money(target)}
+            </span>
+          </div>
+          <div style={{ paddingTop: 14 }}><ProgressBar value={saved} max={target} animate={animate} marker={<Icon name="piggy" />} /></div>
+          <HelperText>{helper}</HelperText>
+        </Card>
+      )}
       <Card variant="split" style={{ marginTop: 12, flexGrow: 1 }} animateIn={animate}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexGrow: 1, minWidth: 0 }}>
           <div>
@@ -200,8 +232,8 @@ export function RecapGoalScreen({
             </div>
           ) : null}
         </div>
-        <div style={{ width: 148, flexShrink: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginTop: -60 }}>
-          <img src={ILLUSTRATIONS.vending} alt="" style={{ width: 148, display: 'block' }} />
+        <div style={{ width: long ? 120 : 148, flexShrink: 0, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginTop: long ? -40 : -60 }}>
+          <img src={ILLUSTRATIONS.vending} alt="" style={{ width: long ? 120 : 148, display: 'block' }} />
         </div>
       </Card>
       <div style={{ marginTop: 18 }}><PageDots count={4} active={2} /></div>
@@ -222,14 +254,14 @@ const ARCHETYPE_TITLE: Record<Archetype, string> = {
 
 export interface RecapPersonalityScreenProps {
   childName?: string; archetype?: Archetype; archetypeLabel?: string; blurb?: string; saved?: number; spent?: number; animate?: boolean;
+  format?: MoneyFormat;
 }
 /** Screen 4. The shareable Archetype badge. No page dots, so screenshots stay clean. */
 export function RecapPersonalityScreen({
-  childName = 'Maya', archetype = 'squirrel', archetypeLabel, blurb, saved = 640, spent = 1760, animate = false,
+  childName = 'Maya', archetype = 'squirrel', archetypeLabel, blurb, saved = 640, spent = 1760, animate = false, format: money = formatGbp,
 }: RecapPersonalityScreenProps) {
   const all: Archetype[] = ['squirrel', 'hustler', 'treatYourself', 'slowBurner'];
   const title = archetypeLabel ?? ARCHETYPE_TITLE[archetype];
-  const money = (n: number) => `£${n.toLocaleString('en-GB')}`;
   return (
     <Screen ground="personality">
       <ChipRow><Chip asLabel>Your money personality</Chip></ChipRow>

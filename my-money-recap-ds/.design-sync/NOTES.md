@@ -413,3 +413,21 @@ siblings.**
 helper ships anywhere, because **the iOS app does not exist in this repo yet** — `apps/` and
 `infra/` are README-only and there are zero `.swift` files. `DayPicker` takes the dates as a prop by
 design; the arithmetic belongs to the app when the app is written.
+
+## 2026-09-11 · component gaps found by the remaining 56 screens (not yet synced)
+
+Drawing every `REDRAW`/`NEW` row of `docs/SCREEN-STATES.md` against the shipped components (canvases in
+`docs/design/design_handoff_my_money_recap/design-files/2026-09-11/`) exposed seven things the PRD requires
+that no component did. All fixed on branch `ds/component-gaps-from-screens`, recorded as PRD D71:
+
+- `StatHero` and `AmountField` size themselves from the formatted string (`data-step`, tokens
+  `type.display-xl-step-*`, `type.amount-*`). `TextField` routes `data-step` to its wrapper.
+- `PromptCard` takes `height` for the measured card (233/157pt in IDR).
+- The four Recap screens take `format: MoneyFormat` (default `formatGbp`); `RecapGoalScreen` takes
+  `target: number | null` and adapts to long formats (stacked target row, three bars).
+- `Banner tone="offline"` (token `color.surface.banner-offline`); `PageDots onSelect`.
+- `scripts/measure.tsx` (`npm run measure`) now covers the long-number states too.
+
+**The bundle was rebuilt locally only** (`resync.mjs … --out ./ds-bundle --no-render-check`, no `--remote`) and
+**not uploaded**: the Claude Design project still holds the 2026-09-08 components. Run the full resync with a
+fresh anchor before the next upload; expect these eight cards to diff as changed.

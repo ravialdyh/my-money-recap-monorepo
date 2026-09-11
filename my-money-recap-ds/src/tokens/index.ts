@@ -50,6 +50,7 @@ export const tokens = {
   "color.surface.scrim": "rgba(30, 27, 58, 0.4)",
   "color.surface.field": "#EFECF7",
   "color.surface.banner": "#F0665A",
+  "color.surface.banner-offline": "#6B6890",
   "color.surface.toggle-on": "#5B4FE8",
   "color.surface.toggle-off": "#EFECF7",
   "color.surface.divider": "#EFECF7",

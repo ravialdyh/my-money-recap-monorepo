@@ -13,6 +13,12 @@ export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
    * when the Member fills them in. `auto` hugs its content, for a Settings row.
    */
   size?: 'hero' | 'target' | 'auto';
+  /**
+   * The measured height of the card this prompt replaces, when it differs from `size`'s default.
+   * The defaults are the GBP Home cards; in a currency whose amounts wrap the stat chips (IDR, PRD
+   * D45) the hero card is 233pt and the target card 157pt, so the Home screen passes what it measured.
+   */
+  height?: number;
   /** Small label above the title, e.g. "Step 3 of 4". `null` (the default) removes it. */
   eyebrow?: ReactNode | null;
   /** The prompt itself, e.g. "Set your monthly salary". Styled as a `CardTitle`. */
@@ -30,13 +36,14 @@ export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
  * and `HelperText` are asked for their `span` form. The drawn result is identical.
  */
 export function PromptCard({
-  size = 'auto', eyebrow = null, title, helper = null, state = 'default', className = '', ...rest
+  size = 'auto', height, eyebrow = null, title, helper = null, state = 'default', className = '', style, ...rest
 }: PromptCardProps) {
   useStyles();
   return (
     <button
       type="button" className={`mmr-card mmr-prompt-card mmr-pressable ${className}`}
       data-size={size} data-state={state}
+      style={height == null ? style : { ...style, height }}
       disabled={state === 'disabled' || rest.disabled} {...rest}
     >
       <span className="mmr-prompt-card-body">

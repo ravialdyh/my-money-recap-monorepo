@@ -14,6 +14,18 @@ export function HomeHeroPrompt() {
     </div></div>
   );
 }
+/** Home in rupiah (D45): the stat chips wrap, so the hero card measures 233pt and the prompt takes that height. */
+export function HomeHeroPromptRupiah() {
+  const idr = (n: number) => `Rp ${Math.round(n).toLocaleString('id-ID')}`;
+  return (
+    <div style={ground}><div style={stack}>
+      <Card><StatHero eyebrow="Spent so far" value={9400000} format={idr} />
+        <StatChipRow><StatChip tone="earned">Money in Rp 15.000.000</StatChip><StatChip tone="saved">Saved Rp 5.600.000</StatChip></StatChipRow>
+      </Card>
+      <PromptCard size="hero" height={233} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
+    </div></div>
+  );
+}
 /** Home, no Saving Target set: the 136pt target card becomes the prompt, so nothing below it moves. */
 export function HomeTargetPrompt() {
   return (

@@ -16,7 +16,8 @@
     "build:tokens": "node scripts/build-tokens.mjs && node scripts/build-styles.mjs",
     "typecheck": "tsc --noEmit",
     "preview": "esbuild scripts/render-screens.tsx --bundle --platform=node --format=esm --jsx=automatic --external:react --external:react-dom --outfile=scripts/preview/render.mjs --log-level=warning && node scripts/preview/render.mjs && echo 'open scripts/preview/index.html'",
-    "build:assets": "node scripts/build-assets.mjs"
+    "build:assets": "node scripts/build-assets.mjs",
+    "measure": "esbuild scripts/measure.tsx --bundle --platform=node --format=esm --jsx=automatic --external:react --external:react-dom --outfile=scripts/preview/measure.mjs --log-level=warning && node scripts/preview/measure.mjs"
   },
   "peerDependencies": {
     "react": ">=18",

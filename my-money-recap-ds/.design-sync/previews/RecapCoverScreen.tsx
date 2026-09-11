@@ -7,3 +7,9 @@ export function OctoberLeo() {
 export function BeforePayday() {
   return <RecapCoverScreen month="October 2026" total={0} saved={0} spent={0} />;
 }
+
+/** D45, X4: Budi's cover in rupiah. "Rp 15.000.000" is 13 glyphs, so the hero steps to 40px and the chips wrap. */
+export function Rupiah() {
+  const idr = (n: number) => `Rp ${Math.round(n).toLocaleString('id-ID')}`;
+  return <RecapCoverScreen month="September 2026" childName="Budi" total={15000000} saved={5600000} spent={9400000} format={idr} />;
+}

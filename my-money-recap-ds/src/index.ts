@@ -49,8 +49,10 @@ export { AvatarGrid, Avatar, AVATAR_KEYS, AVATAR_LABEL } from './components/Avat
 export type { AvatarGridProps, AvatarProps, AvatarKey } from './components/AvatarGrid';
 export { Icon, ICON_NAMES } from './icons';
 export type { IconName, IconProps } from './icons';
-export { RecapCoverScreen, RecapEarningScreen, RecapGoalScreen, RecapPersonalityScreen, ARCHETYPE_BLURB } from './screens/RecapScreens';
-export type { RecapCoverScreenProps, RecapEarningScreenProps, RecapGoalScreenProps, RecapPersonalityScreenProps } from './screens/RecapScreens';
+export { RecapCoverScreen, RecapEarningScreen, RecapGoalScreen, RecapPersonalityScreen, ARCHETYPE_BLURB, formatGbp } from './screens/RecapScreens';
+export type { RecapCoverScreenProps, RecapEarningScreenProps, RecapGoalScreenProps, RecapPersonalityScreenProps, MoneyFormat } from './screens/RecapScreens';
+export { stepDownFor } from './components/stepDown';
+export type { StepDown } from './components/stepDown';
 export { tokens, cssVar } from './tokens';
 export type { TokenPath } from './tokens';
 export { ensureStyles, useStyles } from './styles/useStyles';

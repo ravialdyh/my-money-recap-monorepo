@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStyles } from '../styles/useStyles';
 import { Eyebrow } from './Headline';
+import { stepDownFor } from './stepDown';
 
 export interface StatHeroProps {
   eyebrow: string;
@@ -12,14 +13,19 @@ export interface StatHeroProps {
 }
 const defaultFormat = (n: number) => `£${Math.round(n)}`;
 
-/** The one big number on a screen: eyebrow + 80px Fredoka value. */
+/**
+ * The one big number on a screen: eyebrow + Fredoka value. 80px up to 7 glyphs of the formatted
+ * string, 56px to 10, 40px beyond (PRD §11, D45) — measured on the final value, not the count-up frame,
+ * so the size never changes mid-animation.
+ */
 export function StatHero({ eyebrow, value, format = defaultFormat, animate = false }: StatHeroProps) {
   useStyles();
   const shown = useCountUp(value, animate);
+  const step = stepDownFor(format(value));
   return (
     <div className="mmr-stat-hero">
       <Eyebrow>{eyebrow}</Eyebrow>
-      <div className="mmr-stat-hero-value">{format(shown)}</div>
+      <div className="mmr-stat-hero-value" data-step={step}>{format(shown)}</div>
     </div>
   );
 }
