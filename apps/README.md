@@ -2,6 +2,7 @@
 
 Runnable products. Nothing here yet.
 
-Planned: the mobile client (iOS first, per `docs/PRD.md`) and its backend service.
-Each app gets its own folder and consumes the shared design system from
-`my-money-recap-ds` (`@my-money-recap/ui`).
+Planned, per `docs/ARCHITECTURE.md`: the iOS app (`apps/ios`), the Go BFF (`apps/bff`)
+and the four Go services (`apps/members`, `apps/ledger`, `apps/notify`, `apps/currency`).
+Each gets its own folder. The iOS app consumes the design tokens and illustrations from
+`my-money-recap-ds`; the Go apps consume the generated contract from `packages/contract`.

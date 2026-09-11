@@ -7,6 +7,7 @@
 | Vocabulary | `CONTEXT.md` (beside this file) is the glossary. Terms in **bold caps** below are defined there. |
 | Design system | `../my-money-recap-ds/` (`@my-money-recap/ui`). Its `README.md` carries the visual rules; `src/tokens/tokens.json` the values. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
+| Architecture | `ARCHITECTURE.md` (beside this file) is the backend design that implements these rules: the edge, the BFF, the four services, the broker, the cache and identity. Its decisions are numbered `A*`. |
 | Design handoff | `design/design_handoff_my_money_recap/` — eleven canvases holding all 118 screens (four from 2026-09-08, seven under `design-files/2026-09-11/`), plus the quoted canvas notes. Live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>. Renders are not in git. |
 
 ## 1. Summary
@@ -74,7 +75,7 @@ Every design question raised while writing this document, with the decision take
 | D27 | Past Recaps | List, newest first, from Home. Months with no data hidden. |
 | D28 | Sharing | Screen 4 only, as an image through the iOS share sheet, without Salary figures. |
 | D29 | Notifications | Recap ready (on by default), daily reminder (off), Target Warning (on). Permission asked after the first Spend. |
-| D31 | Stack named here | Keycloak, SwiftUI, one backend service with a relational database. Everything else belongs to a separate architecture document. |
+| D31 | Stack named here | Keycloak, SwiftUI, Postgres. The backend is a Go BFF in front of four Go services (`members`, `ledger`, `notify`, `currency`), RabbitMQ and Redis, behind Nginx. Everything about that shape, including why, lives in `ARCHITECTURE.md`; this document only states the rules it must implement. **Rewritten 2026-09-12; the original read "one backend service".** |
 | D32 | Magic link landing | iOS universal link opens the app; web fallback page when the app is absent. Link valid 15 minutes, single use. |
 | D33 | Recap period | Calendar month, always. Payday only moves when Money In appears inside it. **Reaffirmed by D41.** |
 | D34 | Day boundaries | Device local date at the moment of logging, stored as a plain date. |
@@ -370,7 +371,7 @@ Amounts are exact decimals (`NUMERIC`, never a float or an integer count of mino
 
 | Entity | Fields | Notes |
 |---|---|---|
-| Member | id, keycloak_subject, display_name, avatar_key (one of six), currency_code, **created_at**, **deletion_requested_at** | One per Keycloak user. `created_at` is load-bearing: it bounds the Streak (D43) and identifies the sign-up month (D52). `deletion_requested_at` drives D60. |
+| Member | id, keycloak_subject, display_name, avatar_key (one of six), currency_code, **timezone**, **created_at**, **deletion_requested_at** | One per Keycloak user. `created_at` is load-bearing: it bounds the Streak (D43) and identifies the sign-up month (D52). `deletion_requested_at` drives D60. `timezone` is an IANA name sent by the app on each launch; every "today" in §8 and every local time in §10 is evaluated in it (`ARCHITECTURE.md` A3). |
 | SalarySetting | member_id, amount_minor, payday (1–31 **or the token `last`**), effective_from (year-month) | Append-only. The row with the latest effective_from ≤ a month is the one in force for that month. D56 decides which month a new row starts from. |
 | SavingTargetSetting | member_id, percent (0–100), effective_from (year-month) | Same append-only pattern, always effective from the **next** month (D65). |
 | Spend | id, member_id, amount_minor, category (enum of eight), date, note, created_at, updated_at | Soft-deleted rows are excluded from every computation. |
