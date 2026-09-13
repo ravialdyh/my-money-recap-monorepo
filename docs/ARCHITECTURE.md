@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Status | Draft v1, 2026-09-12. Decisions A1–A10 below are proposed; each becomes an ADR under `adr/` once accepted. |
-| Scope | The backend behind the iOS app named in `PRD.md` D11: the edge, the API the phone calls, the services, the broker, the cache, the databases and identity. The iOS app's internals are out of scope here except where the contract touches them. |
+| Scope | The backend behind the iOS app named in `PRD.md` D11: the edge, the API the phone calls, the services, the broker, the cache, the databases and identity. The iOS app's internals live in `IOS.md` (beside this file), whose decisions are numbered `I*`. |
 | Vocabulary | `CONTEXT.md` is the glossary. Terms in **bold caps** are defined there. Service names are lower-case code: `members`, `ledger`, `notify`, `currency`, `bff`. |
 | Rules | `PRD.md` owns every product rule this document implements. Section references like §8.9 point there. |
 
@@ -136,6 +136,10 @@ WHERE (now() AT TIME ZONE timezone)::time >= '09:00'
 
 No cron per zone and no zone table. Postgres and Go both carry the IANA data, so a daylight-saving change is a package update.
 
+### 4.6 Observability (A11)
+
+Once one tap on the phone crosses Nginx, the BFF and up to three services, a slow or failed request cannot be understood from one log file. Every Go process, the BFF included, uses the OpenTelemetry SDK for traces, metrics and logs and exports them over OTLP to one container, `grafana/otel-lgtm`, which bundles Tempo (traces), Loki (logs), Prometheus (metrics) and Grafana in a single image for phase 1. The BFF starts a trace per request and propagates the context in Connect headers and in RabbitMQ message headers, so a `SpendLogged` event and the push it caused appear under the Save that produced them. Every log line carries the trace id and the Member id, never the token. The three alerts worth having on day one: any service health check failing, any queue's dead-letter count above zero, and BFF p95 latency above one second (PRD §11).
+
 ## 5. The edge: Nginx (A7)
 
 | | |
@@ -251,9 +255,10 @@ Flow: salary edit after Payday (D56)
 
 | | |
 |---|---|
-| Responsibility | Deciding and sending every notification in PRD §10, and remembering what was sent. Device tokens. Notification preferences. The Target Warning state the Home banner reads. |
-| Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at), `sent_log`, `member_facts` (replica: timezone, display_name), `processed_events`. |
-| RPCs | `GetWarningState(month)`, `EvaluateWarning(month figures)`, `GetPrefs`, `SavePrefs`, `RegisterDevice`. |
+| Responsibility | Deciding and sending every notification in PRD §10, and remembering what was sent. Device tokens. Notification preferences. The Target Warning state the Home banner reads. All outbound email the app itself sends, which in phase 1 is only the CSV export (PRD §6.16); Keycloak sends its own magic-link mail. |
+| Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at), `sent_log`, `email_status` (member_id, address, last_bounce_at), `member_facts` (replica: timezone, display_name, email), `processed_events`. |
+| RPCs | `GetWarningState(month)`, `EvaluateWarning(month figures)`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailExport(csv)`. |
+| Email | The same SMTP provider Keycloak uses, read from the environment. A hard bounce recorded by the provider's webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
 | Consumes | `ledger.spend.logged` → send the push if `month_flag` is stamped and unsent. `members.updated` → replica. `members.deleted` → purge. |
 | Schedulers | Every minute: the 09:00-on-the-1st query for Recap ready, and the Member-chosen-time query for the daily reminder. The reminder calls `ledger.GetSpentToday` before sending, because "only if no Spend was logged today" is a ledger fact. |
 | APNs | Token-based auth with a .p8 key, HTTP/2 to Apple. A 410 response deletes the device row. |
@@ -269,6 +274,12 @@ flowchart LR
 ```
 
 A partial month still sends (PRD §10). The daily reminder is the same loop with the Member's chosen time and a `ledger.GetSpentToday` check.
+
+Flow: CSV export (PRD §6.16, D39)
+
+1. The phone calls `RequestExport`. The BFF calls `ledger.ExportCSV`, which streams every non-deleted Spend for that Member as CSV.
+2. The BFF calls `notify.EmailExport(csv)`. Notify checks `email_status`, sends through SMTP, and writes `sent_log`.
+3. The BFF returns success and the phone's button becomes `Sent ✓` for 60 seconds (D67). A refused address returns the §6.16 `InlineError`. The file is never stored server-side; a second tap regenerates it.
 
 ### 7.4 `currency`
 
@@ -305,7 +316,7 @@ Flow: magic link on a laptop (D32, acceptance 2)
 | `member` | members | members | members only; others hold `member_facts` replicas fed by events |
 | `salary_setting`, `saving_target_setting`, `spend`, `currency_conversion` | ledger | ledger | ledger only |
 | `member_facts` (replica) | ledger, notify | that service's consumer | that service |
-| `notification_preference`, `device`, `month_flag`, `sent_log` | notify | notify | notify only |
+| `notification_preference`, `device`, `month_flag`, `sent_log`, `email_status` | notify | notify | notify only |
 | `rate_snapshot` | currency | currency | currency only |
 | `outbox`, `processed_events` | every service | that service | that service's relay and consumers |
 | Keycloak tables | keycloak | Keycloak | Keycloak only |
@@ -340,8 +351,12 @@ One Postgres container, five databases, five roles, each role granted only its o
 | postgres | postgres:17 | 5432 internal | volume |
 | rabbitmq | rabbitmq:4-management | 5672, 15672 internal | volume |
 | redis | redis:8 | 6379 internal | — |
+| otel-lgtm | grafana/otel-lgtm | 4317 internal, 3000 admin-only | volume |
+| pg-backup | built from `infra/pg-backup` (cron + `pg_dump`) | — | postgres |
 
-Eleven containers, one `compose.yaml`, health checks on every one so `depends_on: condition: service_healthy` starts them in order. Migrations run as a one-shot step per service before that service starts. The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
+Thirteen containers, one `compose.yaml`, health checks on every one so `depends_on: condition: service_healthy` starts them in order. Migrations run as a one-shot step per service before that service starts. The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
+
+**Backups (A12).** `pg-backup` runs `pg_dump` of each of the five databases at 03:00 UTC to an S3-compatible bucket in the same region, encrypted with a key from the environment, and keeps 30 daily copies. RabbitMQ and Redis hold nothing that cannot be rebuilt: an unpublished outbox row is re-published by the relay, and every Redis key is a cache or a short-lived lock. Once a quarter, a restore into a scratch Postgres is run and the ledger fixtures are executed against it; a backup that has never been restored is not a backup.
 
 ## 11. Decisions to record as ADRs
 
@@ -357,3 +372,5 @@ Eleven containers, one `compose.yaml`, health checks on every one so `depends_on
 | A8 | Service boundaries: `members`, `ledger`, `notify`, `currency`; payment and AI reserved; replicated member facts fed by events. | proposed |
 | A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | proposed |
 | A10 | Magic link: Phase Two extension, link on the app's domain, static fallback that never consumes the token. | blocked on the §7.5 open item |
+| A11 | Observability: OpenTelemetry in every Go process, OTLP to one `otel-lgtm` container, trace context carried in Connect and RabbitMQ headers. | proposed |
+| A12 | Backups: nightly `pg_dump` per database to object storage, 30 days kept, quarterly restore drill. | proposed |

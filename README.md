@@ -57,6 +57,7 @@ CI runs both and fails if either output is stale, so generated files can never d
 - [`docs/SCREEN-STATES.md`](docs/SCREEN-STATES.md) — every screen and state, with its copy
 - [`docs/CONTEXT.md`](docs/CONTEXT.md) — domain glossary (Member, Salary, Spend, Recap, Archetype…). Read this before naming anything.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the backend design: Nginx, the Go BFF, the four services, RabbitMQ, Redis, Postgres, Keycloak, and the numbered `A*` decisions
+- [`docs/IOS.md`](docs/IOS.md) — the iOS app's internals: sign-in, session, networking, the SwiftData cache, generated tokens, and the numbered `I*` decisions
 - [`docs/design/design_handoff_my_money_recap/README.md`](docs/design/design_handoff_my_money_recap/README.md) — the design handoff: eleven canvases, 118 screens
 - [`my-money-recap-ds/README.md`](my-money-recap-ds/README.md) — the design system: visual rules and component API
 - [`my-money-recap/README.md`](my-money-recap/README.md) — how a rendered illustration becomes a shipped asset
@@ -69,6 +70,7 @@ CI runs both and fails if either output is stale, so generated files can never d
 | Illustration artwork | `my-money-recap/assets/illustrations/*.webp` | `my-money-recap-ds/src/assets/illustrations.ts` |
 | Product and design decisions | `docs/PRD.md` (numbered `D*` decisions) | — |
 | Backend architecture decisions | `docs/ARCHITECTURE.md` (numbered `A*` decisions) | — |
+| iOS app decisions | `docs/IOS.md` (numbered `I*` decisions) | — |
 | Visual rules | `my-money-recap-ds/README.md` § Design rules | — |
 | Screens | `docs/design/design_handoff_my_money_recap/` | renders (not in git) |
 | Domain vocabulary | `docs/CONTEXT.md` | — |
