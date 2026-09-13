@@ -2,8 +2,11 @@
 
 Deployment and infrastructure-as-code. Nothing here yet.
 
-Planned, per `docs/ARCHITECTURE.md` §10 and §7.5: the phase-1 `compose.yaml` (Nginx, certbot,
-the BFF, the four services, Keycloak, Postgres, RabbitMQ, Redis, the `otel-lgtm` observability
-container and the `pg-backup` job), the Nginx configuration, the `pg-backup` image, and the
-Keycloak realm export at `infra/keycloak/realm.json`. Secrets never live here; they come from
-the environment.
+Planned, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
+
+- `infra/tofu/` — OpenTofu: DNS records and the apple-app-site-association file, the VM with cloud-init and firewall, the Keycloak realm (official `keycloak/keycloak` provider), and API tokens for providers that expose them.
+- `infra/compose/` — the phase-1 `compose.yaml`: Nginx, the `acme.sh` sidecar, the BFF, the four services, Keycloak (Phase Two image, pinned), Postgres, RabbitMQ, Redis, `otel-lgtm`, `pg-backup`.
+- `infra/nginx/` — the Nginx configuration and the static `/magic` fallback page.
+- `infra/pg-backup/` — the nightly `pg_dump` image.
+- `infra/secrets/` — every secret, encrypted with SOPS and an age key (A13). Decrypted at deploy into `/run/secrets` and mounted as files; never plain text, never environment variables.
+- `infra/wizard/` — the one-time script for the nine steps only a human can do (Apple Developer, Google OAuth client, Open Exchange Rates, SMTP account, domain, cloud account, age key); each step ends by pasting the value into `sops edit infra/secrets/prod.yaml`.

@@ -147,7 +147,7 @@ Once one tap on the phone crosses Nginx, the BFF and up to three services, a slo
 | Responsibility | TLS termination, per-IP and per-connection limits, routing, static files, hiding every internal address. No business logic, no token parsing. |
 | Routes | `/api/` → bff. `/auth/` → Keycloak. `/.well-known/apple-app-site-association` → static, `application/json`, no redirect. `/magic` → the static fallback page. |
 | Limits | `limit_req_zone $binary_remote_addr rate=60r/s burst=120`, deliberately generous because a mobile carrier can put thousands of phones behind one address. `limit_conn` 100 per address. A stricter 5 r/min on the magic-link path only, matching PRD §11. |
-| Certificates | Let's Encrypt via a certbot sidecar; Nginx reloads on renewal. |
+| Certificates | Let's Encrypt via an `acme.sh` sidecar whose deploy hook runs `nginx -s reload`. The `certbot/certbot` image's own docs say it cannot install certificates or reload a web server, so it was dropped. |
 | Why Nginx | The most widely deployed reverse proxy, documented everywhere, and it keeps TLS and abuse control out of Go. |
 | Known limit | JWT validation needs Nginx Plus or the njs module. The design does not depend on it; the BFF verifies tokens. |
 
@@ -258,7 +258,7 @@ Flow: salary edit after Payday (D56)
 | Responsibility | Deciding and sending every notification in PRD §10, and remembering what was sent. Device tokens. Notification preferences. The Target Warning state the Home banner reads. All outbound email the app itself sends, which in phase 1 is only the CSV export (PRD §6.16); Keycloak sends its own magic-link mail. |
 | Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at), `sent_log`, `email_status` (member_id, address, last_bounce_at), `member_facts` (replica: timezone, display_name, email), `processed_events`. |
 | RPCs | `GetWarningState(month)`, `EvaluateWarning(month figures)`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailExport(csv)`. |
-| Email | The same SMTP provider Keycloak uses, read from the environment. A hard bounce recorded by the provider's webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
+| Email | The same SMTP provider Keycloak uses, credentials mounted as a secret file (A13). A hard bounce recorded by the provider's webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
 | Consumes | `ledger.spend.logged` → send the push if `month_flag` is stamped and unsent. `members.updated` → replica. `members.deleted` → purge. |
 | Schedulers | Every minute: the 09:00-on-the-1st query for Recap ready, and the Member-chosen-time query for the daily reminder. The reminder calls `ledger.GetSpentToday` before sending, because "only if no Spend was logged today" is a ledger fact. |
 | APNs | Token-based auth with a .p8 key, HTTP/2 to Apple. A 410 response deletes the device row. |
@@ -298,16 +298,21 @@ Flow: CSV export (PRD §6.16, D39)
 |---|---|
 | Responsibility | Sign-in. Brokers Apple and Google, sends magic links through the Phase Two extension, issues and refreshes tokens, ends sessions. Holds no app data. |
 | Owns | Its own database, `keycloak`, in the same Postgres container. |
-| Configuration as code | Realm export JSON committed to `infra/keycloak/realm.json` and imported on start. Secrets (Apple key, Google client secret, SMTP) come from environment, never from the JSON. |
-| Operations | The Apple client-secret JWT expires every six months (PRD §6.1). The script that generates it is committed, not remembered. |
+| Image | `quay.io/phasetwo/phasetwo-keycloak`, pinned to a tag whose bundled `keycloak-magic-link` and Apple identity-provider extensions match its Keycloak version. Never `latest`: the magic-link extension is compiled against one Keycloak minor and has broken on the next (`research/2026-09-14-a10-magic-link.md` §1). |
+| Configuration as code | The official `keycloak/keycloak` OpenTofu provider under `infra/tofu/`: the realm, the SMTP block, the Google identity provider, the Apple identity provider, the `ios` public client and the BFF's service-account client. A realm JSON import is skipped once the realm exists, so JSON cannot carry later changes; kcadm is imperative. |
+| Apple sign-in | The bundled Apple identity-provider extension takes the Team ID, Key ID and `.p8` key and signs the client-secret JWT itself on every code exchange. There is no six-month rotation job; the `.p8` is a static secret (`research/2026-09-14-setup-automation.md` §3). |
+| Secrets | Keycloak's file vault: `--vault=file --vault-dir=/run/secrets`, with `${vault.mmr_smtp_password}` and the two identity-provider secrets referenced by name. The files are mounted from the SOPS-decrypted set (§10, A13), so no secret is in OpenTofu state, JSON or the environment. |
 
-Flow: magic link on a laptop (D32, acceptance 2)
+Flow: email sign-in (D7, D32, acceptance 2)
 
-1. Keycloak emails a link to `https://app.example.com/magic?k=…`. Nginx serves the static fallback page for `/magic`.
-2. On an iPhone with the app installed, iOS never loads the page: the apple-app-site-association file, served by Nginx from `/.well-known/`, tells iOS to open the app. The app reads `k` and completes the Keycloak flow.
-3. On a laptop, the page loads and says "Open this link on your phone." It performs no request with `k`, so an email scanner that pre-opens the link cannot burn the single-use token.
+Keycloak's magic-link action token cannot be placed on the app's domain and is consumed by a plain GET, which mail scanners issue (`research/2026-09-14-a10-magic-link.md` §2–3). The extension's newer **Login Token** path avoids both, so that is A10.
 
-**Open item.** Whether the Phase Two magic-link extension's current release supports the Keycloak version in the official image, and whether its link can point at the app's domain rather than Keycloak's, is unverified. Maven Central lists 0.75 without a stated Keycloak target. A10 is blocked on this.
+1. The phone sends `RequestMagicLink(email)`. The BFF enforces 5 requests per email per hour in Redis (PRD §11), then calls the extension's `POST /realms/mmr/login-token` with `expiration_seconds: 900`, `reusable: false`, `force_create: true` and `set_email_verified: true`, using its service account. The response is an opaque `lt:<uuid>`.
+2. `notify` emails `https://app.example.com/magic?lt=…`. Nginx serves a static page for `/magic` and the apple-app-site-association file from `/.well-known/`, so on an iPhone with the app installed iOS opens the app instead of the page.
+3. The app POSTs `grant_type=password&login_token=…` to Keycloak's token endpoint and receives its tokens. No browser is involved on the email path; Apple and Google still use `ASWebAuthenticationSession` with PKCE. An expired or used token returns `invalid_grant`, which the app shows as the §6.3 `InlineError`.
+4. On a laptop, or when the Member has set links to open in the browser (Apple TN3155), the static page says "Open this link on your phone" and offers an "Open in app" button on the app's custom scheme. The page performs no request with `lt`, and a scanner GET on the URL reaches only that static page, so the token cannot be consumed by anything but the app.
+
+**Open item, narrowed.** The first infrastructure task is a Compose smoke test proving the chosen Phase Two image tag's magic-link extension redeems a login token on that image's Keycloak version. No published source verifies it.
 
 ## 8. Data ownership
 
@@ -338,16 +343,19 @@ One Postgres container, five databases, five roles, each role granted only its o
 | Outbox and `processed_events` | The only pattern under which "Spend saved but event lost" and "event delivered twice" are both impossible to observe. | Publish after commit without outbox: loses events on a crash. Exactly-once from the broker: does not exist end to end. |
 | Server-side computation | One implementation of §8, one answer key, no drift. | Phone-side arithmetic: a second implementation in Swift. |
 | Synchronous `EvaluateWarning` | The banner is in the Save response, as §8.8's "after saving a Spend" reads. | Event-only: the banner appears on the next `GetHome`, a second later. |
+| Login Token, not the action-token magic link | The action token lives on Keycloak's host and is consumed by any GET; the login token is opaque, app-redeemed, atomically single-use. | Action-token link with `send_email:false` and our own wrapper page: workable, but a scanner that follows the unwrapped URL still burns it. |
+| SOPS + age, not env files | Secrets encrypted in git, decrypted to files at deploy, no daemon, MPL-2.0 and BSD-3. | Vault/OpenBao: a server for one VM. Doppler/Infisical: a hosted service for one developer. `.env`: plain text on disk and in `docker inspect`. |
+| Apple identity-provider extension, not generic OIDC | It signs the client secret from the `.p8` on every exchange, so the six-month rotation job does not exist. | Generic OIDC with a hand-rotated JWT: a recurring operations task that fails silently when forgotten. |
 
 ## 10. Containers in phase 1
 
 | Container | Image | Ports | Depends on |
 |---|---|---|---|
 | nginx | nginx:stable | 443, 80 | bff, keycloak |
-| certbot | certbot/certbot | — | shares the cert volume with nginx |
+| acme | neilpang/acme.sh | — | shares the cert volume with nginx; deploy hook reloads nginx |
 | bff | built from `apps/bff` | 8080 internal | members, ledger, notify, currency, redis |
 | members, ledger, notify, currency | built from `apps/<service>` | 8080 internal each | postgres, rabbitmq, and redis where §4.4 lists it |
-| keycloak | quay.io/keycloak/keycloak with the Phase Two provider | 8080 internal | postgres |
+| keycloak | quay.io/phasetwo/phasetwo-keycloak, pinned tag (§7.5) | 8080 internal | postgres |
 | postgres | postgres:17 | 5432 internal | volume |
 | rabbitmq | rabbitmq:4-management | 5672, 15672 internal | volume |
 | redis | redis:8 | 6379 internal | — |
@@ -356,7 +364,11 @@ One Postgres container, five databases, five roles, each role granted only its o
 
 Thirteen containers, one `compose.yaml`, health checks on every one so `depends_on: condition: service_healthy` starts them in order. Migrations run as a one-shot step per service before that service starts. The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
 
-**Backups (A12).** `pg-backup` runs `pg_dump` of each of the five databases at 03:00 UTC to an S3-compatible bucket in the same region, encrypted with a key from the environment, and keeps 30 daily copies. RabbitMQ and Redis hold nothing that cannot be rebuilt: an unpublished outbox row is re-published by the relay, and every Redis key is a cache or a short-lived lock. Once a quarter, a restore into a scratch Postgres is run and the ledger fixtures are executed against it; a backup that has never been restored is not a backup.
+**Secrets (A13).** Every secret lives in `infra/secrets/prod.yaml`, encrypted with SOPS and an age key, and is committed. The deploy step decrypts it into files under `/run/secrets` and Compose mounts them with `secrets:`; Go services read `*_FILE` paths, Keycloak reads them through its file vault, and nothing is passed as an environment variable, which Docker's own docs advise against for secrets. The age private key on the VM and in the GitHub `production` environment is the only value a human ever holds. Rotation is edit, commit, deploy. Vault and OpenBao were rejected as a server for one VM; Doppler and Infisical as a hosted service for one developer.
+
+**Infrastructure as code.** `infra/tofu/` holds DNS records and the apple-app-site-association file, the VM with cloud-init and firewall, the Keycloak realm, and API tokens for providers that expose them (Resend or Postmark for SMTP). What stays human is one browser session each: Apple Developer Program enrolment and its two `.p8` keys and Services ID, the Google OAuth client, the Open Exchange Rates App ID, the first SMTP-provider account, the domain purchase, the cloud account, and one `age-keygen`. The setup wizard is scoped to exactly those, each ending in pasting the value into `sops edit infra/secrets/prod.yaml` (`research/2026-09-14-setup-automation.md` §4).
+
+**Backups (A12).** `pg-backup` runs `pg_dump` of each of the five databases at 03:00 UTC to an S3-compatible bucket in the same region, encrypted with a key from the secrets file, and keeps 30 daily copies. RabbitMQ and Redis hold nothing that cannot be rebuilt: an unpublished outbox row is re-published by the relay, and every Redis key is a cache or a short-lived lock. Once a quarter, a restore into a scratch Postgres is run and the ledger fixtures are executed against it; a backup that has never been restored is not a backup.
 
 ## 11. Decisions to record as ADRs
 
@@ -371,6 +383,7 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 | A7 | Front door: Nginx for TLS, per-IP limits and static files; the BFF verifies the JWT; every service verifies again. | proposed |
 | A8 | Service boundaries: `members`, `ledger`, `notify`, `currency`; payment and AI reserved; replicated member facts fed by events. | proposed |
 | A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | proposed |
-| A10 | Magic link: Phase Two extension, link on the app's domain, static fallback that never consumes the token. | blocked on the §7.5 open item |
+| A10 | Email sign-in: Phase Two Login Token redeemed by the app through the direct grant; the BFF requests it and limits 5 per email per hour; `notify` emails the app-domain link; the static fallback never touches the token; the Phase Two image is pinned. | proposed; first task is the §7.5 smoke test |
+| A13 | Secrets: SOPS + age, encrypted in git, mounted as files; Keycloak file vault; OpenTofu for DNS, VM, realm and provider tokens; the wizard covers only the nine human steps. | proposed |
 | A11 | Observability: OpenTelemetry in every Go process, OTLP to one `otel-lgtm` container, trace context carried in Connect and RabbitMQ headers. | proposed |
 | A12 | Backups: nightly `pg_dump` per database to object storage, 30 days kept, quarterly restore drill. | proposed |
