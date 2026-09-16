@@ -53,8 +53,8 @@ Every design question raised while writing this document, with the decision take
 | D3 | What "target saving" means | A monthly Saving Target stored as a percentage of Salary. No named goals. |
 | D4 | How money gets recorded | Salary is credited automatically on Payday. Spends are logged by hand. |
 | D5 | What "Saved" is | Computed: Money In minus total Spends for the calendar month. |
-| D6 | Identity provider | Keycloak, run from its official Docker image. No custom authenticator code. |
-| D7 | Email sign-in | Passwordless magic link via the Phase Two magic-link extension. Email must be verified before use. |
+| D6 | Identity provider | Keycloak, run from Phase Two's image of the official build, pinned to one tag. No custom authenticator code. **Rewritten 2026-09-14; the original said "its official Docker image".** |
+| D7 | Email sign-in | Passwordless magic link via the Phase Two magic-link extension's Login Token, redeemed by the app. Email is marked verified by the redemption. **Rewritten 2026-09-14** (`ARCHITECTURE.md` A10). |
 | D8 | Social sign-in | Sign in with Apple (required by App Store guideline 4.8), Google, Email. Three buttons, Apple first. |
 | D10 | Setup fields | Display Name, Avatar, Currency. Age band dropped. |
 | D11 | Platform | Native iOS 17+, SwiftUI, iPhone and iPad. |
@@ -177,8 +177,8 @@ Every screen uses `Screen` from the design system with one of the four grounds. 
 
 Rules
 
-- All three paths open Keycloak through `ASWebAuthenticationSession` with PKCE. The iOS app is a public client; no client secret ships in the binary.
-- Sign in with Apple is brokered in Keycloak as a generic OIDC provider. The Apple client secret is a JWT that must be rotated at least every 6 months; this is an operations requirement.
+- Apple and Google open Keycloak through `ASWebAuthenticationSession` with PKCE. The email path never opens a browser: the app redeems the emailed login token directly (`ARCHITECTURE.md` §7.5). The iOS app is a public client; no client secret ships in the binary.
+- Sign in with Apple is brokered by Keycloak's Apple identity-provider extension, which signs the Apple client-secret JWT from the `.p8` key on every exchange. There is no rotation task. **Rewritten 2026-09-14; the original required a hand-rotated secret every 6 months.**
 - Google is Keycloak's built-in Google provider with "Trust email" on.
 
 ### 6.2 Enter email
@@ -198,7 +198,7 @@ Rules
 | Components | `Illustration`, `Headline` size m, `SubCopy`, `HelperText` |
 | Copy | "Check your inbox." "We sent a link to {email}. It works for 15 minutes." Helper: "Resend" (enabled after 30 seconds, with a live m:ss countdown) and "Use a different email". |
 | Exit | Tapping the link opens the app via universal link and completes sign-in. If the app is not installed on the device that opened the email, the web fallback page says to open the app on the phone. |
-| Failure states | Expired link (>15 min), already-used link, and rate limit reached (5 per email per hour) each return the Member to 6.2 with an `InlineError` naming the cause. |
+| Failure states | Expired link (>15 min) and already-used link both surface as Keycloak's `invalid_grant` when the app redeems the token; rate limit reached (5 per email per hour) is refused by the backend before any email is sent. Each returns the Member to 6.2 with an `InlineError` naming the cause. |
 
 ### 6.4 Onboarding 1 · Name and Avatar
 
@@ -371,10 +371,10 @@ Amounts are exact decimals (`NUMERIC`, never a float or an integer count of mino
 
 | Entity | Fields | Notes |
 |---|---|---|
-| Member | id, keycloak_subject, display_name, avatar_key (one of six), currency_code, **timezone**, **created_at**, **deletion_requested_at** | One per Keycloak user. `created_at` is load-bearing: it bounds the Streak (D43) and identifies the sign-up month (D52). `deletion_requested_at` drives D60. `timezone` is an IANA name sent by the app on each launch; every "today" in §8 and every local time in §10 is evaluated in it (`ARCHITECTURE.md` A3). |
-| SalarySetting | member_id, amount_minor, payday (1–31 **or the token `last`**), effective_from (year-month) | Append-only. The row with the latest effective_from ≤ a month is the one in force for that month. D56 decides which month a new row starts from. |
+| Member | id, keycloak_subject, display_name, avatar_key (one of six), currency_code, **timezone**, **created_at**, **deletion_requested_at** | One per Keycloak user. `created_at` is load-bearing: it bounds the Streak (D43) and identifies the sign-up month (D52). `deletion_requested_at` drives D60. `timezone` is an IANA name sent by the app on each launch; every "today" in §8 and every local time in §10 is evaluated in it (`ARCHITECTURE.md` A3). **`signed_up_on`** is the local date at sign-up, fixed forever, so a later timezone change cannot move the Streak window or the partial-month test by a day. |
+| SalarySetting | member_id, amount, **original_amount, original_currency**, payday (1–31 **or the token `last`**), effective_from (year-month) | Append-only. `original_*` hold the value as typed and are never touched by a currency change (§8.9). The row with the latest effective_from ≤ a month is the one in force for that month. D56 decides which month a new row starts from. |
 | SavingTargetSetting | member_id, percent (0–100), effective_from (year-month) | Same append-only pattern, always effective from the **next** month (D65). |
-| Spend | id, member_id, amount_minor, category (enum of eight), date, note, created_at, updated_at | Soft-deleted rows are excluded from every computation. |
+| Spend | id, member_id, amount, **original_amount, original_currency**, category (enum of eight), date, note, created_at, updated_at | Soft-deleted rows are excluded from every computation. `original_*` hold the value as typed and are never touched by a currency change (§8.9). |
 | CurrencyConversion | member_id, from_code, to_code, rate, source (provider or manual), applied_at | Audit record of each rewrite. |
 | NotificationPreference | member_id, recap_ready, daily_reminder, daily_reminder_time, target_warning, apns_token | |
 | MonthFlag | member_id, year-month, target_warning_sent_at | Ensures the Target Warning fires once per month. |
@@ -412,7 +412,7 @@ A **Recap Month** is a calendar month in local dates (D33, D41). Everything belo
 
 ### 8.4 Saving Target amount
 
-Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Currency's decimals as the platform formatter reports them at the time. `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
+Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Currency's decimals as CLDR reports them at the time, which is the same data the platform formatter prints from; the server rounds and stores, the phone only prints (`ARCHITECTURE.md` §7.2). `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
 
 *Worked:* £2,400 × 20 ÷ 100 = £480. Saved £640 ÷ £480 × 100 = 133%. Budi: Rp 15.000.000 × 20 ÷ 100 = Rp 3.000.000.
 
@@ -468,7 +468,7 @@ Copy depends on whether Payday has passed (D53):
 1. Fetch the rate. If the pair is unsupported, ask the Member for a rate. If the fetch fails, show an `InlineError` with Retry.
 2. If the Member has no Salary and no Spends, skip the confirm sheet and change the code directly.
 3. Otherwise the confirm sheet shows the rate and before/after values.
-4. In one transaction: rewrite every SalarySetting amount and every Spend amount as `round-half-up(amount × rate)` to the new Currency's decimals; set `member.currency_code`; write a CurrencyConversion row.
+4. In one transaction: rewrite every SalarySetting amount and every Spend amount as `round-half-up(amount × rate)` to the new Currency's decimals, leaving each row's `original_amount` and `original_currency` untouched; set `member.currency_code`; write a CurrencyConversion row.
 5. Saving Target percentages are untouched.
 6. Not reversible except by converting again at a new rate.
 
@@ -497,9 +497,9 @@ For a partial month: Money In is 0, Saved is not computed or displayed, there is
 
 ## 9. Authentication and session
 
-- **Keycloak** from the official Docker image, one realm, one public OIDC client for iOS with PKCE required, redirect URI on the app's universal-link domain.
-- **Brokers:** Google (built-in, Trust email on), Apple (generic OIDC, Trust email on, client-secret JWT rotated every 6 months).
-- **Magic link:** Phase Two `keycloak-magic-link` extension, user created on first use, lifetime 900 seconds, single use. The link target is the app's universal link; the same URL serves a fallback web page for other devices.
+- **Keycloak** from Phase Two's pinned image (D6), one realm, one public OIDC client for iOS with PKCE required, redirect URI on the app's universal-link domain, and one service-account client for the backend.
+- **Brokers:** Google (built-in, Trust email on), Apple (the bundled Apple identity-provider extension, Trust email on, client secret signed from the `.p8` key on each exchange).
+- **Magic link:** Phase Two `keycloak-magic-link` Login Token, requested by the backend with a 900-second lifetime and `reusable: false` (the extension's defaults are 24 hours and reusable, so both are set explicitly), user created on first use, email marked verified on redemption. The backend emails the app's universal link carrying the token; the same URL serves a static fallback page for other devices, and that page never sends the token anywhere.
 - **Email verification:** the magic-link tap marks the email verified. The realm setting "Verify email" is on.
 - **Session on the device (D61, D62).** Refresh tokens are stored in the Keychain with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` and are released only after a successful `LAContext` evaluation (Face ID, Touch ID, or the device passcode as fallback). The session is valid for **30 days from last use**; each launch that unlocks successfully extends it. After 30 days of no use, or on Log out, the Keychain entry and the local cache are erased and the next launch shows Sign in. Refresh-token rotation stays on in Keycloak.
 - **Offline launch.** Unlocking the session does not require the network. The app opens on Home with cached data and the offline `Banner`. Token refresh is attempted in the background and its failure is not an error.
@@ -526,7 +526,7 @@ A partial month still sends "Recap ready" — there is something to see (§6.17)
 - **Accessibility:** Dynamic Type up to the "Large" accessibility size; **at accessibility sizes the four Recap screens become one vertical scroll with `PageDots` as section markers** (D66). VoiceOver labels on every chip, bar and button — a `CategoryBar` reads "Bills, 35 percent, £616"; a `StatChip` reads "Money in, zero pounds"; the hidden Saved chip is absent from the accessibility tree, not present-and-empty. All tappable elements at least 44 × 44pt, except page dots, which own their slice of a 44pt-tall row like the system page control (D71). Reduce Motion replaces reveals with 150ms fades.
 - **Localisation:** v1 ships en-GB copy only. Money is printed by the platform formatter from the amount and the Member's currency code: symbol and decimals come from the currency's CLDR data, separators from the device language (an Indonesian phone prints `Rp 15.000.000`, a British phone printing rupiah `Rp 15,000,000`). Dates follow the device locale.
 - **Privacy:** no analytics SDK in v1. Data stored server-side in one region and cached on device inside the app's container, protected by the device passcode and erased on log out or deletion. The share image never contains Salary or Money In.
-- **Security:** TLS everywhere, JWT verification on every request, no secrets in the binary, rate limiting on the magic-link endpoint (5 per email per hour), biometric gate on the persisted session.
+- **Security:** TLS everywhere, JWT verification on every request, no secrets in the binary, rate limiting on magic-link requests (5 per email per hour, enforced by the backend since neither Keycloak nor the extension limits sends), biometric gate on the persisted session.
 - **App Store compliance:** Sign in with Apple present (4.8), in-app account deletion (5.1.1(v)), privacy nutrition label listing email and financial data as linked to the user.
 
 ## 12. Acceptance criteria

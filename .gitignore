@@ -18,3 +18,12 @@ my-money-recap/renders/
 # forever; export them on demand from the two live canvases linked in
 # docs/design/design_handoff_my_money_recap/README.md.
 docs/design/**/screens/
+
+# Secrets and keys. Real values live in infra/secrets/ encrypted with SOPS (A13); nothing plain-text is ever committed.
+.env
+.env.*
+*.p8
+*.p12
+*.pem
+*.key
+age.key
