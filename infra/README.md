@@ -1,11 +1,13 @@
 # infra
 
-Deployment and infrastructure-as-code. Nothing here yet.
+Deployment and infrastructure-as-code.
+
+- `infra/compose/` — the phase-1 `compose.yaml`. Today: Keycloak (Phase Two image, pinned), Postgres, RabbitMQ and Redis, with the `mmr` realm bootstrapped from JSON. See [`compose/README.md`](compose/README.md) for how to start it.
 
 Planned, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
 
 - `infra/tofu/` — OpenTofu: DNS records and the apple-app-site-association file, the VM with cloud-init and firewall, the Keycloak realm (official `keycloak/keycloak` provider), and API tokens for providers that expose them.
-- `infra/compose/` — the phase-1 `compose.yaml`: Nginx, the `acme.sh` sidecar, the BFF, the four services, Keycloak (Phase Two image, pinned), Postgres, RabbitMQ, Redis, `otel-lgtm`, `pg-backup`.
+- `infra/compose/` grows to the full §10 set: Nginx, the `acme.sh` sidecar, the BFF, the four services, `otel-lgtm`, `pg-backup`.
 - `infra/nginx/` — the Nginx configuration and the static `/magic` fallback page.
 - `infra/pg-backup/` — the nightly `pg_dump` image.
 - `infra/secrets/` — every secret, encrypted with SOPS and an age key (A13). Decrypted at deploy into `/run/secrets` and mounted as files; never plain text, never environment variables.
