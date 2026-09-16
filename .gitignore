@@ -22,6 +22,7 @@ docs/design/**/screens/
 # Secrets and keys. Real values live in infra/secrets/ encrypted with SOPS (A13); nothing plain-text is ever committed.
 .env
 .env.*
+!.env.example
 *.p8
 *.p12
 *.pem

@@ -1,0 +1,75 @@
+# Phase-1 stack, slice 1 (ARCHITECTURE §10, A9). Copy .env.example to .env first.
+name: mmr
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set in .env}
+      MEMBERS_DB_PASSWORD: ${MEMBERS_DB_PASSWORD:?set in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  keycloak:
+    # Pinned to one full Phase Two tag (Keycloak 26.6.6, magic-link 0.75); never a moving tag (§7.5, A10).
+    image: quay.io/phasetwo/phasetwo-keycloak:${KEYCLOAK_TAG:-26.6.6.1789466980}
+    command: ["start", "--import-realm"]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set in .env}
+      # Fixed host-facing URL so the issuer is the same for the simulator and for a container.
+      KC_HOSTNAME: http://localhost:8080
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:?set in .env}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?set in .env}
+      # Substituted into keycloak/mmr-realm.json by --import-realm.
+      TEST_USER_PASSWORD: ${TEST_USER_PASSWORD:?set in .env}
+      BFF_CLIENT_SECRET: ${BFF_CLIENT_SECRET:?set in .env}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # The image has no curl and CMD-SHELL is /bin/sh, so use bash's /dev/tcp. Ready means the management
+      # port reports UP and the mmr realm answers: readiness goes UP a few seconds before --import-realm finishes.
+      test: ["CMD", "bash", "-c", 'exec 3<>/dev/tcp/127.0.0.1/9000 && printf "GET /health/ready HTTP/1.0\r\n\r\n" >&3 && grep -q "\"status\": \"UP\"" <&3 && exec 4<>/dev/tcp/127.0.0.1/8080 && printf "GET /realms/mmr HTTP/1.0\r\n\r\n" >&4 && grep -q "\"realm\":\"mmr\"" <&4']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  redis:
+    image: redis:8
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
