@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft v1, 2026-09-12. Decisions A1–A10 below are proposed; each becomes an ADR under `adr/` once accepted. |
+| Status | Draft v2, 2026-09-16. Decisions A1–A14 are listed in §11, which is the decision register; its Status column is the only place acceptance is recorded. |
 | Scope | The backend behind the iOS app named in `PRD.md` D11: the edge, the API the phone calls, the services, the broker, the cache, the databases and identity. The iOS app's internals live in `IOS.md` (beside this file), whose decisions are numbered `I*`. |
 | Vocabulary | `CONTEXT.md` is the glossary. Terms in **bold caps** are defined there. Service names are lower-case code: `members`, `ledger`, `notify`, `currency`, `bff`. |
 | Rules | `PRD.md` owns every product rule this document implements. Section references like §8.9 point there. |
@@ -31,7 +31,8 @@ Payment and AI/ML services after phase 1, and web and Android clients later, plu
 ```mermaid
 flowchart LR
     Phone[iPhone<br/>SwiftUI, SwiftData]
-    KC[Keycloak<br/>own db, SMTP out]
+    KC[Keycloak<br/>own db, sends no mail]
+    SMTP[SMTP provider]
     NG[Nginx<br/>TLS, per-IP limits,<br/>static AASA + fallback]
     BFF[bff · Go<br/>JWT verify, per-Member limits,<br/>idempotency, screen RPCs, joins]
     R[(Redis)]
@@ -50,11 +51,12 @@ flowchart LR
     BFF --> R
     BFF -- Connect --> M & L & N & C
     M & L & N & C --- PG
-    L & M -- publish via outbox --> MQ
-    MQ -- consume --> N & L & C
+    M & L & N & C -- publish via outbox --> MQ
+    MQ -- consume --> M & L & N & C
     C -. daily .-> OER
     C --> R
     N --> APNS
+    N --> SMTP
 ```
 
 Solid arrows are synchronous calls a request waits for. Dotted arrows are background traffic. The bold path is what one tap on the phone travels. Nothing on the right talks to the phone directly.
@@ -87,7 +89,7 @@ RabbitMQ is a queue: it delivers each message to one consumer in a queue and for
 | Element | Setting | Why |
 |---|---|---|
 | Exchange | `mmr.events`, type topic, durable | One exchange; routing keys name the producer and the fact, e.g. `ledger.spend.logged`. |
-| Queues | Quorum queues, one per consumer service and topic family: `notify.ledger`, `ledger.members`, `notify.members`, `currency.members` | Quorum queues are replicated and are RabbitMQ 4's recommended durable queue. |
+| Queues | Quorum queues, one per consumer service and topic family: `ledger.members`, `notify.members`, `currency.members`, `notify.ledger`, `members.ledger` (currency converted), `members.purges` (the three `*.member.purged` events) | Quorum queues are replicated and are RabbitMQ 4's recommended durable queue. |
 | Dead letters | `mmr.dlx` exchange, `<queue>.dead` queues, delivery limit 5 | A poison message stops after five tries and waits for a human instead of blocking the queue. |
 | Publishing | Publisher confirms on; message id = outbox row id; persistent | The relay marks an outbox row sent only after the broker confirms it. |
 | Consuming | Manual ack, prefetch 16, `processed_events` table keyed by message id | At-least-once delivery means duplicates happen; the table makes them harmless. |
@@ -104,7 +106,7 @@ sequenceDiagram
     MQ-->>Relay: confirm → mark outbox row sent
     MQ->>N: deliver #8812
     N->>N: 1. seen #8812 in processed_events? yes → ack, stop
-    N->>N: 2. spent > line and no MonthFlag? send push
+    N->>N: 2. crossed_line in the event and no MonthFlag? send push
     N->>N: 3. write MonthFlag + #8812 in one transaction
     N->>MQ: 4. ack
     Note over N,MQ: crash before the ack → redeliver → step 1 catches it.<br/>One push, never two.
@@ -158,7 +160,7 @@ Once one tap on the phone crosses Nginx, the BFF and up to three services, a slo
 | | |
 |---|---|
 | Responsibility | The only thing the phone talks to. Screen-shaped RPCs, JWT verification, per-Member limits, idempotency, fan-out to services and the join. Owns no database. |
-| RPCs | `GetHome`, `GetRecap(month)`, `ListRecapMonths`, `ListSpends(month)`, `LogSpend`, `EditSpend`, `DeleteSpend`, `GetOnboardingState`, `SaveProfile`, `SaveSalary`, `SaveTarget`, `PreviewCurrencyChange`, `ChangeCurrency`, `SaveNotificationPrefs`, `RegisterDevice`, `RequestExport`, `RequestDeletion`, `CancelDeletion`. |
+| RPCs | `RequestMagicLink`, `GetHome`, `GetRecap(month)`, `ListRecapMonths`, `ListSpends(month)`, `LogSpend`, `EditSpend`, `DeleteSpend`, `GetOnboardingState`, `SaveProfile`, `SetTimezone` (called on every launch), `GetSettings`, `SaveSalary`, `SaveTarget`, `PreviewCurrencyChange`, `ChangeCurrency`, `SaveNotificationPrefs`, `RegisterDevice`, `RequestExport`, `RequestDeletion`, `CancelDeletion`. Each is a thin join or pass-through to the service RPCs in §7. |
 | Depends on | `members`, `ledger`, `notify`, `currency` over Connect; Redis; Keycloak JWKS. |
 | Publishes | Nothing. The BFF never writes state, so it needs no outbox. |
 | Why a BFF | Home needs the profile (`members`), the numbers (`ledger`) and the warning state (`notify`). Someone must join them. Doing it in Go keeps the phone a pure display and keeps the join out of Nginx, which cannot do it. |
@@ -200,12 +202,12 @@ sequenceDiagram
 
 | | |
 |---|---|
-| Responsibility | Who the Member is: Keycloak subject, Display Name, Avatar, Currency code, timezone, sign-up time, deletion request. First-sign-in detection (PRD §5 step 5). Onboarding progress (§6.4). The 24-hour deletion job (§9). |
-| Owns | `member` (id, keycloak_subject, display_name, avatar_key, currency_code, timezone, created_at, signed_up_on, deletion_requested_at, deleted_at, onboarding_step), `deletion_progress` (member_id, keycloak_deleted_at, ledger_purged_at, notify_purged_at, currency_purged_at), `outbox`, `processed_events`. |
-| RPCs | `GetOrCreateBySubject`, `GetProfile`, `SaveProfile`, `SaveOnboardingStep`, `SetTimezone`, `RequestDeletion`, `CancelDeletion`. Every write takes an idempotency key (A14). |
-| Publishes | `members.created`, `members.updated` (name, avatar, timezone, currency), `members.deletion.requested`, `members.deletion.cancelled`, `members.deleted`. |
+| Responsibility | Who the Member is: Keycloak subject, email as the token's `email` claim reports it, Display Name, Avatar, Currency code, timezone, sign-up date, deletion request. First-sign-in detection (PRD §5 step 5). Onboarding progress (§6.4). The 24-hour deletion job (§9). |
+| Owns | `member` (id, keycloak_subject, email, display_name, avatar_key, currency_code, timezone, created_at, signed_up_on, deletion_requested_at, deleted_at, onboarding_step), `deletion_progress` (member_id, keycloak_deleted_at, ledger_purged_at, notify_purged_at, currency_purged_at), `outbox`, `processed_events`. |
+| RPCs | `GetOrCreateBySubject` (saves the token's `email` claim on create and refreshes it on every call, so a change made in Keycloak reaches us on the next sign-in), `GetProfile`, `SaveProfile`, `SaveOnboardingStep`, `SetTimezone`, `RequestDeletion`, `CancelDeletion`. Every write takes an idempotency key (A14). |
+| Publishes | `members.created`, `members.updated` (name, avatar, timezone, currency, email), `members.deletion.requested`, `members.deletion.cancelled`, `members.deleted`. |
 | Consumes | `ledger.currency.converted` → set `currency_code`, then publish `members.updated`. `ledger.member.purged`, `notify.member.purged`, `currency.member.purged` → stamp `deletion_progress`. |
-| Why separate | Identity and profile change rarely and are needed by every other service. Publishing them as events lets `ledger` and `notify` keep the two facts they need, timezone and `created_at`, without calling `members` on every request. |
+| Why separate | Identity and profile change rarely and are needed by every other service. Publishing them as events lets `ledger` and `notify` keep the few facts they need, timezone, `signed_up_on` and email, without calling `members` on every request. The email is an identifier, not a credential: it is the standard OIDC claim, read from a signed token over TLS, and storing it carries the same risk as storing the Display Name. |
 
 Flow: deletion and restore (D39, D60)
 
@@ -263,10 +265,10 @@ Flow: salary edit after Payday (D56)
 
 | | |
 |---|---|
-| Responsibility | Deciding and sending every notification in PRD §10, and remembering what was sent. Device tokens. Notification preferences. The Target Warning state the Home banner reads. All outbound email the app itself sends, which in phase 1 is only the CSV export (PRD §6.16); Keycloak sends its own magic-link mail. |
+| Responsibility | Deciding and sending every notification in PRD §10, and remembering what was sent. Device tokens. Notification preferences. The Target Warning state the Home banner reads. All outbound email: the magic-link email (§7.5) and the CSV export (PRD §6.16). Keycloak sends no mail. |
 | Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at), `sent_log` (unique on member_id, kind, period), `email_status` (member_id, address, last_bounce_at), `member_facts` (replica: timezone, display_name, email, next_recap_at, next_reminder_at), `processed_events`. |
-| RPCs | `GetWarningState(month)`, `EvaluateWarning(month, crossed_line)`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailExport(csv)`. Every write takes an idempotency key (A14). `notify` holds no rule from PRD §8; `crossed_line` is computed by `ledger`. |
-| Email | The same SMTP provider Keycloak uses, credentials mounted as a secret file (A13). A hard bounce recorded by the provider's webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
+| RPCs | `GetWarningState(month)`, `EvaluateWarning(month, crossed_line)`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailMagicLink(email, link)`, `EmailExport(csv)`. Every write takes an idempotency key (A14). `notify` holds no rule from PRD §8; `crossed_line` is computed by `ledger`. |
+| Email | One SMTP provider, credentials mounted as a secret file (A13). `EmailMagicLink` takes the typed address because no member row may exist yet; `EmailExport` reads the address from `member_facts`. A hard bounce recorded by the provider's webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
 | Consumes | `ledger.spend.logged` → stamp `month_flag` if `crossed_line` and unstamped, send the push if the stamp is fresh. `members.updated` → replica, recompute `next_*_at`. `members.deleted` → purge, then publish `notify.member.purged`. |
 | Schedulers | Every minute: one indexed query on `next_recap_at`, one on `next_reminder_at` (§4.5), in batches of 500. Each batch is one `ledger.GetSpentToday(member_ids[])` call for the reminder, then one APNs request per Member from a bounded worker pool. Insert into `sent_log` first, send only if the insert won, so a crash between the two never double-sends and two `notify` replicas never both send. |
 | APNs | Token-based auth with a .p8 key, HTTP/2 to Apple. A 410 response deletes the device row. |
@@ -305,19 +307,19 @@ Flow: CSV export (PRD §6.16, D39)
 
 | | |
 |---|---|
-| Responsibility | Sign-in. Brokers Apple and Google, sends magic links through the Phase Two extension, issues and refreshes tokens, ends sessions. Holds no app data. |
+| Responsibility | Sign-in. Brokers Apple and Google, issues login tokens through the Phase Two extension, issues and refreshes session tokens, ends sessions. Holds no app data and sends no email. |
 | Owns | Its own database, `keycloak`, in the same Postgres container. |
 | Image | `quay.io/phasetwo/phasetwo-keycloak`, pinned to a tag whose bundled `keycloak-magic-link` and Apple identity-provider extensions match its Keycloak version. Never `latest`: the magic-link extension is compiled against one Keycloak minor and has broken on the next (`research/2026-09-14-a10-magic-link.md` §1). |
-| Configuration as code | The official `keycloak/keycloak` OpenTofu provider under `infra/tofu/`: the realm, the SMTP block, the Google identity provider, the Apple identity provider, the `ios` public client and the BFF's service-account client. A realm JSON import is skipped once the realm exists, so JSON cannot carry later changes; kcadm is imperative. |
+| Configuration as code | The official `keycloak/keycloak` OpenTofu provider under `infra/tofu/`: the realm, the Google identity provider, the Apple identity provider, the `ios` public client and the BFF's service-account client. No SMTP block: Keycloak sends nothing. A realm JSON import is skipped once the realm exists, so JSON cannot carry later changes; kcadm is imperative. |
 | Apple sign-in | The bundled Apple identity-provider extension takes the Team ID, Key ID and `.p8` key and signs the client-secret JWT itself on every code exchange. There is no six-month rotation job; the `.p8` is a static secret (`research/2026-09-14-setup-automation.md` §3). |
-| Secrets | Keycloak's file vault: `--vault=file --vault-dir=/run/secrets`, with `${vault.mmr_smtp_password}` and the two identity-provider secrets referenced by name. The files are mounted from the SOPS-decrypted set (§10, A13), so no secret is in OpenTofu state, JSON or the environment. |
+| Secrets | Keycloak's file vault: `--vault=file --vault-dir=/run/secrets`, with the two identity-provider secrets referenced by name. The files are mounted from the SOPS-decrypted set (§10, A13), so no secret is in OpenTofu state, JSON or the environment. |
 
 Flow: email sign-in (D7, D32, acceptance 2)
 
 Keycloak's magic-link action token cannot be placed on the app's domain and is consumed by a plain GET, which mail scanners issue (`research/2026-09-14-a10-magic-link.md` §2–3). The extension's newer **Login Token** path avoids both, so that is A10.
 
 1. The phone sends `RequestMagicLink(email)`. The BFF enforces 5 requests per email per hour in Redis (PRD §11), then calls the extension's `POST /realms/mmr/login-token` with `expiration_seconds: 900`, `reusable: false`, `force_create: true` and `set_email_verified: true`, using its service account. The response is an opaque `lt:<uuid>`.
-2. `notify` emails `https://app.example.com/magic?lt=…`. Nginx serves a static page for `/magic` and the apple-app-site-association file from `/.well-known/`, so on an iPhone with the app installed iOS opens the app instead of the page.
+2. The BFF calls `notify.EmailMagicLink(email, link)` and `notify` emails `https://app.example.com/magic?lt=…`. Nginx serves a static page for `/magic` and the apple-app-site-association file from `/.well-known/`, so on an iPhone with the app installed iOS opens the app instead of the page.
 3. The app POSTs `grant_type=password&login_token=…` to Keycloak's token endpoint and receives its tokens. No browser is involved on the email path; Apple and Google still use `ASWebAuthenticationSession` with PKCE. An expired or used token returns `invalid_grant`, which the app shows as the §6.3 `InlineError`.
 4. On a laptop, or when the Member has set links to open in the browser (Apple TN3155), the static page says "Open this link on your phone" and offers an "Open in app" button on the app's custom scheme. The page performs no request with `lt`, and a scanner GET on the URL reaches only that static page, so the token cannot be consumed by anything but the app.
 
@@ -345,7 +347,7 @@ One Postgres container, five databases, five roles, each role granted only its o
 | BFF verifies tokens | Open-source Nginx cannot; every service does anyway. | Nginx Plus, njs, OpenResty: paid or extra runtimes. |
 | Four services, not one | The goal is to learn service boundaries, events and ownership. The boundaries follow the PRD's own sections: §7 rows, §8 rules, §9 identity, §10 notifications, D35 rates. | Modular monolith: simplest, teaches least. Ten services: nothing left to own. |
 | All of §8 inside `ledger` | §8.9's single transaction, and every rule reads every table. | A separate recap service: three network calls per number and a saga for currency change. |
-| Replicated member facts | `ledger` and `notify` need timezone and `created_at` on every computation. Events keep the copies fresh without a call per request. | Calling `members` per request: a dependency in the hot path. Sharing the database: not a boundary. |
+| Replicated member facts | `ledger` and `notify` need timezone, `signed_up_on` and email on every computation or send. Events keep the copies fresh without a call per request. | Calling `members` per request: a dependency in the hot path. Sharing the database: not a boundary. |
 | RabbitMQ | The textbook queue: routing, dead letters, quorum queues, per-message acks. MPL-2.0. Streams exist if replay is ever needed. | NATS: lightest, less to learn. Kafka: heaviest, replay not needed yet. Postgres queue: simplest, no broker skills. |
 | Redis in phase 1 | Four real jobs (§4.4). AGPL binds Redis, not the app. | Valkey: identical API, drop-in if policy changes. No cache: fewer parts, no idempotency store. |
 | Protobuf, Buf, Connect | One schema for RPCs and events; Go, Swift, TS and Kotlin generated; plain HTTP through Nginx. | OpenAPI: fine for phone-to-BFF, no event types. GraphQL: for many clients, not one. gRPC alone: needs HTTP/2 end to end and a proxy for browsers. |
@@ -399,7 +401,7 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 | A8 | Service boundaries: `members`, `ledger`, `notify`, `currency`; payment and AI reserved; replicated member facts fed by events. | proposed |
 | A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | proposed |
 | A10 | Email sign-in: Phase Two Login Token redeemed by the app through the direct grant; the BFF requests it and limits 5 per email per hour; `notify` emails the app-domain link; the static fallback never touches the token; the Phase Two image is pinned. | proposed; first task is the §7.5 smoke test |
-| A13 | Secrets: SOPS + age, encrypted in git, mounted as files; Keycloak file vault; OpenTofu for DNS, VM, realm and provider tokens; the wizard covers only the nine human steps. | proposed |
-| A14 | Every write RPC carries an idempotency key; the owning service enforces it with a unique index inside the write's transaction; Redis is only a fast path. `notify` is optional on every path. Schedulers insert `sent_log` before sending. Conversions keep the typed originals. | proposed |
 | A11 | Observability: OpenTelemetry in every Go process, OTLP to one `otel-lgtm` container, trace context carried in Connect and RabbitMQ headers. | proposed |
 | A12 | Backups: nightly `pg_dump` per database to object storage, 30 days kept, quarterly restore drill. | proposed |
+| A13 | Secrets: SOPS + age, encrypted in git, mounted as files; Keycloak file vault; OpenTofu for DNS, VM, realm and provider tokens; the wizard covers only the nine human steps. | proposed |
+| A14 | Every write RPC carries an idempotency key; the owning service enforces it with a unique index inside the write's transaction; Redis is only a fast path. `notify` is optional on every path. Schedulers insert `sent_log` before sending. Conversions keep the typed originals. | proposed |
