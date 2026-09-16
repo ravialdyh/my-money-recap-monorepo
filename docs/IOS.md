@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft v1, 2026-09-14. Decisions I1–I9 are proposed; each becomes an ADR under `adr/` once accepted. |
+| Status | Draft v1, 2026-09-14. Decisions I1–I9 in §2 are the decision register for the app; acceptance is recorded there, not in separate files. |
 | Scope | What is inside the iPhone and iPad app: sign-in, session, networking, the on-device cache, design tokens, formatting, sharing, notifications and tests. The screens themselves are `SCREEN-STATES.md`; the rules are `PRD.md`; the backend is `ARCHITECTURE.md`. |
 | Platform | iOS 17+, SwiftUI, iPhone and iPad (PRD D11, D68). |
 
