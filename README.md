@@ -26,6 +26,7 @@ docs/PRD.md + docs/SCREEN-STATES.md ──rules──►  docs/design/design_han
                                                           │ built from
 my-money-recap/assets/illustrations/ ──build:assets──►  my-money-recap-ds/src/assets/illustrations.ts
 my-money-recap-ds/src/tokens/tokens.json ──build:tokens──►  tokens.css, styles/css.generated.ts, dist/mmr.css
+my-money-recap-ds/src/tokens/tokens.json ──build:swift-tokens──►  apps/ios/DesignSystem/Tokens.swift
 ```
 
 The design system reads the WebP artwork straight out of `my-money-recap/assets/illustrations/`
@@ -47,9 +48,14 @@ npm run build:assets
 npm run build:tokens && npm run typecheck
 ```
 
+```bash
+npm run build:swift-tokens
+```
+
 `build:assets` re-inlines `my-money-recap/assets/illustrations/*.webp` into the design system;
-`build:tokens` regenerates `tokens.css`, `css.generated.ts` and `dist/mmr.css` from `tokens.json`.
-CI runs both and fails if either output is stale, so generated files can never drift from source.
+`build:tokens` regenerates `tokens.css`, `css.generated.ts` and `dist/mmr.css` from `tokens.json`;
+`build:swift-tokens` regenerates `apps/ios/DesignSystem/Tokens.swift` (colours, radii, type ramp, motion) from the same `tokens.json` (`docs/IOS.md` I5).
+CI runs all three and fails if any output is stale, so generated files can never drift from source.
 
 ## Docs
 
@@ -66,7 +72,7 @@ CI runs both and fails if either output is stale, so generated files can never d
 
 | Thing | Lives in | Everything else is generated |
 | --- | --- | --- |
-| Design tokens | `my-money-recap-ds/src/tokens/tokens.json` | `tokens.css`, `css.generated.ts`, `dist/mmr.css` |
+| Design tokens | `my-money-recap-ds/src/tokens/tokens.json` | `tokens.css`, `css.generated.ts`, `dist/mmr.css`, `apps/ios/DesignSystem/Tokens.swift` |
 | Illustration artwork | `my-money-recap/assets/illustrations/*.webp` | `my-money-recap-ds/src/assets/illustrations.ts` |
 | Product and design decisions | `docs/PRD.md` (numbered `D*` decisions) | — |
 | Backend architecture decisions | `docs/ARCHITECTURE.md` (numbered `A*` decisions) | — |
