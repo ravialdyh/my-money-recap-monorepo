@@ -1,0 +1,12 @@
+version: v2
+modules:
+  - path: .
+    # The Swift package's checkouts under swift/.build carry their own .proto files.
+    excludes:
+      - swift
+lint:
+  use:
+    - STANDARD
+breaking:
+  use:
+    - FILE

@@ -27,3 +27,8 @@ docs/design/**/screens/
 *.pem
 *.key
 age.key
+
+# SwiftPM build output and resolution for the generated contract package; the
+# app's Xcode project owns dependency resolution.
+.build/
+packages/contract/swift/Package.resolved

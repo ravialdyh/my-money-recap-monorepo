@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+// Who the Member is (ARCHITECTURE §7.1). This slice carries only what the
+// skeleton reads; onboarding fields arrive with slice 4.
+message Profile {
+  string member_id = 1;
+  // The token's email claim, refreshed on every GetOrCreateBySubject.
+  string email = 2;
+  // Empty until onboarding sets it.
+  string display_name = 3;
+  // Empty until onboarding sets it.
+  string avatar_key = 4;
+  // ISO 4217; empty until onboarding sets it.
+  string currency_code = 5;
+  // IANA zone name (A3); empty until SetTimezone runs.
+  string timezone = 6;
+}
+
+message GetOrCreateBySubjectRequest {
+  // The Keycloak subject claim.
+  string subject = 1;
+  // The token's email claim.
+  string email = 2;
+}
+
+message GetOrCreateBySubjectResponse {
+  Profile profile = 1;
+}
+
+message GetProfileRequest {
+  string member_id = 1;
+}
+
+message GetProfileResponse {
+  Profile profile = 1;
+}
+
+service MembersService {
+  // Upsert on the Keycloak subject: creates on first sight, returns the same
+  // Member on every later call, and refreshes the email each time.
+  rpc GetOrCreateBySubject(GetOrCreateBySubjectRequest) returns (GetOrCreateBySubjectResponse) {}
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
+}

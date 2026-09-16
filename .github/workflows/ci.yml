@@ -28,3 +28,34 @@ jobs:
           npm run build:assets
           git diff --exit-code -- my-money-recap-ds/src/assets
       - run: npm run typecheck
+
+  contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/contract
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-action@v1
+        with:
+          version: 1.73.0
+          setup_only: true
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/backend/go.mod
+      - run: buf lint
+      - name: No breaking change against main (A1)
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          if git cat-file -e origin/main:packages/contract/buf.yaml 2>/dev/null; then
+            buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
+          else
+            echo "packages/contract is not on main yet; nothing to compare against"
+          fi
+      - name: Generated Go and Swift code is up to date with the .proto files
+        run: |
+          buf generate
+          git diff --exit-code -- ../../apps/backend/gen swift/Sources
+      - name: Generated Go compiles
+        working-directory: apps/backend
+        run: go build ./...

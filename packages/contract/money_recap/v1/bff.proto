@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/money.proto";
+
+// Everything Home draws (PRD §6.8), joined by the BFF (ARCHITECTURE §6.1).
+// The phone stores this message whole and never recomputes a figure (A2, I4).
+message HomeView {
+  // Empty until onboarding; Home omits the greeting when empty.
+  string display_name = 1;
+  string avatar_key = 2;
+  // ISO 4217 code every amount below is held in.
+  string currency_code = 3;
+  // The current Recap Month as "YYYY-MM" in the Member's local dates.
+  string month = 4;
+  // Spent so far this month (PRD §8.3).
+  Money spent = 5;
+  // Money In this month (PRD §8.2).
+  Money money_in = 6;
+  // Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
+  optional Money saved = 7;
+  // Absent until a Salary is set (PRD D54).
+  optional SalaryFacts salary = 8;
+  // Absent until a Saving Target is set.
+  optional SavingTargetFacts saving_target = 9;
+  // Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
+  int32 streak_day = 10;
+  // Days left in the month counting today, never below 1 (PRD §8.7).
+  int32 days_remaining = 11;
+  // Absent unless the Target Warning has fired this month (PRD §8.8).
+  optional TargetWarning target_warning = 12;
+  // Past months with a Recap, newest first (PRD §6.8 "Recap list").
+  repeated RecapMonth recap_months = 13;
+  // ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
+  string first_recap_on = 14;
+}
+
+// The Salary as Home needs it: the hero eyebrow's countdown (PRD §6.8).
+message SalaryFacts {
+  Money amount = 1;
+  // 1 to 31, or "last" for the Last day token (PRD D51).
+  string payday = 2;
+  // Days until the effective Payday; 0 when it has passed or is today.
+  int32 days_until_payday = 3;
+}
+
+// The Saving Target as Home's target card needs it (PRD §8.4, §8.7).
+message SavingTargetFacts {
+  int32 percent = 1;
+  // round-half-up(Salary × percent ÷ 100), computed by ledger.
+  Money amount = 2;
+  // The §8.7 sentence, already chosen server-side.
+  string progress_sentence = 3;
+}
+
+// The coral Banner (PRD D38, D53); copy chosen server-side per §8.8.
+message TargetWarning {
+  string message = 1;
+}
+
+message RecapMonth {
+  // "YYYY-MM".
+  string month = 1;
+  // Archetype name, or "Partial" for a Partial Recap (PRD §8.11).
+  string label = 2;
+}
+
+message GetHomeRequest {}
+
+message GetHomeResponse {
+  HomeView home = 1;
+}
+
+// The only service the phone talks to (ARCHITECTURE §6).
+service BffService {
+  // Home always shows the current month (PRD §6.8, D59), so no month argument.
+  rpc GetHome(GetHomeRequest) returns (GetHomeResponse) {}
+}
