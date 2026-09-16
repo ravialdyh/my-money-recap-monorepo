@@ -2,6 +2,10 @@
 
 Read `README.md` for the layout and `docs/CONTEXT.md` before naming anything.
 
+## Branching
+
+Never commit to `main`. Every change is a short branch off `main` and a pull request; CI must be green before merge. Deployment is a version tag, not a merge (`docs/ARCHITECTURE.md` A15). GitHub cannot enforce this on the repository's plan, so this rule is the gate.
+
 ## Agent skills
 
 ### Issue tracker
