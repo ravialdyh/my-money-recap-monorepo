@@ -371,10 +371,10 @@ Amounts are exact decimals (`NUMERIC`, never a float or an integer count of mino
 
 | Entity | Fields | Notes |
 |---|---|---|
-| Member | id, keycloak_subject, display_name, avatar_key (one of six), currency_code, **timezone**, **created_at**, **deletion_requested_at** | One per Keycloak user. `created_at` is load-bearing: it bounds the Streak (D43) and identifies the sign-up month (D52). `deletion_requested_at` drives D60. `timezone` is an IANA name sent by the app on each launch; every "today" in §8 and every local time in §10 is evaluated in it (`ARCHITECTURE.md` A3). |
-| SalarySetting | member_id, amount_minor, payday (1–31 **or the token `last`**), effective_from (year-month) | Append-only. The row with the latest effective_from ≤ a month is the one in force for that month. D56 decides which month a new row starts from. |
+| Member | id, keycloak_subject, display_name, avatar_key (one of six), currency_code, **timezone**, **created_at**, **deletion_requested_at** | One per Keycloak user. `created_at` is load-bearing: it bounds the Streak (D43) and identifies the sign-up month (D52). `deletion_requested_at` drives D60. `timezone` is an IANA name sent by the app on each launch; every "today" in §8 and every local time in §10 is evaluated in it (`ARCHITECTURE.md` A3). **`signed_up_on`** is the local date at sign-up, fixed forever, so a later timezone change cannot move the Streak window or the partial-month test by a day. |
+| SalarySetting | member_id, amount, **original_amount, original_currency**, payday (1–31 **or the token `last`**), effective_from (year-month) | Append-only. `original_*` hold the value as typed and are never touched by a currency change (§8.9). The row with the latest effective_from ≤ a month is the one in force for that month. D56 decides which month a new row starts from. |
 | SavingTargetSetting | member_id, percent (0–100), effective_from (year-month) | Same append-only pattern, always effective from the **next** month (D65). |
-| Spend | id, member_id, amount_minor, category (enum of eight), date, note, created_at, updated_at | Soft-deleted rows are excluded from every computation. |
+| Spend | id, member_id, amount, **original_amount, original_currency**, category (enum of eight), date, note, created_at, updated_at | Soft-deleted rows are excluded from every computation. `original_*` hold the value as typed and are never touched by a currency change (§8.9). |
 | CurrencyConversion | member_id, from_code, to_code, rate, source (provider or manual), applied_at | Audit record of each rewrite. |
 | NotificationPreference | member_id, recap_ready, daily_reminder, daily_reminder_time, target_warning, apns_token | |
 | MonthFlag | member_id, year-month, target_warning_sent_at | Ensures the Target Warning fires once per month. |
@@ -412,7 +412,7 @@ A **Recap Month** is a calendar month in local dates (D33, D41). Everything belo
 
 ### 8.4 Saving Target amount
 
-Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Currency's decimals as the platform formatter reports them at the time. `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
+Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Currency's decimals as CLDR reports them at the time, which is the same data the platform formatter prints from; the server rounds and stores, the phone only prints (`ARCHITECTURE.md` §7.2). `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
 
 *Worked:* £2,400 × 20 ÷ 100 = £480. Saved £640 ÷ £480 × 100 = 133%. Budi: Rp 15.000.000 × 20 ÷ 100 = Rp 3.000.000.
 
@@ -468,7 +468,7 @@ Copy depends on whether Payday has passed (D53):
 1. Fetch the rate. If the pair is unsupported, ask the Member for a rate. If the fetch fails, show an `InlineError` with Retry.
 2. If the Member has no Salary and no Spends, skip the confirm sheet and change the code directly.
 3. Otherwise the confirm sheet shows the rate and before/after values.
-4. In one transaction: rewrite every SalarySetting amount and every Spend amount as `round-half-up(amount × rate)` to the new Currency's decimals; set `member.currency_code`; write a CurrencyConversion row.
+4. In one transaction: rewrite every SalarySetting amount and every Spend amount as `round-half-up(amount × rate)` to the new Currency's decimals, leaving each row's `original_amount` and `original_currency` untouched; set `member.currency_code`; write a CurrencyConversion row.
 5. Saving Target percentages are untouched.
 6. Not reversible except by converting again at a new rate.
 

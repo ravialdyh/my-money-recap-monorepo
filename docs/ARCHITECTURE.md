@@ -110,14 +110,14 @@ sequenceDiagram
     Note over N,MQ: crash before the ack → redeliver → step 1 catches it.<br/>One push, never two.
 ```
 
-The Spend and its event are written together, so neither can exist without the other. Delivery is at least once; step 1 makes a second delivery harmless. Debezium is the heavyweight relay that reads the outbox from the write-ahead log; a Go loop polling the outbox table every second is the phase-1 version.
+The Spend and its event are written together, so neither can exist without the other. Delivery is at least once; step 1 makes a second delivery harmless. The consumer always evaluates and stamps for itself; it never depends on a synchronous call having happened first. Debezium is the heavyweight relay that reads the outbox from the write-ahead log; a Go loop polling the outbox table every second is the phase-1 version. The relay selects rows with `FOR UPDATE SKIP LOCKED`, so two replicas of a service polling the same table never contend or double-publish.
 
 ### 4.4 Redis: four jobs (A6)
 
 | Job | Owner | Key | TTL | If Redis is down |
 |---|---|---|---|---|
 | Per-Member rate limit | bff | `rl:{subject}:{minute}`, INCR + EXPIRE | 2 min | Fail open: requests pass, a metric fires. Nginx per-IP limits still stand. |
-| Idempotency of writes | bff | `idem:{subject}:{Idempotency-Key}` → stored response | 24 h | Fail closed for writes: return 503; the sheet stays open with values intact (PRD §6.9). A retried Save must never create two Spends. |
+| Idempotency of writes, fast path | bff | `idem:{subject}:{Idempotency-Key}` → stored response | 24 h | Fail open. The guarantee is not here: every write RPC carries the key to the owning service, which enforces a unique `(member_id, idempotency_key)` inside the same transaction as the row (A14). A retry after a BFF crash or a Redis restart hits that constraint and gets the original result back, so a retried Save never creates two Spends. Redis only saves the round trip. |
 | Exchange-rate cache | currency | `fx:{yyyy-mm-dd}:USD` → the day's rate table | 36 h | Fall back to the latest `rate_snapshot` row; fetch from OER if none. |
 | JWKS cache | bff, services | `jwks:{realm}` | 1 h | Each process also keeps the last JWKS in memory, so token checks continue. |
 
@@ -125,16 +125,18 @@ Redis 8 is licensed AGPLv3 (alongside RSALv2 and SSPLv1). AGPL binds Redis itsel
 
 ### 4.5 Time: one zone per Member, no zone list in code (A3)
 
-The app sends `TimeZone.current.identifier` on every launch. `members` validates it with Go's embedded IANA database (`time/tzdata`) and stores it. Every "today" in PRD §8 and §10 is evaluated in that zone by the service doing the arithmetic: Money In on or after Payday (§8.2), the streak window (§8.5), days remaining (§8.7), "never in the future" on a Spend date (§8.10), and the Recap-ready and daily-reminder triggers (§10). Spend dates stay plain calendar dates, as D34 says. The `notify` scheduler runs one query a minute against its replica of member facts:
+The app sends `TimeZone.current.identifier` on every launch. `members` validates it with Go's embedded IANA database (`time/tzdata`) and stores it. Every "today" in PRD §8 and §10 is evaluated in that zone by the service doing the arithmetic: Money In on or after Payday (§8.2), the streak window (§8.5), days remaining (§8.7), "never in the future" on a Spend date (§8.10), and the Recap-ready and daily-reminder triggers (§10). Spend dates stay plain calendar dates, as D34 says. So is the sign-up date: `members` stores `signed_up_on`, the local date at the moment of sign-up, next to `created_at`, and the streak window (§8.5) and the partial-month rule (§8.11) read that date. A Member who later moves to another zone changes only what "today" means from now on; no past month is recomputed, because nothing in a past month reads the zone.
+
+The `notify` scheduler does not compute local time per row on every tick. Each `member_facts` row carries `next_recap_at` and `next_reminder_at` as UTC timestamps, computed with `AT TIME ZONE` when the zone or the reminder time changes and again after each fire, and both columns are indexed. The tick is then one indexed range query:
 
 ```sql
 SELECT member_id FROM member_facts
-WHERE (now() AT TIME ZONE timezone)::time >= '09:00'
-  AND (now() AT TIME ZONE timezone)::time <  '09:01'
-  AND extract(day FROM now() AT TIME ZONE timezone) = 1;
+WHERE next_reminder_at <= now()
+ORDER BY next_reminder_at
+LIMIT 500;
 ```
 
-No cron per zone and no zone table. Postgres and Go both carry the IANA data, so a daylight-saving change is a package update.
+No cron per zone and no zone table. Postgres and Go both carry the IANA data, so a daylight-saving change is a package update, and the next-fire columns are recomputed from it.
 
 ### 4.6 Observability (A11)
 
@@ -181,16 +183,16 @@ sequenceDiagram
     B-->>P: HomeView; phone stores it in SwiftData
 ```
 
-If `ledger` times out, the BFF returns an error and the phone keeps drawing its last snapshot. It never shows a half-joined screen.
+`members` and `ledger` are required: if either times out, the BFF returns an error and the phone keeps drawing its last snapshot. `notify` is optional: if it times out, the HomeView is returned without a warning banner and a metric fires. A notification service can never blank the Home screen.
 
 ### 6.2 Flow: LogSpend
 
-1. The phone sends `LogSpend` with an `Idempotency-Key` it generated when the sheet opened.
+1. The phone sends `LogSpend` with an `Idempotency-Key` it generated when the sheet opened. Every write RPC in this document carries one; `LogSpend` is the worked example.
 2. The BFF verifies the JWT, checks the per-Member limit, and looks up the key in Redis. A hit returns the stored response without touching `ledger`.
-3. The BFF calls `ledger.LogSpend`. Ledger validates D57 and §8.10 in the Member's zone, writes the Spend and the outbox row in one transaction, recomputes the month, and returns the new `MonthSummary`.
-4. The BFF calls `notify.EvaluateWarning` with the figures from step 3. Notify applies §8.8, stamps `month_flag` if the line was crossed for the first time this month, and returns the warning state. The Home `Banner` is therefore in the same response as the numbers.
+3. The BFF calls `ledger.LogSpend(key, …)`. Ledger looks up `member_facts`; on a miss (the Spend arrived before `members.created` was consumed) it calls `members.GetProfile` once and upserts, and if that fails it returns a retryable error. It validates D57 and §8.10 in the Member's zone, then in one transaction writes the Spend with the key under the unique `(member_id, idempotency_key)`, the outbox row, and recomputes the month. A duplicate key returns the original Spend's `MonthSummary`, not an error. The response includes `crossed_line`, computed here against the §8.8 line, so no other service does that arithmetic.
+4. The BFF calls `notify.EvaluateWarning(month, crossed_line)` with a 300 ms timeout. Notify stamps `month_flag` if `crossed_line` and no stamp exists, and returns the warning state. On timeout the BFF continues without a banner; the event path below will stamp it a second later. `notify` can be down and a Member can still record a coffee.
 5. The BFF stores the response under the idempotency key for 24 hours and returns a fresh `HomeView`. The phone animates the numbers (§6.9) and replaces its snapshot.
-6. Separately, the relay publishes `ledger.spend.logged`. Notify consumes it and sends the push if step 4 stamped the flag and the push has not been sent. The event path is the guarantee; the synchronous call is the user experience.
+6. Separately, the relay publishes `ledger.spend.logged` carrying the same figures and `crossed_line`. Notify consumes it, stamps `month_flag` if not yet stamped, and sends the push if the stamp is fresh. Both the stamp and the push are idempotent on `(member_id, month)`, so it does not matter whether step 4 ran, ran twice, or never ran. The event path is the guarantee; the synchronous call is only the user experience.
 
 ## 7. The services
 
@@ -199,29 +201,32 @@ If `ledger` times out, the BFF returns an error and the phone keeps drawing its 
 | | |
 |---|---|
 | Responsibility | Who the Member is: Keycloak subject, Display Name, Avatar, Currency code, timezone, sign-up time, deletion request. First-sign-in detection (PRD §5 step 5). Onboarding progress (§6.4). The 24-hour deletion job (§9). |
-| Owns | `member` (id, keycloak_subject, display_name, avatar_key, currency_code, timezone, created_at, deletion_requested_at, onboarding_step), `outbox`, `processed_events`. |
-| RPCs | `GetOrCreateBySubject`, `GetProfile`, `SaveProfile`, `SaveOnboardingStep`, `SetTimezone`, `RequestDeletion`, `CancelDeletion`, `SetCurrencyCode` (called by `ledger` after a conversion). |
+| Owns | `member` (id, keycloak_subject, display_name, avatar_key, currency_code, timezone, created_at, signed_up_on, deletion_requested_at, deleted_at, onboarding_step), `deletion_progress` (member_id, keycloak_deleted_at, ledger_purged_at, notify_purged_at, currency_purged_at), `outbox`, `processed_events`. |
+| RPCs | `GetOrCreateBySubject`, `GetProfile`, `SaveProfile`, `SaveOnboardingStep`, `SetTimezone`, `RequestDeletion`, `CancelDeletion`. Every write takes an idempotency key (A14). |
 | Publishes | `members.created`, `members.updated` (name, avatar, timezone, currency), `members.deletion.requested`, `members.deletion.cancelled`, `members.deleted`. |
-| Consumes | Nothing in phase 1. |
+| Consumes | `ledger.currency.converted` → set `currency_code`, then publish `members.updated`. `ledger.member.purged`, `notify.member.purged`, `currency.member.purged` → stamp `deletion_progress`. |
 | Why separate | Identity and profile change rarely and are needed by every other service. Publishing them as events lets `ledger` and `notify` keep the two facts they need, timezone and `created_at`, without calling `members` on every request. |
 
 Flow: deletion and restore (D39, D60)
 
 1. `RequestDeletion` stamps `deletion_requested_at`, publishes `members.deletion.requested`, and the BFF tells the phone to sign out and erase its cache.
 2. A sign-in within 24 hours: the BFF calls `GetOrCreateBySubject`, sees the stamp is under 24 hours old, and the phone shows the restore sheet (§6.18). "Keep my account" calls `CancelDeletion`, which clears the stamp and publishes `members.deletion.cancelled`.
-3. A worker in `members` runs every 10 minutes: for every stamp older than 24 hours it deletes the Keycloak user through the admin API, deletes the member row, and publishes `members.deleted` from the same outbox transaction.
-4. `ledger`, `notify` and `currency` each consume `members.deleted` and purge that Member's rows. Each purge is idempotent, so a redelivery is harmless.
+3. A worker in `members` runs every 10 minutes. For every stamp older than 24 hours it sets `deleted_at` on the member row, inserts a `deletion_progress` row, and writes the `members.deleted` outbox row, all in one transaction. The row is a tombstone: `GetOrCreateBySubject` treats it as absent. No remote call is inside this transaction.
+4. A second step, retried until it succeeds, deletes the Keycloak user through the admin API and stamps `keycloak_deleted_at`. A 404 from Keycloak counts as success, so a retry after a half-finished run is harmless.
+5. `ledger`, `notify` and `currency` each consume `members.deleted`, purge that Member's rows idempotently, and publish `<service>.member.purged`. `members` consumes those three and stamps `deletion_progress`.
+6. When all four stamps are present the member row is hard-deleted. An alert fires for any `deletion_progress` row incomplete one hour after `deleted_at`, which is how a broken consumer is noticed instead of leaving Spend rows behind indefinitely.
 
 ### 7.2 `ledger`
 
 | | |
 |---|---|
-| Responsibility | All money facts and all of PRD §8: salary and target settings, Spends, currency rewrites, and every computed figure: Spent, Money In, Saved, target amount, kept%, Streak, Splurge, Archetype, partial-month status, the target sentence, the warning line. |
-| Owns | `salary_setting`, `saving_target_setting`, `spend`, `currency_conversion`, `member_facts` (replica: member_id, timezone, created_at, currency_code), `outbox`, `processed_events`. |
-| RPCs | `GetMonthSummary(month)`, `GetRecap(month)`, `ListMonthsWithData`, `ListSpends(month)`, `LogSpend`, `EditSpend`, `DeleteSpend`, `GetSettings`, `SaveSalary(applies_from)`, `SaveTarget`, `ApplyCurrencyConversion(rate, source)`, `GetSpentToday`, `ExportCSV`. |
-| Publishes | `ledger.spend.logged`, `ledger.spend.edited`, `ledger.spend.deleted`, `ledger.salary.changed`, `ledger.target.changed`, `ledger.currency.converted`. Every spend event carries the recomputed month figures, so `notify` never recalculates. |
-| Consumes | `members.created`, `members.updated` → upsert `member_facts`. `members.deleted` → purge. |
-| Tests | The PRD §8 worked examples and the §12 acceptance criteria live as JSON fixtures in `packages/contract/fixtures/ledger/`. Each fixture is one ledger and one "as of" date with the expected numbers. The ledger's test suite runs every fixture. This is the single answer key for the arithmetic. |
+| Responsibility | All money facts and **all** of PRD §8, nothing of it anywhere else: salary and target settings, Spends, currency rewrites and their rounding (§8.4, §8.9), and every computed figure: Spent, Money In, Saved, target amount, kept%, Streak, Splurge, Archetype, partial-month status, the target sentence, the warning line and whether it was crossed (§8.8). `notify` receives a boolean; `currency` supplies a rate. |
+| Owns | `salary_setting`, `saving_target_setting`, `spend`, `currency_conversion`, `member_facts` (replica: member_id, timezone, signed_up_on, currency_code), `outbox`, `processed_events`. `spend` and `salary_setting` carry `original_amount` and `original_currency`, the values as typed, untouched by a later conversion; every write table carries `idempotency_key` with a unique index on `(member_id, idempotency_key)`. |
+| RPCs | `GetMonthSummary(month)`, `GetRecap(month)`, `ListMonthsWithData`, `ListSpends(month)`, `LogSpend`, `EditSpend`, `DeleteSpend`, `GetSettings`, `SaveSalary(applies_from)`, `SaveTarget`, `PreviewConversion(rate, to)`, `ApplyCurrencyConversion(rate, source, to)`, `GetSpentToday(member_ids[])`, `ExportCSV`. Every write takes an idempotency key (A14). |
+| Rounding | Decimals per currency come from CLDR through `golang.org/x/text/currency`, the same data the phone's formatter reads, so no table of currencies exists in the code. The stored value is the truth; the phone only prints it. |
+| Publishes | `ledger.spend.logged`, `ledger.spend.edited`, `ledger.spend.deleted`, `ledger.salary.changed`, `ledger.target.changed`, `ledger.currency.converted`, `ledger.member.purged`. Every spend event carries the recomputed month figures and `crossed_line`, so `notify` never recalculates. |
+| Consumes | `members.created`, `members.updated` → upsert `member_facts`. `members.deleted` → purge, then publish `ledger.member.purged`. |
+| Tests | The PRD §8 worked examples and the §12 acceptance criteria live as JSON fixtures in `packages/contract/fixtures/ledger/`. Each fixture is one ledger and one "as of" date with the expected numbers, including `crossed_line` and the rounded conversion results. The ledger's test suite runs every fixture. Because no other service implements any of §8, this is the single answer key for the arithmetic. |
 | Why one service for all of it | §8.9 rewrites salary rows and Spend rows "in one transaction". Keeping both tables in one database keeps that a real transaction instead of a saga. The §8 rules read every table here; splitting them would turn every computation into three network calls. |
 
 Flow: currency change (§8.9)
@@ -236,14 +241,17 @@ sequenceDiagram
     P->>B: PreviewCurrencyChange(IDR)
     B->>C: Quote(GBP→IDR)
     C-->>B: rate 20,150, source OER
-    B-->>P: before/after values for the confirm sheet
-    P->>B: ChangeCurrency(IDR, 20,150)
-    B->>L: ApplyCurrencyConversion
-    Note over L: one transaction: rewrite salary + spends,<br/>currency_conversion row, outbox row
-    L->>M: SetCurrencyCode(IDR)
+    B->>L: PreviewConversion(20,150, IDR)
+    L-->>B: before/after values, rounded by ledger
+    B-->>P: values for the confirm sheet
+    P->>B: ChangeCurrency(IDR, 20,150, key)
+    B->>L: ApplyCurrencyConversion(20,150, OER, IDR, key)
+    Note over L: one transaction: rewrite salary + spends<br/>(originals kept), currency_conversion row, outbox row
+    L--)M: ledger.currency.converted (via RabbitMQ)
+    Note over M: set currency_code, publish members.updated
 ```
 
-The rewrite of every amount is one Postgres transaction inside `ledger`. The one cross-service step, telling `members` the new code, comes after the commit and is retried from the outbox event if it fails, so the worst case is a code that lags the amounts by seconds, never amounts that are half converted.
+The rewrite of every amount is one Postgres transaction inside `ledger`; each rewritten row keeps `original_amount` and `original_currency`, so what the Member typed is never lost (PRD §8.9). `members` learns the new code from the event, not from a call, so a failure there is retried by the broker and the worst case is a code that lags the amounts by seconds, never amounts that are half converted. A second tap with the same key returns the first result.
 
 Flow: salary edit after Payday (D56)
 
@@ -256,11 +264,11 @@ Flow: salary edit after Payday (D56)
 | | |
 |---|---|
 | Responsibility | Deciding and sending every notification in PRD §10, and remembering what was sent. Device tokens. Notification preferences. The Target Warning state the Home banner reads. All outbound email the app itself sends, which in phase 1 is only the CSV export (PRD §6.16); Keycloak sends its own magic-link mail. |
-| Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at), `sent_log`, `email_status` (member_id, address, last_bounce_at), `member_facts` (replica: timezone, display_name, email), `processed_events`. |
-| RPCs | `GetWarningState(month)`, `EvaluateWarning(month figures)`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailExport(csv)`. |
+| Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at), `sent_log` (unique on member_id, kind, period), `email_status` (member_id, address, last_bounce_at), `member_facts` (replica: timezone, display_name, email, next_recap_at, next_reminder_at), `processed_events`. |
+| RPCs | `GetWarningState(month)`, `EvaluateWarning(month, crossed_line)`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailExport(csv)`. Every write takes an idempotency key (A14). `notify` holds no rule from PRD §8; `crossed_line` is computed by `ledger`. |
 | Email | The same SMTP provider Keycloak uses, credentials mounted as a secret file (A13). A hard bounce recorded by the provider's webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
-| Consumes | `ledger.spend.logged` → send the push if `month_flag` is stamped and unsent. `members.updated` → replica. `members.deleted` → purge. |
-| Schedulers | Every minute: the 09:00-on-the-1st query for Recap ready, and the Member-chosen-time query for the daily reminder. The reminder calls `ledger.GetSpentToday` before sending, because "only if no Spend was logged today" is a ledger fact. |
+| Consumes | `ledger.spend.logged` → stamp `month_flag` if `crossed_line` and unstamped, send the push if the stamp is fresh. `members.updated` → replica, recompute `next_*_at`. `members.deleted` → purge, then publish `notify.member.purged`. |
+| Schedulers | Every minute: one indexed query on `next_recap_at`, one on `next_reminder_at` (§4.5), in batches of 500. Each batch is one `ledger.GetSpentToday(member_ids[])` call for the reminder, then one APNs request per Member from a bounded worker pool. Insert into `sent_log` first, send only if the insert won, so a crash between the two never double-sends and two `notify` replicas never both send. |
 | APNs | Token-based auth with a .p8 key, HTTP/2 to Apple. A 410 response deletes the device row. |
 | Why separate | It is the only service with schedulers and an outbound push connection. Keeping it out of `ledger` keeps the money service free of clocks and Apple. |
 
@@ -268,12 +276,13 @@ Flow: Recap ready at 09:00 local
 
 ```mermaid
 flowchart LR
-    T[scheduler tick<br/>every 60 s] --> Q[member_facts query<br/>now AT TIME ZONE tz = 09:00 and day = 1<br/>Jakarta at 02:00 UTC, London at 08:00 UTC]
-    Q --> E[per Member<br/>sent_log has member+month? skip<br/>ledger.ListMonthsWithData<br/>previous month present? send]
-    E --> A[APNs<br/>then write sent_log]
+    T[scheduler tick<br/>every 60 s] --> Q[indexed query<br/>next_recap_at <= now, batch 500<br/>Jakarta rows fire at 02:00 UTC, London at 08:00 UTC]
+    Q --> I[INSERT sent_log member+month<br/>conflict? skip: already sent]
+    I --> E[ledger.ListMonthsWithData<br/>previous month present?]
+    E --> A[APNs from a worker pool<br/>then advance next_recap_at]
 ```
 
-A partial month still sends (PRD §10). The daily reminder is the same loop with the Member's chosen time and a `ledger.GetSpentToday` check.
+A partial month still sends (PRD §10). The daily reminder is the same loop on `next_reminder_at` with one batched `ledger.GetSpentToday(member_ids[])` per 500 Members. At phase-1 scale this is a handful of rows a minute; the batch, the index and the worker pool are what keep a popular reminder time from becoming a burst of one RPC and one push per Member from a single loop.
 
 Flow: CSV export (PRD §6.16, D39)
 
@@ -287,8 +296,8 @@ Flow: CSV export (PRD §6.16, D39)
 |---|---|
 | Responsibility | Exchange rates and conversion quotes. Fetching Open Exchange Rates once a day (D35), caching, the manual-rate fallback for unsupported pairs, and the before/after figures for the confirm sheet. |
 | Owns | `rate_snapshot` (date, base, rates jsonb, fetched_at), `processed_events`. |
-| RPCs | `Quote(from, to)` → rate, source, as_of, or `UNSUPPORTED_PAIR`. `PreviewConversion(from, to, amounts[])` → converted amounts, round-half-up to the target currency's decimals as reported by the formatter (§8.4). |
-| Consumes | `members.deleted` → nothing to purge; the consumer exists so the queue set is uniform. |
+| RPCs | `Quote(from, to)` → rate, source, as_of, or `UNSUPPORTED_PAIR`. No arithmetic on amounts: rounding and rewriting are `ledger`'s (§7.2), so §8 has one implementation. |
+| Consumes | `members.deleted` → nothing to purge; publishes `currency.member.purged` so `members` can complete its deletion tracking. |
 | Redis | `fx:{date}:USD`, 36-hour TTL. On a miss, read the latest `rate_snapshot`; on none, fetch OER. |
 | Why separate | It is the only service that calls a third-party API with a key and a quota. A quota failure or an OER outage returns an `InlineError` with Retry (§8.9 step 1) and nothing else notices. |
 
@@ -318,7 +327,7 @@ Keycloak's magic-link action token cannot be placed on the app's domain and is c
 
 | Table | Database | Writer | Readers |
 |---|---|---|---|
-| `member` | members | members | members only; others hold `member_facts` replicas fed by events |
+| `member`, `deletion_progress` | members | members | members only; others hold `member_facts` replicas fed by events |
 | `salary_setting`, `saving_target_setting`, `spend`, `currency_conversion` | ledger | ledger | ledger only |
 | `member_facts` (replica) | ledger, notify | that service's consumer | that service |
 | `notification_preference`, `device`, `month_flag`, `sent_log`, `email_status` | notify | notify | notify only |
@@ -343,6 +352,10 @@ One Postgres container, five databases, five roles, each role granted only its o
 | Outbox and `processed_events` | The only pattern under which "Spend saved but event lost" and "event delivered twice" are both impossible to observe. | Publish after commit without outbox: loses events on a crash. Exactly-once from the broker: does not exist end to end. |
 | Server-side computation | One implementation of §8, one answer key, no drift. | Phone-side arithmetic: a second implementation in Swift. |
 | Synchronous `EvaluateWarning` | The banner is in the Save response, as §8.8's "after saving a Spend" reads. | Event-only: the banner appears on the next `GetHome`, a second later. |
+| Idempotency enforced in the owning service | A unique key inside the write's own transaction survives a BFF crash and a Redis restart; a cache cannot. | Redis as the guarantee: a crash between commit and cache write duplicates the Spend. |
+| Originals kept on conversion | Two columns preserve what the Member typed; the rewrite the PRD asks for still happens. | Convert on read: reverses D12 and puts rounding in every read. Rewrite only: the typed amount is gone. |
+| `next_*_at` columns for schedules | An indexed range scan instead of `AT TIME ZONE` per row per minute; batched RPCs and a worker pool for the fan-out. | Per-row local-time query: a full scan every tick and one call per Member at a popular time. |
+| `notify` optional on every read and write path | A notification service must never block a money entry or blank Home; the event path already guarantees the flag and the push. | Synchronous, required: `notify` down means no Spends can be logged. |
 | Login Token, not the action-token magic link | The action token lives on Keycloak's host and is consumed by any GET; the login token is opaque, app-redeemed, atomically single-use. | Action-token link with `send_email:false` and our own wrapper page: workable, but a scanner that follows the unwrapped URL still burns it. |
 | SOPS + age, not env files | Secrets encrypted in git, decrypted to files at deploy, no daemon, MPL-2.0 and BSD-3. | Vault/OpenBao: a server for one VM. Doppler/Infisical: a hosted service for one developer. `.env`: plain text on disk and in `docker inspect`. |
 | Apple identity-provider extension, not generic OIDC | It signs the client secret from the `.p8` on every exchange, so the six-month rotation job does not exist. | Generic OIDC with a hand-rotated JWT: a recurring operations task that fails silently when forgotten. |
@@ -364,6 +377,8 @@ One Postgres container, five databases, five roles, each role granted only its o
 
 Thirteen containers, one `compose.yaml`, health checks on every one so `depends_on: condition: service_healthy` starts them in order. Migrations run as a one-shot step per service before that service starts. The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
 
+**What this does and does not buy.** The service split gives independent deployment and clean ownership. It does not give independent scaling: one VM, one Postgres process and one disk are shared, so a runaway query in `ledger` slows Keycloak and `notify` too. Nothing in phase 1 should be designed as if the four services could be scaled apart; that arrives with separate database instances, after phase 1.
+
 **Secrets (A13).** Every secret lives in `infra/secrets/prod.yaml`, encrypted with SOPS and an age key, and is committed. The deploy step decrypts it into files under `/run/secrets` and Compose mounts them with `secrets:`; Go services read `*_FILE` paths, Keycloak reads them through its file vault, and nothing is passed as an environment variable, which Docker's own docs advise against for secrets. The age private key on the VM and in the GitHub `production` environment is the only value a human ever holds. Rotation is edit, commit, deploy. Vault and OpenBao were rejected as a server for one VM; Doppler and Infisical as a hosted service for one developer.
 
 **Infrastructure as code.** `infra/tofu/` holds DNS records and the apple-app-site-association file, the VM with cloud-init and firewall, the Keycloak realm, and API tokens for providers that expose them (Resend or Postmark for SMTP). What stays human is one browser session each: Apple Developer Program enrolment and its two `.p8` keys and Services ID, the Google OAuth client, the Open Exchange Rates App ID, the first SMTP-provider account, the domain purchase, the cloud account, and one `age-keygen`. The setup wizard is scoped to exactly those, each ending in pasting the value into `sops edit infra/secrets/prod.yaml` (`research/2026-09-14-setup-automation.md` §4).
@@ -375,7 +390,7 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 | # | Decision | Status |
 |---|---|---|
 | A1 | Contract: protobuf, Buf, Connect; `buf breaking` required in CI; event messages in the same package. | proposed |
-| A2 | Computation lives in `ledger`; the phone stores and formats; the §8 fixtures are the answer key. | proposed |
+| A2 | All of §8 lives in `ledger` and nowhere else, including the warning-line check and conversion rounding; the phone stores and formats; the §8 fixtures are the answer key. | proposed |
 | A3 | `member.timezone` as an IANA name; every "today" in §8 and §10 evaluated in it; the `notify` scheduler is the §4.5 query. | proposed |
 | A4 | Events: outbox relay, at-least-once, `processed_events` dedupe keyed by message id. | proposed |
 | A5 | Broker: RabbitMQ, topic exchange, quorum queues, dead-letter after five tries. | proposed |
@@ -385,5 +400,6 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 | A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | proposed |
 | A10 | Email sign-in: Phase Two Login Token redeemed by the app through the direct grant; the BFF requests it and limits 5 per email per hour; `notify` emails the app-domain link; the static fallback never touches the token; the Phase Two image is pinned. | proposed; first task is the §7.5 smoke test |
 | A13 | Secrets: SOPS + age, encrypted in git, mounted as files; Keycloak file vault; OpenTofu for DNS, VM, realm and provider tokens; the wizard covers only the nine human steps. | proposed |
+| A14 | Every write RPC carries an idempotency key; the owning service enforces it with a unique index inside the write's transaction; Redis is only a fast path. `notify` is optional on every path. Schedulers insert `sent_log` before sending. Conversions keep the typed originals. | proposed |
 | A11 | Observability: OpenTelemetry in every Go process, OTLP to one `otel-lgtm` container, trace context carried in Connect and RabbitMQ headers. | proposed |
 | A12 | Backups: nightly `pg_dump` per database to object storage, 30 days kept, quarterly restore drill. | proposed |
