@@ -92,3 +92,16 @@ jobs:
           docker compose ps
           docker compose logs members-migrate members
           docker compose down -v
+
+  a10-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Throwaway .env (development credentials only, never committed)
+        run: sed 's/=$/=ci-throwaway/' infra/compose/.env.example > infra/compose/.env
+      - name: Keycloak and Postgres only; members is the backend job's concern
+        run: docker compose -f infra/compose/compose.yaml up -d --wait --wait-timeout 300 keycloak
+      - name: Login Token issued and redeemed on the pinned image (A10)
+        run: infra/compose/a10-smoke.sh
+      - if: failure()
+        run: docker compose -f infra/compose/compose.yaml logs keycloak

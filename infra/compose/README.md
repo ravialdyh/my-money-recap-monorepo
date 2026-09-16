@@ -66,7 +66,14 @@ replaces this bootstrap with OpenTofu (A13).
   simulator or a container reaching `keycloak:8080`.
 - `ios`: public client, PKCE S256 required, direct access grants enabled for the test seams, redirect
   URI `mymoneyrecap://auth/callback` (custom scheme until slice 3 serves universal links). An
-  audience mapper adds `bff` to its access tokens.
+  audience mapper adds `bff` to its access tokens. Its direct grant is the custom `ios direct grant`
+  flow: two conditional branches on the optional `login-token` client scope. A token request with
+  `scope=login-token` runs the Login Token authenticator (A10); one without runs the username and
+  password validators. The two cannot be plain alternatives, because the Login Token authenticator
+  fails the whole flow when the `login_token` field is absent (`a10-smoke.sh` proved this on the
+  pinned image). The realm attribute `CreateDefaultClientScopes` keeps Keycloak's built-in scopes
+  (`profile`, `email`, `basic`, ...) when the JSON declares its own `clientScopes`; without it the
+  imported realm has none and access tokens carry no `sub`.
 - `bff`: confidential client with a service account holding `realm-management` `manage-users`, which
   the Login Token endpoint needs (A10). Secret from `BFF_CLIENT_SECRET`.
 - Test user `test` / `test@example.com`, password from `TEST_USER_PASSWORD`.
@@ -87,6 +94,26 @@ A password grant for the test user on the `ios` client:
 ```bash
 curl -s -X POST http://localhost:8080/realms/mmr/protocol/openid-connect/token -d grant_type=password -d client_id=ios -d username=test -d "password=$TEST_USER_PASSWORD" | jq -r .access_token
 ```
+
+## A10 smoke test
+
+`a10-smoke.sh` proves A10 on the pinned image, and CI runs it on every pull request (`a10-smoke` job,
+throwaway `.env`, only `keycloak` and `postgres` started). Against the running stack, using the same `.env`, it:
+
+1. gets a service-account token for `bff` and calls `POST /realms/mmr/login-token` for the test
+   user's email with `expiration_seconds` 900, `reusable` false, `force_create` true and
+   `set_email_verified` true;
+2. redeems the `lt:` token on `ios` at the token endpoint with `grant_type=password`,
+   `scope=login-token` and the `login_token` field, and asserts the access token's `sub` is the test
+   user's id from the admin API;
+3. redeems it again and asserts HTTP 401 `invalid_grant`;
+4. checks the password grant on `ios` still works, and prints the image tag.
+
+```bash
+infra/compose/a10-smoke.sh
+```
+
+It reads `KEYCLOAK_HOST_PORT` from `.env` (see "Parallel worktrees"); `KEYCLOAK_URL` overrides the whole base URL.
 
 ## Admin access
 
