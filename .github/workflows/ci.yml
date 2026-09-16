@@ -72,7 +72,7 @@ jobs:
           go-version-file: apps/backend/go.mod
       - run: go vet ./...
       - run: go test ./...
-      - name: Compose stack with the migration step and members (#15)
+      - name: Compose stack with the migration step, members and the BFF (#15, #17)
         working-directory: infra/compose
         run: |
           printf 'POSTGRES_PASSWORD=ci\nKEYCLOAK_DB_PASSWORD=ci\nMEMBERS_DB_PASSWORD=ci\nKC_BOOTSTRAP_ADMIN_USERNAME=admin\nKC_BOOTSTRAP_ADMIN_PASSWORD=ci\nTEST_USER_PASSWORD=ci\nBFF_CLIENT_SECRET=ci\n' > .env
@@ -85,12 +85,19 @@ jobs:
           MEMBERS_TEST_USER_PASSWORD: ci
           MEMBERS_TEST_BFF_CLIENT_SECRET: ci
         run: go test -v -run 'TestConcurrentFirstCallsCreateOneRow|TestConnectBoundary' ./internal/members/
+      - name: Backend end-to-end test at the BFF's HTTP boundary (#17)
+        env:
+          BFF_TEST_URL: http://localhost:8082
+          BFF_TEST_KEYCLOAK: http://localhost:8080
+          BFF_TEST_USER_PASSWORD: ci
+          BFF_TEST_DATABASE_URL: postgres://members:ci@localhost:5432/members
+        run: go test -v -run TestEndToEnd ./internal/bff/
       - name: Stack logs and teardown
         if: always()
         working-directory: infra/compose
         run: |
           docker compose ps
-          docker compose logs members-migrate members
+          docker compose logs members-migrate members bff
           docker compose down -v
 
   a10-smoke:
