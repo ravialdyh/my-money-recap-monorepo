@@ -3,6 +3,9 @@
   "enabled": true,
   "sslRequired": "none",
   "registrationAllowed": false,
+  "attributes": {
+    "CreateDefaultClientScopes": "true"
+  },
   "clients": [
     {
       "clientId": "ios",
@@ -14,7 +17,9 @@
       "directAccessGrantsEnabled": true,
       "implicitFlowEnabled": false,
       "serviceAccountsEnabled": false,
-      "redirectUris": ["mymoneyrecap://auth/callback"],
+      "redirectUris": [
+        "mymoneyrecap://auth/callback"
+      ],
       "webOrigins": [],
       "attributes": {
         "pkce.code.challenge.method": "S256",
@@ -33,7 +38,26 @@
             "introspection.token.claim": "true"
           }
         }
-      ]
+      ],
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles",
+        "web-origins",
+        "acr",
+        "basic"
+      ],
+      "optionalClientScopes": [
+        "login-token",
+        "address",
+        "phone",
+        "offline_access",
+        "organization",
+        "microprofile-jwt"
+      ],
+      "authenticationFlowBindingOverrides": {
+        "direct_grant": "8b6e6b0e-0a10-4a10-9f3c-000000000a10"
+      }
     },
     {
       "clientId": "bff",
@@ -57,7 +81,9 @@
       "enabled": true,
       "serviceAccountClientId": "bff",
       "clientRoles": {
-        "realm-management": ["manage-users"]
+        "realm-management": [
+          "manage-users"
+        ]
       }
     },
     {
@@ -68,8 +94,118 @@
       "enabled": true,
       "emailVerified": true,
       "credentials": [
-        { "type": "password", "value": "${TEST_USER_PASSWORD}", "temporary": false }
+        {
+          "type": "password",
+          "value": "${TEST_USER_PASSWORD}",
+          "temporary": false
+        }
       ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "login-token",
+      "protocol": "openid-connect",
+      "description": "Requested by the app when it redeems a Login Token; routes the direct grant to the Login Token branch (A10).",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      }
+    }
+  ],
+  "authenticationFlows": [
+    {
+      "id": "8b6e6b0e-0a10-4a10-9f3c-000000000a10",
+      "alias": "ios direct grant",
+      "description": "Direct grant for the ios client: the Login Token branch when scope contains login-token, the username-password branch otherwise. The Login Token authenticator fails the flow when login_token is absent, so the two cannot be plain alternatives (A10).",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "flowAlias": "ios direct grant - login token",
+          "requirement": "CONDITIONAL",
+          "priority": 10,
+          "authenticatorFlow": true,
+          "userSetupAllowed": false
+        },
+        {
+          "flowAlias": "ios direct grant - password",
+          "requirement": "CONDITIONAL",
+          "priority": 20,
+          "authenticatorFlow": true,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "ios direct grant - login token",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-client-scope",
+          "authenticatorConfig": "login-token requested",
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "authenticatorFlow": false,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "direct-grant-login-token",
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "authenticatorFlow": false,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "ios direct grant - password",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-client-scope",
+          "authenticatorConfig": "login-token not requested",
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "authenticatorFlow": false,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "direct-grant-validate-username",
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "authenticatorFlow": false,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "direct-grant-validate-password",
+          "requirement": "REQUIRED",
+          "priority": 30,
+          "authenticatorFlow": false,
+          "userSetupAllowed": false
+        }
+      ]
+    }
+  ],
+  "authenticatorConfig": [
+    {
+      "alias": "login-token requested",
+      "config": {
+        "client_scope": "login-token",
+        "negate": "false"
+      }
+    },
+    {
+      "alias": "login-token not requested",
+      "config": {
+        "client_scope": "login-token",
+        "negate": "true"
+      }
     }
   ]
 }

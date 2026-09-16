@@ -320,10 +320,10 @@ Keycloak's magic-link action token cannot be placed on the app's domain and is c
 
 1. The phone sends `RequestMagicLink(email)`. The BFF enforces 5 requests per email per hour in Redis (PRD §11), then calls the extension's `POST /realms/mmr/login-token` with `expiration_seconds: 900`, `reusable: false`, `force_create: true` and `set_email_verified: true`, using its service account. The response is an opaque `lt:<uuid>`.
 2. The BFF calls `notify.EmailMagicLink(email, link)` and `notify` emails `https://app.example.com/magic?lt=…`. Nginx serves a static page for `/magic` and the apple-app-site-association file from `/.well-known/`, so on an iPhone with the app installed iOS opens the app instead of the page.
-3. The app POSTs `grant_type=password&login_token=…` to Keycloak's token endpoint and receives its tokens. No browser is involved on the email path; Apple and Google still use `ASWebAuthenticationSession` with PKCE. An expired or used token returns `invalid_grant`, which the app shows as the §6.3 `InlineError`.
+3. The app POSTs `grant_type=password&scope=login-token&login_token=…` to Keycloak's token endpoint and receives its tokens. The `login-token` scope routes the `ios` client's direct grant to the Login Token branch; without it the same flow runs the username-password validators (the test seam), because the Login Token authenticator fails the flow outright when the field is absent, so the two cannot be plain alternatives. No browser is involved on the email path; Apple and Google still use `ASWebAuthenticationSession` with PKCE. An expired or used token returns `invalid_grant`, which the app shows as the §6.3 `InlineError`.
 4. On a laptop, or when the Member has set links to open in the browser (Apple TN3155), the static page says "Open this link on your phone" and offers an "Open in app" button on the app's custom scheme. The page performs no request with `lt`, and a scanner GET on the URL reaches only that static page, so the token cannot be consumed by anything but the app.
 
-**Open item, narrowed.** The first infrastructure task is a Compose smoke test proving the chosen Phase Two image tag's magic-link extension redeems a login token on that image's Keycloak version. No published source verifies it.
+**Open item, resolved 2026-09-16.** `infra/compose/a10-smoke.sh` proves on `quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980` (Keycloak 26.6.6, magic-link 0.75) that the Login Token endpoint issues a token for the test user and the `ios` client redeems it through the direct grant, that the second redemption is refused with `invalid_grant`, and that the password grant still works. CI runs it on every pull request (#14).
 
 ## 8. Data ownership
 
@@ -401,8 +401,8 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 | A6 | Redis for rate limits, idempotency, rate cache and JWKS; fail-open and fail-closed rules per job; AGPL noted. | proposed |
 | A7 | Front door: Nginx for TLS, per-IP limits and static files; the BFF verifies the JWT; every service verifies again. | proposed |
 | A8 | Service boundaries: `members`, `ledger`, `notify`, `currency`; payment and AI reserved; replicated member facts fed by events. | proposed |
-| A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | proposed |
-| A10 | Email sign-in: Phase Two Login Token redeemed by the app through the direct grant; the BFF requests it and limits 5 per email per hour; `notify` emails the app-domain link; the static fallback never touches the token; the Phase Two image is pinned. | proposed; first task is the §7.5 smoke test |
+| A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | proposed; in use since slice 1 |
+| A10 | Email sign-in: Phase Two Login Token redeemed by the app through the direct grant; the BFF requests it and limits 5 per email per hour; `notify` emails the app-domain link; the static fallback never touches the token; the Phase Two image is pinned. | accepted on tag 26.6.6.1789466980, 2026-09-16 (`infra/compose/a10-smoke.sh`, #14) |
 | A11 | Observability: OpenTelemetry in every Go process, OTLP to one `otel-lgtm` container, trace context carried in Connect and RabbitMQ headers. | proposed |
 | A12 | Backups: nightly `pg_dump` per database to object storage, 30 days kept, quarterly restore drill. | proposed |
 | A13 | Secrets: SOPS + age, encrypted in git, mounted as files; Keycloak file vault; OpenTofu for DNS, VM, realm and provider tokens; the wizard covers only the nine human steps. | proposed |
