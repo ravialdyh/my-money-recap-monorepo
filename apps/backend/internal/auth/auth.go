@@ -49,7 +49,9 @@ func (v *Verifier) Interceptor() connect.UnaryInterceptorFunc {
 }
 
 // NewContext stores verified Claims; the interceptor calls it, tests may too.
-func NewContext(ctx context.Context, c Claims) context.Context { return context.WithValue(ctx, ctxKey{}, c) }
+func NewContext(ctx context.Context, c Claims) context.Context {
+	return context.WithValue(ctx, ctxKey{}, c)
+}
 
 // From is the verified token's Claims, zero outside the interceptor.
 func From(ctx context.Context) Claims {
