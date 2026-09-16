@@ -59,3 +59,36 @@ jobs:
       - name: Generated Go compiles
         working-directory: apps/backend
         run: go build ./...
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/backend/go.mod
+      - run: go vet ./...
+      - run: go test ./...
+      - name: Compose stack with the migration step and members (#15)
+        working-directory: infra/compose
+        run: |
+          printf 'POSTGRES_PASSWORD=ci\nKEYCLOAK_DB_PASSWORD=ci\nMEMBERS_DB_PASSWORD=ci\nKC_BOOTSTRAP_ADMIN_USERNAME=admin\nKC_BOOTSTRAP_ADMIN_PASSWORD=ci\nTEST_USER_PASSWORD=ci\nBFF_CLIENT_SECRET=ci\n' > .env
+          docker compose up -d --build --wait
+      - name: Connect-boundary tests against Compose
+        env:
+          MEMBERS_TEST_URL: http://localhost:8081
+          MEMBERS_TEST_DATABASE_URL: postgres://members:ci@localhost:5432/members
+          MEMBERS_TEST_KEYCLOAK: http://localhost:8080
+          MEMBERS_TEST_USER_PASSWORD: ci
+          MEMBERS_TEST_BFF_CLIENT_SECRET: ci
+        run: go test -v -run 'TestConcurrentFirstCallsCreateOneRow|TestConnectBoundary' ./internal/members/
+      - name: Stack logs and teardown
+        if: always()
+        working-directory: infra/compose
+        run: |
+          docker compose ps
+          docker compose logs members-migrate members
+          docker compose down -v

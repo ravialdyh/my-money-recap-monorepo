@@ -368,8 +368,8 @@ One Postgres container, five databases, five roles, each role granted only its o
 |---|---|---|---|
 | nginx | nginx:stable | 443, 80 | bff, keycloak |
 | acme | neilpang/acme.sh | — | shares the cert volume with nginx; deploy hook reloads nginx |
-| bff | built from `apps/bff` | 8080 internal | members, ledger, notify, currency, redis |
-| members, ledger, notify, currency | built from `apps/<service>` | 8080 internal each | postgres, rabbitmq, and redis where §4.4 lists it |
+| bff | built from the one Go module `apps/backend`, command `cmd/bff` (`cmd/bff/Dockerfile`; rewritten 2026-09-16, was `apps/bff`) | 8080 internal | members, ledger, notify, currency, redis |
+| members, ledger, notify, currency | built from the one Go module `apps/backend`, command `cmd/<service>` (`cmd/<service>/Dockerfile`; rewritten 2026-09-16, was `apps/<service>`) | 8080 internal each | postgres, rabbitmq, and redis where §4.4 lists it |
 | keycloak | quay.io/phasetwo/phasetwo-keycloak, pinned tag (§7.5) | 8080 internal | postgres |
 | postgres | postgres:17 | 5432 internal | volume |
 | rabbitmq | rabbitmq:4-management | 5672, 15672 internal | volume |
@@ -377,7 +377,7 @@ One Postgres container, five databases, five roles, each role granted only its o
 | otel-lgtm | grafana/otel-lgtm | 4317 internal, 3000 admin-only | volume |
 | pg-backup | built from `infra/pg-backup` (cron + `pg_dump`) | — | postgres |
 
-Thirteen containers, one `compose.yaml`, health checks on every one so `depends_on: condition: service_healthy` starts them in order. Migrations run as a one-shot step per service before that service starts. The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
+Thirteen containers, one `compose.yaml`, health checks on every one so `depends_on: condition: service_healthy` starts them in order. Migrations run as a one-shot step per service before that service starts: the same image with the `migrate` subcommand, which `depends_on: condition: service_completed_successfully` orders (`members-migrate` is the first, #15). The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
 
 **What this does and does not buy.** The service split gives independent deployment and clean ownership. It does not give independent scaling: one VM, one Postgres process and one disk are shared, so a runaway query in `ledger` slows Keycloak and `notify` too. Nothing in phase 1 should be designed as if the four services could be scaled apart; that arrives with separate database instances, after phase 1.
 
