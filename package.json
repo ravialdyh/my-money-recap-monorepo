@@ -12,7 +12,8 @@
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build:tokens": "npm run build:tokens -w @my-money-recap/ui",
-    "build:assets": "npm run build:assets -w @my-money-recap/ui"
+    "build:assets": "npm run build:assets -w @my-money-recap/ui",
+    "build:swift-tokens": "npm run build:swift-tokens -w @my-money-recap/ui"
   },
   "engines": {
     "node": ">=20"

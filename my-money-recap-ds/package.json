@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "preview": "esbuild scripts/render-screens.tsx --bundle --platform=node --format=esm --jsx=automatic --external:react --external:react-dom --outfile=scripts/preview/render.mjs --log-level=warning && node scripts/preview/render.mjs && echo 'open scripts/preview/index.html'",
     "build:assets": "node scripts/build-assets.mjs",
+    "build:swift-tokens": "node scripts/build-swift-tokens.mjs",
     "measure": "esbuild scripts/measure.tsx --bundle --platform=browser --format=iife --jsx=automatic --define:process.env.NODE_ENV=\"\\\"production\\\"\" --outfile=scripts/preview/measure.js --log-level=warning && cp scripts/measure.html scripts/preview/measure.html && echo 'open scripts/preview/measure.html'",
     "test": "vitest run"
   },

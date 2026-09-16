@@ -8,7 +8,7 @@ below; the values are in `src/tokens/tokens.json`.
 
 ```
 src/
-  tokens/        tokens.json (source of truth) → tokens.css (generated)
+  tokens/        tokens.json (source of truth) → tokens.css and ../../apps/ios/DesignSystem/Tokens.swift (generated)
   styles/        components.css → css.generated.ts (generated); useStyles() injects it once
   components/    one component per file, states via data-state / :active / :disabled
   icons/         one <Icon name=…> component; glyph drawings live in glyphs.tsx
@@ -73,6 +73,7 @@ Draw the glyph in `src/icons/glyphs.tsx` and add it to the `GLYPHS` map in `src/
 ```
 npm run build:tokens   # tokens.json → tokens.css, styles/css.generated.ts, dist/mmr.css
 npm run build:assets   # ../my-money-recap/assets/illustrations/ill-*.webp → src/assets/illustrations.ts
+npm run build:swift-tokens   # tokens.json → ../apps/ios/DesignSystem/Tokens.swift (colours, radii, type ramp, motion; IOS.md I5)
 npm run typecheck
 ```
 
