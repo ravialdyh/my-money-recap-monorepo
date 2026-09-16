@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+// An exact amount in one Currency (PRD §7, D71). The amount is a decimal
+// string such as "2400.00" or "15000000", never a float and never an integer
+// count of minor units, so the phone prints exactly what the server holds.
+message Money {
+  // Decimal string, at most 11 digits before the separator (PRD D57).
+  string amount = 1;
+  // ISO 4217 code, for example "GBP" or "IDR".
+  string currency_code = 2;
+}
