@@ -1,8 +1,8 @@
 # infra/compose
 
-The phase-1 stack on a laptop (`docs/ARCHITECTURE.md` §10, A9). Slice 1 runs four containers: Keycloak
-(Phase Two image, pinned), Postgres, RabbitMQ and Redis. The `members` service and the BFF join in
-later tickets; Nginx, `otel-lgtm` and `pg-backup` in later slices.
+The phase-1 stack on a laptop (`docs/ARCHITECTURE.md` §10, A9). Slice 1 runs Keycloak (Phase Two
+image, pinned), Postgres, RabbitMQ, Redis, the `members` migration step and the `members` service.
+The BFF joins in a later ticket; Nginx, `otel-lgtm` and `pg-backup` in later slices.
 
 ## Run it
 
@@ -16,10 +16,11 @@ Fill every empty value in `.env` (any string will do locally; they are developme
 `.gitignore` keeps the file out of git). Then:
 
 ```bash
-docker compose -f infra/compose/compose.yaml up -d --wait
+docker compose -f infra/compose/compose.yaml up -d --build --wait
 ```
 
-`--wait` returns once every container reports healthy. Check with:
+`--build` builds the `members` image from `apps/backend`; `--wait` returns once every container
+reports healthy and the migration step has exited 0. Check with:
 
 ```bash
 docker compose -f infra/compose/compose.yaml ps
@@ -32,12 +33,27 @@ Stop with `down`; add `-v` to drop the volumes, which is also how you get a fres
 
 | Container | Image | Host port | Notes |
 | --- | --- | --- | --- |
-| postgres | `postgres:17` | — | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak` and `members`, one role each, `CONNECT` revoked from `PUBLIC` so neither role can reach the other's database (A9). |
-| keycloak | `quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980` | 8080 | Keycloak 26.6.6 with magic-link 0.75. The tag is the single `KEYCLOAK_TAG` default in `compose.yaml`; never `latest` or a shorter tag (§7.5). |
+| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` (5432) | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak` and `members`, one role each, `CONNECT` revoked from `PUBLIC` so neither role can reach the other's database (A9). |
+| keycloak | `quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980` | `KEYCLOAK_HOST_PORT` (8080) | Keycloak 26.6.6 with magic-link 0.75. The tag is the single `KEYCLOAK_TAG` default in `compose.yaml`; never `latest` or a shorter tag (§7.5). |
 | rabbitmq | `rabbitmq:4-management` | — | No consumer yet. |
 | redis | `redis:8` | — | No client yet. |
+| members-migrate | built from `apps/backend`, `cmd/members/Dockerfile` | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. |
+| members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` (8081) | `MembersService` over Connect, `/healthz` pings the database. Starts after the migration step completed and Keycloak is healthy; verifies every bearer token against the realm JWKS (audience `bff`). |
 
-Every container has a health check and `depends_on: condition: service_healthy` orders the start.
+Every long-running container has a health check and `depends_on: condition: service_healthy` orders
+the start; the migration step is ordered with `condition: service_completed_successfully`. The two
+host ports besides Keycloak bind to loopback and exist for the Connect-boundary tests
+(`apps/README.md`).
+
+## Parallel worktrees
+
+Compose identifies a stack by project name, so two worktrees that both run this file as `mmr` recreate
+each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
+sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
+`POSTGRES_HOST_PORT`); the defaults in `.env.example` are the stock stack the iOS app signs in
+against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
+`KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
+Volumes and the `members` image are named after the project, so stacks do not share data either.
 
 ## The `mmr` realm
 
@@ -45,9 +61,9 @@ Every container has a health check and `depends_on: condition: service_healthy` 
 once the realm exists in its database, so a change to the JSON needs `down -v` to take effect. Slice 3
 replaces this bootstrap with OpenTofu (A13).
 
-- Realm `mmr`. Hostname is fixed to `http://localhost:8080`, so the issuer
-  `http://localhost:8080/realms/mmr` is the same whether the caller is the simulator or a container
-  reaching `keycloak:8080`.
+- Realm `mmr`. Hostname is fixed to `http://localhost:${KEYCLOAK_HOST_PORT}`, so the issuer
+  `http://localhost:8080/realms/mmr` (with the default port) is the same whether the caller is the
+  simulator or a container reaching `keycloak:8080`.
 - `ios`: public client, PKCE S256 required, direct access grants enabled for the test seams, redirect
   URI `mymoneyrecap://auth/callback` (custom scheme until slice 3 serves universal links). An
   audience mapper adds `bff` to its access tokens.
