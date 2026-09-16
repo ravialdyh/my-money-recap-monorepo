@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The realm's ios client redirects to mymoneyrecap://auth/callback (infra/compose/README.md); a universal link replaces it in slice 3. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mymoneyrecap.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mymoneyrecap</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Local Compose Keycloak is plain HTTP on localhost (the mmr realm has sslRequired: none). -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+</dict>
+</plist>
