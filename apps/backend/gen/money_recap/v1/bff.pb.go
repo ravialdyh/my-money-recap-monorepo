@@ -35,7 +35,7 @@ type HomeView struct {
 	// Spent so far this month (PRD §8.3).
 	Spent *Money `protobuf:"bytes,5,opt,name=spent,proto3" json:"spent,omitempty"`
 	// Money In this month (PRD §8.2).
-	MoneyIn *Money `protobuf:"bytes,6,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
+	Income *Money `protobuf:"bytes,6,opt,name=income,proto3" json:"income,omitempty"`
 	// Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
 	Saved *Money `protobuf:"bytes,7,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
 	// Absent until a Salary is set (PRD D54).
@@ -121,9 +121,9 @@ func (x *HomeView) GetSpent() *Money {
 	return nil
 }
 
-func (x *HomeView) GetMoneyIn() *Money {
+func (x *HomeView) GetIncome() *Money {
 	if x != nil {
-		return x.MoneyIn
+		return x.Income
 	}
 	return nil
 }
@@ -493,15 +493,15 @@ var File_money_recap_v1_bff_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_bff_proto_rawDesc = "" +
 	"\n" +
-	"\x18money_recap/v1/bff.proto\x12\x0emoney_recap.v1\x1a\x1amoney_recap/v1/money.proto\"\xcf\x05\n" +
+	"\x18money_recap/v1/bff.proto\x12\x0emoney_recap.v1\x1a\x1amoney_recap/v1/money.proto\"\xcc\x05\n" +
 	"\bHomeView\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
 	"avatar_key\x18\x02 \x01(\tR\tavatarKey\x12#\n" +
 	"\rcurrency_code\x18\x03 \x01(\tR\fcurrencyCode\x12\x14\n" +
 	"\x05month\x18\x04 \x01(\tR\x05month\x12+\n" +
-	"\x05spent\x18\x05 \x01(\v2\x15.money_recap.v1.MoneyR\x05spent\x120\n" +
-	"\bmoney_in\x18\x06 \x01(\v2\x15.money_recap.v1.MoneyR\amoneyIn\x120\n" +
+	"\x05spent\x18\x05 \x01(\v2\x15.money_recap.v1.MoneyR\x05spent\x12-\n" +
+	"\x06income\x18\x06 \x01(\v2\x15.money_recap.v1.MoneyR\x06income\x120\n" +
 	"\x05saved\x18\a \x01(\v2\x15.money_recap.v1.MoneyH\x00R\x05saved\x88\x01\x01\x128\n" +
 	"\x06salary\x18\b \x01(\v2\x1b.money_recap.v1.SalaryFactsH\x01R\x06salary\x88\x01\x01\x12K\n" +
 	"\rsaving_target\x18\t \x01(\v2!.money_recap.v1.SavingTargetFactsH\x02R\fsavingTarget\x88\x01\x01\x12\x1d\n" +
@@ -562,7 +562,7 @@ var file_money_recap_v1_bff_proto_goTypes = []any{
 }
 var file_money_recap_v1_bff_proto_depIdxs = []int32{
 	7,  // 0: money_recap.v1.HomeView.spent:type_name -> money_recap.v1.Money
-	7,  // 1: money_recap.v1.HomeView.money_in:type_name -> money_recap.v1.Money
+	7,  // 1: money_recap.v1.HomeView.income:type_name -> money_recap.v1.Money
 	7,  // 2: money_recap.v1.HomeView.saved:type_name -> money_recap.v1.Money
 	1,  // 3: money_recap.v1.HomeView.salary:type_name -> money_recap.v1.SalaryFacts
 	2,  // 4: money_recap.v1.HomeView.saving_target:type_name -> money_recap.v1.SavingTargetFacts

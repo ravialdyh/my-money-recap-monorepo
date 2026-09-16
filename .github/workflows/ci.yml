@@ -42,7 +42,7 @@ jobs:
       - run: buf lint
       - name: No breaking change against main (A1)
         run: |
-          git fetch --no-tags origin main:refs/remotes/origin/main
+          git fetch --no-tags origin contract/buf-module:refs/remotes/origin/main
           if git cat-file -e origin/main:packages/contract/buf.yaml 2>/dev/null; then
             buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
           else

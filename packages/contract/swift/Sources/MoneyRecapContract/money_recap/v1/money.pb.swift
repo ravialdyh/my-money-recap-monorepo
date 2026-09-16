@@ -29,7 +29,7 @@ public nonisolated struct MoneyRecap_V1_Money: Sendable {
   // methods supported on all messages.
 
   /// Decimal string, at most 11 digits before the separator (PRD D57).
-  public var amount: String = String()
+  public var amount: Double = 0
 
   /// ISO 4217 code, for example "GBP" or "IDR".
   public var currencyCode: String = String()
@@ -53,7 +53,7 @@ nonisolated extension MoneyRecap_V1_Money: SwiftProtobuf.Message, SwiftProtobuf.
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.amount) }()
+      case 1: try { try decoder.decodeSingularDoubleField(value: &self.amount) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.currencyCode) }()
       default: break
       }
@@ -61,8 +61,8 @@ nonisolated extension MoneyRecap_V1_Money: SwiftProtobuf.Message, SwiftProtobuf.
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.amount.isEmpty {
-      try visitor.visitSingularStringField(value: self.amount, fieldNumber: 1)
+    if self.amount.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.amount, fieldNumber: 1)
     }
     if !self.currencyCode.isEmpty {
       try visitor.visitSingularStringField(value: self.currencyCode, fieldNumber: 2)

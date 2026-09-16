@@ -9,7 +9,7 @@ option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/g
 // count of minor units, so the phone prints exactly what the server holds.
 message Money {
   // Decimal string, at most 11 digits before the separator (PRD D57).
-  string amount = 1;
+  double amount = 1;
   // ISO 4217 code, for example "GBP" or "IDR".
   string currency_code = 2;
 }

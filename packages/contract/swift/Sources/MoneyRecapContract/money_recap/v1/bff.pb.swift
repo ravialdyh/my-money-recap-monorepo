@@ -61,14 +61,14 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   public mutating func clearSpent() {_uniqueStorage()._spent = nil}
 
   /// Money In this month (PRD §8.2).
-  public var moneyIn: MoneyRecap_V1_Money {
-    get {_storage._moneyIn ?? MoneyRecap_V1_Money()}
-    set {_uniqueStorage()._moneyIn = newValue}
+  public var income: MoneyRecap_V1_Money {
+    get {_storage._income ?? MoneyRecap_V1_Money()}
+    set {_uniqueStorage()._income = newValue}
   }
-  /// Returns true if `moneyIn` has been explicitly set.
-  public var hasMoneyIn: Bool {_storage._moneyIn != nil}
-  /// Clears the value of `moneyIn`. Subsequent reads from it will return its default value.
-  public mutating func clearMoneyIn() {_uniqueStorage()._moneyIn = nil}
+  /// Returns true if `income` has been explicitly set.
+  public var hasIncome: Bool {_storage._income != nil}
+  /// Clears the value of `income`. Subsequent reads from it will return its default value.
+  public mutating func clearIncome() {_uniqueStorage()._income = nil}
 
   /// Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
   public var saved: MoneyRecap_V1_Money {
@@ -263,7 +263,7 @@ fileprivate nonisolated let _protobuf_package = "money_recap.v1"
 
 nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".HomeView"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0\u{1}month\0\u{1}spent\0\u{3}money_in\0\u{1}saved\0\u{1}salary\0\u{3}saving_target\0\u{3}streak_day\0\u{3}days_remaining\0\u{3}target_warning\0\u{3}recap_months\0\u{3}first_recap_on\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0\u{1}month\0\u{1}spent\0\u{1}income\0\u{1}saved\0\u{1}salary\0\u{3}saving_target\0\u{3}streak_day\0\u{3}days_remaining\0\u{3}target_warning\0\u{3}recap_months\0\u{3}first_recap_on\0")
 
   fileprivate class _StorageClass {
     var _displayName: String = String()
@@ -271,7 +271,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
     var _currencyCode: String = String()
     var _month: String = String()
     var _spent: MoneyRecap_V1_Money? = nil
-    var _moneyIn: MoneyRecap_V1_Money? = nil
+    var _income: MoneyRecap_V1_Money? = nil
     var _saved: MoneyRecap_V1_Money? = nil
     var _salary: MoneyRecap_V1_SalaryFacts? = nil
     var _savingTarget: MoneyRecap_V1_SavingTargetFacts? = nil
@@ -295,7 +295,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
       _currencyCode = source._currencyCode
       _month = source._month
       _spent = source._spent
-      _moneyIn = source._moneyIn
+      _income = source._income
       _saved = source._saved
       _salary = source._salary
       _savingTarget = source._savingTarget
@@ -327,7 +327,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
         case 3: try { try decoder.decodeSingularStringField(value: &_storage._currencyCode) }()
         case 4: try { try decoder.decodeSingularStringField(value: &_storage._month) }()
         case 5: try { try decoder.decodeSingularMessageField(value: &_storage._spent) }()
-        case 6: try { try decoder.decodeSingularMessageField(value: &_storage._moneyIn) }()
+        case 6: try { try decoder.decodeSingularMessageField(value: &_storage._income) }()
         case 7: try { try decoder.decodeSingularMessageField(value: &_storage._saved) }()
         case 8: try { try decoder.decodeSingularMessageField(value: &_storage._salary) }()
         case 9: try { try decoder.decodeSingularMessageField(value: &_storage._savingTarget) }()
@@ -363,7 +363,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
       try { if let v = _storage._spent {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
       } }()
-      try { if let v = _storage._moneyIn {
+      try { if let v = _storage._income {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
       } }()
       try { if let v = _storage._saved {
@@ -404,7 +404,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
         if _storage._currencyCode != rhs_storage._currencyCode {return false}
         if _storage._month != rhs_storage._month {return false}
         if _storage._spent != rhs_storage._spent {return false}
-        if _storage._moneyIn != rhs_storage._moneyIn {return false}
+        if _storage._income != rhs_storage._income {return false}
         if _storage._saved != rhs_storage._saved {return false}
         if _storage._salary != rhs_storage._salary {return false}
         if _storage._savingTarget != rhs_storage._savingTarget {return false}

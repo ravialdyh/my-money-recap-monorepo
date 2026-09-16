@@ -27,7 +27,7 @@ const (
 type Money struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Decimal string, at most 11 digits before the separator (PRD D57).
-	Amount string `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Amount float64 `protobuf:"fixed64,1,opt,name=amount,proto3" json:"amount,omitempty"`
 	// ISO 4217 code, for example "GBP" or "IDR".
 	CurrencyCode  string `protobuf:"bytes,2,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -64,11 +64,11 @@ func (*Money) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_money_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Money) GetAmount() string {
+func (x *Money) GetAmount() float64 {
 	if x != nil {
 		return x.Amount
 	}
-	return ""
+	return 0
 }
 
 func (x *Money) GetCurrencyCode() string {
@@ -84,7 +84,7 @@ const file_money_recap_v1_money_proto_rawDesc = "" +
 	"\n" +
 	"\x1amoney_recap/v1/money.proto\x12\x0emoney_recap.v1\"D\n" +
 	"\x05Money\x12\x16\n" +
-	"\x06amount\x18\x01 \x01(\tR\x06amount\x12#\n" +
+	"\x06amount\x18\x01 \x01(\x01R\x06amount\x12#\n" +
 	"\rcurrency_code\x18\x02 \x01(\tR\fcurrencyCodeB[ZYgithub.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1b\x06proto3"
 
 var (

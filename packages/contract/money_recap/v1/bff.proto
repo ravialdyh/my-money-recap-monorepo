@@ -19,7 +19,7 @@ message HomeView {
   // Spent so far this month (PRD §8.3).
   Money spent = 5;
   // Money In this month (PRD §8.2).
-  Money money_in = 6;
+  Money income = 6;
   // Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
   optional Money saved = 7;
   // Absent until a Salary is set (PRD D54).
