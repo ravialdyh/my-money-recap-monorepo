@@ -30,6 +30,10 @@ message MonthSummary {
   int32 days_remaining = 8;
   // True for a partial month (PRD §8.11): the Recap is the §6.17 screens.
   bool partial = 9;
+  // The §8.8 banner with its before-or-after-Payday copy (PRD D53), chosen
+  // here because only ledger holds Spent, the line and Payday (§7.3). Absent
+  // until Spent exceeds the line; the BFF shows it only once notify says fired.
+  optional TargetWarning target_warning = 10;
 }
 
 // Which of the three PRD §6.17 situations a Partial Recap is in: the current

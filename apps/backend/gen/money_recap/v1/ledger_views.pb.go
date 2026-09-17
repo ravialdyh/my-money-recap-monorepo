@@ -98,7 +98,11 @@ type MonthSummary struct {
 	// Days left in the month counting today, never below 1 (PRD §8.7).
 	DaysRemaining int32 `protobuf:"varint,8,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
 	// True for a partial month (PRD §8.11): the Recap is the §6.17 screens.
-	Partial       bool `protobuf:"varint,9,opt,name=partial,proto3" json:"partial,omitempty"`
+	Partial bool `protobuf:"varint,9,opt,name=partial,proto3" json:"partial,omitempty"`
+	// The §8.8 banner with its before-or-after-Payday copy (PRD D53), chosen
+	// here because only ledger holds Spent, the line and Payday (§7.3). Absent
+	// until Spent exceeds the line; the BFF shows it only once notify says fired.
+	TargetWarning *TargetWarning `protobuf:"bytes,10,opt,name=target_warning,json=targetWarning,proto3,oneof" json:"target_warning,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -194,6 +198,13 @@ func (x *MonthSummary) GetPartial() bool {
 		return x.Partial
 	}
 	return false
+}
+
+func (x *MonthSummary) GetTargetWarning() *TargetWarning {
+	if x != nil {
+		return x.TargetWarning
+	}
+	return nil
 }
 
 // The Streak and its window as Recap screen 2 draws them (PRD §6.12, §8.5).
@@ -858,7 +869,7 @@ var File_money_recap_v1_ledger_views_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\n" +
-	"!money_recap/v1/ledger_views.proto\x12\x0emoney_recap.v1\x1a\x18money_recap/v1/bff.proto\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"\xc3\x03\n" +
+	"!money_recap/v1/ledger_views.proto\x12\x0emoney_recap.v1\x1a\x18money_recap/v1/bff.proto\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"\xa1\x04\n" +
 	"\fMonthSummary\x12\x14\n" +
 	"\x05month\x18\x01 \x01(\tR\x05month\x12+\n" +
 	"\x05spent\x18\x02 \x01(\v2\x15.money_recap.v1.MoneyR\x05spent\x120\n" +
@@ -869,10 +880,13 @@ const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\n" +
 	"streak_day\x18\a \x01(\x05R\tstreakDay\x12%\n" +
 	"\x0edays_remaining\x18\b \x01(\x05R\rdaysRemaining\x12\x18\n" +
-	"\apartial\x18\t \x01(\bR\apartialB\b\n" +
+	"\apartial\x18\t \x01(\bR\apartial\x12I\n" +
+	"\x0etarget_warning\x18\n" +
+	" \x01(\v2\x1d.money_recap.v1.TargetWarningH\x03R\rtargetWarning\x88\x01\x01B\b\n" +
 	"\x06_savedB\t\n" +
 	"\a_salaryB\x10\n" +
-	"\x0e_saving_target\"\xb2\x01\n" +
+	"\x0e_saving_targetB\x11\n" +
+	"\x0f_target_warning\"\xb2\x01\n" +
 	"\vStreakFacts\x12\x12\n" +
 	"\x04days\x18\x01 \x01(\x05R\x04days\x12!\n" +
 	"\fwindow_start\x18\x02 \x01(\tR\vwindowStart\x12\x1d\n" +
@@ -978,9 +992,10 @@ var file_money_recap_v1_ledger_views_proto_goTypes = []any{
 	(*Money)(nil),               // 9: money_recap.v1.Money
 	(*SalaryFacts)(nil),         // 10: money_recap.v1.SalaryFacts
 	(*SavingTargetFacts)(nil),   // 11: money_recap.v1.SavingTargetFacts
-	(Category)(0),               // 12: money_recap.v1.Category
-	(*Spend)(nil),               // 13: money_recap.v1.Spend
-	(Archetype)(0),              // 14: money_recap.v1.Archetype
+	(*TargetWarning)(nil),       // 12: money_recap.v1.TargetWarning
+	(Category)(0),               // 13: money_recap.v1.Category
+	(*Spend)(nil),               // 14: money_recap.v1.Spend
+	(Archetype)(0),              // 15: money_recap.v1.Archetype
 }
 var file_money_recap_v1_ledger_views_proto_depIdxs = []int32{
 	9,  // 0: money_recap.v1.MonthSummary.spent:type_name -> money_recap.v1.Money
@@ -988,32 +1003,33 @@ var file_money_recap_v1_ledger_views_proto_depIdxs = []int32{
 	9,  // 2: money_recap.v1.MonthSummary.saved:type_name -> money_recap.v1.Money
 	10, // 3: money_recap.v1.MonthSummary.salary:type_name -> money_recap.v1.SalaryFacts
 	11, // 4: money_recap.v1.MonthSummary.saving_target:type_name -> money_recap.v1.SavingTargetFacts
-	12, // 5: money_recap.v1.CategoryShare.category:type_name -> money_recap.v1.Category
-	9,  // 6: money_recap.v1.CategoryShare.amount:type_name -> money_recap.v1.Money
-	0,  // 7: money_recap.v1.Recap.situation:type_name -> money_recap.v1.PartialSituation
-	9,  // 8: money_recap.v1.Recap.money_in:type_name -> money_recap.v1.Money
-	9,  // 9: money_recap.v1.Recap.spent:type_name -> money_recap.v1.Money
-	9,  // 10: money_recap.v1.Recap.saved:type_name -> money_recap.v1.Money
-	10, // 11: money_recap.v1.Recap.salary:type_name -> money_recap.v1.SalaryFacts
-	11, // 12: money_recap.v1.Recap.saving_target:type_name -> money_recap.v1.SavingTargetFacts
-	2,  // 13: money_recap.v1.Recap.streak:type_name -> money_recap.v1.StreakFacts
-	3,  // 14: money_recap.v1.Recap.categories:type_name -> money_recap.v1.CategoryShare
-	13, // 15: money_recap.v1.Recap.splurge:type_name -> money_recap.v1.Spend
-	14, // 16: money_recap.v1.Recap.archetype:type_name -> money_recap.v1.Archetype
-	9,  // 17: money_recap.v1.SalarySetting.amount:type_name -> money_recap.v1.Money
-	5,  // 18: money_recap.v1.LedgerSettings.salary:type_name -> money_recap.v1.SalarySetting
-	5,  // 19: money_recap.v1.LedgerSettings.next_salary:type_name -> money_recap.v1.SalarySetting
-	6,  // 20: money_recap.v1.LedgerSettings.saving_target:type_name -> money_recap.v1.SavingTargetSetting
-	6,  // 21: money_recap.v1.LedgerSettings.next_saving_target:type_name -> money_recap.v1.SavingTargetSetting
-	9,  // 22: money_recap.v1.ConversionPreview.salary_before:type_name -> money_recap.v1.Money
-	9,  // 23: money_recap.v1.ConversionPreview.salary_after:type_name -> money_recap.v1.Money
-	9,  // 24: money_recap.v1.ConversionPreview.spends_before:type_name -> money_recap.v1.Money
-	9,  // 25: money_recap.v1.ConversionPreview.spends_after:type_name -> money_recap.v1.Money
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	12, // 5: money_recap.v1.MonthSummary.target_warning:type_name -> money_recap.v1.TargetWarning
+	13, // 6: money_recap.v1.CategoryShare.category:type_name -> money_recap.v1.Category
+	9,  // 7: money_recap.v1.CategoryShare.amount:type_name -> money_recap.v1.Money
+	0,  // 8: money_recap.v1.Recap.situation:type_name -> money_recap.v1.PartialSituation
+	9,  // 9: money_recap.v1.Recap.money_in:type_name -> money_recap.v1.Money
+	9,  // 10: money_recap.v1.Recap.spent:type_name -> money_recap.v1.Money
+	9,  // 11: money_recap.v1.Recap.saved:type_name -> money_recap.v1.Money
+	10, // 12: money_recap.v1.Recap.salary:type_name -> money_recap.v1.SalaryFacts
+	11, // 13: money_recap.v1.Recap.saving_target:type_name -> money_recap.v1.SavingTargetFacts
+	2,  // 14: money_recap.v1.Recap.streak:type_name -> money_recap.v1.StreakFacts
+	3,  // 15: money_recap.v1.Recap.categories:type_name -> money_recap.v1.CategoryShare
+	14, // 16: money_recap.v1.Recap.splurge:type_name -> money_recap.v1.Spend
+	15, // 17: money_recap.v1.Recap.archetype:type_name -> money_recap.v1.Archetype
+	9,  // 18: money_recap.v1.SalarySetting.amount:type_name -> money_recap.v1.Money
+	5,  // 19: money_recap.v1.LedgerSettings.salary:type_name -> money_recap.v1.SalarySetting
+	5,  // 20: money_recap.v1.LedgerSettings.next_salary:type_name -> money_recap.v1.SalarySetting
+	6,  // 21: money_recap.v1.LedgerSettings.saving_target:type_name -> money_recap.v1.SavingTargetSetting
+	6,  // 22: money_recap.v1.LedgerSettings.next_saving_target:type_name -> money_recap.v1.SavingTargetSetting
+	9,  // 23: money_recap.v1.ConversionPreview.salary_before:type_name -> money_recap.v1.Money
+	9,  // 24: money_recap.v1.ConversionPreview.salary_after:type_name -> money_recap.v1.Money
+	9,  // 25: money_recap.v1.ConversionPreview.spends_before:type_name -> money_recap.v1.Money
+	9,  // 26: money_recap.v1.ConversionPreview.spends_after:type_name -> money_recap.v1.Money
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_ledger_views_proto_init() }

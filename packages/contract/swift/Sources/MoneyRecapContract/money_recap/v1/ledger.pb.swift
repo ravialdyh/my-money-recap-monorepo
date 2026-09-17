@@ -119,9 +119,9 @@ public nonisolated struct MoneyRecap_V1_ListMonthsWithDataResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Every month with a Spend or Money In, newest first, the current month
-  /// included (PRD D59).
-  public var months: [MoneyRecap_V1_RecapMonth] = []
+  /// "YYYY-MM" for every month with a Spend or Money In, newest first, the
+  /// current month included (PRD D59): the Spend list's month switcher (§6.10).
+  public var months: [String] = []
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -509,7 +509,7 @@ nonisolated extension MoneyRecap_V1_ListMonthsWithDataResponse: SwiftProtobuf.Me
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.months) }()
+      case 1: try { try decoder.decodeRepeatedStringField(value: &self.months) }()
       default: break
       }
     }
@@ -517,7 +517,7 @@ nonisolated extension MoneyRecap_V1_ListMonthsWithDataResponse: SwiftProtobuf.Me
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
     if !self.months.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.months, fieldNumber: 1)
+      try visitor.visitRepeatedStringField(value: self.months, fieldNumber: 1)
     }
     try unknownFields.traverse(visitor: &visitor)
   }

@@ -147,6 +147,18 @@ public nonisolated struct MoneyRecap_V1_MonthSummary: @unchecked Sendable {
     set {_uniqueStorage()._partial = newValue}
   }
 
+  /// The §8.8 banner with its before-or-after-Payday copy (PRD D53), chosen
+  /// here because only ledger holds Spent, the line and Payday (§7.3). Absent
+  /// until Spent exceeds the line; the BFF shows it only once notify says fired.
+  public var targetWarning: MoneyRecap_V1_TargetWarning {
+    get {_storage._targetWarning ?? MoneyRecap_V1_TargetWarning()}
+    set {_uniqueStorage()._targetWarning = newValue}
+  }
+  /// Returns true if `targetWarning` has been explicitly set.
+  public var hasTargetWarning: Bool {_storage._targetWarning != nil}
+  /// Clears the value of `targetWarning`. Subsequent reads from it will return its default value.
+  public mutating func clearTargetWarning() {_uniqueStorage()._targetWarning = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -546,7 +558,7 @@ nonisolated extension MoneyRecap_V1_PartialSituation: SwiftProtobuf._ProtoNamePr
 
 nonisolated extension MoneyRecap_V1_MonthSummary: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".MonthSummary"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}month\0\u{1}spent\0\u{3}money_in\0\u{1}saved\0\u{1}salary\0\u{3}saving_target\0\u{3}streak_day\0\u{3}days_remaining\0\u{1}partial\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}month\0\u{1}spent\0\u{3}money_in\0\u{1}saved\0\u{1}salary\0\u{3}saving_target\0\u{3}streak_day\0\u{3}days_remaining\0\u{1}partial\0\u{3}target_warning\0")
 
   fileprivate class _StorageClass {
     var _month: String = String()
@@ -558,6 +570,7 @@ nonisolated extension MoneyRecap_V1_MonthSummary: SwiftProtobuf.Message, SwiftPr
     var _streakDay: Int32 = 0
     var _daysRemaining: Int32 = 0
     var _partial: Bool = false
+    var _targetWarning: MoneyRecap_V1_TargetWarning? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -577,6 +590,7 @@ nonisolated extension MoneyRecap_V1_MonthSummary: SwiftProtobuf.Message, SwiftPr
       _streakDay = source._streakDay
       _daysRemaining = source._daysRemaining
       _partial = source._partial
+      _targetWarning = source._targetWarning
     }
   }
 
@@ -604,6 +618,7 @@ nonisolated extension MoneyRecap_V1_MonthSummary: SwiftProtobuf.Message, SwiftPr
         case 7: try { try decoder.decodeSingularInt32Field(value: &_storage._streakDay) }()
         case 8: try { try decoder.decodeSingularInt32Field(value: &_storage._daysRemaining) }()
         case 9: try { try decoder.decodeSingularBoolField(value: &_storage._partial) }()
+        case 10: try { try decoder.decodeSingularMessageField(value: &_storage._targetWarning) }()
         default: break
         }
       }
@@ -643,6 +658,9 @@ nonisolated extension MoneyRecap_V1_MonthSummary: SwiftProtobuf.Message, SwiftPr
       if _storage._partial != false {
         try visitor.visitSingularBoolField(value: _storage._partial, fieldNumber: 9)
       }
+      try { if let v = _storage._targetWarning {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -661,6 +679,7 @@ nonisolated extension MoneyRecap_V1_MonthSummary: SwiftProtobuf.Message, SwiftPr
         if _storage._streakDay != rhs_storage._streakDay {return false}
         if _storage._daysRemaining != rhs_storage._daysRemaining {return false}
         if _storage._partial != rhs_storage._partial {return false}
+        if _storage._targetWarning != rhs_storage._targetWarning {return false}
         return true
       }
       if !storagesAreEqual {return false}

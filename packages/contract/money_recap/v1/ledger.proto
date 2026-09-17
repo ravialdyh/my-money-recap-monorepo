@@ -39,9 +39,9 @@ message ListMonthsWithDataRequest {
 }
 
 message ListMonthsWithDataResponse {
-  // Every month with a Spend or Money In, newest first, the current month
-  // included (PRD D59).
-  repeated RecapMonth months = 1;
+  // "YYYY-MM" for every month with a Spend or Money In, newest first, the
+  // current month included (PRD D59): the Spend list's month switcher (§6.10).
+  repeated string months = 1;
 }
 
 message ListSpendsRequest {
