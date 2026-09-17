@@ -97,6 +97,13 @@ SwiftFormat and SwiftLint only exist on macOS, so run them on a Mac before pushi
 swiftformat . && swiftlint --fix && swiftlint lint --strict
 ```
 
+CI installs SwiftLint with `brew` before running it. That step looks redundant against
+`actions/runner-images`, because `images/macos/macos-15-Readme.md` lists SwiftLint 0.65.1 — but that
+is the **Intel** image. `macos-latest` resolves to arm64 here (the job log shows Homebrew at
+`/opt/homebrew`, not `/usr/local`), and `macos-15-arm64-Readme.md` lists SwiftFormat and no
+SwiftLint. Without the install the job dies with exit 127, which is exactly how it failed earlier in
+this repo's history. SwiftFormat needs no install on either image.
+
 Coverage does not gate at a fixed number yet. `tools/coverage/` holds a floor per language that can
 only go up — `tools/coverage/README.md` has today's floors and why. The `Security` workflow runs
 govulncheck, OSV-Scanner (Go, npm and Swift together), Semgrep, Trivy and a full-tree gitleaks scan
