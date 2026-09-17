@@ -6,7 +6,6 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"sort"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
@@ -21,7 +20,8 @@ import (
 //go:embed migrations/*.sql
 var migrations embed.FS
 
-// Migrate applies every embedded migration not yet recorded in schema_migrations, in file-name order,
+// Migrate applies every embedded migration not yet recorded in schema_migrations, in file-name order
+// (embed.FS lists a directory sorted by name),
 // each in its own transaction. Safe to rerun.
 func Migrate(ctx context.Context, db *pgxpool.Pool) error {
 	if _, err := db.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
@@ -31,7 +31,6 @@ func Migrate(ctx context.Context, db *pgxpool.Pool) error {
 	if err != nil {
 		return err
 	}
-	sort.Slice(entries, func(i, j int) bool { return entries[i].Name() < entries[j].Name() })
 	for _, e := range entries {
 		sql, err := migrations.ReadFile("migrations/" + e.Name())
 		if err != nil {
@@ -100,7 +99,7 @@ type Service struct {
 }
 
 func (s *Service) GetOrCreateBySubject(ctx context.Context, req *connect.Request[moneyrecapv1.GetOrCreateBySubjectRequest]) (*connect.Response[moneyrecapv1.GetOrCreateBySubjectResponse], error) {
-	if req.Msg.Subject != auth.Subject(ctx) {
+	if req.Msg.Subject != auth.From(ctx).Subject {
 		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("subject does not match the token"))
 	}
 	m, err := Upsert(ctx, s.DB, req.Msg.Subject, req.Msg.Email)
@@ -112,7 +111,7 @@ func (s *Service) GetOrCreateBySubject(ctx context.Context, req *connect.Request
 
 func (s *Service) GetProfile(ctx context.Context, req *connect.Request[moneyrecapv1.GetProfileRequest]) (*connect.Response[moneyrecapv1.GetProfileResponse], error) {
 	m, err := Get(ctx, s.DB, req.Msg.MemberId)
-	if errors.Is(err, pgx.ErrNoRows) || (err == nil && m.Subject != auth.Subject(ctx)) {
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && m.Subject != auth.From(ctx).Subject) {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
 	}
 	if err != nil {

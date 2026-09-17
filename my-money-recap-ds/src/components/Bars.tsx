@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { useStyles } from '../styles/useStyles';
-import type { BarTone } from './types';
+import { ensureStyles } from '../styles/ensureStyles';
+import type { Hue } from './types';
 
-interface TrackProps { tone: BarTone; size: 'goal' | 'compare' | 'category'; percent: number; animate?: boolean; marker?: ReactNode; }
+interface TrackProps { tone: Hue; size: 'goal' | 'compare' | 'category'; percent: number; animate?: boolean; marker?: ReactNode; }
 function Track({ tone, size, percent, animate = false, marker }: TrackProps) {
   const pct = Math.max(0, Math.min(100, percent));
   return (
@@ -14,20 +14,20 @@ function Track({ tone, size, percent, animate = false, marker }: TrackProps) {
 }
 
 export interface ProgressBarProps {
-  value: number; max: number; tone?: BarTone; animate?: boolean;
+  value: number; max: number; tone?: Hue; animate?: boolean;
   /** Illustrated marker that rides the end of the fill (e.g. PiggyMarker). Needs ~30px clearance above. */
   marker?: ReactNode;
 }
 /** 22px goal progress bar with an optional illustrated marker. */
 export function ProgressBar({ value, max, tone = 'coral', animate, marker }: ProgressBarProps) {
-  useStyles();
+  ensureStyles();
   return <Track tone={tone} size="goal" percent={(value / max) * 100} animate={animate} marker={marker} />;
 }
 
-export interface CategoryBarProps { label: string; percent: number; tone: BarTone; animate?: boolean; }
+export interface CategoryBarProps { label: string; percent: number; tone: Hue; animate?: boolean; }
 /** Label row (name / %) above a 16px bar. Stack three for a spending split. */
 export function CategoryBar({ label, percent, tone, animate }: CategoryBarProps) {
-  useStyles();
+  ensureStyles();
   return (
     <div className="mmr-category">
       <div className="mmr-bar-labels"><span>{label}</span><span>{Math.round(percent)}%</span></div>
@@ -36,7 +36,7 @@ export function CategoryBar({ label, percent, tone, animate }: CategoryBarProps)
   );
 }
 
-export interface CompareRow { label: string; value: number; display: string; tone: BarTone; }
+export interface CompareRow { label: string; value: number; display: string; tone: Hue; }
 export interface CompareBarsProps {
   rows: CompareRow[];
   /**
@@ -50,7 +50,7 @@ export interface CompareBarsProps {
 }
 /** Two or more 18px bars: "Saved £640" vs "Spent £1,760". See `scale` for how the widths are derived. */
 export function CompareBars({ rows, scale = 'total', animate }: CompareBarsProps) {
-  useStyles();
+  ensureStyles();
   const basis = scale === 'max'
     ? Math.max(...rows.map((r) => r.value), 0) || 1
     : rows.reduce((s, r) => s + r.value, 0) || 1;

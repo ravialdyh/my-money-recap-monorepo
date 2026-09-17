@@ -1,4 +1,4 @@
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 
 export interface ToggleProps {
   checked: boolean;
@@ -8,7 +8,7 @@ export interface ToggleProps {
 }
 /** iOS-proportioned switch (51x31) tinted violet when on: a native checkbox drawn by CSS. Settings only. */
 export function Toggle({ checked, disabled = false, onChange, ...rest }: ToggleProps) {
-  useStyles();
+  ensureStyles();
   return (
     <input
       type="checkbox" role="switch" className="mmr-toggle mmr-pressable"

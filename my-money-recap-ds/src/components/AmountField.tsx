@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 import { TextField, type FieldState } from './TextField';
 import { useFitStep } from './fitStep';
 import { currencySymbol, formatAmountNumber, parseAmount } from '../money';
@@ -23,7 +23,7 @@ export interface AmountFieldProps {
  * field (PRD §11, D71) — measured, not counted.
  */
 export function AmountField({ value, currency, locale, label, helper, state = 'default', onChange }: AmountFieldProps) {
-  useStyles();
+  ensureStyles();
   const symbol = currencySymbol(currency, locale);
   const formatted = value === '' ? '' : formatAmountNumber(value, currency, locale);
   const mirror = useRef<HTMLSpanElement>(null);

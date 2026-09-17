@@ -4,8 +4,6 @@ export type Ground = 'recap' | 'earning' | 'goal' | 'personality';
 export type DataTone = 'earned' | 'saved' | 'spent';
 /** The eight palette hues. Every bar track, fill and icon well is one of these. */
 export type Hue = 'coral' | 'violet' | 'yellow' | 'green' | 'sky' | 'gold' | 'rust' | 'ink';
-export type BarTone = Hue;
-export type WellTone = Hue;
 export type Archetype = 'squirrel' | 'hustler' | 'treatYourself' | 'slowBurner';
 export const ARCHETYPE_LABEL: Record<Archetype, string> = {
   squirrel: 'Squirrel', hustler: 'Hustler', treatYourself: 'Treat-Yourself', slowBurner: 'Slow Burner',

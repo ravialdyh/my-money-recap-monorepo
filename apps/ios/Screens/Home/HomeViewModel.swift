@@ -10,7 +10,6 @@ import SwiftData
 final class HomeViewModel {
     private(set) var home: MoneyRecap_V1_HomeView?
     private(set) var updatedAt: Date?
-    private(set) var isRefreshing = false
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
     private let context: ModelContext
     /// Dates print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot change the copy.
@@ -26,12 +25,8 @@ final class HomeViewModel {
         }
     }
 
-    /// No snapshot yet: the two cards at their filled heights with ink blocks, no spinner (PRD §6.19).
-    var isFirstLoad: Bool { home == nil }
-
+    /// While `home` is nil there is no snapshot yet: the skeleton, no spinner (PRD §6.19).
     func refresh() async {
-        isRefreshing = true
-        defer { isRefreshing = false }
         do {
             let fresh = try await fetch()
             try HomeSnapshot.replace(with: fresh, in: context)

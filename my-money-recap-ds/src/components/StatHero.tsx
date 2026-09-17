@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 import { Eyebrow } from './Headline';
 import { useFitStep } from './fitStep';
 import { formatMoney, type MoneyFormat } from '../money';
@@ -26,7 +26,7 @@ export type StatHeroProps = StatHeroBase & (
  * resizes mid-animation.
  */
 export function StatHero({ eyebrow, value, currency, locale, format, animate = false }: StatHeroProps) {
-  useStyles();
+  ensureStyles();
   const fmt: MoneyFormat = format ?? ((n) => formatMoney(n, currency as string, locale));
   const shown = useCountUp(value, animate);
   const ref = useRef<HTMLDivElement>(null);

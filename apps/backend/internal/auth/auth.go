@@ -59,9 +59,6 @@ func From(ctx context.Context) Claims {
 	return c
 }
 
-// Subject is the verified token's subject claim, empty outside the interceptor.
-func Subject(ctx context.Context) string { return From(ctx).Subject }
-
 // Forward is a client interceptor that sends the caller's own bearer token on to a service,
 // unchanged, so the service verifies the same JWT again (§4.2 point 3).
 func Forward() connect.UnaryInterceptorFunc {

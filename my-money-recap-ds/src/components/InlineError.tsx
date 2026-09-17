@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 
 export interface InlineErrorProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -15,7 +15,7 @@ export interface InlineErrorProps extends HTMLAttributes<HTMLDivElement> {
  * down and never overlays it, which is the whole reason it beat the toast (PRD §6.1, §6.19).
  */
 export function InlineError({ action = null, children, className = '', ...rest }: InlineErrorProps) {
-  useStyles();
+  ensureStyles();
   return (
     <div className={`mmr-inline-error ${className}`} role="alert" {...rest}>
       <span className="mmr-inline-error-dot" aria-hidden="true" />

@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react';
 import type { HTMLAttributes } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 import { HelperText } from './Headline';
 import type { InteractiveState } from './types';
 
 /** A Payday: a day of the month, or the month's last day (PRD D51). */
 export type PaydayValue = number | 'last';
 /** 1…31 then `last`, in the order the picker draws them. */
-export const PAYDAY_VALUES: readonly PaydayValue[] = [
+const PAYDAY_VALUES: readonly PaydayValue[] = [
   ...Array.from({ length: 31 }, (_, i) => i + 1), 'last',
 ] as const;
 
@@ -31,7 +31,7 @@ export interface DayPickerProps extends Omit<HTMLAttributes<HTMLDivElement>, 'on
 export function DayPicker({
   value, onChange, nextPaydays = null, state = 'default', className = '', ...rest
 }: DayPickerProps) {
-  useStyles();
+  ensureStyles();
   const row = useRef<HTMLDivElement>(null);
   // Centre the selection when the picker opens. Deliberately mount-only: re-centring on every tap
   // would drag the row out from under the Member's finger.

@@ -1,15 +1,11 @@
 // Generates apps/ios/DesignSystem/Tokens.swift from src/tokens/tokens.json (docs/IOS.md I5).
 // Colours, radii, the type ramp and motion. Aliases like "{palette.violet.500}" become Palette.violet500.
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { here, tokens, walk } from './lib.mjs';
 
-const here = dirname(fileURLToPath(import.meta.url));
-const src = resolve(here, '../src/tokens/tokens.json');
 const out = resolve(here, '../../apps/ios/DesignSystem/Tokens.swift');
-const tokens = JSON.parse(readFileSync(src, 'utf8'));
 
-const isToken = (o) => o && typeof o === 'object' && '$value' in o;
 const camel = (s) => s.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 const pascal = (s) => camel(s).replace(/^[a-z]/, (c) => c.toUpperCase());
 // ["violet", "500"] -> violet500; ["card-accent"] -> cardAccent
@@ -32,18 +28,13 @@ function color(v) {
   return null;
 }
 
-// One `enum` of `static let`s per group. Non-token keys ($type, $description) are skipped.
-function colorEnum(name, node, path = []) {
+// One `enum` of `static let`s per group: every colour and number under it.
+function colorEnum(node) {
   const lines = [];
-  for (const [k, v] of Object.entries(node)) {
-    if (k.startsWith('$')) continue;
-    const p = [...path, k];
-    if (isToken(v)) {
-      const raw = v.$value;
-      if (typeof raw === 'number') lines.push(`        public static let ${ident(p)}: Double = ${num(raw)}`);
-      else if (typeof raw === 'string' && color(raw)) lines.push(`        public static let ${ident(p)} = ${color(raw)}`);
-    } else if (v && typeof v === 'object') lines.push(...colorEnum(name, v, p));
-  }
+  walk(node, (p, { $value: raw }) => {
+    if (typeof raw === 'number') lines.push(`        public static let ${ident(p)}: Double = ${num(raw)}`);
+    else if (typeof raw === 'string' && color(raw)) lines.push(`        public static let ${ident(p)} = ${color(raw)}`);
+  });
   return lines;
 }
 const block = (name, lines) => `    public enum ${name} {\n${lines.join('\n')}\n    }`;
@@ -79,11 +70,11 @@ public struct TextStyle {
 }
 
 public enum Tokens {
-${block('Palette', colorEnum('Palette', tokens.palette))}
+${block('Palette', colorEnum(tokens.palette))}
 
 ${Object.entries(tokens.color)
   .filter(([k]) => !k.startsWith('$'))
-  .map(([k, v]) => block(pascal(k), colorEnum(k, v)))
+  .map(([k, v]) => block(pascal(k), colorEnum(v)))
   .join('\n\n')}
 
     public enum FontFamily {

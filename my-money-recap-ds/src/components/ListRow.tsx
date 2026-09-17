@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 import { Icon } from '../icons';
 import type { InteractiveState } from './types';
 
@@ -17,7 +17,7 @@ export interface ListRowProps extends Omit<ButtonHTMLAttributes<HTMLButtonElemen
 }
 /** Settings and Currency list row: a DataRow with no IconWell and a chevron or check instead of an amount. */
 export function ListRow({ label, value, trailing = 'chevron', selected = false, tone = 'default', state = 'default', className = '', ...rest }: ListRowProps) {
-  useStyles();
+  ensureStyles();
   return (
     <button
       type="button" className={`mmr-row mmr-list-row mmr-pressable ${className}`}

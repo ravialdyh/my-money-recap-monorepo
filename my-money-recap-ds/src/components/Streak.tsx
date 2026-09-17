@@ -1,9 +1,9 @@
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 
 export interface StreakBadgeProps { value: number; unit?: string; }
 /** 64px yellow circle with a Fredoka number and a tiny uppercase unit. */
 export function StreakBadge({ value, unit = 'days' }: StreakBadgeProps) {
-  useStyles();
+  ensureStyles();
   return (
     <div className="mmr-badge" role="img" aria-label={`${value} ${unit}`}>
       <div className="mmr-badge-value">{value}</div>
@@ -20,7 +20,7 @@ export interface StreakDotsProps {
 }
 /** 15-column grid of 12px dots. Two rows for a 30-day month. */
 export function StreakDots({ total = 30, activeRange }: StreakDotsProps) {
-  useStyles();
+  ensureStyles();
   const [from, to] = activeRange ?? [0, -1];
   const isActive = (day: number) => day >= from && day <= to;
   const count = activeRange ? to - from + 1 : 0;

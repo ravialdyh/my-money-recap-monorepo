@@ -9,7 +9,7 @@ struct SignInView: View {
     }
 
     var body: some View {
-        Screen(ground: .recap) {
+        Screen {
             Headline(text: "Your month in money.")
             SubCopy(text: "Sign in to start your recap.").padding(.top, 10)
             Illustration(name: "ill-cover", width: 260)

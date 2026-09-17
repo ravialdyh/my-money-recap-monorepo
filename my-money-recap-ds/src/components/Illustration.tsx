@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 
 export interface IllustrationProps extends HTMLAttributes<HTMLDivElement> {
   /** Transparent WebP/PNG at 2x the display width. Generate from the style block in illustration-prompts.md. */
@@ -16,7 +16,7 @@ export interface IllustrationProps extends HTMLAttributes<HTMLDivElement> {
 }
 /** Flexible slot that hangs the illustration `space.overlap` into the card below it. */
 export function Illustration({ src, alt = '', width, maxHeight, className = '', ...rest }: IllustrationProps) {
-  useStyles();
+  ensureStyles();
   return (
     <div className={`mmr-illo ${className}`} {...rest}>
       <img src={src} alt={alt} style={{ width, maxHeight, objectFit: maxHeight ? 'contain' : undefined }} />

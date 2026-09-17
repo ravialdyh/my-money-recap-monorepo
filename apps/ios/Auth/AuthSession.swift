@@ -25,11 +25,6 @@ final class AuthSession {
 
     var isSignedIn: Bool { authState?.isAuthorized ?? false }
 
-    var email: String? {
-        guard let raw = authState?.lastTokenResponse?.idToken, let token = OIDIDToken(idTokenString: raw) else { return nil }
-        return token.claims["email"] as? String
-    }
-
     func signIn() async throws {
         let configuration = try await discover()
         let request = OIDAuthorizationRequest(

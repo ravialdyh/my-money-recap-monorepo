@@ -20,10 +20,10 @@ struct HomeView: View {
     }
 
     var body: some View {
-        Screen(ground: .recap) {
+        Screen {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    ChipRow {
+                    HStack(spacing: 8) {
                         if let month = model.monthLabel { Chip(text: month, tappable: true) }
                         Spacer()
                         Chip(text: "Settings", tappable: true)
@@ -53,7 +53,7 @@ struct HomeView: View {
         }
         Card(minHeight: 191) {
             StatHero(eyebrow: model.heroEyebrow, value: Money.format(home.spent.amount, currency: home.currencyCode))
-            StatChipRow {
+            HStack(spacing: 8) {
                 StatChip(tone: .earned, text: "Money in \(Money.format(home.moneyIn.amount, currency: home.currencyCode))")
                 if model.showsSavedChip {
                     StatChip(tone: .saved, text: "Saved \(Money.format(home.saved.amount, currency: home.currencyCode))")
@@ -64,7 +64,7 @@ struct HomeView: View {
             PromptCard(title: "Set your monthly salary", height: 191)
         }
         if home.hasSavingTarget {
-            // ponytail: the ProgressBar arrives with the Saving Target slice; until then the card carries the server's sentence.
+            // The ProgressBar arrives with the Saving Target slice; until then the card carries the server's sentence.
             Card(minHeight: 136) {
                 HStack {
                     CardTitle(text: "Saving target")

@@ -42,6 +42,6 @@ struct PressableStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? Tokens.Motion.pressScale : 1)
             .brightness(configuration.isPressed ? -0.08 : 0)
             .opacity(isEnabled ? 1 : Tokens.State.disabledOpacity)
-            .animation(.timingCurve(0, 0, 0.2, 1, duration: Tokens.Motion.Duration.press), value: configuration.isPressed)
+            .animation(.timingCurve(Tokens.Motion.Easing.press, duration: Tokens.Motion.Duration.press), value: configuration.isPressed)
     }
 }

@@ -1,8 +1,7 @@
 // Regenerates src/assets/illustrations.ts from the WebP files in ../../my-money-recap/assets/illustrations/.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-const here = dirname(fileURLToPath(import.meta.url));
+import { resolve } from 'node:path';
+import { here } from './lib.mjs';
 const src = resolve(here, '../../my-money-recap/assets/illustrations');
 const names = {
   cover: 'ill-cover.webp',

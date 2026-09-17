@@ -89,13 +89,13 @@ services:
   members:
     build:
       context: ../../apps/backend
-      dockerfile: cmd/members/Dockerfile
+      args: { CMD: members }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-members
     environment:
       MEMBERS_DATABASE_URL: *members-db
       # The issuer is the host-facing URL Keycloak stamps into every token; the JWKS is fetched on the compose network.
-      MEMBERS_OIDC_ISSUER: http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}/realms/mmr
-      MEMBERS_OIDC_JWKS_URL: http://keycloak:8080/realms/mmr/protocol/openid-connect/certs
+      MEMBERS_OIDC_ISSUER: &issuer http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}/realms/mmr
+      MEMBERS_OIDC_JWKS_URL: &jwks http://keycloak:8080/realms/mmr/protocol/openid-connect/certs
       MEMBERS_OIDC_AUDIENCE: bff
     ports:
       # Loopback only, for the Connect-boundary tests; the BFF reaches it as members:8080.
@@ -105,7 +105,7 @@ services:
         condition: service_completed_successfully
       keycloak:
         condition: service_healthy
-    healthcheck:
+    healthcheck: &go-healthcheck
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
       interval: 5s
       timeout: 3s
@@ -115,11 +115,11 @@ services:
   bff:
     build:
       context: ../../apps/backend
-      dockerfile: cmd/bff/Dockerfile
+      args: { CMD: bff }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-bff
     environment:
-      BFF_OIDC_ISSUER: http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}/realms/mmr
-      BFF_OIDC_JWKS_URL: http://keycloak:8080/realms/mmr/protocol/openid-connect/certs
+      BFF_OIDC_ISSUER: *issuer
+      BFF_OIDC_JWKS_URL: *jwks
       BFF_OIDC_AUDIENCE: bff
       BFF_MEMBERS_URL: http://members:8080
     ports:
@@ -129,11 +129,7 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
+    healthcheck: *go-healthcheck
 
 volumes:
   postgres-data:

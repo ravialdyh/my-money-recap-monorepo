@@ -1,5 +1,5 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type RefObject } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 
 /** Field states. `focus` and `invalid` draw a 2px ring; `disabled` follows the 0.4 opacity rule. */
 export type FieldState = 'default' | 'focus' | 'invalid' | 'disabled';
@@ -26,7 +26,7 @@ export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElemen
 export const TextField = forwardRef<HTMLLabelElement, TextFieldProps>(function TextField(
   { label, prefix, suffix, helper, state = 'default', className = '', 'data-step': step, mirror, fieldRef, ...rest }, ref,
 ) {
-  useStyles();
+  ensureStyles();
   return (
     <label ref={ref} className={`mmr-field-wrap ${className}`} data-step={step}>
       {label ? <span className="mmr-field-label">{label}</span> : null}

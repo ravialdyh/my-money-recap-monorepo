@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 import { Icon } from '../icons';
 
 export interface BannerProps extends HTMLAttributes<HTMLDivElement> {
@@ -12,7 +12,7 @@ export interface BannerProps extends HTMLAttributes<HTMLDivElement> {
 }
 /** Full-width coral card that sits above the target card. Same radius as Card, no shadow. */
 export function Banner({ tone = 'warning', onDismiss, children, className = '', ...rest }: BannerProps) {
-  useStyles();
+  ensureStyles();
   return (
     <div className={`mmr-banner ${className}`} data-tone={tone} role="status" {...rest}>
       <div className="mmr-banner-body">{children}</div>
