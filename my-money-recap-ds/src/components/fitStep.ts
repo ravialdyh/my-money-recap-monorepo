@@ -14,7 +14,11 @@ const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayout
  * `data-step` on both so the CSS may key off either. Re-measures on `key`, resize and `fonts.ready`;
  * before the first measurement the step is `l`.
  */
-export function useFitStep(text: RefObject<HTMLElement>, box: RefObject<HTMLElement> | null, key: string): FitStep {
+export function useFitStep(
+  text: RefObject<HTMLElement | null>,
+  box: RefObject<HTMLElement | null> | null,
+  key: string,
+): FitStep {
   const [step, setStep] = useState<FitStep>('l');
   useIsoLayoutEffect(() => {
     const el = text.current;

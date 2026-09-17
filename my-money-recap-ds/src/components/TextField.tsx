@@ -20,7 +20,7 @@ export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElemen
   /** Hidden measuring copy of the value, placed inside the field row by `AmountField`. */
   mirror?: ReactNode;
   /** Ref to the padded field row (the width the value must fit), for `AmountField`'s measurement. */
-  fieldRef?: RefObject<HTMLSpanElement>;
+  fieldRef?: RefObject<HTMLSpanElement | null>;
 }
 /** Single-line text input that lives inside a Card. Nunito 800 ink on the field surface, violet focus ring. */
 export const TextField = forwardRef<HTMLLabelElement, TextFieldProps>(function TextField(
