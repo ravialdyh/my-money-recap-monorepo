@@ -1,0 +1,284 @@
+{
+  "doc": "PRD §8.6, Maya's September Recap read on 1 October: Saved £640 ≥ £480 and Streak 9 ≥ 7 → Squirrel; kept 133% (§8.4); window 1–30 September, Streak 12 to 20 (§8.5); Splurge £420 on the 27th (§8.3); past month met, £160 to spare (§8.7).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [
+    {
+      "id": "maya-01",
+      "amount": {
+        "amount": "300.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "300.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_BILLS",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "maya-02",
+      "amount": {
+        "amount": "150.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "150.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-06"
+    },
+    {
+      "id": "maya-03",
+      "amount": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_RIDES",
+      "date": "2026-09-09"
+    },
+    {
+      "id": "maya-04",
+      "amount": {
+        "amount": "250.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "250.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GAMES",
+      "date": "2026-09-11"
+    },
+    {
+      "id": "maya-05",
+      "amount": {
+        "amount": "180.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "180.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_CLOTHES",
+      "date": "2026-09-21"
+    },
+    {
+      "id": "maya-06",
+      "amount": {
+        "amount": "120.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "120.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-24"
+    },
+    {
+      "id": "maya-07",
+      "amount": {
+        "amount": "420.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "420.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_TOYS",
+      "date": "2026-09-27"
+    },
+    {
+      "id": "maya-08",
+      "amount": {
+        "amount": "140.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "140.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GIFTS",
+      "date": "2026-09-29"
+    }
+  ],
+  "asOf": "2026-10-01",
+  "recaps": [
+    {
+      "month": "2026-09",
+      "moneyIn": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "spent": {
+        "amount": "1760.00",
+        "currencyCode": "GBP"
+      },
+      "saved": {
+        "amount": "640.00",
+        "currencyCode": "GBP"
+      },
+      "spendCount": 8,
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "480.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Target met. £160 to spare."
+      },
+      "keptPercent": 133,
+      "streak": {
+        "days": 9,
+        "windowStart": "2026-09-01",
+        "windowEnd": "2026-09-30",
+        "spendFreeDays": [
+          true,
+          true,
+          false,
+          true,
+          true,
+          false,
+          true,
+          true,
+          false,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          false,
+          true,
+          true,
+          false,
+          true,
+          false,
+          true
+        ],
+        "badgeUnlocked": true
+      },
+      "categories": [
+        {
+          "category": "CATEGORY_TOYS",
+          "amount": {
+            "amount": "420.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 24,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_BILLS",
+          "amount": {
+            "amount": "300.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 17,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_SNACKS",
+          "amount": {
+            "amount": "270.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 15,
+          "spendCount": 2
+        },
+        {
+          "category": "CATEGORY_GAMES",
+          "amount": {
+            "amount": "250.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 14,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_RIDES",
+          "amount": {
+            "amount": "200.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 11,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_CLOTHES",
+          "amount": {
+            "amount": "180.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 10,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_GIFTS",
+          "amount": {
+            "amount": "140.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 8,
+          "spendCount": 1
+        }
+      ],
+      "splurge": {
+        "id": "maya-07",
+        "amount": {
+          "amount": "420.00",
+          "currencyCode": "GBP"
+        },
+        "originalAmount": {
+          "amount": "420.00",
+          "currencyCode": "GBP"
+        },
+        "category": "CATEGORY_TOYS",
+        "date": "2026-09-27"
+      },
+      "archetype": "ARCHETYPE_SQUIRREL",
+      "archetypeName": "Squirrel",
+      "archetypeDescription": "You stashed more than you meant to, and you didn't crack once.",
+      "closingLine": ""
+    }
+  ]
+}

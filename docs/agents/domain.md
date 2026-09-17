@@ -15,7 +15,7 @@ There is no `docs/adr/` folder and none should be created. A new decision is a n
 
 ## Layout
 
-Single-context. One glossary, three registers, all under `docs/`. `packages/contract/` holds the protobuf schema; the ledger fixtures arrive there with slice 5.
+Single-context. One glossary, three registers, all under `docs/`. `packages/contract/` holds the protobuf schema and, under `fixtures/ledger/`, the PRD §8 answer key: written in slice 2, run by `ledger` in slice 5.
 
 ## Use the glossary's vocabulary
 

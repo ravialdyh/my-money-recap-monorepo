@@ -1,0 +1,144 @@
+{
+  "doc": "PRD §8.4 and D45, Budi's IDR ledger on 30 September: target Rp 15.000.000 × 20 ÷ 100 = Rp 3.000.000; Spent Rp 9.400.000, Money In Rp 15.000.000 (§8.2), Saved Rp 5.600.000 (§8.3); Streak day 2 (§8.5); allowance floor((15.000.000 − 3.000.000 − 9.400.000) ÷ 1) (§8.7); under the line (§8.8).",
+  "timezone": "Asia/Jakarta",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "IDR",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "15000000",
+        "currencyCode": "IDR"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [
+    {
+      "id": "budi-01",
+      "amount": {
+        "amount": "4000000",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
+        "amount": "4000000",
+        "currencyCode": "IDR"
+      },
+      "category": "CATEGORY_BILLS",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "budi-02",
+      "amount": {
+        "amount": "1200000",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
+        "amount": "1200000",
+        "currencyCode": "IDR"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-08"
+    },
+    {
+      "id": "budi-03",
+      "amount": {
+        "amount": "900000",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
+        "amount": "900000",
+        "currencyCode": "IDR"
+      },
+      "category": "CATEGORY_RIDES",
+      "date": "2026-09-15"
+    },
+    {
+      "id": "budi-04",
+      "amount": {
+        "amount": "1800000",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
+        "amount": "1800000",
+        "currencyCode": "IDR"
+      },
+      "category": "CATEGORY_CLOTHES",
+      "date": "2026-09-22"
+    },
+    {
+      "id": "budi-05",
+      "amount": {
+        "amount": "1500000",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
+        "amount": "1500000",
+        "currencyCode": "IDR"
+      },
+      "category": "CATEGORY_GAMES",
+      "date": "2026-09-28"
+    }
+  ],
+  "asOf": "2026-09-30",
+  "months": [
+    {
+      "month": "2026-09",
+      "spent": {
+        "amount": "9400000",
+        "currencyCode": "IDR"
+      },
+      "moneyIn": {
+        "amount": "15000000",
+        "currencyCode": "IDR"
+      },
+      "saved": {
+        "amount": "5600000",
+        "currencyCode": "IDR"
+      },
+      "salary": {
+        "amount": {
+          "amount": "15000000",
+          "currencyCode": "IDR"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "3000000",
+          "currencyCode": "IDR"
+        },
+        "progressSentence": "Keep spending under Rp 2.600.000 a day and you'll make it."
+      },
+      "streakDay": 2,
+      "daysRemaining": 1,
+      "partial": false
+    }
+  ],
+  "settings": {
+    "salary": {
+      "amount": {
+        "amount": "15000000",
+        "currencyCode": "IDR"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    },
+    "savingTarget": {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    },
+    "paydayPassedThisMonth": true,
+    "currencyCode": "IDR",
+    "hasAmountsToConvert": true
+  },
+  "crossedLine": false
+}
