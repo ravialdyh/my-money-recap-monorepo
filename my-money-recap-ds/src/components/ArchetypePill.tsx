@@ -11,11 +11,29 @@ export interface ArchetypePillProps extends Omit<ButtonHTMLAttributes<HTMLButton
   children?: ReactNode;
 }
 /** Small coloured pill per money personality. Unselected sits at 60% opacity; selected is full opacity with a 2px white ring. ~24px tall, so set `tappable` when it is a control. */
-export function ArchetypePill({ archetype, selected = false, state = 'default', tappable = false, children, className = '', ...rest }: ArchetypePillProps) {
+export function ArchetypePill({
+  archetype,
+  selected = false,
+  state = 'default',
+  tappable = false,
+  children,
+  className = '',
+  ...rest
+}: ArchetypePillProps) {
   ensureStyles();
   const isSelected = selected || state === 'selected';
   return (
-    <button type="button" className={`mmr-archetype mmr-pressable ${className}`} data-archetype={archetype} data-selected={isSelected ? 'true' : 'false'} data-state={state} data-tappable={tappable ? 'true' : undefined} aria-pressed={isSelected} disabled={state === 'disabled' || rest.disabled} {...rest}>
+    <button
+      type="button"
+      className={`mmr-archetype mmr-pressable ${className}`}
+      data-archetype={archetype}
+      data-selected={isSelected ? 'true' : 'false'}
+      data-state={state}
+      data-tappable={tappable ? 'true' : undefined}
+      aria-pressed={isSelected}
+      disabled={state === 'disabled' || rest.disabled}
+      {...rest}
+    >
       {children ?? ARCHETYPE_LABEL[archetype]}
     </button>
   );

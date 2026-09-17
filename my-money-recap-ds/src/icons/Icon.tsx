@@ -1,14 +1,42 @@
 import type { SVGProps } from 'react';
 import {
-  PawIcon, DropletIcon, LemonIcon, ShareIcon, SparkleIcon,
-  SnacksIcon, GamesIcon, ToysIcon, RidesIcon, ClothesIcon, BillsIcon, GiftsIcon, OtherIcon,
-  SettingsIcon, ChevronIcon, PlusIcon, PiggyMarker,
+  BillsIcon,
+  ChevronIcon,
+  ClothesIcon,
+  DropletIcon,
+  GamesIcon,
+  GiftsIcon,
+  LemonIcon,
+  OtherIcon,
+  PawIcon,
+  PiggyMarker,
+  PlusIcon,
+  RidesIcon,
+  SettingsIcon,
+  ShareIcon,
+  SnacksIcon,
+  SparkleIcon,
+  ToysIcon,
 } from './glyphs';
 
 const GLYPHS = {
-  paw: PawIcon, droplet: DropletIcon, lemon: LemonIcon, share: ShareIcon, sparkle: SparkleIcon,
-  snacks: SnacksIcon, games: GamesIcon, toys: ToysIcon, rides: RidesIcon, clothes: ClothesIcon, bills: BillsIcon, gifts: GiftsIcon, other: OtherIcon,
-  settings: SettingsIcon, chevron: ChevronIcon, plus: PlusIcon, piggy: PiggyMarker,
+  paw: PawIcon,
+  droplet: DropletIcon,
+  lemon: LemonIcon,
+  share: ShareIcon,
+  sparkle: SparkleIcon,
+  snacks: SnacksIcon,
+  games: GamesIcon,
+  toys: ToysIcon,
+  rides: RidesIcon,
+  clothes: ClothesIcon,
+  bills: BillsIcon,
+  gifts: GiftsIcon,
+  other: OtherIcon,
+  settings: SettingsIcon,
+  chevron: ChevronIcon,
+  plus: PlusIcon,
+  piggy: PiggyMarker,
 } as const;
 export type IconName = keyof typeof GLYPHS;
 export const ICON_NAMES = Object.keys(GLYPHS) as readonly IconName[];

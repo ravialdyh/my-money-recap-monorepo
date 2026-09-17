@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import { ensureStyles } from '../styles/ensureStyles';
 import { Icon } from '../icons';
+import { ensureStyles } from '../styles/ensureStyles';
 
 export interface BannerProps extends HTMLAttributes<HTMLDivElement> {
   /** `warning` coral (Target Warning). `info` violet, for a neutral notice. `offline` grey, for

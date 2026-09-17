@@ -24,7 +24,8 @@ export interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElemen
 }
 /** Single-line text input that lives inside a Card. Nunito 800 ink on the field surface, violet focus ring. */
 export const TextField = forwardRef<HTMLLabelElement, TextFieldProps>(function TextField(
-  { label, prefix, suffix, helper, state = 'default', className = '', 'data-step': step, mirror, fieldRef, ...rest }, ref,
+  { label, prefix, suffix, helper, state = 'default', className = '', 'data-step': step, mirror, fieldRef, ...rest },
+  ref,
 ) {
   ensureStyles();
   return (
@@ -33,10 +34,18 @@ export const TextField = forwardRef<HTMLLabelElement, TextFieldProps>(function T
       <span ref={fieldRef} className="mmr-field" data-state={state}>
         {prefix ? <span className="mmr-field-affix">{prefix}</span> : null}
         <input className="mmr-field-input" disabled={state === 'disabled' || rest.disabled} {...rest} />
-        {suffix ? <span className="mmr-field-affix" data-side="end">{suffix}</span> : null}
+        {suffix ? (
+          <span className="mmr-field-affix" data-side="end">
+            {suffix}
+          </span>
+        ) : null}
         {mirror}
       </span>
-      {helper ? <span className="mmr-field-helper" data-state={state}>{helper}</span> : null}
+      {helper ? (
+        <span className="mmr-field-helper" data-state={state}>
+          {helper}
+        </span>
+      ) : null}
     </label>
   );
 });

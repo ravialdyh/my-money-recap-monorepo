@@ -1,8 +1,8 @@
 import { useRef } from 'react';
-import { ensureStyles } from '../styles/ensureStyles';
-import { TextField, type FieldState } from './TextField';
-import { useFitStep } from './fitStep';
 import { currencySymbol, formatAmountNumber, parseAmount } from '../money';
+import { ensureStyles } from '../styles/ensureStyles';
+import { useFitStep } from './fitStep';
+import { type FieldState, TextField } from './TextField';
 
 export interface AmountFieldProps {
   /** The amount as an exact decimal string ("15000000", "12.40"), the same form it is stored in (PRD §7). */
@@ -42,7 +42,11 @@ export function AmountField({ value, currency, locale, label, helper, state = 'd
       value={formatted}
       onChange={(e) => onChange?.(parseAmount(e.currentTarget.value, locale))}
       aria-label={label ?? `Amount in ${currency}`}
-      mirror={<span ref={mirror} className="mmr-amount-mirror" aria-hidden="true">{symbol} {formatted}</span>}
+      mirror={
+        <span ref={mirror} className="mmr-amount-mirror" aria-hidden="true">
+          {symbol} {formatted}
+        </span>
+      }
     />
   );
 }

@@ -10,12 +10,20 @@ export interface HeadlineProps extends HTMLAttributes<HTMLHeadingElement> {
 /** Fredoka 700 headline. Inherits colour from the Screen so it is white on colour and ink on yellow. */
 export function Headline({ size = 'm', as: Tag = 'h1', children, className = '', ...rest }: HeadlineProps) {
   ensureStyles();
-  return <Tag className={`mmr-headline ${className}`} data-size={size} {...rest}>{children}</Tag>;
+  return (
+    <Tag className={`mmr-headline ${className}`} data-size={size} {...rest}>
+      {children}
+    </Tag>
+  );
 }
 
 export function SubCopy({ children, className = '', ...rest }: HTMLAttributes<HTMLParagraphElement>) {
   ensureStyles();
-  return <p className={`mmr-subcopy ${className}`} {...rest}>{children}</p>;
+  return (
+    <p className={`mmr-subcopy ${className}`} {...rest}>
+      {children}
+    </p>
+  );
 }
 export interface HelperTextProps extends HTMLAttributes<HTMLElement> {
   /** `span` when the helper sits inside a `<button>`, which may not contain a `<p>`. Drawn identically. */
@@ -23,7 +31,11 @@ export interface HelperTextProps extends HTMLAttributes<HTMLElement> {
 }
 export function HelperText({ as: Tag = 'p', children, className = '', ...rest }: HelperTextProps) {
   ensureStyles();
-  return <Tag className={`mmr-helper ${className}`} {...rest}>{children}</Tag>;
+  return (
+    <Tag className={`mmr-helper ${className}`} {...rest}>
+      {children}
+    </Tag>
+  );
 }
 export interface EyebrowProps extends HTMLAttributes<HTMLElement> {
   tone?: 'secondary' | 'coral';
@@ -33,5 +45,9 @@ export interface EyebrowProps extends HTMLAttributes<HTMLElement> {
 /** Small label above a stat or callout. `coral` is the uppercase callout style ("THE SPLURGE"). */
 export function Eyebrow({ tone = 'secondary', as: Tag = 'div', children, className = '', ...rest }: EyebrowProps) {
   ensureStyles();
-  return <Tag className={`mmr-eyebrow ${className}`} data-tone={tone} {...rest}>{children}</Tag>;
+  return (
+    <Tag className={`mmr-eyebrow ${className}`} data-tone={tone} {...rest}>
+      {children}
+    </Tag>
+  );
 }

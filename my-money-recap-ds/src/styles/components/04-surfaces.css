@@ -138,8 +138,8 @@
 }
 /* Disabled dims the pills through .mmr-pressable:disabled and the helper line here. Never put the
    opacity on the wrapper: it multiplies with the pills' own 0.4 and renders them at 0.16. */
-.mmr-day-picker[data-state="disabled"] .mmr-day-picker-helper { opacity: var(--mmr-color-state-disabled-opacity); }
 .mmr-day-picker-helper { font-variant-numeric: tabular-nums; }
+.mmr-day-picker[data-state="disabled"] .mmr-day-picker-helper { opacity: var(--mmr-color-state-disabled-opacity); }
 
 /* ---- InlineError (the only error surface, PRD D67) ---- */
 .mmr-inline-error {

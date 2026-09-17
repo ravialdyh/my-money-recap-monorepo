@@ -2,6 +2,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { here } from './lib.mjs';
+
 const src = resolve(here, '../../my-money-recap/assets/illustrations');
 const names = {
   cover: 'ill-cover.webp',
@@ -34,5 +35,5 @@ for (const [k, f] of Object.entries(names)) {
   lines.push(`  ${key}: 'data:image/webp;base64,${b64}',`);
 }
 lines.push('} as const;', 'export type IllustrationKey = keyof typeof ILLUSTRATIONS;');
-writeFileSync(resolve(here, '../src/assets/illustrations.ts'), lines.join('\n') + '\n');
+writeFileSync(resolve(here, '../src/assets/illustrations.ts'), `${lines.join('\n')}\n`);
 console.log('src/assets/illustrations.ts written');

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, type RefObject } from 'react';
+import { type RefObject, useEffect, useLayoutEffect, useState } from 'react';
 
 /**
  * Fit-to-width sizing (PRD §11, D71): `l` → `m` → `s`, each mapped to a token by the CSS. Three steps,

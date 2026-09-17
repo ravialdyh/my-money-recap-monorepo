@@ -11,8 +11,14 @@ export function Toggle({ checked, disabled = false, onChange, ...rest }: ToggleP
   ensureStyles();
   return (
     <input
-      type="checkbox" role="switch" className="mmr-toggle mmr-pressable"
-      checked={checked} disabled={disabled} onChange={(e) => onChange?.(e.currentTarget.checked)} {...rest}
+      type="checkbox"
+      role="switch"
+      aria-checked={checked}
+      className="mmr-toggle mmr-pressable"
+      checked={checked}
+      disabled={disabled}
+      onChange={(e) => onChange?.(e.currentTarget.checked)}
+      {...rest}
     />
   );
 }

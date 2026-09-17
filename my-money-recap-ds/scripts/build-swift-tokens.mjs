@@ -1,7 +1,7 @@
 // Generates apps/ios/DesignSystem/Tokens.swift from src/tokens/tokens.json (docs/IOS.md I5).
 // Colours, radii, spacing, sizes, the type ramp and motion. Aliases like "{palette.violet.500}" become Palette.violet500.
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { here, tokens, walk } from './lib.mjs';
 
 const out = resolve(here, '../../apps/ios/DesignSystem/Tokens.swift');
@@ -34,7 +34,8 @@ function colorEnum(node) {
   const lines = [];
   walk(node, (p, { $value: raw }) => {
     if (typeof raw === 'number') lines.push(`        public static let ${ident(p)}: Double = ${num(raw)}`);
-    else if (typeof raw === 'string' && /^-?[\d.]+%$/.test(raw)) lines.push(`        public static let ${ident(p)}: Double = ${num(parseFloat(raw) / 100)}`);
+    else if (typeof raw === 'string' && /^-?[\d.]+%$/.test(raw))
+      lines.push(`        public static let ${ident(p)}: Double = ${num(parseFloat(raw) / 100)}`);
     else if (typeof raw === 'string' && color(raw)) lines.push(`        public static let ${ident(p)} = ${color(raw)}`);
   });
   return lines;
@@ -52,7 +53,15 @@ const typeRamp = Object.entries(tokens.type)
 
 const easing = Object.entries(tokens.motion.easing)
   .filter(([k]) => !k.startsWith('$'))
-  .map(([k, { $value: [x1, y1, x2, y2] }]) => `            public static let ${ident([k])} = UnitCurve.bezier(startControlPoint: UnitPoint(x: ${num(x1)}, y: ${num(y1)}), endControlPoint: UnitPoint(x: ${num(x2)}, y: ${num(y2)}))`);
+  .map(
+    ([
+      k,
+      {
+        $value: [x1, y1, x2, y2],
+      },
+    ]) =>
+      `            public static let ${ident([k])} = UnitCurve.bezier(startControlPoint: UnitPoint(x: ${num(x1)}, y: ${num(y1)}), endControlPoint: UnitPoint(x: ${num(x2)}, y: ${num(y2)}))`,
+  );
 const duration = Object.entries(tokens.motion.duration)
   .filter(([k]) => !k.startsWith('$'))
   .map(([k, { $value: d }]) => `            public static let ${ident([k])}: TimeInterval = ${ms(d)}`);
@@ -88,9 +97,16 @@ ${Object.entries(tokens.font.family)
 
 ${block('TypeRamp', typeRamp)}
 
-${['radius', 'space', 'size'].map((g) => block(pascal(g), Object.entries(tokens[g])
-  .filter(([k]) => !k.startsWith('$'))
-  .map(([k, { $value: r }]) => `        public static let ${ident([k])}: CGFloat = ${px(r)}`))).join('\n\n')}
+${['radius', 'space', 'size']
+  .map((g) =>
+    block(
+      pascal(g),
+      Object.entries(tokens[g])
+        .filter(([k]) => !k.startsWith('$'))
+        .map(([k, { $value: r }]) => `        public static let ${ident([k])}: CGFloat = ${px(r)}`),
+    ),
+  )
+  .join('\n\n')}
 
     public enum Motion {
         public enum Easing {

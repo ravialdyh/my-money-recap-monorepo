@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { ensureStyles } from '../styles/ensureStyles';
-import type { InteractiveState, Hue } from './types';
+import type { Hue, InteractiveState } from './types';
 
 export interface IconWellProps {
   tone: Hue;
@@ -14,8 +14,16 @@ export interface IconWellProps {
 export function IconWell({ tone, size, glyphSize, children }: IconWellProps) {
   ensureStyles();
   // React drops undefined values, so the defaults fall through to the CSS tokens.
-  const style = { width: size, height: size, '--mmr-well-glyph-size': glyphSize === undefined ? undefined : `${glyphSize}px` } as React.CSSProperties;
-  return <span className="mmr-well" data-tone={tone} style={style}>{children}</span>;
+  const style = {
+    width: size,
+    height: size,
+    '--mmr-well-glyph-size': glyphSize === undefined ? undefined : `${glyphSize}px`,
+  } as React.CSSProperties;
+  return (
+    <span className="mmr-well" data-tone={tone} style={style}>
+      {children}
+    </span>
+  );
 }
 
 export interface DataRowProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
@@ -29,7 +37,13 @@ export interface DataRowProps extends Omit<ButtonHTMLAttributes<HTMLButtonElemen
 export function DataRow({ icon, iconTone, label, amount, state = 'default', className = '', ...rest }: DataRowProps) {
   ensureStyles();
   return (
-    <button type="button" className={`mmr-row mmr-pressable ${className}`} data-state={state} disabled={state === 'disabled' || rest.disabled} {...rest}>
+    <button
+      type="button"
+      className={`mmr-row mmr-pressable ${className}`}
+      data-state={state}
+      disabled={state === 'disabled' || rest.disabled}
+      {...rest}
+    >
       <IconWell tone={iconTone}>{icon}</IconWell>
       <span className="mmr-row-label">{label}</span>
       <span className="mmr-row-amount">{amount}</span>

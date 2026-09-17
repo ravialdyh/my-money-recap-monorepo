@@ -1,6 +1,6 @@
 // What the build scripts share: the scripts folder, the parsed tokens.json, and the token-tree walk.
 import { readFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const here = dirname(fileURLToPath(import.meta.url));

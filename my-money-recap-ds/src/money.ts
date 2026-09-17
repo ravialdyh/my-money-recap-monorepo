@@ -16,7 +16,9 @@ function formatter(currency: string, locale: string | undefined, kind: 'display'
   let f = formatters.get(key);
   if (!f) {
     f = new Intl.NumberFormat(locale, {
-      style: 'currency', currency, currencyDisplay: 'narrowSymbol',
+      style: 'currency',
+      currency,
+      currencyDisplay: 'narrowSymbol',
       ...(kind === 'display' ? { trailingZeroDisplay: 'stripIfInteger' } : {}),
     } as Intl.NumberFormatOptions);
     formatters.set(key, f);
@@ -31,7 +33,9 @@ export function formatMoney(amount: number | string, currency: string, locale?: 
 
 /** The symbol the formatter would print for this currency in this locale ("£", "Rp", "BHD"). */
 export function currencySymbol(currency: string, locale?: string): string {
-  const part = formatter(currency, locale, 'display').formatToParts(1).find((p) => p.type === 'currency');
+  const part = formatter(currency, locale, 'display')
+    .formatToParts(1)
+    .find((p) => p.type === 'currency');
   return part ? part.value : currency;
 }
 
@@ -57,7 +61,11 @@ export function parseAmount(typed: string, locale?: string): string {
   const parts = new Intl.NumberFormat(locale).formatToParts(1234.5);
   const group = parts.find((p) => p.type === 'group')?.value ?? ',';
   const decimal = parts.find((p) => p.type === 'decimal')?.value ?? '.';
-  const cleaned = typed.split(group).join('').replace(decimal, '.').replace(/[^0-9.]/g, '');
+  const cleaned = typed
+    .split(group)
+    .join('')
+    .replace(decimal, '.')
+    .replace(/[^0-9.]/g, '');
   if (!/\d/.test(cleaned)) return '';
   const [whole, ...rest] = cleaned.split('.');
   return rest.length ? `${whole || '0'}.${rest.join('')}` : whole;

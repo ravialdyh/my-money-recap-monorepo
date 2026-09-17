@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
 import type { HTMLAttributes } from 'react';
+import { useEffect, useRef } from 'react';
 import { ensureStyles } from '../styles/ensureStyles';
 import { HelperText } from './Headline';
 import type { InteractiveState } from './types';
@@ -7,9 +7,7 @@ import type { InteractiveState } from './types';
 /** A Payday: a day of the month, or the month's last day (PRD D51). */
 export type PaydayValue = number | 'last';
 /** 1…31 then `last`, in the order the picker draws them. */
-const PAYDAY_VALUES: readonly PaydayValue[] = [
-  ...Array.from({ length: 31 }, (_, i) => i + 1), 'last',
-] as const;
+const PAYDAY_VALUES: readonly PaydayValue[] = [...Array.from({ length: 31 }, (_, i) => i + 1), 'last'] as const;
 
 export interface DayPickerProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
   /** The chosen Payday. The row scrolls to centre it when the picker opens. */
@@ -28,7 +26,12 @@ export interface DayPickerProps extends Omit<HTMLAttributes<HTMLDivElement>, 'on
  * drawn as the ink pill. Onboarding step 3 and the Settings salary screen (PRD §6.6, D51).
  */
 export function DayPicker({
-  value, onChange, nextPaydays = null, state = 'default', className = '', ...rest
+  value,
+  onChange,
+  nextPaydays = null,
+  state = 'default',
+  className = '',
+  ...rest
 }: DayPickerProps) {
   ensureStyles();
   const row = useRef<HTMLDivElement>(null);
@@ -46,10 +49,15 @@ export function DayPicker({
       <div className="mmr-day-picker-row" ref={row} role="radiogroup" aria-label="Payday">
         {PAYDAY_VALUES.map((day) => (
           <button
-            key={String(day)} type="button" className="mmr-day-pill mmr-pressable"
-            role="radio" aria-checked={day === value} data-selected={day === value ? 'true' : 'false'}
+            key={String(day)}
+            type="button"
+            className="mmr-day-pill mmr-pressable"
+            role="radio"
+            aria-checked={day === value}
+            data-selected={day === value ? 'true' : 'false'}
             data-wide={day === 'last' ? 'true' : undefined}
-            disabled={disabled} onClick={onChange ? () => onChange(day) : undefined}
+            disabled={disabled}
+            onClick={onChange ? () => onChange(day) : undefined}
           >
             {day === 'last' ? 'Last day' : day}
           </button>

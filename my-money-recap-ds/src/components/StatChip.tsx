@@ -12,7 +12,14 @@ export interface StatChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonEleme
 export function StatChip({ tone, state = 'default', children, className = '', ...rest }: StatChipProps) {
   ensureStyles();
   return (
-    <button type="button" className={`mmr-stat-chip mmr-pressable ${className}`} data-tone={tone} data-state={state} disabled={state === 'disabled' || rest.disabled} {...rest}>
+    <button
+      type="button"
+      className={`mmr-stat-chip mmr-pressable ${className}`}
+      data-tone={tone}
+      data-state={state}
+      disabled={state === 'disabled' || rest.disabled}
+      {...rest}
+    >
       <span className="mmr-stat-chip-dot" />
       {children}
     </button>

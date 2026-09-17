@@ -6,7 +6,12 @@ const INLINE = parseFloat(tokens.size['avatar-inline'].$value);
 
 /** The six onboarding Avatars (PRD D36). Keys match `ILLUSTRATIONS['avatar-*']`. */
 const AVATAR_LABEL = {
-  fox: 'Fox', otter: 'Otter', panda: 'Panda', frog: 'Frog', owl: 'Owl', rabbit: 'Rabbit',
+  fox: 'Fox',
+  otter: 'Otter',
+  panda: 'Panda',
+  frog: 'Frog',
+  owl: 'Owl',
+  rabbit: 'Rabbit',
 } as const;
 export type AvatarKey = keyof typeof AVATAR_LABEL;
 
@@ -26,9 +31,15 @@ export function AvatarGrid({ avatars, selected, size = GRID_CELL, onSelect }: Av
     <div className="mmr-avatar-grid" role="radiogroup" aria-label="Pick your avatar">
       {avatars.map(({ key, src }) => (
         <button
-          key={key} type="button" role="radio" aria-checked={key === selected} aria-label={AVATAR_LABEL[key]}
-          className="mmr-avatar mmr-pressable" data-selected={key === selected ? 'true' : 'false'}
-          style={{ width: size, height: size }} onClick={() => onSelect?.(key)}
+          key={key}
+          type="button"
+          role="radio"
+          aria-checked={key === selected}
+          aria-label={AVATAR_LABEL[key]}
+          className="mmr-avatar mmr-pressable"
+          data-selected={key === selected ? 'true' : 'false'}
+          style={{ width: size, height: size }}
+          onClick={() => onSelect?.(key)}
         >
           <img src={src} alt="" />
         </button>
@@ -37,9 +48,17 @@ export function AvatarGrid({ avatars, selected, size = GRID_CELL, onSelect }: Av
   );
 }
 
-export interface AvatarProps { src: string; label?: string; size?: number; }
+export interface AvatarProps {
+  src: string;
+  label?: string;
+  size?: number;
+}
 /** A single Avatar badge, for the Home greeting and the recap chip. */
 export function Avatar({ src, label = '', size = INLINE }: AvatarProps) {
   ensureStyles();
-  return <span className="mmr-avatar" data-static="true" style={{ width: size, height: size }}><img src={src} alt={label} /></span>;
+  return (
+    <span className="mmr-avatar" data-static="true" style={{ width: size, height: size }}>
+      <img src={src} alt={label} />
+    </span>
+  );
 }

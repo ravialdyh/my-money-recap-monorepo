@@ -1,8 +1,8 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { ensureStyles } from '../styles/ensureStyles';
 import { Icon } from '../icons';
-import { IconWell } from './DataRow';
+import { ensureStyles } from '../styles/ensureStyles';
 import { CardTitle } from './Card';
+import { IconWell } from './DataRow';
 import { Eyebrow, HelperText } from './Headline';
 import type { InteractiveState } from './types';
 
@@ -28,22 +28,33 @@ export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
  * `CardTitle` and `HelperText` take their `span` form.
  */
 export function PromptCard({
-  height, eyebrow = null, title, helper = null, state = 'default', className = '', style, ...rest
+  height,
+  eyebrow = null,
+  title,
+  helper = null,
+  state = 'default',
+  className = '',
+  style,
+  ...rest
 }: PromptCardProps) {
   ensureStyles();
   return (
     <button
-      type="button" className={`mmr-card mmr-prompt-card mmr-pressable ${className}`}
+      type="button"
+      className={`mmr-card mmr-prompt-card mmr-pressable ${className}`}
       data-state={state}
       style={height == null ? style : { ...style, height }}
-      disabled={state === 'disabled' || rest.disabled} {...rest}
+      disabled={state === 'disabled' || rest.disabled}
+      {...rest}
     >
       <span className="mmr-prompt-card-body">
         {eyebrow ? <Eyebrow as="span">{eyebrow}</Eyebrow> : null}
         <CardTitle as="span">{title}</CardTitle>
         {helper ? <HelperText as="span">{helper}</HelperText> : null}
       </span>
-      <IconWell tone="violet" size={44} glyphSize={20}><Icon name="chevron" /></IconWell>
+      <IconWell tone="violet" size={44} glyphSize={20}>
+        <Icon name="chevron" />
+      </IconWell>
     </button>
   );
 }

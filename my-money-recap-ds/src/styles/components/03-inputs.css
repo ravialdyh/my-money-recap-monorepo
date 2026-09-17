@@ -49,10 +49,10 @@
   font-variant-numeric: tabular-nums;
 }
 .mmr-amount .mmr-field { height: auto; padding: var(--mmr-space-4) var(--mmr-space-6); }
+.mmr-amount-mirror { position: absolute; left: 0; top: 0; visibility: hidden; white-space: nowrap; pointer-events: none; }
 .mmr-amount [data-step="m"] .mmr-field-input, .mmr-amount [data-step="m"] .mmr-field-affix, .mmr-amount [data-step="m"] .mmr-amount-mirror { font-size: var(--mmr-size-amount-m); }
 .mmr-amount [data-step="s"] .mmr-field-input, .mmr-amount [data-step="s"] .mmr-field-affix, .mmr-amount [data-step="s"] .mmr-amount-mirror { font-size: var(--mmr-size-amount-s); }
 .mmr-amount .mmr-field { position: relative; }
-.mmr-amount-mirror { position: absolute; left: 0; top: 0; visibility: hidden; white-space: nowrap; pointer-events: none; }
 
 /* ---- Slider ---- */
 .mmr-slider { position: relative; display: flex; flex-direction: column; gap: var(--mmr-space-4); }
