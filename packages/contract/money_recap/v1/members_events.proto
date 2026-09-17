@@ -9,9 +9,11 @@ import "money_recap/v1/shared.proto";
 // The replica facts ledger and notify keep in member_facts from events alone
 // (ARCHITECTURE §7.1 "Why separate", §7.2, §7.3).
 message MemberFacts {
-  // IANA zone name (A3).
+  // IANA zone name (A3). Empty on members.created, since the zone arrives with
+  // the first SetTimezone; the members.updated that follows carries it.
   string timezone = 1;
-  // "YYYY-MM-DD" (PRD §7 Member).
+  // "YYYY-MM-DD" (PRD §7 Member). Empty on members.created, stamped with the
+  // zone; consumers must not anchor a Streak window (D43) on an empty value.
   string signed_up_on = 2;
   // ISO 4217.
   string currency_code = 3;

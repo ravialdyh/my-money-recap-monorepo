@@ -27,10 +27,12 @@ public nonisolated struct MoneyRecap_V1_MemberFacts: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// IANA zone name (A3).
+  /// IANA zone name (A3). Empty on members.created, since the zone arrives with
+  /// the first SetTimezone; the members.updated that follows carries it.
   public var timezone: String = String()
 
-  /// "YYYY-MM-DD" (PRD §7 Member).
+  /// "YYYY-MM-DD" (PRD §7 Member). Empty on members.created, stamped with the
+  /// zone; consumers must not anchor a Streak window (D43) on an empty value.
   public var signedUpOn: String = String()
 
   /// ISO 4217.

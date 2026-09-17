@@ -51,15 +51,17 @@ message GetProfileResponse {
 }
 
 // Each present field replaces the stored value; an absent field is untouched,
-// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16)
-// each send only their answers.
+// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16,
+// Display Name and Avatar) each send only their answers.
 message SaveProfileRequest {
   // A14.
   string idempotency_key = 1;
   string member_id = 2;
   optional string display_name = 3;
   optional string avatar_key = 4;
-  // ISO 4217.
+  // ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
+  // PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
+  // ledger.currency.converted (§7.1), never by this write.
   optional string currency_code = 5;
 }
 

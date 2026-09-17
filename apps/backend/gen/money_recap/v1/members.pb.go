@@ -330,8 +330,8 @@ func (x *GetProfileResponse) GetProfile() *Profile {
 }
 
 // Each present field replaces the stored value; an absent field is untouched,
-// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16)
-// each send only their answers.
+// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16,
+// Display Name and Avatar) each send only their answers.
 type SaveProfileRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// A14.
@@ -339,7 +339,9 @@ type SaveProfileRequest struct {
 	MemberId       string  `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	DisplayName    *string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
 	AvatarKey      *string `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
-	// ISO 4217.
+	// ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
+	// PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
+	// ledger.currency.converted (§7.1), never by this write.
 	CurrencyCode  *string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

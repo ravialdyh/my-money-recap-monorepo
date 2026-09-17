@@ -25,9 +25,11 @@ const (
 // (ARCHITECTURE §7.1 "Why separate", §7.2, §7.3).
 type MemberFacts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// IANA zone name (A3).
+	// IANA zone name (A3). Empty on members.created, since the zone arrives with
+	// the first SetTimezone; the members.updated that follows carries it.
 	Timezone string `protobuf:"bytes,1,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	// "YYYY-MM-DD" (PRD §7 Member).
+	// "YYYY-MM-DD" (PRD §7 Member). Empty on members.created, stamped with the
+	// zone; consumers must not anchor a Streak window (D43) on an empty value.
 	SignedUpOn string `protobuf:"bytes,2,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
 	// ISO 4217.
 	CurrencyCode  string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`

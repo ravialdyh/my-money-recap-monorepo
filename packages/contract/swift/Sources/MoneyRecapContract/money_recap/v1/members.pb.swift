@@ -141,8 +141,8 @@ public nonisolated struct MoneyRecap_V1_GetProfileResponse: Sendable {
 }
 
 /// Each present field replaces the stored value; an absent field is untouched,
-/// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16)
-/// each send only their answers.
+/// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16,
+/// Display Name and Avatar) each send only their answers.
 public nonisolated struct MoneyRecap_V1_SaveProfileRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -171,7 +171,9 @@ public nonisolated struct MoneyRecap_V1_SaveProfileRequest: Sendable {
   /// Clears the value of `avatarKey`. Subsequent reads from it will return its default value.
   public mutating func clearAvatarKey() {self._avatarKey = nil}
 
-  /// ISO 4217.
+  /// ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
+  /// PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
+  /// ledger.currency.converted (§7.1), never by this write.
   public var currencyCode: String {
     get {_currencyCode ?? String()}
     set {_currencyCode = newValue}
