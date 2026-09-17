@@ -21,8 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The Log a spend sheet (PRD §6.9). No key field: the Idempotency-Key header
-// is the transport (I3, ARCHITECTURE §6.2 step 1).
+// The Log a spend sheet (PRD §6.9).
 type BffServiceLogSpendRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Above zero, at most 11 digits before the separator (PRD D57).

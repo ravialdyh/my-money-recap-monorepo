@@ -72,8 +72,8 @@ message SpendListView {
   // Newest first, deleted rows excluded; the detail and edit sheets read
   // every §6.9 field from here.
   repeated Spend spends = 6;
-  // For the empty month's "Nothing spent yet. Streak day {n}." line (D43);
-  // the current month's Streak day, or the month's Streak for a past month.
+  // Elapsed days of the Streak window (PRD §8.5, D43): what the empty
+  // month's "Nothing spent yet. Streak day {n}." line prints.
   int32 streak_day = 7;
 }
 
@@ -100,10 +100,11 @@ message OnboardingState {
   // Display Name, Avatar key and Currency as saved by steps 1 and 2; an empty
   // field is an unanswered one.
   Profile profile = 3;
-  // Step 3's answer; absent when skipped or not yet reached.
+  // Step 3's answer; absent when not yet reached, or skipped, which is absent
+  // with profile.onboarding_step at 3 or more.
   optional SalarySetting salary = 4;
-  // Step 4's answer; absent when skipped, not yet reached, or blocked by a
-  // skipped Salary (D44).
+  // Step 4's answer; absent when not yet reached, or skipped or blocked by a
+  // skipped Salary (D44), which is absent with profile.onboarding_step at 4.
   optional SavingTargetSetting saving_target = 5;
 }
 

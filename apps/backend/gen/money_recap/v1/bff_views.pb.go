@@ -276,8 +276,8 @@ type SpendListView struct {
 	// Newest first, deleted rows excluded; the detail and edit sheets read
 	// every §6.9 field from here.
 	Spends []*Spend `protobuf:"bytes,6,rep,name=spends,proto3" json:"spends,omitempty"`
-	// For the empty month's "Nothing spent yet. Streak day {n}." line (D43);
-	// the current month's Streak day, or the month's Streak for a past month.
+	// Elapsed days of the Streak window (PRD §8.5, D43): what the empty
+	// month's "Nothing spent yet. Streak day {n}." line prints.
 	StreakDay     int32 `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -440,10 +440,11 @@ type OnboardingState struct {
 	// Display Name, Avatar key and Currency as saved by steps 1 and 2; an empty
 	// field is an unanswered one.
 	Profile *Profile `protobuf:"bytes,3,opt,name=profile,proto3" json:"profile,omitempty"`
-	// Step 3's answer; absent when skipped or not yet reached.
+	// Step 3's answer; absent when not yet reached, or skipped, which is absent
+	// with profile.onboarding_step at 3 or more.
 	Salary *SalarySetting `protobuf:"bytes,4,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Step 4's answer; absent when skipped, not yet reached, or blocked by a
-	// skipped Salary (D44).
+	// Step 4's answer; absent when not yet reached, or skipped or blocked by a
+	// skipped Salary (D44), which is absent with profile.onboarding_step at 4.
 	SavingTarget  *SavingTargetSetting `protobuf:"bytes,5,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

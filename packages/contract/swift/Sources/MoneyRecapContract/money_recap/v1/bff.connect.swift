@@ -59,7 +59,7 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `getSettings`(request: MoneyRecap_V1_BffServiceGetSettingsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetSettingsResponse>
 
-    /// ledger.SaveSalary; a Payday change always starts next month (D56).
+    /// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56).
     @available(iOS 13, *)
     func `saveSalary`(request: MoneyRecap_V1_BffServiceSaveSalaryRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveSalaryResponse>
 

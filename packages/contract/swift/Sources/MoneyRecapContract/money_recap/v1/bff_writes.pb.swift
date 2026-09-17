@@ -20,8 +20,7 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// The Log a spend sheet (PRD §6.9). No key field: the Idempotency-Key header
-/// is the transport (I3, ARCHITECTURE §6.2 step 1).
+/// The Log a spend sheet (PRD §6.9).
 public nonisolated struct MoneyRecap_V1_BffServiceLogSpendRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

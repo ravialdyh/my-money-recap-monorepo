@@ -40,7 +40,7 @@ service BffService {
   // Called on every launch (A3); the answer drives the restore sheet (D60).
   rpc SetTimezone(BffServiceSetTimezoneRequest) returns (BffServiceSetTimezoneResponse) {}
   rpc GetSettings(BffServiceGetSettingsRequest) returns (BffServiceGetSettingsResponse) {}
-  // ledger.SaveSalary; a Payday change always starts next month (D56).
+  // ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56).
   rpc SaveSalary(BffServiceSaveSalaryRequest) returns (BffServiceSaveSalaryResponse) {}
   // ledger.SaveTarget; effective from next month (D65). failed_precondition
   // without a Salary (D44).

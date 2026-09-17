@@ -208,8 +208,8 @@ public nonisolated struct MoneyRecap_V1_SpendListView: Sendable {
   /// every §6.9 field from here.
   public var spends: [MoneyRecap_V1_Spend] = []
 
-  /// For the empty month's "Nothing spent yet. Streak day {n}." line (D43);
-  /// the current month's Streak day, or the month's Streak for a past month.
+  /// Elapsed days of the Streak window (PRD §8.5, D43): what the empty
+  /// month's "Nothing spent yet. Streak day {n}." line prints.
   public var streakDay: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -295,7 +295,8 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `profile`. Subsequent reads from it will return its default value.
   public mutating func clearProfile() {_uniqueStorage()._profile = nil}
 
-  /// Step 3's answer; absent when skipped or not yet reached.
+  /// Step 3's answer; absent when not yet reached, or skipped, which is absent
+  /// with profile.onboarding_step at 3 or more.
   public var salary: MoneyRecap_V1_SalarySetting {
     get {_storage._salary ?? MoneyRecap_V1_SalarySetting()}
     set {_uniqueStorage()._salary = newValue}
@@ -305,8 +306,8 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// Step 4's answer; absent when skipped, not yet reached, or blocked by a
-  /// skipped Salary (D44).
+  /// Step 4's answer; absent when not yet reached, or skipped or blocked by a
+  /// skipped Salary (D44), which is absent with profile.onboarding_step at 4.
   public var savingTarget: MoneyRecap_V1_SavingTargetSetting {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
     set {_uniqueStorage()._savingTarget = newValue}

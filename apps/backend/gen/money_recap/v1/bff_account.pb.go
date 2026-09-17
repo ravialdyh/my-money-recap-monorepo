@@ -527,7 +527,7 @@ func (*BffServiceRequestExportRequest) Descriptor() ([]byte, []int) {
 }
 
 // Success means the CSV was handed to email: the button reads "Sent" for 60
-// seconds (PRD §6.16, D67). Nothing is stored server-side (D39).
+// seconds (PRD §6.16, D67). Nothing is stored (D39).
 type BffServiceRequestExportResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields

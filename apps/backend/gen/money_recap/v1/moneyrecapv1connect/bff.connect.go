@@ -110,7 +110,7 @@ type BffServiceClient interface {
 	// Called on every launch (A3); the answer drives the restore sheet (D60).
 	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
-	// ledger.SaveSalary; a Payday change always starts next month (D56).
+	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56).
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
 	// ledger.SaveTarget; effective from next month (D65). failed_precondition
 	// without a Salary (D44).
@@ -425,7 +425,7 @@ type BffServiceHandler interface {
 	// Called on every launch (A3); the answer drives the restore sheet (D60).
 	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
-	// ledger.SaveSalary; a Payday change always starts next month (D56).
+	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56).
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
 	// ledger.SaveTarget; effective from next month (D65). failed_precondition
 	// without a Salary (D44).

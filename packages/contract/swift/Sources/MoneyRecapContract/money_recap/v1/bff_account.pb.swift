@@ -242,7 +242,7 @@ public nonisolated struct MoneyRecap_V1_BffServiceRequestExportRequest: Sendable
 }
 
 /// Success means the CSV was handed to email: the button reads "Sent" for 60
-/// seconds (PRD §6.16, D67). Nothing is stored server-side (D39).
+/// seconds (PRD §6.16, D67). Nothing is stored (D39).
 public nonisolated struct MoneyRecap_V1_BffServiceRequestExportResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
