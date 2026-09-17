@@ -9,6 +9,8 @@ TYPE_OPENER = re.compile(
     r")"
 )
 
+MAX_CONTINUATION_LINES = 100
+
 BODY_OPENER = re.compile(
     r"\b(?:func|function|init|deinit|subscript|get|set|willSet|didSet"
     r"|if|else|for|while|switch|do|try|catch|guard|repeat|defer)\b|=>"
@@ -60,7 +62,7 @@ def style_for(path):
     if name in NAMED:
         return NAMED[name]
     dot = name.rfind(".")
-    return STYLES.get(name[dot:]) if dot > 0 else None
+    return STYLES.get(name[dot:] if dot > 0 else name)
 
 
 @dataclass(frozen=True)
@@ -99,13 +101,15 @@ def _consume_string(line, i, delim, escape):
     return n, True
 
 
-def _scope_for(opening_line, parent_scope):
+def _scope_for(opening_text, parent_scope, reopened):
     if parent_scope == "body":
         return "body"
-    if BODY_OPENER.search(opening_line):
+    if BODY_OPENER.search(opening_text):
         return "body"
-    if TYPE_OPENER.search(opening_line):
+    if TYPE_OPENER.search(opening_text):
         return "type"
+    if reopened is not None:
+        return reopened
     return "body" if parent_scope == "type" else "file"
 
 
@@ -117,10 +121,25 @@ class _State:
         self.block_start = 0
         self.block_parts = []
         self.in_raw = None
+        self.pending = ""
+        self.pending_lines = 0
+        self.reopened = None
+        self.depth = 0
         self.out = []
 
     def scope(self):
         return self.stack[-1]
+
+    def carry(self, code):
+        """Keeps code across a line break only while a bracket is open; a finished line starts afresh."""
+        self.pending += code
+        if self.depth and self.pending_lines < MAX_CONTINUATION_LINES:
+            self.pending += "\n"
+            self.pending_lines += 1
+            return
+        self.pending = ""
+        self.pending_lines = 0
+        self.depth = 0
 
     def emit(self, line, end_line, column, marker, body, trailing):
         self.out.append(Comment(line, end_line, column, marker, body, self.scope(), trailing))
@@ -151,11 +170,13 @@ def _scan_line(st, number, line):
             st.block_parts.append(_strip_stars(line))
             return
         i = _close_block(st, number, line, close)
-    opener = line
+    st.reopened = None
+    code_from = i
     while i < n:
         ch = line[i]
         if style.block and line.startswith(style.block[0], i):
             close = line.find(style.block[1], i + len(style.block[0]))
+            st.pending += line[code_from:i]
             if close < 0:
                 st.in_block = True
                 st.block_start = number
@@ -164,31 +185,54 @@ def _scan_line(st, number, line):
             body = _strip_stars(line[i + len(style.block[0]) : close])
             st.emit(number, number, i, style.block[0], body, bool(line[:i].strip()))
             i = close + len(style.block[1])
+            code_from = i
             continue
         marker = next((m for m in style.line_markers if line.startswith(m, i)), None)
         if marker and (marker != "#" or i == 0 or line[i - 1].isspace()):
             body = line[i + len(marker) :].strip()
             st.emit(number, number, i, marker, body, bool(line[:i].strip()))
+            st.carry(line[code_from:i])
             return
         if style.raw_triple and line.startswith(style.raw_triple, i):
             end, unfinished = _consume_string(line, i + 3, style.raw_triple, True)
+            st.pending += line[code_from:i]
             if unfinished:
                 st.in_raw = style.raw_triple
                 return
             i = end
+            code_from = i
             continue
         if ch in style.quotes:
             end, unfinished = _consume_string(line, i + 1, ch, ch != "`")
+            st.pending += line[code_from:i]
             if unfinished:
                 st.in_raw = ch if ch == "`" else None
                 return
             i = end
+            code_from = i
             continue
         if style.braces and ch == "{":
-            st.stack.append(_scope_for(opener, st.scope()))
-        elif style.braces and ch == "}" and len(st.stack) > 1:
-            st.stack.pop()
+            st.pending += line[code_from : i + 1]
+            st.stack.append(_scope_for(st.pending + line[i + 1 :], st.scope(), st.reopened))
+            if not st.depth:
+                st.pending = ""
+                st.reopened = None
+            code_from = i + 1
+        elif style.braces and ch == "}":
+            if not st.depth:
+                st.pending = ""
+            code_from = i + 1
+            if len(st.stack) > 1:
+                st.reopened = st.stack.pop()
+        elif ch == "(":
+            st.depth += 1
+        elif ch == ")":
+            st.depth = max(0, st.depth - 1)
+        elif ch == ";" and not st.depth:
+            st.pending = ""
+            code_from = i + 1
         i += 1
+    st.carry(line[code_from:])
 
 
 def scan(text, style=C_FAMILY):

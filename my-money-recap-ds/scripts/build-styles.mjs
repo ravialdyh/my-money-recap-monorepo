@@ -2,13 +2,21 @@ import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { here } from './lib.mjs';
 
-/** The component stylesheets in filename order; the numeric prefix is the cascade order. */
+/** The component stylesheets, in cascade order. The directory must hold exactly these. */
+const COMPONENT_SHEETS = ['01-foundation.css', '02-data-display.css', '03-inputs.css', '04-surfaces.css'];
+
 function componentCss() {
   const dir = resolve(here, '../src/styles/components');
-  const names = readdirSync(dir)
+  const found = readdirSync(dir)
     .filter((n) => n.endsWith('.css'))
     .sort();
-  return names.map((n) => readFileSync(resolve(dir, n), 'utf8')).join('\n');
+  const expected = [...COMPONENT_SHEETS].sort();
+  if (found.length !== expected.length || found.some((n, i) => n !== expected[i])) {
+    throw new Error(
+      `src/styles/components holds [${found.join(', ')}]; COMPONENT_SHEETS lists [${COMPONENT_SHEETS.join(', ')}]`,
+    );
+  }
+  return COMPONENT_SHEETS.map((n) => readFileSync(resolve(dir, n), 'utf8')).join('\n');
 }
 
 const tokens = readFileSync(resolve(here, '../src/tokens/tokens.css'), 'utf8');

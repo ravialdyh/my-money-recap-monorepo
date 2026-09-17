@@ -44,9 +44,12 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` and `notify` are in-process stubs until slices 5 and 7. |
 
 Every long-running container has a health check and `depends_on: condition: service_healthy` orders
-the start; the migration step is ordered with `condition: service_completed_successfully`. Keycloak
-and the BFF publish on every interface because the phone reaches them; the Postgres and `members`
-ports bind to loopback and exist for the Connect-boundary tests (`apps/README.md`).
+the start; the migration step is ordered with `condition: service_completed_successfully`. Keycloak's
+check is a bash `/dev/tcp` request rather than `curl`, because the Keycloak image ships neither `curl`
+nor `wget`: it opens 9000 for `/health/ready` and then 8080 for `/realms/mmr`, so the container only
+counts as healthy once the realm import has finished and the realm answers. Keycloak and the BFF
+publish on every interface because the phone reaches them; the Postgres and `members` ports bind to
+loopback and exist for the Connect-boundary tests (`apps/README.md`).
 
 ## Parallel worktrees
 
@@ -117,6 +120,37 @@ curl -s -X POST http://localhost:8080/realms/mmr/protocol/openid-connect/token -
 ```bash
 curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
 ```
+
+## Running the Go tests against this stack
+
+The `internal/members` suite and `internal/bff`'s `TestEndToEnd` skip unless their variables are set
+(`internal/bff`'s other tests need nothing); with the stack up and the stock `.env` they are the
+values below. A non-default `.env` substitutes its own `*_HOST_PORT`s, and
+the passwords are whatever that `.env` holds.
+
+| Variable | Stock value | What it is |
+| --- | --- | --- |
+| `MEMBERS_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The `members` database on `POSTGRES_HOST_PORT`. Alone it enables the migration and concurrency tests. |
+| `MEMBERS_TEST_URL` | `http://localhost:8081` | `members` on `MEMBERS_HOST_PORT`, for the Connect-boundary tests. |
+| `MEMBERS_TEST_KEYCLOAK` | `http://localhost:8080` | Keycloak on `KEYCLOAK_HOST_PORT`, where the suite mints the test user's token. |
+| `MEMBERS_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | The `test` user's password, for the password grant on the `ios` client. |
+| `MEMBERS_TEST_BFF_CLIENT_SECRET` | `$BFF_CLIENT_SECRET` | **Optional.** Set it and the suite adds the wrong-audience case: a `bff` service-account token, which `members` must reject as unauthenticated. Unset, that assertion silently does not run. |
+| `BFF_TEST_URL` | `http://localhost:8082` | The BFF on `BFF_HOST_PORT`, the HTTP boundary `TestEndToEnd` drives. |
+| `BFF_TEST_KEYCLOAK` | `http://localhost:8080` | As `MEMBERS_TEST_KEYCLOAK`. |
+| `BFF_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | As `MEMBERS_TEST_USER_PASSWORD`. |
+| `BFF_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The same `members` database; the end-to-end test clears its own row before it runs. |
+
+Run them with `-p 1`:
+
+```bash
+cd apps/backend && go test -p 1 ./...
+```
+
+**`-p 1` is load-bearing.** The realm has exactly one test user (`test`), and both `internal/members`
+and `internal/bff` sign in as it and delete its `member` row. Run those two packages at once and they
+race: one deletes the row the other just created, and the failures show up as row-count mismatches
+and `not_found` errors far from the cause. CI passes `-p 1` for the same reason, and the step is named
+after it.
 
 ## A10 smoke test
 

@@ -99,8 +99,9 @@ swiftformat . && swiftlint --fix && swiftlint lint --strict
 
 Coverage does not gate at a fixed number yet. `tools/coverage/` holds a floor per language that can
 only go up — `tools/coverage/README.md` has today's floors and why. The `Security` workflow runs
-govulncheck, `npm audit`, OSV-Scanner (Go, npm and Swift together), Semgrep, Trivy and a full-tree
-gitleaks scan on every pull request and every Monday.
+govulncheck, OSV-Scanner (Go, npm and Swift together), Semgrep, Trivy and a full-tree gitleaks scan
+on every pull request and every Monday. OSV reads the same GHSA advisories `npm audit` would, so the
+npm tree is covered once, without a second `npm ci`.
 
 ### Why these settings are what they are
 

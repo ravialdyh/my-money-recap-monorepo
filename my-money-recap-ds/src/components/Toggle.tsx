@@ -12,8 +12,8 @@ export function Toggle({ checked, disabled = false, onChange, ...rest }: ToggleP
   return (
     <input
       type="checkbox"
+      // biome-ignore lint/a11y/useAriaPropsForRole: the native checkbox's checked state is authoritative; ARIA in HTML prohibits aria-checked here.
       role="switch"
-      aria-checked={checked}
       className="mmr-toggle mmr-pressable"
       checked={checked}
       disabled={disabled}

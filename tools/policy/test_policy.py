@@ -44,6 +44,29 @@ class Scanner(unittest.TestCase):
         self.assertIs(style_for("a/b/x.go"), C_FAMILY)
         self.assertIsNone(style_for("a/b/x.md"))
 
+    def test_a_declaration_does_not_leak_its_keywords_into_the_next_type(self):
+        go = "package x\n\ntype Handler func(int) error\n\ntype Config struct {\n\t// Port is the port.\n\tPort int\n}\n"
+        self.assertEqual(problems("a.go", go), [])
+        ts = "export const pick = (s: State) => s.x\n\nexport interface P {\n  /** a is a. */\n  a: string;\n}\n"
+        self.assertEqual(problems("a.ts", ts), [])
+
+    def test_string_contents_do_not_open_a_body(self):
+        swift = 'import S\n\nprivate let retry = "try again later"\n\nstruct Row {\n    // N counts.\n    let n: Int\n}\n'
+        self.assertEqual(problems("a.swift", swift), [])
+
+    def test_a_for_header_semicolon_does_not_end_the_statement(self):
+        loop = "for (let i = 0; i < 3; i++) {\n  // a note\n}\n"
+        self.assertEqual([(c.body, c.scope) for c in scan(loop)], [("a note", "body")])
+
+    def test_a_statement_does_not_leak_into_the_next_brace(self):
+        text = "const f = () => 1;\nconst obj = {\n  // a note\n};\n"
+        self.assertEqual([(c.body, c.scope) for c in scan(text)], [("a note", "file")])
+
+    def test_a_dotfile_that_is_all_extension_resolves(self):
+        self.assertIs(style_for(".swiftformat"), HASH)
+        self.assertIs(style_for("a/b/.editorconfig"), HASH)
+        self.assertIsNone(style_for("Makefile"))
+
 
 class Comments(unittest.TestCase):
     def test_docstring_on_a_declaration_is_allowed(self):
@@ -67,6 +90,24 @@ class Comments(unittest.TestCase):
     def test_typescript_function_body_is_body_scope(self):
         found = problems("a.ts", "export function f() {\n  // a note\n  return 1;\n}\n")
         self.assertEqual(found, ["comment inside a function body; name the code instead"])
+
+    def test_a_wrapped_signature_still_opens_a_body(self):
+        go = "package x\n\nfunc Wide(\n\ta int,\n) int {\n\t// a note\n\treturn a\n}\n"
+        self.assertEqual(problems("a.go", go), ["comment inside a function body; name the code instead"])
+
+    def test_a_destructured_props_signature_still_opens_a_body(self):
+        tsx = "export function C({\n  a,\n}: Props) {\n  // a note\n  return a;\n}\n"
+        self.assertEqual(problems("a.tsx", tsx), ["comment inside a function body; name the code instead"])
+
+    def test_a_wrapped_signature_holding_braces_still_opens_a_body(self):
+        go = "package x\n\nfunc F(\n\tdone chan struct{},\n) error {\n\t// a note\n\treturn nil\n}\n"
+        self.assertEqual(problems("a.go", go), ["comment inside a function body; name the code instead"])
+        ts = "export function f(\n  a: Record<string, string> = {},\n): void {\n  // a note\n  const x = a;\n}\n"
+        self.assertEqual(problems("a.ts", ts), ["comment inside a function body; name the code instead"])
+
+    def test_a_wrapped_swift_signature_still_opens_a_body(self):
+        swift = "struct S {\n    func wide(\n        a: Int\n    ) -> Int {\n        // a note\n        return a\n    }\n}\n"
+        self.assertEqual(problems("a.swift", swift), ["comment inside a function body; name the code instead"])
 
     def test_tracker_tag_is_rejected(self):
         found = problems("a.go", "// TODO: fix this.\nfunc F() {}\n")

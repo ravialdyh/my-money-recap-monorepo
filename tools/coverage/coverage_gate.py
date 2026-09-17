@@ -33,7 +33,15 @@ def gate(language, measured, update):
             floors[language] = target
             if update:
                 _save(data)
-            return 0, f"{language}: {measured:.1f}% reaches the {target:.0f}% target. Floor raised to {target:.0f}%."
+                return 0, (
+                    f"{language}: {measured:.1f}% reaches the {target:.0f}% target. "
+                    f"Floor raised to {target:.0f}%; commit {BASELINE.name}."
+                )
+            return 0, (
+                f"{language}: {measured:.1f}% reaches the {target:.0f}% target. "
+                f"Run `python3 tools/coverage/coverage_gate.py {language} {measured:.1f} --update` "
+                "and commit the floor."
+            )
         return 0, f"{language}: {measured:.1f}%, at or above the {target:.0f}% target."
     if measured > floor + TOLERANCE:
         floors[language] = round(measured, 1)

@@ -28,8 +28,11 @@ final class HomeSnapshot {
     /// skeleton.
     @MainActor
     static let container: ModelContainer = {
-        guard let container = try? ModelContainer(for: HomeSnapshot.self) else {
-            fatalError("the HomeSnapshot store could not be opened")
+        let container: ModelContainer
+        do {
+            container = try ModelContainer(for: HomeSnapshot.self)
+        } catch {
+            fatalError("the HomeSnapshot store could not be opened: \(error)")
         }
         if CommandLine.arguments.contains("--reset-snapshot") {
             try? container.mainContext.delete(model: HomeSnapshot.self)

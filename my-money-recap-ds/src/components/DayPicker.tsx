@@ -22,6 +22,15 @@ export interface DayPickerProps extends Omit<HTMLAttributes<HTMLDivElement>, 'on
   state?: InteractiveState;
 }
 /**
+ * Centres the selected pill. Called once, when the picker opens: re-centring on every tap would
+ * drag the row out from under the Member's finger.
+ */
+function centreSelectionOnOpen(row: HTMLDivElement | null) {
+  const pill = row?.querySelector<HTMLElement>('[data-selected="true"]');
+  if (!row || !pill) return;
+  row.scrollLeft = pill.offsetLeft - (row.clientWidth - pill.offsetWidth) / 2;
+}
+/**
  * Payday picker: a horizontally scrolling row of 44pt pills, 1–31 plus `Last day`, the selection
  * drawn as the ink pill. Onboarding step 3 and the Settings salary screen (PRD §6.6, D51).
  */
@@ -35,14 +44,7 @@ export function DayPicker({
 }: DayPickerProps) {
   ensureStyles();
   const row = useRef<HTMLDivElement>(null);
-  // Centre the selection when the picker opens. Deliberately mount-only: re-centring on every tap
-  // would drag the row out from under the Member's finger.
-  useEffect(() => {
-    const el = row.current;
-    const pill = el?.querySelector<HTMLElement>('[data-selected="true"]');
-    if (!el || !pill) return;
-    el.scrollLeft = pill.offsetLeft - (el.clientWidth - pill.offsetWidth) / 2;
-  }, []);
+  useEffect(() => centreSelectionOnOpen(row.current), []);
   const disabled = state === 'disabled';
   return (
     <div className={`mmr-day-picker ${className}`} data-state={state} {...rest}>

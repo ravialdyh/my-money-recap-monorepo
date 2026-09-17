@@ -60,7 +60,6 @@ export function RecapGoalScreen({
   const money = useMoney({ currency, locale });
   const noTarget = target == null || target <= 0;
   const pct = noTarget ? 0 : Math.min(999, Math.round((saved / target) * 100));
-  // Sample defaults built from the formatter, so a rupiah preview never shows a pound sign.
   const helperText = helper ?? (noTarget ? '' : `Target met. ${money(saved - target)} to spare.`);
   const splurgeText = splurge === undefined ? `${money(420)} on a flight home. Your biggest single buy.` : splurge;
   const bars = maxCategoryBars;

@@ -167,7 +167,7 @@ jobs:
         run: |
           sed 's/=$/=ci-throwaway/' .env.example > .env
           docker compose up -d --build --wait
-      - name: Unit tests, Connect-boundary tests and the end-to-end test at the BFF HTTP boundary
+      - name: Go tests; -p 1 because members and bff both sign in as the realm's one test user
         run: |
           go vet ./...
           go test -v -p 1 -covermode=atomic -coverprofile=cover.out ./...
@@ -201,9 +201,7 @@ jobs:
         working-directory: apps/ios
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - name: Install SwiftLint, which the runner image does not carry
-        run: brew install swiftlint
-      - name: SwiftFormat and SwiftLint
+      - name: SwiftFormat and SwiftLint, both preinstalled on the macOS runner image
         working-directory: .
         run: |
           swiftformat --lint .

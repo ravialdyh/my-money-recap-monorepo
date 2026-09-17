@@ -119,7 +119,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		return nil, connect.NewError(connect.CodeUnavailable, sumErr)
 	}
 	if warnErr != nil {
-		logOptionalCallDegraded(warnErr)
+		logOptionalCallDegraded("notify.GetWarningState", "HomeView returned without a banner", warnErr)
 		warning = nil
 	}
 
@@ -154,8 +154,8 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 
 // logOptionalCallDegraded records that an optional fan-out call failed and the HomeView went out
 // without it. A log line stands in for the §6.1 metric until OpenTelemetry lands (slice 8, A11).
-func logOptionalCallDegraded(err error) {
-	log.Printf("notify.GetWarningState: %v (HomeView returned without a banner)", err)
+func logOptionalCallDegraded(call, consequence string, err error) {
+	log.Printf("%s: %v (%s)", call, err, consequence)
 }
 
 // daysRemainingInclusive counts today as one, so the last day of the month answers 1 (PRD §8.7).

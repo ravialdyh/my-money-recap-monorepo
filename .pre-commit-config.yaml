@@ -70,6 +70,14 @@ repos:
         always_run: true
         require_serial: true
 
+      - id: policy-tests
+        name: size and comment policy tests
+        entry: python3 -m unittest discover -s tools/policy -t tools/policy
+        language: system
+        pass_filenames: false
+        always_run: true
+        require_serial: true
+
       - id: biome
         name: biome (typescript lint and format)
         entry: npx --no-install biome check --write --no-errors-on-unmatched --files-ignore-unknown=true
