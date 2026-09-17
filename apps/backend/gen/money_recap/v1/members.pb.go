@@ -9,6 +9,7 @@ package moneyrecapv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,8 +22,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Who the Member is (ARCHITECTURE §7.1). This slice carries only what the
-// skeleton reads; onboarding fields arrive with slice 4.
+// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the slice 1
+// skeleton; 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
+// (PRD §6.18, D60).
 type Profile struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
@@ -35,9 +37,16 @@ type Profile struct {
 	// ISO 4217; empty until onboarding sets it.
 	CurrencyCode string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	// IANA zone name (A3); empty until SetTimezone runs.
-	Timezone      string `protobuf:"bytes,6,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Timezone string `protobuf:"bytes,6,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	// Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1.
+	OnboardingStep int32 `protobuf:"varint,7,opt,name=onboarding_step,json=onboardingStep,proto3" json:"onboarding_step,omitempty"`
+	// "YYYY-MM-DD", the local date at sign-up, fixed forever (PRD §7 Member,
+	// D43, D52); empty until onboarding stamps it.
+	SignedUpOn string `protobuf:"bytes,8,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
+	// Present only while a deletion request is pending (PRD D60).
+	DeletionRequestedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=deletion_requested_at,json=deletionRequestedAt,proto3,oneof" json:"deletion_requested_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Profile) Reset() {
@@ -110,6 +119,27 @@ func (x *Profile) GetTimezone() string {
 		return x.Timezone
 	}
 	return ""
+}
+
+func (x *Profile) GetOnboardingStep() int32 {
+	if x != nil {
+		return x.OnboardingStep
+	}
+	return 0
+}
+
+func (x *Profile) GetSignedUpOn() string {
+	if x != nil {
+		return x.SignedUpOn
+	}
+	return ""
+}
+
+func (x *Profile) GetDeletionRequestedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DeletionRequestedAt
+	}
+	return nil
 }
 
 type GetOrCreateBySubjectRequest struct {
@@ -298,11 +328,541 @@ func (x *GetProfileResponse) GetProfile() *Profile {
 	return nil
 }
 
+// Each present field replaces the stored value; an absent field is untouched,
+// so onboarding steps 1 and 2 (PRD §6.4, §6.5) each send only their answers.
+type SaveProfileRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14.
+	IdempotencyKey string  `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string  `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	DisplayName    *string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	AvatarKey      *string `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
+	// ISO 4217.
+	CurrencyCode  *string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveProfileRequest) Reset() {
+	*x = SaveProfileRequest{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveProfileRequest) ProtoMessage() {}
+
+func (x *SaveProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveProfileRequest.ProtoReflect.Descriptor instead.
+func (*SaveProfileRequest) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SaveProfileRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *SaveProfileRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+func (x *SaveProfileRequest) GetDisplayName() string {
+	if x != nil && x.DisplayName != nil {
+		return *x.DisplayName
+	}
+	return ""
+}
+
+func (x *SaveProfileRequest) GetAvatarKey() string {
+	if x != nil && x.AvatarKey != nil {
+		return *x.AvatarKey
+	}
+	return ""
+}
+
+func (x *SaveProfileRequest) GetCurrencyCode() string {
+	if x != nil && x.CurrencyCode != nil {
+		return *x.CurrencyCode
+	}
+	return ""
+}
+
+type SaveProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveProfileResponse) Reset() {
+	*x = SaveProfileResponse{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveProfileResponse) ProtoMessage() {}
+
+func (x *SaveProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveProfileResponse.ProtoReflect.Descriptor instead.
+func (*SaveProfileResponse) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SaveProfileResponse) GetProfile() *Profile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+type SaveOnboardingStepRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	// The step just completed, 1 to 4 (PRD §5 step 6).
+	Step          int32 `protobuf:"varint,3,opt,name=step,proto3" json:"step,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveOnboardingStepRequest) Reset() {
+	*x = SaveOnboardingStepRequest{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveOnboardingStepRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveOnboardingStepRequest) ProtoMessage() {}
+
+func (x *SaveOnboardingStepRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveOnboardingStepRequest.ProtoReflect.Descriptor instead.
+func (*SaveOnboardingStepRequest) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SaveOnboardingStepRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *SaveOnboardingStepRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+func (x *SaveOnboardingStepRequest) GetStep() int32 {
+	if x != nil {
+		return x.Step
+	}
+	return 0
+}
+
+type SaveOnboardingStepResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SaveOnboardingStepResponse) Reset() {
+	*x = SaveOnboardingStepResponse{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SaveOnboardingStepResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SaveOnboardingStepResponse) ProtoMessage() {}
+
+func (x *SaveOnboardingStepResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SaveOnboardingStepResponse.ProtoReflect.Descriptor instead.
+func (*SaveOnboardingStepResponse) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SaveOnboardingStepResponse) GetProfile() *Profile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+type SetTimezoneRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	// IANA zone name (A3).
+	Timezone      string `protobuf:"bytes,3,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetTimezoneRequest) Reset() {
+	*x = SetTimezoneRequest{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetTimezoneRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetTimezoneRequest) ProtoMessage() {}
+
+func (x *SetTimezoneRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetTimezoneRequest.ProtoReflect.Descriptor instead.
+func (*SetTimezoneRequest) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SetTimezoneRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *SetTimezoneRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+func (x *SetTimezoneRequest) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+type SetTimezoneResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetTimezoneResponse) Reset() {
+	*x = SetTimezoneResponse{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetTimezoneResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetTimezoneResponse) ProtoMessage() {}
+
+func (x *SetTimezoneResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetTimezoneResponse.ProtoReflect.Descriptor instead.
+func (*SetTimezoneResponse) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SetTimezoneResponse) GetProfile() *Profile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+type RequestDeletionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *RequestDeletionRequest) Reset() {
+	*x = RequestDeletionRequest{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestDeletionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestDeletionRequest) ProtoMessage() {}
+
+func (x *RequestDeletionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestDeletionRequest.ProtoReflect.Descriptor instead.
+func (*RequestDeletionRequest) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *RequestDeletionRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *RequestDeletionRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+type RequestDeletionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestDeletionResponse) Reset() {
+	*x = RequestDeletionResponse{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestDeletionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestDeletionResponse) ProtoMessage() {}
+
+func (x *RequestDeletionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestDeletionResponse.ProtoReflect.Descriptor instead.
+func (*RequestDeletionResponse) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *RequestDeletionResponse) GetProfile() *Profile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+type CancelDeletionRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CancelDeletionRequest) Reset() {
+	*x = CancelDeletionRequest{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelDeletionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelDeletionRequest) ProtoMessage() {}
+
+func (x *CancelDeletionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelDeletionRequest.ProtoReflect.Descriptor instead.
+func (*CancelDeletionRequest) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CancelDeletionRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *CancelDeletionRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+type CancelDeletionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelDeletionResponse) Reset() {
+	*x = CancelDeletionResponse{}
+	mi := &file_money_recap_v1_members_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelDeletionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelDeletionResponse) ProtoMessage() {}
+
+func (x *CancelDeletionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_members_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelDeletionResponse.ProtoReflect.Descriptor instead.
+func (*CancelDeletionResponse) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_members_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *CancelDeletionResponse) GetProfile() *Profile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
 var File_money_recap_v1_members_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_members_proto_rawDesc = "" +
 	"\n" +
-	"\x1cmoney_recap/v1/members.proto\x12\x0emoney_recap.v1\"\xbf\x01\n" +
+	"\x1cmoney_recap/v1/members.proto\x12\x0emoney_recap.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf9\x02\n" +
 	"\aProfile\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
@@ -310,7 +870,12 @@ const file_money_recap_v1_members_proto_rawDesc = "" +
 	"\n" +
 	"avatar_key\x18\x04 \x01(\tR\tavatarKey\x12#\n" +
 	"\rcurrency_code\x18\x05 \x01(\tR\fcurrencyCode\x12\x1a\n" +
-	"\btimezone\x18\x06 \x01(\tR\btimezone\"M\n" +
+	"\btimezone\x18\x06 \x01(\tR\btimezone\x12'\n" +
+	"\x0fonboarding_step\x18\a \x01(\x05R\x0eonboardingStep\x12 \n" +
+	"\fsigned_up_on\x18\b \x01(\tR\n" +
+	"signedUpOn\x12S\n" +
+	"\x15deletion_requested_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x13deletionRequestedAt\x88\x01\x01B\x18\n" +
+	"\x16_deletion_requested_at\"M\n" +
 	"\x1bGetOrCreateBySubjectRequest\x12\x18\n" +
 	"\asubject\x18\x01 \x01(\tR\asubject\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\"Q\n" +
@@ -319,11 +884,50 @@ const file_money_recap_v1_members_proto_rawDesc = "" +
 	"\x11GetProfileRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\"G\n" +
 	"\x12GetProfileResponse\x121\n" +
-	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile2\xdc\x01\n" +
+	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\"\x82\x02\n" +
+	"\x12SaveProfileRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12&\n" +
+	"\fdisplay_name\x18\x03 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"avatar_key\x18\x04 \x01(\tH\x01R\tavatarKey\x88\x01\x01\x12(\n" +
+	"\rcurrency_code\x18\x05 \x01(\tH\x02R\fcurrencyCode\x88\x01\x01B\x0f\n" +
+	"\r_display_nameB\r\n" +
+	"\v_avatar_keyB\x10\n" +
+	"\x0e_currency_code\"H\n" +
+	"\x13SaveProfileResponse\x121\n" +
+	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\"u\n" +
+	"\x19SaveOnboardingStepRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x12\n" +
+	"\x04step\x18\x03 \x01(\x05R\x04step\"O\n" +
+	"\x1aSaveOnboardingStepResponse\x121\n" +
+	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\"v\n" +
+	"\x12SetTimezoneRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x1a\n" +
+	"\btimezone\x18\x03 \x01(\tR\btimezone\"H\n" +
+	"\x13SetTimezoneResponse\x121\n" +
+	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\"^\n" +
+	"\x16RequestDeletionRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\"L\n" +
+	"\x17RequestDeletionResponse\x121\n" +
+	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\"]\n" +
+	"\x15CancelDeletionRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\"K\n" +
+	"\x16CancelDeletionResponse\x121\n" +
+	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile2\xc8\x05\n" +
 	"\x0eMembersService\x12s\n" +
 	"\x14GetOrCreateBySubject\x12+.money_recap.v1.GetOrCreateBySubjectRequest\x1a,.money_recap.v1.GetOrCreateBySubjectResponse\"\x00\x12U\n" +
 	"\n" +
-	"GetProfile\x12!.money_recap.v1.GetProfileRequest\x1a\".money_recap.v1.GetProfileResponse\"\x00B[ZYgithub.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1b\x06proto3"
+	"GetProfile\x12!.money_recap.v1.GetProfileRequest\x1a\".money_recap.v1.GetProfileResponse\"\x00\x12X\n" +
+	"\vSaveProfile\x12\".money_recap.v1.SaveProfileRequest\x1a#.money_recap.v1.SaveProfileResponse\"\x00\x12m\n" +
+	"\x12SaveOnboardingStep\x12).money_recap.v1.SaveOnboardingStepRequest\x1a*.money_recap.v1.SaveOnboardingStepResponse\"\x00\x12X\n" +
+	"\vSetTimezone\x12\".money_recap.v1.SetTimezoneRequest\x1a#.money_recap.v1.SetTimezoneResponse\"\x00\x12d\n" +
+	"\x0fRequestDeletion\x12&.money_recap.v1.RequestDeletionRequest\x1a'.money_recap.v1.RequestDeletionResponse\"\x00\x12a\n" +
+	"\x0eCancelDeletion\x12%.money_recap.v1.CancelDeletionRequest\x1a&.money_recap.v1.CancelDeletionResponse\"\x00B[ZYgithub.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1b\x06proto3"
 
 var (
 	file_money_recap_v1_members_proto_rawDescOnce sync.Once
@@ -337,26 +941,53 @@ func file_money_recap_v1_members_proto_rawDescGZIP() []byte {
 	return file_money_recap_v1_members_proto_rawDescData
 }
 
-var file_money_recap_v1_members_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_money_recap_v1_members_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_money_recap_v1_members_proto_goTypes = []any{
 	(*Profile)(nil),                      // 0: money_recap.v1.Profile
 	(*GetOrCreateBySubjectRequest)(nil),  // 1: money_recap.v1.GetOrCreateBySubjectRequest
 	(*GetOrCreateBySubjectResponse)(nil), // 2: money_recap.v1.GetOrCreateBySubjectResponse
 	(*GetProfileRequest)(nil),            // 3: money_recap.v1.GetProfileRequest
 	(*GetProfileResponse)(nil),           // 4: money_recap.v1.GetProfileResponse
+	(*SaveProfileRequest)(nil),           // 5: money_recap.v1.SaveProfileRequest
+	(*SaveProfileResponse)(nil),          // 6: money_recap.v1.SaveProfileResponse
+	(*SaveOnboardingStepRequest)(nil),    // 7: money_recap.v1.SaveOnboardingStepRequest
+	(*SaveOnboardingStepResponse)(nil),   // 8: money_recap.v1.SaveOnboardingStepResponse
+	(*SetTimezoneRequest)(nil),           // 9: money_recap.v1.SetTimezoneRequest
+	(*SetTimezoneResponse)(nil),          // 10: money_recap.v1.SetTimezoneResponse
+	(*RequestDeletionRequest)(nil),       // 11: money_recap.v1.RequestDeletionRequest
+	(*RequestDeletionResponse)(nil),      // 12: money_recap.v1.RequestDeletionResponse
+	(*CancelDeletionRequest)(nil),        // 13: money_recap.v1.CancelDeletionRequest
+	(*CancelDeletionResponse)(nil),       // 14: money_recap.v1.CancelDeletionResponse
+	(*timestamppb.Timestamp)(nil),        // 15: google.protobuf.Timestamp
 }
 var file_money_recap_v1_members_proto_depIdxs = []int32{
-	0, // 0: money_recap.v1.GetOrCreateBySubjectResponse.profile:type_name -> money_recap.v1.Profile
-	0, // 1: money_recap.v1.GetProfileResponse.profile:type_name -> money_recap.v1.Profile
-	1, // 2: money_recap.v1.MembersService.GetOrCreateBySubject:input_type -> money_recap.v1.GetOrCreateBySubjectRequest
-	3, // 3: money_recap.v1.MembersService.GetProfile:input_type -> money_recap.v1.GetProfileRequest
-	2, // 4: money_recap.v1.MembersService.GetOrCreateBySubject:output_type -> money_recap.v1.GetOrCreateBySubjectResponse
-	4, // 5: money_recap.v1.MembersService.GetProfile:output_type -> money_recap.v1.GetProfileResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	15, // 0: money_recap.v1.Profile.deletion_requested_at:type_name -> google.protobuf.Timestamp
+	0,  // 1: money_recap.v1.GetOrCreateBySubjectResponse.profile:type_name -> money_recap.v1.Profile
+	0,  // 2: money_recap.v1.GetProfileResponse.profile:type_name -> money_recap.v1.Profile
+	0,  // 3: money_recap.v1.SaveProfileResponse.profile:type_name -> money_recap.v1.Profile
+	0,  // 4: money_recap.v1.SaveOnboardingStepResponse.profile:type_name -> money_recap.v1.Profile
+	0,  // 5: money_recap.v1.SetTimezoneResponse.profile:type_name -> money_recap.v1.Profile
+	0,  // 6: money_recap.v1.RequestDeletionResponse.profile:type_name -> money_recap.v1.Profile
+	0,  // 7: money_recap.v1.CancelDeletionResponse.profile:type_name -> money_recap.v1.Profile
+	1,  // 8: money_recap.v1.MembersService.GetOrCreateBySubject:input_type -> money_recap.v1.GetOrCreateBySubjectRequest
+	3,  // 9: money_recap.v1.MembersService.GetProfile:input_type -> money_recap.v1.GetProfileRequest
+	5,  // 10: money_recap.v1.MembersService.SaveProfile:input_type -> money_recap.v1.SaveProfileRequest
+	7,  // 11: money_recap.v1.MembersService.SaveOnboardingStep:input_type -> money_recap.v1.SaveOnboardingStepRequest
+	9,  // 12: money_recap.v1.MembersService.SetTimezone:input_type -> money_recap.v1.SetTimezoneRequest
+	11, // 13: money_recap.v1.MembersService.RequestDeletion:input_type -> money_recap.v1.RequestDeletionRequest
+	13, // 14: money_recap.v1.MembersService.CancelDeletion:input_type -> money_recap.v1.CancelDeletionRequest
+	2,  // 15: money_recap.v1.MembersService.GetOrCreateBySubject:output_type -> money_recap.v1.GetOrCreateBySubjectResponse
+	4,  // 16: money_recap.v1.MembersService.GetProfile:output_type -> money_recap.v1.GetProfileResponse
+	6,  // 17: money_recap.v1.MembersService.SaveProfile:output_type -> money_recap.v1.SaveProfileResponse
+	8,  // 18: money_recap.v1.MembersService.SaveOnboardingStep:output_type -> money_recap.v1.SaveOnboardingStepResponse
+	10, // 19: money_recap.v1.MembersService.SetTimezone:output_type -> money_recap.v1.SetTimezoneResponse
+	12, // 20: money_recap.v1.MembersService.RequestDeletion:output_type -> money_recap.v1.RequestDeletionResponse
+	14, // 21: money_recap.v1.MembersService.CancelDeletion:output_type -> money_recap.v1.CancelDeletionResponse
+	15, // [15:22] is the sub-list for method output_type
+	8,  // [8:15] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_members_proto_init() }
@@ -364,13 +995,15 @@ func file_money_recap_v1_members_proto_init() {
 	if File_money_recap_v1_members_proto != nil {
 		return
 	}
+	file_money_recap_v1_members_proto_msgTypes[0].OneofWrappers = []any{}
+	file_money_recap_v1_members_proto_msgTypes[5].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_money_recap_v1_members_proto_rawDesc), len(file_money_recap_v1_members_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
