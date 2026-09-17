@@ -6,7 +6,7 @@ updates:
     cooldown: { default-days: 7 }
     commit-message: { prefix: "build(ci)" }
     groups:
-      actions: { patterns: ["*"] }
+      actions: { patterns: ["*"], update-types: ["minor", "patch"] }
 
   - package-ecosystem: gomod
     directory: /apps/backend
@@ -14,7 +14,7 @@ updates:
     cooldown: { default-days: 7 }
     commit-message: { prefix: "build(backend)" }
     groups:
-      go: { patterns: ["*"] }
+      go: { patterns: ["*"], update-types: ["minor", "patch"] }
 
   - package-ecosystem: npm
     directory: /
@@ -22,7 +22,7 @@ updates:
     cooldown: { default-days: 7 }
     commit-message: { prefix: "build(ds)" }
     groups:
-      node: { patterns: ["*"] }
+      node: { patterns: ["*"], update-types: ["minor", "patch"] }
 
   - package-ecosystem: swift
     directory: /packages/contract/swift
@@ -42,4 +42,4 @@ updates:
     cooldown: { default-days: 7 }
     commit-message: { prefix: "build(hooks)" }
     groups:
-      hooks: { patterns: ["*"] }
+      hooks: { patterns: ["*"], update-types: ["minor", "patch"] }
