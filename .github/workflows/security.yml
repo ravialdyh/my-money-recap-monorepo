@@ -5,7 +5,6 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    # A dependency that was clean on Monday is not clean on Friday; nothing here depends on a push.
     - cron: "17 6 * * 1"
 
 permissions:
@@ -16,37 +15,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: what changed
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+      deps: ${{ steps.filter.outputs.deps }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            code:
+              - '!**/*.md'
+            deps:
+              - '.github/workflows/security.yml'
+              - 'apps/backend/go.mod'
+              - 'apps/backend/go.sum'
+              - 'apps/ios/**/Package.resolved'
+              - 'package-lock.json'
+              - 'package.json'
+              - 'packages/contract/swift/**'
+
   dependencies:
     name: dependency advisories
+    needs: changes
+    if: needs.changes.outputs.deps == 'true' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: apps/backend/go.mod
+          cache-dependency-path: apps/backend/go.sum
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: .nvmrc
           cache: npm
-
-      # govulncheck is the Go answer and the reason there is no single "audit" here: it walks the
-      # call graph and only reports advisories whose vulnerable function this code actually reaches.
-      - name: govulncheck (Go, reachability-aware)
+      - name: govulncheck, which reports only advisories this code actually reaches
         working-directory: apps/backend
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
           govulncheck ./...
-
-      - name: npm audit (node)
+      - name: npm audit
         run: |
           npm ci
           npm audit --audit-level=high
-
-      # OSV covers all three ecosystems from one database, including the Swift packages the phone
-      # resolves in Package.resolved, which npm audit and govulncheck cannot see. The action lives in
-      # the osv-scanner-action subdirectory: the repository root holds an action.yml with no runs:
-      # section, and pointing at it fails the job before any step starts.
-      - name: OSV-Scanner (Go, npm and Swift Package Manager)
+      - name: OSV for Go, npm and Swift Package Manager from one database
         uses: google/osv-scanner-action/osv-scanner-action@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
         with:
           scan-args: |-
@@ -54,15 +70,31 @@ jobs:
             --lockfile=package-lock.json
             --lockfile=apps/ios/MyMoneyRecap.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
+  secrets:
+    name: secrets in the whole tree
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - name: Gitleaks over every tracked file, not the staged diff the hook sees
+        run: |
+          curl -sSfL -o gitleaks.tar.gz \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks dir . --redact --no-banner
+          ./gitleaks git . --redact --no-banner
+
   code:
     name: static analysis
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep:1.145.0
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      # Community rules, no account. Swift gets cross-function analysis, Go and TypeScript cross-file.
-      - name: Semgrep
+      - name: Semgrep community rules, no account
         run: |
           semgrep scan --config=p/default --config=p/secrets \
             --config=p/golang --config=p/typescript --config=p/dockerfile \
@@ -72,6 +104,8 @@ jobs:
 
   filesystem:
     name: trivy
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -84,12 +118,25 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
           skip-dirs: node_modules,apps/backend/gen,packages/contract/swift/Sources
-      # Dockerfile only: Trivy's misconfiguration scanners cover Dockerfile, Kubernetes, Helm and
-      # the IaC formats, not Compose. The Compose stack is reviewed by hand (infra/compose/README.md).
-      - name: Misconfiguration in the Dockerfile
+      - name: Misconfiguration in the Dockerfile, the only format here Trivy config covers
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           scan-type: config
           severity: HIGH,CRITICAL
           exit-code: "1"
           skip-dirs: node_modules
+
+  security:
+    name: all green
+    if: always()
+    needs: [changes, dependencies, secrets, code, filesystem]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every needed job passed or had nothing to do
+        run: |
+          for result in ${{ join(needs.*.result, ' ') }}; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "a needed job reported: $result" && exit 1 ;;
+            esac
+          done

@@ -5,17 +5,53 @@ on:
     branches: [main]
   pull_request:
 
-# Every action is pinned to a commit, not a tag: a tag is mutable and whoever owns the action can
-# repoint it at new code that runs with this job's token. Dependabot raises these (.github/dependabot.yml).
 permissions:
   contents: read
 
-# A new push to the same branch cancels the run still going for the old one.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: what changed
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      contract: ${{ steps.filter.outputs.contract }}
+      design-system: ${{ steps.filter.outputs.design-system }}
+      ios: ${{ steps.filter.outputs.ios }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - '.github/workflows/ci.yml'
+              - '.golangci.yml'
+              - 'apps/backend/**'
+              - 'infra/**'
+              - 'packages/contract/**'
+              - 'tools/coverage/**'
+            contract:
+              - '.github/workflows/ci.yml'
+              - 'packages/contract/**'
+            design-system:
+              - '.github/workflows/ci.yml'
+              - 'biome.json'
+              - 'my-money-recap-ds/**'
+              - 'package-lock.json'
+              - 'package.json'
+              - 'tools/coverage/**'
+            ios:
+              - '.github/workflows/ci.yml'
+              - '.swiftformat'
+              - '.swiftlint.yml'
+              - 'apps/ios/**'
+              - 'packages/contract/**'
+              - 'tools/coverage/**'
+
   quality:
     name: pre-commit
     runs-on: ubuntu-latest
@@ -31,12 +67,20 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      # Every hook except the ones needing a Go or Swift toolchain; those are gates in their own jobs.
-      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+      - name: Install hadolint, whose hook is a silent skip when the binary is absent
+        run: |
+          curl -sSfL -o hadolint \
+            https://github.com/hadolint/hadolint/releases/download/v2.15.1/hadolint-Linux-x86_64
+          echo "c7187db94eeeeca956519a6af171adc31453941a1e777961f6e680f697c8c507  hadolint" | sha256sum -c -
+          chmod +x hadolint && sudo mv hadolint /usr/local/bin/
+      - name: Every hook except the per-language toolchains, which are gates in their own jobs
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
         env:
-          SKIP: golangci-lint,gofmt,swiftlint,swiftformat,buf-lint
+          SKIP: no-commit-to-branch,golangci-lint,gofmt,swiftlint,swiftformat,buf-lint
 
   design-system:
+    needs: changes
+    if: needs.changes.outputs.design-system == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -61,12 +105,14 @@ jobs:
       - name: Unit tests with coverage
         working-directory: my-money-recap-ds
         run: npm run test:coverage
-      - name: Coverage may not fall (tools/coverage/README.md)
+      - name: Coverage may not fall, see tools/coverage/README.md
         run: |
           pct=$(python3 -c "import json;print(json.load(open('my-money-recap-ds/coverage/coverage-summary.json'))['total']['statements']['pct'])")
           python3 tools/coverage/coverage_gate.py typescript "$pct"
 
   contract:
+    needs: changes
+    if: needs.changes.outputs.contract == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -78,21 +124,22 @@ jobs:
           version: 1.73.0
           setup_only: true
       - run: buf lint
-      - name: No breaking change against main (A1)
+      - name: No breaking change against main, decision A1
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main
           buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
-      - name: Generated Go and Swift code is up to date with the .proto files (the backend job compiles the Go)
+      - name: Generated Go and Swift are up to date with the proto files
         run: |
           buf generate
           git diff --exit-code -- ../../apps/backend/gen swift/Sources
 
   backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: apps/backend
-    # The stock .env.example ports and the throwaway credentials the step below writes (never committed).
     env:
       MEMBERS_TEST_URL: http://localhost:8081
       MEMBERS_TEST_DATABASE_URL: postgres://members:ci-throwaway@localhost:5432/members
@@ -108,33 +155,32 @@ jobs:
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: apps/backend/go.mod
+          cache-dependency-path: apps/backend/go.sum
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
         with:
           version: v2.13.2
           working-directory: apps/backend
           args: --config ../../.golangci.yml
-      - name: Compose stack with the migration step, members and the BFF (#15, #17)
+      - name: Compose stack with the migration step, members and the BFF
         working-directory: infra/compose
         run: |
           sed 's/=$/=ci-throwaway/' .env.example > .env
           docker compose up -d --build --wait
-      - name: Unit tests, the Connect-boundary tests and the end-to-end test at the BFF's HTTP boundary
-        # -p 1: the members and bff packages both sign in as the realm's one test user, so they must not run at once.
+      - name: Unit tests, Connect-boundary tests and the end-to-end test at the BFF HTTP boundary
         run: |
           go vet ./...
           go test -v -p 1 -covermode=atomic -coverprofile=cover.out ./...
-      - name: Coverage may not fall (tools/coverage/README.md)
+      - name: Coverage may not fall, see tools/coverage/README.md
         run: |
-          # gen/ is buf's output and testauth is a test helper; neither is code anyone writes tests for.
+          set -o pipefail
           grep -vE '/gen/|/internal/testauth/' cover.out > cover.filtered
           pct=$(go tool cover -func=cover.filtered | awk '/^total:/ {print substr($3, 1, length($3) - 1)}')
+          test -n "$pct"
           python3 ../../tools/coverage/coverage_gate.py go "$pct"
-      - name: Login Token issued and redeemed on the pinned Keycloak image (A10)
+      - name: Login Token issued and redeemed on the pinned Keycloak image, decision A10
         working-directory: infra/compose
         run: ./a10-smoke.sh
-      # Only on failure: a passing run dumped Keycloak's whole boot log, which buries every step
-      # that ran before it.
-      - name: Stack logs
+      - name: Stack logs, only on failure because a passing run buries every step before it
         if: failure()
         working-directory: infra/compose
         run: |
@@ -146,38 +192,50 @@ jobs:
         run: docker compose down -v
 
   ios:
-    runs-on: macos-latest
+    needs: changes
+    if: needs.changes.outputs.ios == 'true'
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-latest' }}
     defaults:
       run:
         working-directory: apps/ios
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      # SwiftFormat ships with the macOS runner image; SwiftLint does not.
-      - name: Install SwiftLint
+      - name: Install SwiftLint, which the runner image does not carry
         run: brew install swiftlint
       - name: SwiftFormat and SwiftLint
         working-directory: .
         run: |
           swiftformat --lint .
           swiftlint lint --strict
-      # -enableCodeCoverage belongs on both halves of the split: instrumentation happens while
-      # building, so building without it leaves the result bundle with no coverage archive and
-      # xccov fails on a missing Metadata.plist.
-      - name: Build the app and its tests for the generic iOS Simulator destination
+      - name: Build app and tests, instrumented for coverage on both halves of the split
         run: |
           xcodebuild build-for-testing -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
             -destination 'generic/platform=iOS Simulator' -derivedDataPath build \
             -enableCodeCoverage YES -quiet
-      - name: Unit tests on an iPhone simulator picked by simctl at runtime (issue #16, no device names)
+      - name: Unit tests on a simulator picked by simctl at runtime, never a device name
         run: |
           xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
             -destination "id=$(scripts/simulator-udid.sh)" -derivedDataPath build \
             -only-testing:MyMoneyRecapTests -enableCodeCoverage YES \
             -resultBundlePath build/MyMoneyRecap.xcresult
-      - name: Coverage may not fall (tools/coverage/README.md)
+      - name: Coverage may not fall, see tools/coverage/README.md
         run: |
-          # xccov_percent exits non-zero if the target is missing; reporting 0.0 would sail
-          # through the gate forever, because the ios floor starts at 0.0.
+          set -o pipefail
           pct=$(xcrun xccov view --report --only-targets --json build/MyMoneyRecap.xcresult \
             | python3 ../../tools/coverage/xccov_percent.py)
           python3 ../../tools/coverage/coverage_gate.py ios "$pct"
+
+  ci:
+    name: all green
+    if: always()
+    needs: [changes, quality, design-system, contract, backend, ios]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every needed job passed or had nothing to do
+        run: |
+          for result in ${{ join(needs.*.result, ' ') }}; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "a needed job reported: $result" && exit 1 ;;
+            esac
+          done

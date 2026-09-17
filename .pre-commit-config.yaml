@@ -2,33 +2,12 @@ minimum_pre_commit_version: "4.0.0"
 default_install_hook_types: [pre-commit, pre-push]
 fail_fast: false
 
-# Files the whitespace and end-of-file hooks must not rewrite: generated output, Xcode's own files
-# and the Keycloak realm export. Nine of these carry trailing whitespace exactly as their generator
-# emits it, so a "fix" here makes CI's "generated code is up to date" diff fail for a reason nobody
-# put in a commit. This list is longer than tools/policy/policy.json's on purpose: these hooks touch
-# JSON, CSS and Markdown, which the policy checker never looks at.
-exclude: |
-  (?x)^(
-    apps/backend/gen/.*
-    |packages/contract/swift/Sources/.*
-    |apps/ios/DesignSystem/Tokens\.swift
-    |apps/ios/.*\.xcodeproj/.*
-    |apps/ios/Resources/Assets\.xcassets/.*
-    |my-money-recap-ds/src/styles/css\.generated\.ts
-    |my-money-recap-ds/src/assets/illustrations\.ts
-    |my-money-recap-ds/src/tokens/tokens\.css
-    |my-money-recap-ds/\.design-sync/.*
-    |infra/compose/keycloak/mmr-realm\.json
-    |docs/design/.*
-    |package-lock\.json
-  )$
-
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: check-added-large-files
-        args: [--maxkb=512]
+        args: [--enforce-all, --maxkb=1024]
       - id: check-case-conflict
       - id: check-executables-have-shebangs
       - id: check-json
@@ -42,12 +21,28 @@ repos:
       - id: destroyed-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer
+        exclude: &generated |
+          (?x)^(
+            apps/backend/gen/.*
+            |packages/contract/swift/Sources/.*
+            |apps/ios/DesignSystem/Tokens\.swift
+            |apps/ios/.*\.xcodeproj/.*
+            |apps/ios/Resources/Assets\.xcassets/.*
+            |my-money-recap-ds/src/styles/css\.generated\.ts
+            |my-money-recap-ds/src/assets/illustrations\.ts
+            |my-money-recap-ds/src/tokens/tokens\.css
+            |my-money-recap-ds/\.design-sync/.*
+            |infra/compose/keycloak/mmr-realm\.json
+            |docs/design/.*
+            |package-lock\.json
+          )$
       - id: mixed-line-ending
         args: [--fix=lf]
+        exclude: *generated
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
+        exclude: *generated
       - id: no-commit-to-branch
-        # AGENTS.md and ARCHITECTURE A15: every change is a branch and a pull request.
         args: [--branch, main]
 
   - repo: https://github.com/gitleaks/gitleaks
@@ -71,7 +66,8 @@ repos:
         name: size and comment policy
         entry: python3 tools/policy/check_policy.py
         language: system
-        types_or: [go, swift, ts, tsx, javascript, css, python, shell, proto, sql]
+        pass_filenames: false
+        always_run: true
         require_serial: true
 
       - id: biome
@@ -79,6 +75,7 @@ repos:
         entry: npx --no-install biome check --write --no-errors-on-unmatched --files-ignore-unknown=true
         language: system
         types_or: [ts, tsx, javascript, json, css]
+        exclude: *generated
         require_serial: true
 
       - id: gofmt
@@ -86,6 +83,7 @@ repos:
         entry: tools/hooks/if-installed.sh gofmt -l -w
         language: script
         types: [go]
+        exclude: *generated
 
       - id: golangci-lint
         name: golangci-lint
@@ -100,12 +98,14 @@ repos:
         entry: tools/hooks/if-installed.sh swiftformat
         language: script
         types: [swift]
+        exclude: *generated
 
       - id: swiftlint
         name: swiftlint
         entry: tools/hooks/if-installed.sh swiftlint lint --strict --quiet
         language: script
         types: [swift]
+        exclude: *generated
         require_serial: true
 
       - id: hadolint
