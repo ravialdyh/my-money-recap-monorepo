@@ -16,19 +16,16 @@ export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
   state?: InteractiveState;
   /**
    * The measured height of the filled card this prompt stands in for (PRD §6.8, D54, D71), so nothing
-   * moves when the Member fills it in — 191pt for the pound Home hero, 233pt for the rupiah one. Omit it
-   * where there is nothing to stand in for (a Settings row, Recap screen 4) and the card hugs its content.
+   * moves when the Member fills it in. Omit it where there is nothing to stand in for and the card
+   * hugs its content.
    */
   height?: number;
 }
 
 /**
- * Empty-state card: the whole card is one tap target, not the chevron (PRD §13, D50). It stands in
- * for a filled `Card` — the Home hero, the Home target card, the onboarding step 4 slider card, the
- * Recap screen 4 mascot, a Settings row — and holds that card's height so the layout never jumps.
- *
- * The card *is* the `<button>`, which may not contain an `<h2>` or a `<p>`, so `Eyebrow`, `CardTitle`
- * and `HelperText` are asked for their `span` form. The drawn result is identical.
+ * Empty-state card: the whole card is one tap target, not the chevron (PRD §13, D50), and it holds the
+ * filled card's height so the layout never jumps. The card *is* the `<button>`, so `Eyebrow`,
+ * `CardTitle` and `HelperText` take their `span` form.
  */
 export function PromptCard({
   height, eyebrow = null, title, helper = null, state = 'default', className = '', style, ...rest

@@ -7,11 +7,12 @@ import SwiftUI
 struct HomeView: View {
     @State private var model: HomeViewModel
 
+    /// The interceptor refreshes the token on `unauthenticated`, so `getHome` is retried once while
+    /// the session is still signed in (IOS I3).
     init(session: AuthSession, context: ModelContext) {
         let client = BffClient.make(session: session)
         _model = State(initialValue: HomeViewModel(fetch: {
             var response = await client.getHome(request: .init())
-            // The interceptor refreshed the token on `unauthenticated`; retry once while still signed in (I3).
             if response.code == .unauthenticated, session.isSignedIn {
                 response = await client.getHome(request: .init())
             }
@@ -64,7 +65,6 @@ struct HomeView: View {
             PromptCard(title: "Set your monthly salary", height: Tokens.Size.homeHeroCard)
         }
         if home.hasSavingTarget {
-            // The ProgressBar arrives with the Saving Target slice; until then the card carries the server's sentence.
             Card(minHeight: Tokens.Size.homeTargetCard) {
                 HStack {
                     CardTitle(text: "Saving target")

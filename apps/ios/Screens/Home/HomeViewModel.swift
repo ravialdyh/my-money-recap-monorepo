@@ -2,9 +2,9 @@ import Foundation
 import MoneyRecapContract
 import SwiftData
 
-/// B1 Home (SCREEN-STATES), IOS I6: renders from the stored snapshot at once, refreshes from the BFF, keeps the
-/// last snapshot when the refresh fails, and shows the §6.19 skeleton only when no snapshot exists yet.
-/// It holds no arithmetic: every figure is the server's (ARCHITECTURE A2).
+/// B1 Home (SCREEN-STATES, IOS I6): renders the stored snapshot at once, refreshes from the BFF, and
+/// shows the §6.19 skeleton only while no snapshot exists. It holds no arithmetic: every figure is
+/// the server's (ARCHITECTURE A2).
 @Observable
 @MainActor
 final class HomeViewModel {
@@ -26,6 +26,7 @@ final class HomeViewModel {
     }
 
     /// While `home` is nil there is no snapshot yet: the skeleton, no spinner (PRD §6.19).
+    /// A failed refresh is silent: offline or unauthenticated, the last snapshot stays (PRD D58, D61).
     func refresh() async {
         do {
             let fresh = try await fetch()
@@ -33,7 +34,7 @@ final class HomeViewModel {
             home = fresh
             updatedAt = .now
         } catch {
-            // Offline or unauthenticated: the last snapshot stays on screen (PRD D58, D61).
+            return
         }
     }
 

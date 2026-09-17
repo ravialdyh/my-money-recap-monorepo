@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Empty-state card: the whole card is one tap target (PRD §13, D50). It stands in for a filled `Card` and
-/// holds that card's height (`height`) so nothing moves when the Member fills it in (PRD §6.8, D54, D69).
-/// `dashed` is the Home preview card, "Your first recap arrives on {date}." (D47), drawn as an outline on the ground.
+/// Empty-state card: the whole card is one tap target (PRD §13, D50). It holds the filled `Card`'s
+/// height so nothing moves when the Member fills it in (PRD §6.8, D54, D69). `dashed` is the Home
+/// preview card (D47), drawn as an outline on the ground.
 struct PromptCard: View {
     let title: String
     var eyebrow: String? = nil

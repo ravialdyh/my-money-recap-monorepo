@@ -10,8 +10,9 @@ const camel = (s) => s.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 const pascal = (s) => camel(s).replace(/^[a-z]/, (c) => c.toUpperCase());
 // ["violet", "500"] -> violet500; ["card-accent"] -> cardAccent
 const ident = (segs) => camel(segs.map((s, i) => (i === 0 ? s : pascal(s))).join('')).replace(/^(\d)/, '_$1');
+// "{palette.violet.500}" -> Palette.violet500; "{font.family.display}" -> FontFamily.display
 const alias = (v) => {
-  const segs = v.slice(1, -1).split('.'); // "{palette.violet.500}" -> Palette.violet500; "{font.family.display}" -> FontFamily.display
+  const segs = v.slice(1, -1).split('.');
   if (segs[0] === 'font') return `${pascal(segs[0])}${pascal(segs[1])}.${ident(segs.slice(2))}`;
   return `${pascal(segs[0])}.${ident(segs.slice(1))}`;
 };
@@ -33,7 +34,7 @@ function colorEnum(node) {
   const lines = [];
   walk(node, (p, { $value: raw }) => {
     if (typeof raw === 'number') lines.push(`        public static let ${ident(p)}: Double = ${num(raw)}`);
-    else if (typeof raw === 'string' && /^-?[\d.]+%$/.test(raw)) lines.push(`        public static let ${ident(p)}: Double = ${num(parseFloat(raw) / 100)}`); // "-8%" -> -0.08
+    else if (typeof raw === 'string' && /^-?[\d.]+%$/.test(raw)) lines.push(`        public static let ${ident(p)}: Double = ${num(parseFloat(raw) / 100)}`);
     else if (typeof raw === 'string' && color(raw)) lines.push(`        public static let ${ident(p)} = ${color(raw)}`);
   });
   return lines;

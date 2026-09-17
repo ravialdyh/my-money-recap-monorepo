@@ -37,8 +37,7 @@ func Migrate(ctx context.Context, db *pgxpool.Pool) error {
 			return err
 		}
 		err = pgx.BeginFunc(ctx, db, func(tx pgx.Tx) error {
-			// Lock the table so two migrate runs racing on one database apply each file once.
-			if _, err := tx.Exec(ctx, `LOCK TABLE schema_migrations IN ACCESS EXCLUSIVE MODE`); err != nil {
+			if err := lockMigrationLedger(ctx, tx); err != nil {
 				return err
 			}
 			var applied bool
@@ -122,4 +121,10 @@ func (s *Service) GetProfile(ctx context.Context, req *connect.Request[moneyreca
 
 func profile(m Row) *moneyrecapv1.Profile {
 	return &moneyrecapv1.Profile{MemberId: m.ID, Email: m.Email, DisplayName: m.DisplayName, AvatarKey: m.AvatarKey, CurrencyCode: m.CurrencyCode, Timezone: m.Timezone}
+}
+
+// lockMigrationLedger serialises two migrate runs racing on one database, so each file applies once.
+func lockMigrationLedger(ctx context.Context, tx pgx.Tx) error {
+	_, err := tx.Exec(ctx, `LOCK TABLE schema_migrations IN ACCESS EXCLUSIVE MODE`)
+	return err
 }

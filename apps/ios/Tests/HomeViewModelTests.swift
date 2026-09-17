@@ -17,7 +17,6 @@ final class HomeViewModelTests: XCTestCase {
 
     func testZeroHomeOmitsGreetingAndSavedChip() async throws {
         let home = try recordedHome()
-        // A fixed locale: the copy below is what a British phone prints, whatever the CI runner's locale is.
         let model = HomeViewModel(fetch: { home }, context: try freshContext(), locale: Locale(identifier: "en_GB"))
         XCTAssertNil(model.home, "no snapshot yet: the skeleton")
         await model.refresh()

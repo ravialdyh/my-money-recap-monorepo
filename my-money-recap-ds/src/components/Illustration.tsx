@@ -8,9 +8,8 @@ export interface IllustrationProps extends HTMLAttributes<HTMLDivElement> {
   /** Display width in px. Observed: 310 cover, 200 lemonade, 168 vending, 340 squirrel. */
   width: number;
   /**
-   * Cap on the rendered height. Set this wherever one slot shows several illustrations: the
-   * artwork varies in aspect ratio, so a shared `width` alone lets a tall subject push the
-   * content below it off the screen (the Hustler bee did exactly that on the archetype screen).
+   * Cap on the rendered height. Set it wherever one slot shows several illustrations: they vary in
+   * aspect ratio, so a shared `width` alone lets a tall subject push the content below it off screen.
    */
   maxHeight?: number;
 }

@@ -1,11 +1,8 @@
 import { useEffect, useLayoutEffect, useState, type RefObject } from 'react';
 
 /**
- * Fit-to-width sizing (PRD §11, D71): a number is drawn at the largest of a few fixed sizes that fits
- * its container, measured, never guessed from a character count. The steps are `l` → `m` → `s`; the
- * CSS maps each to a token (StatHero 80 → 56 → 40px, AmountField 48 → 36 → 28px). This is the web
- * equivalent of SwiftUI's `.lineLimit(1).minimumScaleFactor(…)`, limited to three sizes so the
- * type ramp stays discrete.
+ * Fit-to-width sizing (PRD §11, D71): `l` → `m` → `s`, each mapped to a token by the CSS. Three steps,
+ * so the type ramp stays discrete. README "Design rules" has the sizes.
  */
 export type FitStep = 'l' | 'm' | 's';
 const STEPS: readonly FitStep[] = ['l', 'm', 's'];
@@ -13,10 +10,9 @@ const STEPS: readonly FitStep[] = ['l', 'm', 's'];
 const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 /**
- * Measures `text` against `box` (the width it must fit; defaults to the text element itself) and
- * returns the step to draw. During measurement `data-step` is set on both elements, so the CSS may key
- * off either. Re-measures when `key` changes, when either element resizes (a web font swapping in
- * included), and once web fonts have loaded. Before the first measurement, and on the server, the step is `l`.
+ * Measures `text` against `box` (default: the text element) and returns the step to draw, setting
+ * `data-step` on both so the CSS may key off either. Re-measures on `key`, resize and `fonts.ready`;
+ * before the first measurement the step is `l`.
  */
 export function useFitStep(text: RefObject<HTMLElement>, box: RefObject<HTMLElement> | null, key: string): FitStep {
   const [step, setStep] = useState<FitStep>('l');
@@ -25,7 +21,6 @@ export function useFitStep(text: RefObject<HTMLElement>, box: RefObject<HTMLElem
     if (!el) return;
     const measure = () => {
       const container = box?.current ?? el;
-      // Try each size in order and keep the first that fits; the smallest is the floor.
       const fits = (s: FitStep) => {
         el.dataset.step = s;
         container.dataset.step = s;
@@ -35,8 +30,6 @@ export function useFitStep(text: RefObject<HTMLElement>, box: RefObject<HTMLElem
       setStep(STEPS.find(fits) ?? 's');
     };
     measure();
-    // Observe the box (it may resize) and the text itself: its width changes when a web font swaps in, which
-    // a capture taken before `fonts.ready` would otherwise miss.
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
     ro?.observe(el);
     if (box?.current && box.current !== el) ro?.observe(box.current);

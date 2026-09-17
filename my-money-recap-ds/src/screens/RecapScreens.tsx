@@ -16,11 +16,8 @@ import { Icon } from '../icons';
 import { ILLUSTRATIONS } from '../assets/illustrations';
 import { CATEGORY_LABEL, CATEGORY_TONE, type Archetype, type Category } from '../components/types';
 
-/* The four monthly-recap screens, composed from the system. Props carry the data; layout is fixed.
-   These are the reference compositions for building the rest of the app flow.
-   Revised per PRD §13: the cover drops the Earned chip (D2), screen 2 is Kept + streak rather than
-   chores (D23), screen 3 uses the piggy marker and all eight Categories (D24), and screen 4 switches
-   its mascot per Archetype. */
+/* The four monthly-recap screens, composed from the system and revised per PRD §13 (D2, D23, D24).
+   Props carry the data; layout is fixed. These are the reference compositions for the rest of the app. */
 
 /** One-line Archetype descriptions, verbatim from PRD §8.6. */
 export const ARCHETYPE_BLURB: Record<Archetype, string> = {
@@ -30,10 +27,9 @@ export const ARCHETYPE_BLURB: Record<Archetype, string> = {
   slowBurner: 'Lots of little spends added up. Sneaky.',
 };
 
-/** Every Recap screen formats money the same way (PRD D45, D71): `currency` is the Member's ISO 4217 code
- *  and `locale` the viewer's language tag (omit for the device language). The symbol, decimals and
- *  separators come from the platform formatter — see `../money.ts`. The sample data in the defaults is
- *  Maya's September (PRD §8), in pounds. */
+/** Every Recap screen formats money the same way (PRD D45, D71): `currency` is the Member's ISO 4217
+ *  code, `locale` the viewer's language tag (omit for the device language). See `../money.ts`. The
+ *  sample defaults are Maya's September (PRD §8), in pounds. */
 export interface MoneyProps {
   currency?: string;
   locale?: string;
@@ -132,9 +128,9 @@ export function RecapEarningScreen({
 export interface RecapGoalScreenProps extends MoneyProps {
   /** Saved for the month. */
   saved?: number;
-  /** Saving Target amount. Pass `null` for a Member who has not set one (SCREEN-STATES C3 · no target set):
-   *  the headline becomes "Where {Spent} went", the sub-copy is dropped and the target card becomes a
-   *  `PromptCard`. `null`, not `undefined` — `undefined` is replaced by the default. */
+  /** Saving Target amount, or `null` for a Member who has not set one (SCREEN-STATES C3): the headline
+   *  becomes "Where {Spent} went" and the target card becomes a `PromptCard`. `null`, not `undefined`
+   *  — `undefined` takes the default. */
   target?: number | null;
   /** One sentence from PRD §8.7. Unused when `target` is null. Defaults to the sample month's sentence in `currency`. */
   helper?: string;

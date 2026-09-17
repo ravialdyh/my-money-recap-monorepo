@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Uppercase caption pill in screen headers, on the ground (the `inverse` and `highlight` variants of Chip.tsx
-/// arrive with the screens that use them). Drawn about 30pt tall; `tappable` lifts the hit area to 44pt
-/// without changing the pill (README "Tap targets are 44pt").
+/// Uppercase caption pill in screen headers, on the ground. Drawn about 30pt tall; `tappable` lifts
+/// the hit area to 44pt without changing the pill (README "Tap targets are 44pt").
 struct Chip: View {
     let text: String
     var tappable = false

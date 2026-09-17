@@ -1,7 +1,5 @@
-// Render check, not part of the package and not a test: the screens whose fit is fragile at 844pt plus
-// the long-number states (PRD §11, D45, D71), rendered in a real browser so the fit-to-width pass runs.
-// `npm run measure` builds scripts/preview/measure.js; open scripts/preview/measure.html. The red dashed
-// line is 844pt. Nothing here asserts; `npm test` holds the assertions for the pure helpers.
+// Render check, not a test: the fragile-fit screens and long-number states in a real browser, so the
+// fit-to-width pass runs (PRD §11, D45, D71). `npm run measure`; README "Rebuilding generated files".
 import { createRoot } from 'react-dom/client';
 import { MMR_CSS } from '../src/styles/css.generated';
 import { RecapCoverScreen, RecapGoalScreen, RecapEarningScreen, RecapPersonalityScreen } from '../src/screens/RecapScreens';

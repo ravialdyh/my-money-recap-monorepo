@@ -1,9 +1,9 @@
 import Connect
 import Foundation
 
-/// The one interceptor I3 names: adds the bearer token to every call and, when the BFF answers
-/// `unauthenticated`, asks AppAuth to refresh. A refresh that fails signs the Member out, which
-/// returns them to Sign in with the inline error; the caller may retry once while still signed in.
+/// The one interceptor IOS I3 names: adds the bearer token to every call and, when the BFF answers
+/// `unauthenticated`, asks AppAuth to refresh. A failed refresh signs the Member out, back to Sign
+/// in with the inline error.
 final class BearerInterceptor: UnaryInterceptor {
     private let session: AuthSession
 

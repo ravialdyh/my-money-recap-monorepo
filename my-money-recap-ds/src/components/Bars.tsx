@@ -40,10 +40,8 @@ export interface CompareRow { label: string; value: number; display: string; ton
 export interface CompareBarsProps {
   rows: CompareRow[];
   /**
-   * How the bars are scaled. `total` (default) reads each row as a share of the whole, which is
-   * right when the rows partition one amount ("Saved" and "Spent" both come out of Money In).
-   * `max` scales against the largest row, which is right when one row is a benchmark the other is
-   * measured against ("Kept" against "Target").
+   * How the bars are scaled. `total` (default) reads each row as a share of the whole, for rows that
+   * partition one amount. `max` scales against the largest row, for a row measured against a benchmark.
    */
   scale?: 'total' | 'max';
   animate?: boolean;

@@ -72,7 +72,6 @@ const monthLayout, dateLayout = "2006-01", "2006-01-02"
 
 func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
 	claims := auth.From(ctx)
-	// PRD §5 step 5: first sight of a subject creates the Member.
 	created, err := s.Members.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: claims.Subject, Email: claims.Email}))
 	if err != nil {
 		return nil, err
@@ -88,7 +87,6 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	now := nowFn().UTC()
 	month := now.Format(monthLayout)
 
-	// §6.1 fan-out: members and ledger required, notify optional.
 	var (
 		wg                       sync.WaitGroup
 		profile                  *moneyrecapv1.Profile
@@ -121,8 +119,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		return nil, connect.NewError(connect.CodeUnavailable, sumErr)
 	}
 	if warnErr != nil {
-		// A log line stands in for the §6.1 metric until OpenTelemetry lands (slice 8, A11).
-		log.Printf("notify.GetWarningState: %v (HomeView returned without a banner)", warnErr)
+		logOptionalCallDegraded(warnErr)
 		warning = nil
 	}
 
@@ -148,9 +145,20 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		Salary:        summary.Salary,
 		SavingTarget:  summary.SavingTarget,
 		StreakDay:     summary.StreakDay,
-		DaysRemaining: int32(firstOfNext.AddDate(0, 0, -1).Day() - now.Day() + 1), // counting today; the last day of the month gives 1 (PRD §8.7)
+		DaysRemaining: daysRemainingInclusive(now, firstOfNext),
 		TargetWarning: warning,
 		RecapMonths:   summary.RecapMonths,
 		FirstRecapOn:  firstOfNext.Format(dateLayout),
 	}}), nil
+}
+
+// logOptionalCallDegraded records that an optional fan-out call failed and the HomeView went out
+// without it. A log line stands in for the §6.1 metric until OpenTelemetry lands (slice 8, A11).
+func logOptionalCallDegraded(err error) {
+	log.Printf("notify.GetWarningState: %v (HomeView returned without a banner)", err)
+}
+
+// daysRemainingInclusive counts today as one, so the last day of the month answers 1 (PRD §8.7).
+func daysRemainingInclusive(now, firstOfNext time.Time) int32 {
+	return int32(firstOfNext.AddDate(0, 0, -1).Day() - now.Day() + 1)
 }

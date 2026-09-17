@@ -17,12 +17,9 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// Both tests need the Compose stack (infra/compose) and skip without it:
-//   MEMBERS_TEST_DATABASE_URL   postgres://members:<pw>@localhost:5432/members
-//   MEMBERS_TEST_URL            http://localhost:8081
-//   MEMBERS_TEST_KEYCLOAK       http://localhost:8080
-//   MEMBERS_TEST_USER_PASSWORD  the realm's test user password
-//   MEMBERS_TEST_BFF_CLIENT_SECRET  optional; enables the wrong-audience case
+// Both tests need the Compose stack and skip without the MEMBERS_TEST_* variables that
+// infra/compose/README.md lists. MEMBERS_TEST_BFF_CLIENT_SECRET is optional and adds the
+// wrong-audience case.
 
 func testDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
@@ -153,7 +150,6 @@ func TestConnectBoundary(t *testing.T) {
 		"garbage token": moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, testauth.Bearer("not.a.jwt")),
 	}
 	if secret := os.Getenv("MEMBERS_TEST_BFF_CLIENT_SECRET"); secret != "" {
-		// The bff service account's token carries no `bff` audience.
 		bffTok := testauth.Token(t, kc, url.Values{"grant_type": {"client_credentials"}, "client_id": {"bff"}, "client_secret": {secret}})
 		unauth["wrong audience"] = moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, testauth.Bearer(bffTok))
 	}
