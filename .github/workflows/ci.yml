@@ -132,13 +132,18 @@ jobs:
       - name: Login Token issued and redeemed on the pinned Keycloak image (A10)
         working-directory: infra/compose
         run: ./a10-smoke.sh
-      - name: Stack logs and teardown
-        if: always()
+      # Only on failure: a passing run dumped Keycloak's whole boot log, which buries every step
+      # that ran before it.
+      - name: Stack logs
+        if: failure()
         working-directory: infra/compose
         run: |
           docker compose ps
           docker compose logs keycloak members-migrate members bff
-          docker compose down -v
+      - name: Teardown
+        if: always()
+        working-directory: infra/compose
+        run: docker compose down -v
 
   ios:
     runs-on: macos-latest
@@ -155,10 +160,14 @@ jobs:
         run: |
           swiftformat --lint .
           swiftlint lint --strict
+      # -enableCodeCoverage belongs on both halves of the split: instrumentation happens while
+      # building, so building without it leaves the result bundle with no coverage archive and
+      # xccov fails on a missing Metadata.plist.
       - name: Build the app and its tests for the generic iOS Simulator destination
         run: |
           xcodebuild build-for-testing -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
-            -destination 'generic/platform=iOS Simulator' -derivedDataPath build -quiet
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build \
+            -enableCodeCoverage YES -quiet
       - name: Unit tests on an iPhone simulator picked by simctl at runtime (issue #16, no device names)
         run: |
           xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
