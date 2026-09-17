@@ -104,11 +104,11 @@ is the **Intel** image. `macos-latest` resolves to arm64 here (the job log shows
 SwiftLint. Without the install the job dies with exit 127, which is exactly how it failed earlier in
 this repo's history. SwiftFormat needs no install on either image.
 
-Coverage does not gate at a fixed number yet. `tools/coverage/` holds a floor per language that can
-only go up — `tools/coverage/README.md` has today's floors and why. The `Security` workflow runs
-govulncheck, OSV-Scanner (Go, npm and Swift together), Semgrep, Trivy and a full-tree gitleaks scan
-on every pull request and every Monday. OSV reads the same GHSA advisories `npm audit` would, so the
-npm tree is covered once, without a second `npm ci`.
+Coverage gates on a floor per language that only ever rises; `tools/coverage/README.md` has today's
+floors and where each came from. The `Security` workflow runs govulncheck, OSV-Scanner (Go, npm and
+Swift together), Semgrep, Trivy and a full-tree gitleaks scan on every pull request and every Monday.
+OSV reads the same GHSA advisories `npm audit` would, so the npm tree is covered once, without a
+second `npm ci`.
 
 ### Why these settings are what they are
 
@@ -149,15 +149,22 @@ The configs carry no comments, so the reasoning lives here.
 ### What CI costs, and why jobs are skipped
 
 This repository is private, so Actions minutes are billed, and macOS bills at **ten times** the
-Linux rate. A run where every job fires costs about 41 billable minutes, of which 30 are the `ios`
-job alone — even though the whole run finishes in under four minutes of wall clock.
+Linux rate. Each job is therefore gated on whether its inputs changed. `docs/ARCHITECTURE.md` A15
+records that design, and why `all green` is the job to require rather than any single one.
 
-So each job is gated on whether its inputs changed, using `dorny/paths-filter` at the **job** level
-rather than a workflow-level `paths:` filter. That distinction matters: a workflow skipped by
-`paths:` never reports a status at all, so a required check would wait for it forever, while a job
-skipped by `if:` reports success. The `all green` job gathers the results and is the one worth
-requiring. Over the last twenty merges this drops the average run from 41 to about 18 billable
-minutes; a docs-only change costs 5.
+What the gating saves, measured from real runs rather than estimated:
+
+| A change touching | Billable minutes |
+| --- | --- |
+| Documentation only | 6 |
+| One config file | 8 |
+| The design system only | 10 |
+| Everything, iOS included | 45–55 |
+
+The `ios` job is 30 to 40 of that full run on its own. It takes about three minutes of wall clock,
+but every job is billed rounded up to the whole minute and macOS bills at ten times the Linux rate,
+so a run that crosses three minutes costs ten more than one that does not — the two full runs
+measured here came to 45 and 54. Everything else in a full run costs about 15 between them.
 
 To move the iOS job onto your own Mac and stop paying for it entirely, register a self-hosted runner
 (repository → Settings → Actions → Runners → New self-hosted runner, macOS), then set a repository
