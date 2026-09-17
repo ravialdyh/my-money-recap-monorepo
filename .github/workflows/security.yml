@@ -43,9 +43,11 @@ jobs:
           npm audit --audit-level=high
 
       # OSV covers all three ecosystems from one database, including the Swift packages the phone
-      # resolves in Package.resolved, which npm audit and govulncheck cannot see.
+      # resolves in Package.resolved, which npm audit and govulncheck cannot see. The action lives in
+      # the osv-scanner-action subdirectory: the repository root holds an action.yml with no runs:
+      # section, and pointing at it fails the job before any step starts.
       - name: OSV-Scanner (Go, npm and Swift Package Manager)
-        uses: google/osv-scanner-action@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
+        uses: google/osv-scanner-action/osv-scanner-action@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
         with:
           scan-args: |-
             --lockfile=apps/backend/go.mod
