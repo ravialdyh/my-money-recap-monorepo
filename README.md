@@ -59,6 +59,43 @@ npm run build:swift-tokens
 The `design-system` CI job runs all three and fails if any output is stale, so generated files can never
 drift from source. The other CI jobs (`contract`, `backend`, `ios`) are listed under Delivery in `docs/ARCHITECTURE.md` §10.
 
+## Checks
+
+Every check runs on every commit through `pre-commit`, and again in CI. Install it once:
+
+```bash
+pipx install pre-commit   # or: pip install pre-commit
+pre-commit install --install-hooks
+```
+
+`pre-commit` is Python; nothing else in this repo is. It is here because it pins every hook to a
+version, keeps them in their own environments, and Dependabot raises those versions.
+
+```bash
+pre-commit run --all-files              # what CI's pre-commit job runs
+pre-commit run --hook-stage pre-push    # also regenerates and diffs the generated files
+```
+
+| Check | Tool | Config |
+| --- | --- | --- |
+| Whitespace, JSON and YAML, large files, private keys, case conflicts, commits to `main` | `pre-commit-hooks` | `.pre-commit-config.yaml` |
+| Secrets | gitleaks | `.pre-commit-config.yaml` |
+| File size and comment policy | `tools/policy/check_policy.py` | `tools/policy/README.md` |
+| TypeScript lint and format | Biome | `biome.json` |
+| Go lint and format | golangci-lint, gofmt | `.golangci.yml` |
+| Swift lint and format | SwiftLint, SwiftFormat | `.swiftlint.yml`, `.swiftformat` |
+| Shell, Dockerfile, workflows | shellcheck, hadolint, actionlint | `.pre-commit-config.yaml` |
+| Protobuf | buf lint | `packages/contract/buf.yaml` |
+
+golangci-lint, SwiftLint, SwiftFormat, hadolint and buf are per-language toolchains. The hooks skip
+with a note where the binary is missing, so a contributor touching only the design system does not
+have to install all of them; CI installs every one and runs the same commands as hard gates.
+
+Coverage does not gate at a fixed number yet. `tools/coverage/` holds a floor per language that can
+only go up — `tools/coverage/README.md` has today's floors and why. The `Security` workflow runs
+govulncheck, `npm audit`, OSV-Scanner (Go, npm and Swift together), Semgrep, Trivy and SonarQube Cloud
+on every pull request and every Monday.
+
 ## Docs
 
 - [`docs/PRD.md`](docs/PRD.md) — product requirements and the numbered decision log

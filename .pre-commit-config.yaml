@@ -1,0 +1,128 @@
+minimum_pre_commit_version: "4.0.0"
+default_install_hook_types: [pre-commit, pre-push]
+fail_fast: false
+
+# Generated and tool-owned files. The same set tools/policy/policy.json and biome.json exclude:
+# buf output, the Swift token file, the design-system generators' output, Xcode's project files,
+# the Keycloak realm export and the design-sync folder. Rewriting any of them makes CI's
+# "generated code is up to date" diff fail for a reason nobody put in a commit.
+exclude: |
+  (?x)^(
+    apps/backend/gen/.*
+    |packages/contract/swift/Sources/.*
+    |apps/ios/DesignSystem/Tokens\.swift
+    |apps/ios/.*\.xcodeproj/.*
+    |apps/ios/Resources/Assets\.xcassets/.*
+    |my-money-recap-ds/src/styles/css\.generated\.ts
+    |my-money-recap-ds/src/assets/illustrations\.ts
+    |my-money-recap-ds/src/tokens/tokens\.css
+    |my-money-recap-ds/\.design-sync/.*
+    |infra/compose/keycloak/mmr-realm\.json
+    |docs/design/.*
+    |package-lock\.json
+  )$
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=512]
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: destroyed-symlinks
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: no-commit-to-branch
+        # AGENTS.md and ARCHITECTURE A15: every change is a branch and a pull request.
+        args: [--branch, main]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+
+  - repo: local
+    hooks:
+      - id: policy
+        name: size and comment policy
+        entry: python3 tools/policy/check_policy.py
+        language: system
+        types_or: [go, swift, ts, tsx, javascript, css, python, shell, proto, sql]
+        require_serial: true
+
+      - id: biome
+        name: biome (typescript lint and format)
+        entry: npx --no-install biome check --write --no-errors-on-unmatched --files-ignore-unknown=true
+        language: system
+        types_or: [ts, tsx, javascript, json, css]
+        require_serial: true
+
+      - id: gofmt
+        name: gofmt
+        entry: tools/hooks/if-installed.sh gofmt -l -w
+        language: script
+        types: [go]
+
+      - id: golangci-lint
+        name: golangci-lint
+        entry: tools/hooks/golangci.sh
+        language: script
+        types: [go]
+        pass_filenames: false
+        require_serial: true
+
+      - id: swiftformat
+        name: swiftformat
+        entry: tools/hooks/if-installed.sh swiftformat
+        language: script
+        types: [swift]
+
+      - id: swiftlint
+        name: swiftlint
+        entry: tools/hooks/if-installed.sh swiftlint lint --strict --quiet
+        language: script
+        types: [swift]
+        require_serial: true
+
+      - id: hadolint
+        name: hadolint
+        entry: tools/hooks/if-installed.sh hadolint
+        language: script
+        files: Dockerfile$
+
+      - id: buf-lint
+        name: buf lint
+        entry: tools/hooks/if-installed.sh buf lint packages/contract
+        language: script
+        types: [proto]
+        pass_filenames: false
+
+      - id: generated-up-to-date
+        name: generated files match their sources
+        entry: tools/hooks/check-generated.sh
+        language: script
+        stages: [pre-push]
+        pass_filenames: false

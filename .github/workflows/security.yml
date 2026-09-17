@@ -1,0 +1,114 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # A dependency that was clean on Monday is not clean on Friday; nothing here depends on a push.
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependencies:
+    name: dependency advisories
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: apps/backend/go.mod
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # govulncheck is the Go answer and the reason there is no single "audit" here: it walks the
+      # call graph and only reports advisories whose vulnerable function this code actually reaches.
+      - name: govulncheck (Go, reachability-aware)
+        working-directory: apps/backend
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: npm audit (node)
+        run: |
+          npm ci
+          npm audit --audit-level=high
+
+      # OSV covers all three ecosystems from one database, including the Swift packages the phone
+      # resolves in Package.resolved, which npm audit and govulncheck cannot see.
+      - name: OSV-Scanner (Go, npm and Swift Package Manager)
+        uses: google/osv-scanner-action@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
+        with:
+          scan-args: |-
+            --lockfile=apps/backend/go.mod
+            --lockfile=package-lock.json
+            --lockfile=apps/ios/MyMoneyRecap.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+  code:
+    name: static analysis
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:1.145.0
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      # Community rules, no account. Swift gets cross-function analysis, Go and TypeScript cross-file.
+      - name: Semgrep
+        run: |
+          semgrep scan --config=p/default --config=p/secrets \
+            --config=p/golang --config=p/typescript --config=p/dockerfile \
+            --error --metrics=off \
+            --exclude=apps/backend/gen --exclude=packages/contract/swift/Sources \
+            --exclude=node_modules --exclude='*.generated.ts' .
+
+  filesystem:
+    name: trivy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Vulnerabilities and secrets in the tree
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          skip-dirs: node_modules,apps/backend/gen,packages/contract/swift/Sources
+      # The Dockerfile and the Compose file: root users, missing healthchecks, host mounts.
+      - name: Misconfiguration in the Dockerfile and Compose stack
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        with:
+          scan-type: config
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          skip-dirs: node_modules
+
+  sonar:
+    name: sonarqube cloud
+    runs-on: ubuntu-latest
+    # A fork's pull request cannot read the token, and the job would fail on a secret it never gets.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # Blame data: Sonar needs full history to attribute an issue to new code.
+          fetch-depth: 0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Coverage for the TypeScript Sonar reads
+        run: |
+          npm ci
+          npm run test:coverage -w @my-money-recap/ui
+      - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

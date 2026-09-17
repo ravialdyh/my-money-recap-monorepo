@@ -1,0 +1,41 @@
+# Nothing in this repo is pinned by a moving tag, so every bump arrives as a reviewable pull request.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    commit-message: { prefix: "build(ci)" }
+    groups:
+      actions: { patterns: ["*"] }
+
+  - package-ecosystem: gomod
+    directory: /apps/backend
+    schedule: { interval: weekly, day: monday }
+    commit-message: { prefix: "build(backend)" }
+    groups:
+      go: { patterns: ["*"] }
+
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    commit-message: { prefix: "build(ds)" }
+    groups:
+      node: { patterns: ["*"] }
+
+  - package-ecosystem: swift
+    directory: /packages/contract/swift
+    schedule: { interval: weekly, day: monday }
+    commit-message: { prefix: "build(contract)" }
+
+  - package-ecosystem: docker
+    directory: /apps/backend
+    schedule: { interval: weekly, day: monday }
+    commit-message: { prefix: "build(backend)" }
+
+  # GitHub added pre-commit support in March 2026; without it every rev here rots silently.
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule: { interval: weekly, day: monday }
+    commit-message: { prefix: "build(hooks)" }
+    groups:
+      hooks: { patterns: ["*"] }

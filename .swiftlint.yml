@@ -1,0 +1,67 @@
+# SwiftLint runs on the app only. Tokens.swift and the Connect clients are generated (tools/policy/README.md).
+included:
+  - apps/ios
+excluded:
+  - apps/ios/build
+  - apps/ios/DesignSystem/Tokens.swift
+  - packages/contract/swift/Sources
+
+analyzer_rules:
+  - unused_import
+
+opt_in_rules:
+  - array_init
+  - closure_end_indentation
+  - closure_spacing
+  - collection_alignment
+  - contains_over_filter_count
+  - contains_over_first_not_nil
+  - empty_collection_literal
+  - empty_count
+  - empty_string
+  - explicit_init
+  - fatal_error_message
+  - first_where
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - last_where
+  - literal_expression_end_indentation
+  - modifier_order
+  - multiline_arguments
+  - operator_usage_whitespace
+  - overridden_super_call
+  - prefer_self_type_over_type_of_self
+  - private_action
+  - private_outlet
+  - redundant_nil_coalescing
+  - sorted_first_last
+  - toggle_bool
+  - unneeded_parentheses_in_closure_argument
+  - unused_import
+  - yoda_condition
+
+disabled_rules:
+  # tools/policy/check_policy.py owns file length and the comment rules.
+  - file_length
+  - todo
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+
+type_body_length:
+  warning: 200
+  error: 280
+
+function_body_length:
+  warning: 50
+  error: 80
+
+identifier_name:
+  excluded: [id, to, up, x, y]
+
+force_cast: error
+force_try: error
+force_unwrapping: error

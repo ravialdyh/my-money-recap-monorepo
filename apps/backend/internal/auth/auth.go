@@ -55,8 +55,11 @@ func NewContext(ctx context.Context, c Claims) context.Context {
 
 // From is the verified token's Claims, zero outside the interceptor.
 func From(ctx context.Context) Claims {
-	c, _ := ctx.Value(ctxKey{}).(Claims)
-	return c
+	claims, ok := ctx.Value(ctxKey{}).(Claims)
+	if !ok {
+		return Claims{}
+	}
+	return claims
 }
 
 // Forward is a client interceptor that sends the caller's own bearer token on to a service,

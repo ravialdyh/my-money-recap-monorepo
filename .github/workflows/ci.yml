@@ -5,17 +5,42 @@ on:
     branches: [main]
   pull_request:
 
+# Every action is pinned to a commit, not a tag: a tag is mutable and whoever owns the action can
+# repoint it at new code that runs with this job's token. Dependabot raises these (.github/dependabot.yml).
+permissions:
+  contents: read
+
 # A new push to the same branch cancels the run still going for the old one.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  quality:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Every hook except the ones needing a Go or Swift toolchain; those are gates in their own jobs.
+      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+        env:
+          SKIP: golangci-lint,gofmt,swiftlint,swiftformat,buf-lint
+
   design-system:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -33,6 +58,13 @@ jobs:
           npm run build:assets
           git diff --exit-code -- my-money-recap-ds/src/assets
       - run: npm run typecheck
+      - name: Unit tests with coverage
+        working-directory: my-money-recap-ds
+        run: npm run test:coverage
+      - name: Coverage may not fall (tools/coverage/README.md)
+        run: |
+          pct=$(python3 -c "import json;print(json.load(open('my-money-recap-ds/coverage/coverage-summary.json'))['total']['statements']['pct'])")
+          python3 tools/coverage/coverage_gate.py typescript "$pct"
 
   contract:
     runs-on: ubuntu-latest
@@ -40,8 +72,8 @@ jobs:
       run:
         working-directory: packages/contract
     steps:
-      - uses: actions/checkout@v4
-      - uses: bufbuild/buf-action@v1
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: bufbuild/buf-action@e8b15693be91ae73e965d157c722987338c768b3 # v1
         with:
           version: 1.73.0
           setup_only: true
@@ -72,10 +104,15 @@ jobs:
       BFF_TEST_USER_PASSWORD: ci-throwaway
       BFF_TEST_DATABASE_URL: postgres://members:ci-throwaway@localhost:5432/members
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: apps/backend/go.mod
+      - uses: golangci/golangci-lint-action@db9de0fc1a667e1a49d2291a1a042dff081d78f6 # v9
+        with:
+          version: v2.13.2
+          working-directory: apps/backend
+          args: --config ../../.golangci.yml
       - name: Compose stack with the migration step, members and the BFF (#15, #17)
         working-directory: infra/compose
         run: |
@@ -85,7 +122,13 @@ jobs:
         # -p 1: the members and bff packages both sign in as the realm's one test user, so they must not run at once.
         run: |
           go vet ./...
-          go test -v -p 1 ./...
+          go test -v -p 1 -covermode=atomic -coverprofile=cover.out ./...
+      - name: Coverage may not fall (tools/coverage/README.md)
+        run: |
+          # gen/ is buf's output and testauth is a test helper; neither is code anyone writes tests for.
+          grep -vE '/gen/|/internal/testauth/' cover.out > cover.filtered
+          pct=$(go tool cover -func=cover.filtered | awk '/^total:/ {print substr($3, 1, length($3) - 1)}')
+          python3 ../../tools/coverage/coverage_gate.py go "$pct"
       - name: Login Token issued and redeemed on the pinned Keycloak image (A10)
         working-directory: infra/compose
         run: ./a10-smoke.sh
@@ -103,7 +146,12 @@ jobs:
       run:
         working-directory: apps/ios
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: SwiftFormat and SwiftLint (both ship with the runner image)
+        working-directory: .
+        run: |
+          swiftformat --lint .
+          swiftlint lint --strict
       - name: Build the app and its tests for the generic iOS Simulator destination
         run: |
           xcodebuild build-for-testing -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
@@ -112,4 +160,10 @@ jobs:
         run: |
           xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
             -destination "id=$(scripts/simulator-udid.sh)" -derivedDataPath build \
-            -only-testing:MyMoneyRecapTests
+            -only-testing:MyMoneyRecapTests -enableCodeCoverage YES \
+            -resultBundlePath build/MyMoneyRecap.xcresult
+      - name: Coverage may not fall (tools/coverage/README.md)
+        run: |
+          pct=$(xcrun xccov view --report --only-targets --json build/MyMoneyRecap.xcresult \
+            | python3 -c "import json,sys; t=[x for x in json.load(sys.stdin) if x['name'].startswith('MyMoneyRecap.app')]; print(round(t[0]['lineCoverage'] * 100, 1) if t else 0.0)")
+          python3 ../../tools/coverage/coverage_gate.py ios "$pct"

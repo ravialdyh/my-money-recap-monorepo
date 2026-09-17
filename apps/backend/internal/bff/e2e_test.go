@@ -49,7 +49,10 @@ func TestEndToEnd(t *testing.T) {
 		return res.Msg.Home, nil
 	}
 
-	key, _ := rsa.GenerateKey(rand.Reader, 2048)
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
 	mintForeignlySignedToken := func(exp time.Time) string {
 		return testauth.Mint(t, key, "not-a-realm-key", jwt.Claims{Issuer: claims.Iss, Subject: claims.Sub, Audience: jwt.Audience{"bff"}, Expiry: jwt.NewNumericDate(exp), IssuedAt: jwt.NewNumericDate(exp.Add(-time.Hour))})
 	}
@@ -65,7 +68,9 @@ func TestEndToEnd(t *testing.T) {
 		t.Logf("%s → %v", name, err)
 	}
 	var rows int
-	db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&rows)
+	if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
 	if rows != 0 {
 		t.Fatalf("%d Member rows after the unauthenticated calls, want 0: a bad token reached members", rows)
 	}
@@ -84,7 +89,9 @@ func TestEndToEnd(t *testing.T) {
 	if err := db.QueryRow(ctx, `SELECT id, email FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&id, &email); err != nil {
 		t.Fatal(err)
 	}
-	db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&rows)
+	if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
 	if rows != 1 || email != claims.Email {
 		t.Fatalf("%d rows, email %q; want 1 row with %q", rows, email, claims.Email)
 	}
@@ -94,8 +101,12 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 	var id2 string
-	db.QueryRow(ctx, `SELECT id FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&id2)
-	db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&rows)
+	if err := db.QueryRow(ctx, `SELECT id FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&id2); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
 	if rows != 1 || id2 != id {
 		t.Fatalf("after the second call: %d rows, id %s (first %s)", rows, id2, id)
 	}

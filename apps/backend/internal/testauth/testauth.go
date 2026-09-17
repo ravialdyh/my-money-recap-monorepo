@@ -20,7 +20,13 @@ import (
 // Token posts form to the realm's token endpoint and returns the access token.
 func Token(t *testing.T, keycloak string, form url.Values) string {
 	t.Helper()
-	res, err := http.PostForm(keycloak+"/realms/mmr/protocol/openid-connect/token", form)
+	endpoint := keycloak + "/realms/mmr/protocol/openid-connect/token"
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, endpoint, strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}

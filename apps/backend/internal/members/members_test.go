@@ -42,7 +42,11 @@ func TestConcurrentFirstCallsCreateOneRow(t *testing.T) {
 	db := testDB(t)
 	ctx := context.Background()
 	subject := "concurrent-" + t.Name() + "-" + strings.ReplaceAll(t.TempDir(), "/", "")
-	t.Cleanup(func() { db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, subject) })
+	t.Cleanup(func() {
+		if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, subject); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
 
 	const n = 16
 	ids := make([]string, n)
@@ -109,7 +113,9 @@ func TestConnectBoundary(t *testing.T) {
 		t.Fatalf("first call: %v", first)
 	}
 	var rows int
-	db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, sub).Scan(&rows)
+	if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, sub).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
 	if rows != 1 {
 		t.Fatalf("%d rows after first call, want 1", rows)
 	}
@@ -127,7 +133,9 @@ func TestConnectBoundary(t *testing.T) {
 		t.Fatal(err)
 	}
 	var stored string
-	db.QueryRow(ctx, `SELECT email FROM member WHERE id = $1`, first.MemberId).Scan(&stored)
+	if err := db.QueryRow(ctx, `SELECT email FROM member WHERE id = $1`, first.MemberId).Scan(&stored); err != nil {
+		t.Fatal(err)
+	}
 	if third.MemberId != first.MemberId || third.Email != "renamed@example.com" || stored != "renamed@example.com" {
 		t.Fatalf("email refresh: response %v, stored %q", third, stored)
 	}

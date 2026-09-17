@@ -36,3 +36,8 @@ packages/contract/swift/Package.resolved
 # Xcode per-user state and the CI derived-data folder for the iOS app.
 xcuserdata/
 apps/ios/build/
+
+# Coverage output. The numbers that matter are the floors in tools/coverage/baseline.json.
+my-money-recap-ds/coverage/
+apps/backend/cover.out
+apps/backend/cover.filtered

@@ -5,7 +5,10 @@
 # Needs the Compose stack up (see README.md) and the same .env; prints the token's subject and the image tag.
 set -euo pipefail
 cd "$(dirname "$0")"
-set -a; . ./.env; set +a
+set -a
+# shellcheck disable=SC1091 # .env is written from .env.example at run time, never committed.
+. ./.env
+set +a
 
 KC=http://localhost:${KEYCLOAK_HOST_PORT:-8080}
 REALM=$KC/realms/mmr
