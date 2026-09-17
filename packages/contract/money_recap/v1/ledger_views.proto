@@ -24,7 +24,8 @@ message MonthSummary {
   // Absent without a Saving Target in force: no row, or a 0 percent row
   // (PRD §8.4), so a present target always has percent above 0.
   optional SavingTargetFacts saving_target = 6;
-  // Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
+  // The run of spend-free days ending today, counting today (PRD §8.5, D43):
+  // Home's "Streak day {n}". Day 1 on the first-run Home.
   int32 streak_day = 7;
   // Days left in the month counting today, never below 1 (PRD §8.7).
   int32 days_remaining = 8;

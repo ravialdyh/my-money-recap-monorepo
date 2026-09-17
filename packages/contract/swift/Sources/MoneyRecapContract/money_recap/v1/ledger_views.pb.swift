@@ -130,7 +130,8 @@ public nonisolated struct MoneyRecap_V1_MonthSummary: @unchecked Sendable {
   /// Clears the value of `savingTarget`. Subsequent reads from it will return its default value.
   public mutating func clearSavingTarget() {_uniqueStorage()._savingTarget = nil}
 
-  /// Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
+  /// The run of spend-free days ending today, counting today (PRD §8.5, D43):
+  /// Home's "Streak day {n}". Day 1 on the first-run Home.
   public var streakDay: Int32 {
     get {_storage._streakDay}
     set {_uniqueStorage()._streakDay = newValue}
