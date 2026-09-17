@@ -38,10 +38,11 @@ type Profile struct {
 	CurrencyCode string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	// IANA zone name (A3); empty until SetTimezone runs.
 	Timezone string `protobuf:"bytes,6,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	// Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1.
+	// Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1,
+	// 4 once onboarding is done. A skipped step counts as saved (PRD §6.6).
 	OnboardingStep int32 `protobuf:"varint,7,opt,name=onboarding_step,json=onboardingStep,proto3" json:"onboarding_step,omitempty"`
-	// "YYYY-MM-DD", the local date at sign-up, fixed forever (PRD §7 Member,
-	// D43, D52); empty until onboarding stamps it.
+	// "YYYY-MM-DD", the local date at the moment of sign-up, fixed forever (A3,
+	// PRD §7, D43); empty until the first SetTimezone converts the create time.
 	SignedUpOn string `protobuf:"bytes,8,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
 	// Present only while a deletion request is pending (PRD D60).
 	DeletionRequestedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=deletion_requested_at,json=deletionRequestedAt,proto3,oneof" json:"deletion_requested_at,omitempty"`
@@ -329,7 +330,8 @@ func (x *GetProfileResponse) GetProfile() *Profile {
 }
 
 // Each present field replaces the stored value; an absent field is untouched,
-// so onboarding steps 1 and 2 (PRD §6.4, §6.5) each send only their answers.
+// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16)
+// each send only their answers.
 type SaveProfileRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// A14.
@@ -457,7 +459,9 @@ type SaveOnboardingStepRequest struct {
 	// A14.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// The step just completed, 1 to 4 (PRD §5 step 6).
+	// The step just completed or skipped, 1 to 4 (PRD §5 step 6). The BFF sends
+	// it after the step's SaveProfile succeeded, so progress never runs ahead
+	// of the answers.
 	Step          int32 `protobuf:"varint,3,opt,name=step,proto3" json:"step,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

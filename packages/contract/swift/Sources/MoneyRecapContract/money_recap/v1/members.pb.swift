@@ -45,11 +45,12 @@ public nonisolated struct MoneyRecap_V1_Profile: Sendable {
   /// IANA zone name (A3); empty until SetTimezone runs.
   public var timezone: String = String()
 
-  /// Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1.
+  /// Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1,
+  /// 4 once onboarding is done. A skipped step counts as saved (PRD §6.6).
   public var onboardingStep: Int32 = 0
 
-  /// "YYYY-MM-DD", the local date at sign-up, fixed forever (PRD §7 Member,
-  /// D43, D52); empty until onboarding stamps it.
+  /// "YYYY-MM-DD", the local date at the moment of sign-up, fixed forever (A3,
+  /// PRD §7, D43); empty until the first SetTimezone converts the create time.
   public var signedUpOn: String = String()
 
   /// Present only while a deletion request is pending (PRD D60).
@@ -140,7 +141,8 @@ public nonisolated struct MoneyRecap_V1_GetProfileResponse: Sendable {
 }
 
 /// Each present field replaces the stored value; an absent field is untouched,
-/// so onboarding steps 1 and 2 (PRD §6.4, §6.5) each send only their answers.
+/// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16)
+/// each send only their answers.
 public nonisolated struct MoneyRecap_V1_SaveProfileRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -219,7 +221,9 @@ public nonisolated struct MoneyRecap_V1_SaveOnboardingStepRequest: Sendable {
 
   public var memberID: String = String()
 
-  /// The step just completed, 1 to 4 (PRD §5 step 6).
+  /// The step just completed or skipped, 1 to 4 (PRD §5 step 6). The BFF sends
+  /// it after the step's SaveProfile succeeded, so progress never runs ahead
+  /// of the answers.
   public var step: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
