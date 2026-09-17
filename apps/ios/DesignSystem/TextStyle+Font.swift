@@ -2,7 +2,9 @@ import SwiftUI
 
 extension TextStyle {
     /// Fredoka and Nunito by family name (Tokens.FontFamily); the system font stands in when they are not bundled.
-    var font: Font { Font.custom(family, size: size).weight(weight) }
+    var font: Font {
+        Font.custom(family, size: size).weight(weight)
+    }
 }
 
 extension View {

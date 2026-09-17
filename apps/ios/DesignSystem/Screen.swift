@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// One ground per screen, from four (README "Design rules"); every screen so far is the violet `recap` ground, and the
-/// other three (with yellow's ink type) arrive with the Recap screens. Content sits inside the screen insets with white type.
+/// other three (with yellow's ink type) arrive with the Recap screens. Content sits inside the screen insets with white
+/// type.
 struct Screen<Content: View>: View {
     @ViewBuilder let content: () -> Content
 

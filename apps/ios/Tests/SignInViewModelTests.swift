@@ -23,7 +23,9 @@ final class SignInViewModelTests: XCTestCase {
         var model: SignInViewModel!
         model = SignInViewModel(signIn: {
             attempts += 1
-            if attempts == 1 { throw CancellationError() }
+            if attempts == 1 {
+                throw CancellationError()
+            }
             seen = (model.errorMessage, model.isLoading)
         })
         await model.continueWithEmail()

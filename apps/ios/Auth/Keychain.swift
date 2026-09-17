@@ -7,7 +7,7 @@ enum Keychain {
     private static let query: [CFString: Any] = [
         kSecClass: kSecClassGenericPassword,
         kSecAttrService: "com.mymoneyrecap.auth",
-        kSecAttrAccount: "authState",
+        kSecAttrAccount: "authState"
     ]
 
     static func read() -> Data? {

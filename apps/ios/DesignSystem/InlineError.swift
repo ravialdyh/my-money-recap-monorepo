@@ -15,7 +15,10 @@ struct InlineError: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, 12)
         .padding(.horizontal, Tokens.Space._5)
-        .background(Tokens.Surface.wellCoral, in: RoundedRectangle(cornerRadius: Tokens.Radius.inset, style: .continuous))
+        .background(
+            Tokens.Surface.wellCoral,
+            in: RoundedRectangle(cornerRadius: Tokens.Radius.inset, style: .continuous)
+        )
         .foregroundStyle(Tokens.Text.accentCoral)
         .accessibilityAddTraits(.isStaticText)
     }

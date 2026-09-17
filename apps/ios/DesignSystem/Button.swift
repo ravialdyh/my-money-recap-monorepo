@@ -6,8 +6,9 @@ struct MMRButton: View {
     enum Variant { case primary, secondary }
     let title: String
     var variant: Variant = .primary
-    /// SF Symbol name for the 20pt leading glyph ("plus" on Log a spend) until the design-system glyphs are drawn in Swift.
-    var icon: String? = nil
+    /// SF Symbol name for the 20pt leading glyph ("plus" on Log a spend) until the design-system glyphs are drawn in
+    /// Swift.
+    var icon: String?
     var loading = false
     let action: () -> Void
 
@@ -29,8 +30,13 @@ struct MMRButton: View {
         .buttonStyle(PressableStyle())
     }
 
-    private var foreground: Color { variant == .primary ? Tokens.Text.onInverse : Tokens.Text.primary }
-    private var background: Color { variant == .primary ? Tokens.Surface.buttonPrimary : Tokens.Surface.buttonSecondary }
+    private var foreground: Color {
+        variant == .primary ? Tokens.Text.onInverse : Tokens.Text.primary
+    }
+
+    private var background: Color {
+        variant == .primary ? Tokens.Surface.buttonPrimary : Tokens.Surface.buttonSecondary
+    }
 }
 
 /// Pressed = scale 0.97 and brightness −8% for `motion.duration.press`; disabled = opacity 0.4. One rule each.
@@ -42,6 +48,9 @@ struct PressableStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed ? Tokens.Motion.pressScale : 1)
             .brightness(configuration.isPressed ? Tokens.State.pressedLightnessDelta : 0)
             .opacity(isEnabled ? 1 : Tokens.State.disabledOpacity)
-            .animation(.timingCurve(Tokens.Motion.Easing.press, duration: Tokens.Motion.Duration.press), value: configuration.isPressed)
+            .animation(
+                .timingCurve(Tokens.Motion.Easing.press, duration: Tokens.Motion.Duration.press),
+                value: configuration.isPressed
+            )
     }
 }

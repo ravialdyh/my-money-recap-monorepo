@@ -25,7 +25,9 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Tokens.Space._5) {
                     HStack(spacing: 8) {
-                        if let month = model.monthLabel { Chip(text: month, tappable: true) }
+                        if let month = model.monthLabel {
+                            Chip(text: month, tappable: true)
+                        }
                         Spacer()
                         Chip(text: "Settings", tappable: true)
                     }
@@ -55,9 +57,15 @@ struct HomeView: View {
         Card(minHeight: Tokens.Size.homeHeroCard) {
             StatHero(eyebrow: model.heroEyebrow, value: Money.format(home.spent.amount, currency: home.currencyCode))
             HStack(spacing: 8) {
-                StatChip(tone: .earned, text: "Money in \(Money.format(home.moneyIn.amount, currency: home.currencyCode))")
+                StatChip(
+                    tone: .earned,
+                    text: "Money in \(Money.format(home.moneyIn.amount, currency: home.currencyCode))"
+                )
                 if model.showsSavedChip {
-                    StatChip(tone: .saved, text: "Saved \(Money.format(home.saved.amount, currency: home.currencyCode))")
+                    StatChip(
+                        tone: .saved,
+                        text: "Saved \(Money.format(home.saved.amount, currency: home.currencyCode))"
+                    )
                 }
             }
         }
@@ -69,7 +77,8 @@ struct HomeView: View {
                 HStack {
                     CardTitle(text: "Saving target")
                     Spacer()
-                    Text(Money.format(home.savingTarget.amount.amount, currency: home.currencyCode)).textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)
+                    Text(Money.format(home.savingTarget.amount.amount, currency: home.currencyCode))
+                        .textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)
                 }
                 HelperText(text: home.savingTarget.progressSentence)
             }

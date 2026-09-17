@@ -1,6 +1,7 @@
 import Foundation
 
-/// A1 states (SCREEN-STATES): loading while Keycloak round-trips; `InlineError` on cancel or failure, cleared on the next tap.
+/// A1 states (SCREEN-STATES): loading while Keycloak round-trips; `InlineError` on cancel or failure, cleared on the
+/// next tap.
 @Observable
 @MainActor
 final class SignInViewModel {
@@ -13,7 +14,7 @@ final class SignInViewModel {
     /// `initialError` is the expired-session copy when a failed token refresh sent the Member back here (I3).
     init(signIn: @escaping () async throws -> Void, initialError: String? = nil) {
         self.signIn = signIn
-        self.errorMessage = initialError
+        errorMessage = initialError
     }
 
     func continueWithEmail() async {

@@ -20,11 +20,12 @@ final class HomeSnapshot {
 
     static func replace(with home: MoneyRecap_V1_HomeView, in context: ModelContext) throws {
         try context.delete(model: HomeSnapshot.self)
-        context.insert(HomeSnapshot(bytes: try home.serializedBytes()))
+        try context.insert(HomeSnapshot(bytes: home.serializedBytes()))
         try context.save()
     }
 
-    /// The on-device store. `--reset-snapshot` empties it at launch, the seam the UI test uses for the first-load skeleton.
+    /// The on-device store. `--reset-snapshot` empties it at launch, the seam the UI test uses for the first-load
+    /// skeleton.
     @MainActor
     static let container: ModelContainer = {
         let container = try! ModelContainer(for: HomeSnapshot.self)

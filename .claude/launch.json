@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ds-measure",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/private/tmp/claude-501/-Users-apple-Documents-Ravialdy-couple-project-my-money-recap-monorepo/31990de4-9920-4f56-a013-1592c73ebf5c/scratchpad/static-server.mjs", "my-money-recap-ds/scripts/preview", "8791"],
+      "port": 8791
+    }
+  ]
+}
