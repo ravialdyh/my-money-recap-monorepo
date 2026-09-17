@@ -6,6 +6,10 @@ Read `README.md` for the layout and `docs/CONTEXT.md` before naming anything.
 
 Never commit to `main`. Every change is a short branch off `main` and a pull request; CI must be green before merge. Deployment is a version tag, not a merge (`docs/ARCHITECTURE.md` A15). GitHub cannot enforce this on the repository's plan, so this rule is the gate.
 
+A branch is named `<type>/<kebab-summary>`, where `<type>` is the change's Conventional Commits type, matching the commit subject: `feat/members-service`, `chore/ci-fold-and-tokens`, `build/react-19`. `dependabot/*` is the one exception, because the tool owns those names.
+
+A session that opens on a generated branch, `claude/confident-hypatia-bssrd9` and the like, renames it before the first commit (`git branch -m <type>/<summary>`) and pushes only the renamed name. That name carries no information into the pull request list, and `claude/clever-babbage-vf9f3y` in PR #32 is the one that got away. This paragraph is the standing permission to rename; do not stop to ask for it.
+
 ## House rules the hooks enforce
 
 `pre-commit run --all-files` is the gate. Two rules are this repo's own, in
