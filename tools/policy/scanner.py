@@ -11,6 +11,11 @@ TYPE_OPENER = re.compile(
 
 MAX_CONTINUATION_LINES = 100
 
+REGEX_START = re.compile(
+    r"(?:^|[=(,:\[!&|?;]"
+    r"|\b(?:return|typeof|instanceof|case|in|of|new|delete|void|throw|yield|await))\s*$"
+)
+
 BODY_OPENER = re.compile(
     r"\b(?:func|function|init|deinit|subscript|get|set|willSet|didSet"
     r"|if|else|for|while|switch|do|try|catch|guard|repeat|defer)\b|=>"
@@ -211,6 +216,13 @@ def _scan_line(st, number, line):
             i = end
             code_from = i
             continue
+        if style.braces and ch == "/" and REGEX_START.search(line[:i]):
+            end, unfinished = _consume_string(line, i + 1, "/", True)
+            if not unfinished:
+                st.pending += line[code_from:i]
+                i = end
+                code_from = i
+                continue
         if style.braces and ch == "{":
             st.pending += line[code_from : i + 1]
             st.stack.append(_scope_for(st.pending + line[i + 1 :], st.scope(), st.reopened))

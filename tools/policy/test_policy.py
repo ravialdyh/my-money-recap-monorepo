@@ -62,6 +62,18 @@ class Scanner(unittest.TestCase):
         text = "const f = () => 1;\nconst obj = {\n  // a note\n};\n"
         self.assertEqual([(c.body, c.scope) for c in scan(text)], [("a note", "file")])
 
+    def test_a_regex_literal_is_not_code(self):
+        for line in ("const re = /\\(/;", "const parts = s.split(/[(]/);", "const q = /)/;"):
+            with self.subTest(line=line):
+                text = line + "\n\nexport interface P {\n  /** a is a. */\n  a: string;\n}\n"
+                self.assertEqual([c.scope for c in scan(text)], ["type"])
+
+    def test_division_and_jsx_are_not_regex_literals(self):
+        go = "package x\n\nfunc F(a, b int) int {\n\t// a note\n\treturn (a + b) / (a - b)\n}\n"
+        self.assertEqual([c.scope for c in scan(go)], ["body"])
+        tsx = "export function C() {\n  // a note\n  return <div>{x}</div>;\n}\n"
+        self.assertEqual([c.scope for c in scan(tsx)], ["body"])
+
     def test_a_dotfile_that_is_all_extension_resolves(self):
         self.assertIs(style_for(".swiftformat"), HASH)
         self.assertIs(style_for("a/b/.editorconfig"), HASH)
