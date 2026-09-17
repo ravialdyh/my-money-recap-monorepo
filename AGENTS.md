@@ -15,7 +15,7 @@ Never commit to `main`. Every change is a short branch off `main` and a pull req
 - **A comment either states a contract or is a directive.** Doc comments on a package, type or
   member are how code cites a `D*`, `A*` or `I*` decision, and they are capped at 255 characters.
   Comments inside a function body are rejected: name the code instead. `TODO`, commented-out code
-  and anything restating the code are rejected. `//go:embed`, `// MARK:`, `//nolint` and the other
+  and anything restating the code are rejected. `//go:embed`, `//go:build`, `//nolint` and the other
   directives are untouched.
 
 Coverage has a floor per language that only rises (`tools/coverage/README.md`). When a change adds

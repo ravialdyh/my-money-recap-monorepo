@@ -77,8 +77,8 @@ bypass the earlier substring match allowed.
 pipeline — one-off tooling, not shipped code), `my-money-recap-ds/.design-sync/**` (owned by the
 design-sync tool) and `docs/**`.
 
-`.pre-commit-config.yaml` carries a longer list, on the three hooks that rewrite files. That is not a
-copy: those hooks touch JSON, CSS and Markdown, which this checker never opens, and nine generated
-files carry trailing whitespace exactly as their generator emits it. It is attached per hook rather
-than globally so that `detect-private-key`, `gitleaks` and `check-added-large-files` still see every
-file in the repo.
+`.pre-commit-config.yaml` carries a longer list, written once as a YAML anchor and shared by the seven
+hooks that format or lint generated output. That is not a copy of this one: those hooks touch JSON, CSS
+and Markdown, which this checker never opens, and generated files carry trailing whitespace exactly as
+their generator emits it. It is attached per hook rather than globally so that `detect-private-key`,
+`gitleaks` and `check-added-large-files` still see every file in the repo.

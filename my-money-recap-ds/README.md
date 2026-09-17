@@ -16,7 +16,13 @@ src/
   icons/         one <Icon name=…> component; glyph drawings live in glyphs.tsx
   screens/       the four recap screens as components (RecapCoverScreen, RecapEarningScreen, RecapGoalScreen, RecapPersonalityScreen)
   money.ts       formatMoney and friends: the platform formatter, nothing hand-written
+  *.test.ts(x)   beside the code they cover; vitest in jsdom, see ../tools/coverage/README.md
   index.ts       public exports
+```
+
+```bash
+npm run test            # once
+npm run test:coverage   # what CI's design-system job runs
 ```
 
 ## Using it
