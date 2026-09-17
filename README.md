@@ -126,6 +126,13 @@ The configs carry no comments, so the reasoning lives here.
   every run and `swiftformat --lint` fails in CI. `function_body_length`, `file_length` and `todo`
   are off because `tools/policy` already caps length and bans tracker tags. `identifier_name`
   allows one-character names: the design system's size steps are `l`, `m` and `s` in both languages.
+- **Design-system tests.** `vitest.config.ts` runs them in `jsdom` so components can actually be
+  rendered and clicked, which a Node environment cannot do. `restoreMocks` and `unstubGlobals` reset
+  every spy and global between tests, because the suite replaces `ResizeObserver`,
+  `requestAnimationFrame`, `matchMedia` and `document.fonts` — none of which jsdom provides — and a
+  leak between files would make a pass depend on test order. React Testing Library drives the
+  components through the DOM rather than their internals, so a refactor that keeps the markup keeps
+  the tests.
 - **Dependabot.** Every ecosystem waits seven days before proposing a newly published version — a
   release hours old can be a compromised one. Security updates ignore the cooldown, so a real
   advisory still arrives at once. Each group is also `update-types: ["minor", "patch"]`, so routine

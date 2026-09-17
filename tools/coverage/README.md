@@ -20,7 +20,7 @@ All three come from a CI run, not a guess.
 | --- | --- | --- |
 | `go` | 52.9% | The backend job, with the Compose stack up, so `internal/members` and the end-to-end test really run. `internal/serve` is at 100%. |
 | `ios` | 30.9% | The iOS job on a macOS runner, ten tests, `-enableCodeCoverage YES` on both halves of the build-then-test split. |
-| `typescript` | 8.6% | `npm run test:coverage` — one test file, `money.test.ts`, against 33 modules. |
+| `typescript` | 80% | `npm run test:coverage` — 134 tests over the components, hooks and Recap screens; measured 97.8%, and the floor sits at the target because the ratchet stops there. |
 
 When a run beats its floor the gate passes and prints the command that records the new one:
 
@@ -39,10 +39,11 @@ say nothing.
 
 ## Getting to 80%
 
-TypeScript is the long way from it: 38 source modules under `my-money-recap-ds/src`, one test file
-between them, and 26 components with no test at all. Go's remaining gap is `internal/bff`'s unexercised
-branches; `internal/members` and `internal/serve` are covered. iOS at
-30.9% is ten tests over the view models, the Keychain and money formatting, with the views untested.
+TypeScript is there: 97.8% of statements and 90% of branches, over nine test files. The suite renders
+components rather than only calling functions, so the fit-to-width measurement, the count-up animation
+and every event handler are exercised. Go's remaining gap is `internal/bff`'s unexercised branches;
+`internal/members` and `internal/serve` are covered. iOS at 30.9% is ten tests over the view models,
+the Keychain and money formatting, with the views untested.
 
 Nothing forces that into one change. Add tests with the slice that touches the code, raise the floor
 in the same pull request, and the ratchet keeps what you gained.
