@@ -28,7 +28,8 @@ type LogSpendRequest struct {
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// Above zero, at most 11 digits before the separator (PRD D57).
-	Amount   *Money   `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	Amount *Money `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
 	Category Category `protobuf:"varint,4,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
 	// "YYYY-MM-DD", within the last 60 days including today (PRD §8.10).
 	Date string `protobuf:"bytes,5,opt,name=date,proto3" json:"date,omitempty"`
@@ -172,19 +173,23 @@ func (x *LogSpendResponse) GetCrossedLine() bool {
 	return false
 }
 
-// Every field is the new value; the date of a Spend older than 60 days must
-// be sent back unchanged (PRD §6.10).
+// Every field is the new value, validated exactly as LogSpend validates it
+// (PRD §8.10, D57, §6.9); the edit sheet reuses the same fields (§6.10).
 type EditSpendRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
 	// key returns the original result, not an error.
-	IdempotencyKey string   `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string   `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	SpendId        string   `protobuf:"bytes,3,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
-	Amount         *Money   `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
-	Category       Category `protobuf:"varint,5,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	// "YYYY-MM-DD".
-	Date          string `protobuf:"bytes,6,opt,name=date,proto3" json:"date,omitempty"`
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	SpendId        string `protobuf:"bytes,3,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
+	// Above zero, at most 11 digits before the separator (PRD D57).
+	Amount *Money `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
+	Category Category `protobuf:"varint,5,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
+	// "YYYY-MM-DD" within the last 60 days including today, or the stored date
+	// unchanged when the Spend is already older than that (PRD §8.10, §6.10).
+	Date string `protobuf:"bytes,6,opt,name=date,proto3" json:"date,omitempty"`
+	// Optional, at most 80 characters (PRD §6.9).
 	Note          string `protobuf:"bytes,7,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -398,8 +403,8 @@ type DeleteSpendResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Spend *Spend                 `protobuf:"bytes,1,opt,name=spend,proto3" json:"spend,omitempty"`
 	Month *MonthSummary          `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
-	// Always false: deleting never fires a warning (PRD §8.8); kept so every
-	// spend write answers the same three facts.
+	// Always false, since deleting never fires a warning (PRD §8.8); carried
+	// because every spend write and event answers it (ARCHITECTURE §7.2).
 	CrossedLine   bool `protobuf:"varint,3,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -465,7 +470,8 @@ type SaveSalaryRequest struct {
 	Amount         *Money `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	// 1 to 31, or "last" (PRD D51).
 	Payday string `protobuf:"bytes,4,opt,name=payday,proto3" json:"payday,omitempty"`
-	// The D56 sheet's answer; THIS_MONTH when the sheet did not open.
+	// The D56 sheet's answer, or THIS_MONTH when the sheet did not open; the
+	// BFF always sends one, and UNSPECIFIED is invalid_argument.
 	AppliesFrom   SalaryAppliesFrom `protobuf:"varint,5,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -714,7 +720,9 @@ type ApplyCurrencyConversionRequest struct {
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// Decimal string: units of to_currency_code per unit of the current one.
-	Rate   string     `protobuf:"bytes,3,opt,name=rate,proto3" json:"rate,omitempty"`
+	Rate string `protobuf:"bytes,3,opt,name=rate,proto3" json:"rate,omitempty"`
+	// PROVIDER or MANUAL, for the CurrencyConversion row (PRD §7); UNSPECIFIED
+	// is invalid_argument.
 	Source RateSource `protobuf:"varint,4,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
 	// ISO 4217 code to convert into.
 	ToCurrencyCode string `protobuf:"bytes,5,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`

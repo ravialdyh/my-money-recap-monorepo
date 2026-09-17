@@ -114,7 +114,8 @@ public nonisolated struct MoneyRecap_V1_LedgerSpendEdited: @unchecked Sendable {
 }
 
 /// Routing key "ledger.spend.deleted": the Spend as it was and the recomputed
-/// month it left; crossed_line is always false (PRD §8.8).
+/// month it left; crossed_line is always false (PRD §8.8) and carried because
+/// every spend event answers it (ARCHITECTURE §7.2).
 public nonisolated struct MoneyRecap_V1_LedgerSpendDeleted: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

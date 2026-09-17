@@ -119,7 +119,8 @@ public nonisolated struct MoneyRecap_V1_MonthSummary: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// Absent until a Saving Target is in force for the month.
+  /// Absent without a Saving Target in force: no row, or a 0 percent row
+  /// (PRD §8.4), so a present target always has percent above 0.
   public var savingTarget: MoneyRecap_V1_SavingTargetFacts {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetFacts()}
     set {_uniqueStorage()._savingTarget = newValue}
@@ -237,12 +238,8 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
     set {_uniqueStorage()._month = newValue}
   }
 
-  /// True for the §6.17 screens; situation says which of the three (PRD §8.11).
-  public var partial: Bool {
-    get {_storage._partial}
-    set {_uniqueStorage()._partial = newValue}
-  }
-
+  /// Unspecified on a full Recap; any other value means the §6.17 screens
+  /// (PRD §8.11). This is the one partial flag.
   public var situation: MoneyRecap_V1_PartialSituation {
     get {_storage._situation}
     set {_uniqueStorage()._situation = newValue}
@@ -292,7 +289,8 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// Absent without a Saving Target: the §6.12 and §6.13 no-target branches.
+  /// Absent without a Saving Target in force (no row, or a 0 percent row): the
+  /// §6.12 and §6.13 no-target branches.
   public var savingTarget: MoneyRecap_V1_SavingTargetFacts {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetFacts()}
     set {_uniqueStorage()._savingTarget = newValue}
@@ -349,6 +347,13 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   public var hasArchetype: Bool {_storage._archetype != nil}
   /// Clears the value of `archetype`. Subsequent reads from it will return its default value.
   public mutating func clearArchetype() {_uniqueStorage()._archetype = nil}
+
+  /// The Archetype's name as the phone shows it, the same string as
+  /// RecapMonth.label (A2: the phone never names one); empty without one.
+  public var archetypeName: String {
+    get {_storage._archetypeName}
+    set {_uniqueStorage()._archetypeName = newValue}
+  }
 
   /// The Archetype's one-line description from PRD §8.6; empty without one.
   public var archetypeDescription: String {
@@ -444,7 +449,8 @@ public nonisolated struct MoneyRecap_V1_LedgerSettings: Sendable {
   /// Clears the value of `nextSalary`. Subsequent reads from it will return its default value.
   public mutating func clearNextSalary() {self._nextSalary = nil}
 
-  /// The Saving Target in force this month; absent when "Not set".
+  /// The Saving Target in force this month; absent when "Not set", which is
+  /// no row or a 0 percent row (PRD §8.4).
   public var savingTarget: MoneyRecap_V1_SavingTargetSetting {
     get {_savingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
     set {_savingTarget = newValue}
@@ -790,11 +796,10 @@ nonisolated extension MoneyRecap_V1_CategoryShare: SwiftProtobuf.Message, SwiftP
 
 nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Recap"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}month\0\u{1}partial\0\u{1}situation\0\u{3}money_in\0\u{1}spent\0\u{1}saved\0\u{3}spend_count\0\u{1}salary\0\u{3}saving_target\0\u{3}kept_percent\0\u{1}streak\0\u{1}categories\0\u{1}splurge\0\u{1}archetype\0\u{3}archetype_description\0\u{3}closing_line\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}month\0\u{1}situation\0\u{3}money_in\0\u{1}spent\0\u{1}saved\0\u{3}spend_count\0\u{1}salary\0\u{3}saving_target\0\u{3}kept_percent\0\u{1}streak\0\u{1}categories\0\u{1}splurge\0\u{1}archetype\0\u{3}archetype_name\0\u{3}archetype_description\0\u{3}closing_line\0")
 
   fileprivate class _StorageClass {
     var _month: String = String()
-    var _partial: Bool = false
     var _situation: MoneyRecap_V1_PartialSituation = .unspecified
     var _moneyIn: MoneyRecap_V1_Money? = nil
     var _spent: MoneyRecap_V1_Money? = nil
@@ -807,6 +812,7 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
     var _categories: [MoneyRecap_V1_CategoryShare] = []
     var _splurge: MoneyRecap_V1_Spend? = nil
     var _archetype: MoneyRecap_V1_Archetype? = nil
+    var _archetypeName: String = String()
     var _archetypeDescription: String = String()
     var _closingLine: String = String()
 
@@ -820,7 +826,6 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
 
     init(copying source: _StorageClass) {
       _month = source._month
-      _partial = source._partial
       _situation = source._situation
       _moneyIn = source._moneyIn
       _spent = source._spent
@@ -833,6 +838,7 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
       _categories = source._categories
       _splurge = source._splurge
       _archetype = source._archetype
+      _archetypeName = source._archetypeName
       _archetypeDescription = source._archetypeDescription
       _closingLine = source._closingLine
     }
@@ -854,19 +860,19 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
         // enabled. https://github.com/apple/swift-protobuf/issues/1034
         switch fieldNumber {
         case 1: try { try decoder.decodeSingularStringField(value: &_storage._month) }()
-        case 2: try { try decoder.decodeSingularBoolField(value: &_storage._partial) }()
-        case 3: try { try decoder.decodeSingularEnumField(value: &_storage._situation) }()
-        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._moneyIn) }()
-        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._spent) }()
-        case 6: try { try decoder.decodeSingularMessageField(value: &_storage._saved) }()
-        case 7: try { try decoder.decodeSingularInt32Field(value: &_storage._spendCount) }()
-        case 8: try { try decoder.decodeSingularMessageField(value: &_storage._salary) }()
-        case 9: try { try decoder.decodeSingularMessageField(value: &_storage._savingTarget) }()
-        case 10: try { try decoder.decodeSingularInt32Field(value: &_storage._keptPercent) }()
-        case 11: try { try decoder.decodeSingularMessageField(value: &_storage._streak) }()
-        case 12: try { try decoder.decodeRepeatedMessageField(value: &_storage._categories) }()
-        case 13: try { try decoder.decodeSingularMessageField(value: &_storage._splurge) }()
-        case 14: try { try decoder.decodeSingularEnumField(value: &_storage._archetype) }()
+        case 2: try { try decoder.decodeSingularEnumField(value: &_storage._situation) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._moneyIn) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._spent) }()
+        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._saved) }()
+        case 6: try { try decoder.decodeSingularInt32Field(value: &_storage._spendCount) }()
+        case 7: try { try decoder.decodeSingularMessageField(value: &_storage._salary) }()
+        case 8: try { try decoder.decodeSingularMessageField(value: &_storage._savingTarget) }()
+        case 9: try { try decoder.decodeSingularInt32Field(value: &_storage._keptPercent) }()
+        case 10: try { try decoder.decodeSingularMessageField(value: &_storage._streak) }()
+        case 11: try { try decoder.decodeRepeatedMessageField(value: &_storage._categories) }()
+        case 12: try { try decoder.decodeSingularMessageField(value: &_storage._splurge) }()
+        case 13: try { try decoder.decodeSingularEnumField(value: &_storage._archetype) }()
+        case 14: try { try decoder.decodeSingularStringField(value: &_storage._archetypeName) }()
         case 15: try { try decoder.decodeSingularStringField(value: &_storage._archetypeDescription) }()
         case 16: try { try decoder.decodeSingularStringField(value: &_storage._closingLine) }()
         default: break
@@ -884,45 +890,45 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
       if !_storage._month.isEmpty {
         try visitor.visitSingularStringField(value: _storage._month, fieldNumber: 1)
       }
-      if _storage._partial != false {
-        try visitor.visitSingularBoolField(value: _storage._partial, fieldNumber: 2)
-      }
       if _storage._situation != .unspecified {
-        try visitor.visitSingularEnumField(value: _storage._situation, fieldNumber: 3)
+        try visitor.visitSingularEnumField(value: _storage._situation, fieldNumber: 2)
       }
       try { if let v = _storage._moneyIn {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
       } }()
       try { if let v = _storage._spent {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
       } }()
       try { if let v = _storage._saved {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
       } }()
       if _storage._spendCount != 0 {
-        try visitor.visitSingularInt32Field(value: _storage._spendCount, fieldNumber: 7)
+        try visitor.visitSingularInt32Field(value: _storage._spendCount, fieldNumber: 6)
       }
       try { if let v = _storage._salary {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
       } }()
       try { if let v = _storage._savingTarget {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
       } }()
       try { if let v = _storage._keptPercent {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 10)
+        try visitor.visitSingularInt32Field(value: v, fieldNumber: 9)
       } }()
       try { if let v = _storage._streak {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
       } }()
       if !_storage._categories.isEmpty {
-        try visitor.visitRepeatedMessageField(value: _storage._categories, fieldNumber: 12)
+        try visitor.visitRepeatedMessageField(value: _storage._categories, fieldNumber: 11)
       }
       try { if let v = _storage._splurge {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
       } }()
       try { if let v = _storage._archetype {
-        try visitor.visitSingularEnumField(value: v, fieldNumber: 14)
+        try visitor.visitSingularEnumField(value: v, fieldNumber: 13)
       } }()
+      if !_storage._archetypeName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._archetypeName, fieldNumber: 14)
+      }
       if !_storage._archetypeDescription.isEmpty {
         try visitor.visitSingularStringField(value: _storage._archetypeDescription, fieldNumber: 15)
       }
@@ -939,7 +945,6 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
         let _storage = _args.0
         let rhs_storage = _args.1
         if _storage._month != rhs_storage._month {return false}
-        if _storage._partial != rhs_storage._partial {return false}
         if _storage._situation != rhs_storage._situation {return false}
         if _storage._moneyIn != rhs_storage._moneyIn {return false}
         if _storage._spent != rhs_storage._spent {return false}
@@ -952,6 +957,7 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
         if _storage._categories != rhs_storage._categories {return false}
         if _storage._splurge != rhs_storage._splurge {return false}
         if _storage._archetype != rhs_storage._archetype {return false}
+        if _storage._archetypeName != rhs_storage._archetypeName {return false}
         if _storage._archetypeDescription != rhs_storage._archetypeDescription {return false}
         if _storage._closingLine != rhs_storage._closingLine {return false}
         return true

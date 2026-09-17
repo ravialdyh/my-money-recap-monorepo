@@ -91,7 +91,8 @@ type MonthSummary struct {
 	Saved *Money `protobuf:"bytes,4,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
 	// Absent until a Salary is in force for the month (PRD D54).
 	Salary *SalaryFacts `protobuf:"bytes,5,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Absent until a Saving Target is in force for the month.
+	// Absent without a Saving Target in force: no row, or a 0 percent row
+	// (PRD §8.4), so a present target always has percent above 0.
 	SavingTarget *SavingTargetFacts `protobuf:"bytes,6,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	// Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
 	StreakDay int32 `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
@@ -368,31 +369,35 @@ type Recap struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// "YYYY-MM".
 	Month string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
-	// True for the §6.17 screens; situation says which of the three (PRD §8.11).
-	Partial   bool             `protobuf:"varint,2,opt,name=partial,proto3" json:"partial,omitempty"`
-	Situation PartialSituation `protobuf:"varint,3,opt,name=situation,proto3,enum=money_recap.v1.PartialSituation" json:"situation,omitempty"`
-	MoneyIn   *Money           `protobuf:"bytes,4,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
-	Spent     *Money           `protobuf:"bytes,5,opt,name=spent,proto3" json:"spent,omitempty"`
+	// Unspecified on a full Recap; any other value means the §6.17 screens
+	// (PRD §8.11). This is the one partial flag.
+	Situation PartialSituation `protobuf:"varint,2,opt,name=situation,proto3,enum=money_recap.v1.PartialSituation" json:"situation,omitempty"`
+	MoneyIn   *Money           `protobuf:"bytes,3,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
+	Spent     *Money           `protobuf:"bytes,4,opt,name=spent,proto3" json:"spent,omitempty"`
 	// Absent while Money In is 0 (PRD D41).
-	Saved *Money `protobuf:"bytes,6,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
+	Saved *Money `protobuf:"bytes,5,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
 	// Number of Spends in the month; the "{n} spends" chip of §6.17.
-	SpendCount int32 `protobuf:"varint,7,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
+	SpendCount int32 `protobuf:"varint,6,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
 	// Absent without a Salary; screen 3 of a Partial Recap names the Payday (D55).
-	Salary *SalaryFacts `protobuf:"bytes,8,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Absent without a Saving Target: the §6.12 and §6.13 no-target branches.
-	SavingTarget *SavingTargetFacts `protobuf:"bytes,9,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	Salary *SalaryFacts `protobuf:"bytes,7,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
+	// Absent without a Saving Target in force (no row, or a 0 percent row): the
+	// §6.12 and §6.13 no-target branches.
+	SavingTarget *SavingTargetFacts `protobuf:"bytes,8,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	// round(Saved ÷ Target amount × 100), clamped 0 to 999 (PRD §8.4). Absent
 	// without a Saving Target or without Saved.
-	KeptPercent *int32       `protobuf:"varint,10,opt,name=kept_percent,json=keptPercent,proto3,oneof" json:"kept_percent,omitempty"`
-	Streak      *StreakFacts `protobuf:"bytes,11,opt,name=streak,proto3" json:"streak,omitempty"`
+	KeptPercent *int32       `protobuf:"varint,9,opt,name=kept_percent,json=keptPercent,proto3,oneof" json:"kept_percent,omitempty"`
+	Streak      *StreakFacts `protobuf:"bytes,10,opt,name=streak,proto3" json:"streak,omitempty"`
 	// One entry per Category with a Spend, sorted by amount descending; the
 	// phone applies the three-bar cap (PRD D71).
-	Categories []*CategoryShare `protobuf:"bytes,12,rep,name=categories,proto3" json:"categories,omitempty"`
+	Categories []*CategoryShare `protobuf:"bytes,11,rep,name=categories,proto3" json:"categories,omitempty"`
 	// The largest single Spend, ties to the earliest date (PRD §8.3). Absent
 	// with no Spends.
-	Splurge *Spend `protobuf:"bytes,13,opt,name=splurge,proto3,oneof" json:"splurge,omitempty"`
+	Splurge *Spend `protobuf:"bytes,12,opt,name=splurge,proto3,oneof" json:"splurge,omitempty"`
 	// Absent when Money In is 0 or no Saving Target is set (PRD §8.6).
-	Archetype *Archetype `protobuf:"varint,14,opt,name=archetype,proto3,enum=money_recap.v1.Archetype,oneof" json:"archetype,omitempty"`
+	Archetype *Archetype `protobuf:"varint,13,opt,name=archetype,proto3,enum=money_recap.v1.Archetype,oneof" json:"archetype,omitempty"`
+	// The Archetype's name as the phone shows it, the same string as
+	// RecapMonth.label (A2: the phone never names one); empty without one.
+	ArchetypeName string `protobuf:"bytes,14,opt,name=archetype_name,json=archetypeName,proto3" json:"archetype_name,omitempty"`
 	// The Archetype's one-line description from PRD §8.6; empty without one.
 	ArchetypeDescription string `protobuf:"bytes,15,opt,name=archetype_description,json=archetypeDescription,proto3" json:"archetype_description,omitempty"`
 	// Screen 4 line of a Partial Recap, chosen per situation (PRD §6.17); empty
@@ -437,13 +442,6 @@ func (x *Recap) GetMonth() string {
 		return x.Month
 	}
 	return ""
-}
-
-func (x *Recap) GetPartial() bool {
-	if x != nil {
-		return x.Partial
-	}
-	return false
 }
 
 func (x *Recap) GetSituation() PartialSituation {
@@ -528,6 +526,13 @@ func (x *Recap) GetArchetype() Archetype {
 		return *x.Archetype
 	}
 	return Archetype_ARCHETYPE_UNSPECIFIED
+}
+
+func (x *Recap) GetArchetypeName() string {
+	if x != nil {
+		return x.ArchetypeName
+	}
+	return ""
 }
 
 func (x *Recap) GetArchetypeDescription() string {
@@ -672,7 +677,8 @@ type LedgerSettings struct {
 	Salary *SalarySetting `protobuf:"bytes,1,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
 	// A Salary effective from a later month (D56 "from your next payday").
 	NextSalary *SalarySetting `protobuf:"bytes,2,opt,name=next_salary,json=nextSalary,proto3,oneof" json:"next_salary,omitempty"`
-	// The Saving Target in force this month; absent when "Not set".
+	// The Saving Target in force this month; absent when "Not set", which is
+	// no row or a 0 percent row (PRD §8.4).
 	SavingTarget *SavingTargetSetting `protobuf:"bytes,3,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	// A Saving Target effective from next month (D65).
 	NextSavingTarget *SavingTargetSetting `protobuf:"bytes,4,opt,name=next_saving_target,json=nextSavingTarget,proto3,oneof" json:"next_saving_target,omitempty"`
@@ -899,26 +905,26 @@ const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\x06amount\x18\x02 \x01(\v2\x15.money_recap.v1.MoneyR\x06amount\x12\x18\n" +
 	"\apercent\x18\x03 \x01(\x05R\apercent\x12\x1f\n" +
 	"\vspend_count\x18\x04 \x01(\x05R\n" +
-	"spendCount\"\xea\x06\n" +
+	"spendCount\"\xf7\x06\n" +
 	"\x05Recap\x12\x14\n" +
-	"\x05month\x18\x01 \x01(\tR\x05month\x12\x18\n" +
-	"\apartial\x18\x02 \x01(\bR\apartial\x12>\n" +
-	"\tsituation\x18\x03 \x01(\x0e2 .money_recap.v1.PartialSituationR\tsituation\x120\n" +
-	"\bmoney_in\x18\x04 \x01(\v2\x15.money_recap.v1.MoneyR\amoneyIn\x12+\n" +
-	"\x05spent\x18\x05 \x01(\v2\x15.money_recap.v1.MoneyR\x05spent\x120\n" +
-	"\x05saved\x18\x06 \x01(\v2\x15.money_recap.v1.MoneyH\x00R\x05saved\x88\x01\x01\x12\x1f\n" +
-	"\vspend_count\x18\a \x01(\x05R\n" +
+	"\x05month\x18\x01 \x01(\tR\x05month\x12>\n" +
+	"\tsituation\x18\x02 \x01(\x0e2 .money_recap.v1.PartialSituationR\tsituation\x120\n" +
+	"\bmoney_in\x18\x03 \x01(\v2\x15.money_recap.v1.MoneyR\amoneyIn\x12+\n" +
+	"\x05spent\x18\x04 \x01(\v2\x15.money_recap.v1.MoneyR\x05spent\x120\n" +
+	"\x05saved\x18\x05 \x01(\v2\x15.money_recap.v1.MoneyH\x00R\x05saved\x88\x01\x01\x12\x1f\n" +
+	"\vspend_count\x18\x06 \x01(\x05R\n" +
 	"spendCount\x128\n" +
-	"\x06salary\x18\b \x01(\v2\x1b.money_recap.v1.SalaryFactsH\x01R\x06salary\x88\x01\x01\x12K\n" +
-	"\rsaving_target\x18\t \x01(\v2!.money_recap.v1.SavingTargetFactsH\x02R\fsavingTarget\x88\x01\x01\x12&\n" +
-	"\fkept_percent\x18\n" +
-	" \x01(\x05H\x03R\vkeptPercent\x88\x01\x01\x123\n" +
-	"\x06streak\x18\v \x01(\v2\x1b.money_recap.v1.StreakFactsR\x06streak\x12=\n" +
+	"\x06salary\x18\a \x01(\v2\x1b.money_recap.v1.SalaryFactsH\x01R\x06salary\x88\x01\x01\x12K\n" +
+	"\rsaving_target\x18\b \x01(\v2!.money_recap.v1.SavingTargetFactsH\x02R\fsavingTarget\x88\x01\x01\x12&\n" +
+	"\fkept_percent\x18\t \x01(\x05H\x03R\vkeptPercent\x88\x01\x01\x123\n" +
+	"\x06streak\x18\n" +
+	" \x01(\v2\x1b.money_recap.v1.StreakFactsR\x06streak\x12=\n" +
 	"\n" +
-	"categories\x18\f \x03(\v2\x1d.money_recap.v1.CategoryShareR\n" +
+	"categories\x18\v \x03(\v2\x1d.money_recap.v1.CategoryShareR\n" +
 	"categories\x124\n" +
-	"\asplurge\x18\r \x01(\v2\x15.money_recap.v1.SpendH\x04R\asplurge\x88\x01\x01\x12<\n" +
-	"\tarchetype\x18\x0e \x01(\x0e2\x19.money_recap.v1.ArchetypeH\x05R\tarchetype\x88\x01\x01\x123\n" +
+	"\asplurge\x18\f \x01(\v2\x15.money_recap.v1.SpendH\x04R\asplurge\x88\x01\x01\x12<\n" +
+	"\tarchetype\x18\r \x01(\x0e2\x19.money_recap.v1.ArchetypeH\x05R\tarchetype\x88\x01\x01\x12%\n" +
+	"\x0earchetype_name\x18\x0e \x01(\tR\rarchetypeName\x123\n" +
 	"\x15archetype_description\x18\x0f \x01(\tR\x14archetypeDescription\x12!\n" +
 	"\fclosing_line\x18\x10 \x01(\tR\vclosingLineB\b\n" +
 	"\x06_savedB\t\n" +

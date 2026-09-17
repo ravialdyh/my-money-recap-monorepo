@@ -41,6 +41,7 @@ public nonisolated struct MoneyRecap_V1_LogSpendRequest: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
+  /// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
   public var category: MoneyRecap_V1_Category = .unspecified
 
   /// "YYYY-MM-DD", within the last 60 days including today (PRD §8.10).
@@ -91,8 +92,8 @@ public nonisolated struct MoneyRecap_V1_LogSpendResponse: Sendable {
   fileprivate var _month: MoneyRecap_V1_MonthSummary? = nil
 }
 
-/// Every field is the new value; the date of a Spend older than 60 days must
-/// be sent back unchanged (PRD §6.10).
+/// Every field is the new value, validated exactly as LogSpend validates it
+/// (PRD §8.10, D57, §6.9); the edit sheet reuses the same fields (§6.10).
 public nonisolated struct MoneyRecap_V1_EditSpendRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -106,6 +107,7 @@ public nonisolated struct MoneyRecap_V1_EditSpendRequest: Sendable {
 
   public var spendID: String = String()
 
+  /// Above zero, at most 11 digits before the separator (PRD D57).
   public var amount: MoneyRecap_V1_Money {
     get {_amount ?? MoneyRecap_V1_Money()}
     set {_amount = newValue}
@@ -115,11 +117,14 @@ public nonisolated struct MoneyRecap_V1_EditSpendRequest: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
+  /// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
   public var category: MoneyRecap_V1_Category = .unspecified
 
-  /// "YYYY-MM-DD".
+  /// "YYYY-MM-DD" within the last 60 days including today, or the stored date
+  /// unchanged when the Spend is already older than that (PRD §8.10, §6.10).
   public var date: String = String()
 
+  /// Optional, at most 80 characters (PRD §6.9).
   public var note: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -206,8 +211,8 @@ public nonisolated struct MoneyRecap_V1_DeleteSpendResponse: Sendable {
   /// Clears the value of `month`. Subsequent reads from it will return its default value.
   public mutating func clearMonth() {self._month = nil}
 
-  /// Always false: deleting never fires a warning (PRD §8.8); kept so every
-  /// spend write answers the same three facts.
+  /// Always false, since deleting never fires a warning (PRD §8.8); carried
+  /// because every spend write and event answers it (ARCHITECTURE §7.2).
   public var crossedLine: Bool = false
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -241,7 +246,8 @@ public nonisolated struct MoneyRecap_V1_SaveSalaryRequest: Sendable {
   /// 1 to 31, or "last" (PRD D51).
   public var payday: String = String()
 
-  /// The D56 sheet's answer; THIS_MONTH when the sheet did not open.
+  /// The D56 sheet's answer, or THIS_MONTH when the sheet did not open; the
+  /// BFF always sends one, and UNSPECIFIED is invalid_argument.
   public var appliesFrom: MoneyRecap_V1_SalaryAppliesFrom = .unspecified
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -350,6 +356,8 @@ public nonisolated struct MoneyRecap_V1_ApplyCurrencyConversionRequest: Sendable
   /// Decimal string: units of to_currency_code per unit of the current one.
   public var rate: String = String()
 
+  /// PROVIDER or MANUAL, for the CurrencyConversion row (PRD §7); UNSPECIFIED
+  /// is invalid_argument.
   public var source: MoneyRecap_V1_RateSource = .unspecified
 
   /// ISO 4217 code to convert into.

@@ -163,7 +163,8 @@ func (x *LedgerSpendEdited) GetCrossedLine() bool {
 }
 
 // Routing key "ledger.spend.deleted": the Spend as it was and the recomputed
-// month it left; crossed_line is always false (PRD §8.8).
+// month it left; crossed_line is always false (PRD §8.8) and carried because
+// every spend event answers it (ARCHITECTURE §7.2).
 type LedgerSpendDeleted struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`

@@ -264,6 +264,7 @@ public nonisolated struct MoneyRecap_V1_SpentToday: Sendable {
 
   public var memberID: String = String()
 
+  /// Always present; "0" with no Spend today.
   public var spent: MoneyRecap_V1_Money {
     get {_spent ?? MoneyRecap_V1_Money()}
     set {_spent = newValue}
@@ -287,7 +288,8 @@ public nonisolated struct MoneyRecap_V1_GetSpentTodayResponse: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// One entry per requested Member, in request order.
+  /// One entry per requested Member ledger knows, in any order; an unknown or
+  /// purged id has no entry, so the caller matches on member_id.
   public var entries: [MoneyRecap_V1_SpentToday] = []
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

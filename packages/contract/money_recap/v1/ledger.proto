@@ -87,12 +87,14 @@ message GetSpentTodayRequest {
 // What one Member spent today, today being in that Member's zone (A3).
 message SpentToday {
   string member_id = 1;
+  // Always present; "0" with no Spend today.
   Money spent = 2;
   int32 spend_count = 3;
 }
 
 message GetSpentTodayResponse {
-  // One entry per requested Member, in request order.
+  // One entry per requested Member ledger knows, in any order; an unknown or
+  // purged id has no entry, so the caller matches on member_id.
   repeated SpentToday entries = 1;
 }
 

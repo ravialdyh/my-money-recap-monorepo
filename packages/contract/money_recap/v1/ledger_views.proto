@@ -22,7 +22,8 @@ message MonthSummary {
   optional Money saved = 4;
   // Absent until a Salary is in force for the month (PRD D54).
   optional SalaryFacts salary = 5;
-  // Absent until a Saving Target is in force for the month.
+  // Absent without a Saving Target in force: no row, or a 0 percent row
+  // (PRD §8.4), so a present target always has percent above 0.
   optional SavingTargetFacts saving_target = 6;
   // Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
   int32 streak_day = 7;
@@ -77,31 +78,35 @@ message CategoryShare {
 message Recap {
   // "YYYY-MM".
   string month = 1;
-  // True for the §6.17 screens; situation says which of the three (PRD §8.11).
-  bool partial = 2;
-  PartialSituation situation = 3;
-  Money money_in = 4;
-  Money spent = 5;
+  // Unspecified on a full Recap; any other value means the §6.17 screens
+  // (PRD §8.11). This is the one partial flag.
+  PartialSituation situation = 2;
+  Money money_in = 3;
+  Money spent = 4;
   // Absent while Money In is 0 (PRD D41).
-  optional Money saved = 6;
+  optional Money saved = 5;
   // Number of Spends in the month; the "{n} spends" chip of §6.17.
-  int32 spend_count = 7;
+  int32 spend_count = 6;
   // Absent without a Salary; screen 3 of a Partial Recap names the Payday (D55).
-  optional SalaryFacts salary = 8;
-  // Absent without a Saving Target: the §6.12 and §6.13 no-target branches.
-  optional SavingTargetFacts saving_target = 9;
+  optional SalaryFacts salary = 7;
+  // Absent without a Saving Target in force (no row, or a 0 percent row): the
+  // §6.12 and §6.13 no-target branches.
+  optional SavingTargetFacts saving_target = 8;
   // round(Saved ÷ Target amount × 100), clamped 0 to 999 (PRD §8.4). Absent
   // without a Saving Target or without Saved.
-  optional int32 kept_percent = 10;
-  StreakFacts streak = 11;
+  optional int32 kept_percent = 9;
+  StreakFacts streak = 10;
   // One entry per Category with a Spend, sorted by amount descending; the
   // phone applies the three-bar cap (PRD D71).
-  repeated CategoryShare categories = 12;
+  repeated CategoryShare categories = 11;
   // The largest single Spend, ties to the earliest date (PRD §8.3). Absent
   // with no Spends.
-  optional Spend splurge = 13;
+  optional Spend splurge = 12;
   // Absent when Money In is 0 or no Saving Target is set (PRD §8.6).
-  optional Archetype archetype = 14;
+  optional Archetype archetype = 13;
+  // The Archetype's name as the phone shows it, the same string as
+  // RecapMonth.label (A2: the phone never names one); empty without one.
+  string archetype_name = 14;
   // The Archetype's one-line description from PRD §8.6; empty without one.
   string archetype_description = 15;
   // Screen 4 line of a Partial Recap, chosen per situation (PRD §6.17); empty
@@ -135,7 +140,8 @@ message LedgerSettings {
   optional SalarySetting salary = 1;
   // A Salary effective from a later month (D56 "from your next payday").
   optional SalarySetting next_salary = 2;
-  // The Saving Target in force this month; absent when "Not set".
+  // The Saving Target in force this month; absent when "Not set", which is
+  // no row or a 0 percent row (PRD §8.4).
   optional SavingTargetSetting saving_target = 3;
   // A Saving Target effective from next month (D65).
   optional SavingTargetSetting next_saving_target = 4;

@@ -673,10 +673,11 @@ func (x *GetSpentTodayRequest) GetMemberIds() []string {
 
 // What one Member spent today, today being in that Member's zone (A3).
 type SpentToday struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	Spent         *Money                 `protobuf:"bytes,2,opt,name=spent,proto3" json:"spent,omitempty"`
-	SpendCount    int32                  `protobuf:"varint,3,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	// Always present; "0" with no Spend today.
+	Spent         *Money `protobuf:"bytes,2,opt,name=spent,proto3" json:"spent,omitempty"`
+	SpendCount    int32  `protobuf:"varint,3,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -734,7 +735,8 @@ func (x *SpentToday) GetSpendCount() int32 {
 
 type GetSpentTodayResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// One entry per requested Member, in request order.
+	// One entry per requested Member ledger knows, in any order; an unknown or
+	// purged id has no entry, so the caller matches on member_id.
 	Entries       []*SpentToday `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
