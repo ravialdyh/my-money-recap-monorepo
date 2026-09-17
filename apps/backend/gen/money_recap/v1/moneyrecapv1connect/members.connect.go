@@ -39,14 +39,43 @@ const (
 	// MembersServiceGetProfileProcedure is the fully-qualified name of the MembersService's GetProfile
 	// RPC.
 	MembersServiceGetProfileProcedure = "/money_recap.v1.MembersService/GetProfile"
+	// MembersServiceSaveProfileProcedure is the fully-qualified name of the MembersService's
+	// SaveProfile RPC.
+	MembersServiceSaveProfileProcedure = "/money_recap.v1.MembersService/SaveProfile"
+	// MembersServiceSaveOnboardingStepProcedure is the fully-qualified name of the MembersService's
+	// SaveOnboardingStep RPC.
+	MembersServiceSaveOnboardingStepProcedure = "/money_recap.v1.MembersService/SaveOnboardingStep"
+	// MembersServiceSetTimezoneProcedure is the fully-qualified name of the MembersService's
+	// SetTimezone RPC.
+	MembersServiceSetTimezoneProcedure = "/money_recap.v1.MembersService/SetTimezone"
+	// MembersServiceRequestDeletionProcedure is the fully-qualified name of the MembersService's
+	// RequestDeletion RPC.
+	MembersServiceRequestDeletionProcedure = "/money_recap.v1.MembersService/RequestDeletion"
+	// MembersServiceCancelDeletionProcedure is the fully-qualified name of the MembersService's
+	// CancelDeletion RPC.
+	MembersServiceCancelDeletionProcedure = "/money_recap.v1.MembersService/CancelDeletion"
 )
 
 // MembersServiceClient is a client for the money_recap.v1.MembersService service.
 type MembersServiceClient interface {
 	// Upsert on the Keycloak subject: creates on first sight, returns the same
-	// Member on every later call, and refreshes the email each time.
+	// Member on every later call, and refreshes the email each time. A
+	// tombstoned row (deleted_at set) is treated as absent (§7.1 step 3).
 	GetOrCreateBySubject(context.Context, *connect.Request[v1.GetOrCreateBySubjectRequest]) (*connect.Response[v1.GetOrCreateBySubjectResponse], error)
 	GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error)
+	// Display Name, Avatar key and Currency (PRD §6.4, §6.5); publishes
+	// members.updated.
+	SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error)
+	// Records onboarding progress so a force-quit resumes at the next
+	// unanswered step (PRD §6.4).
+	SaveOnboardingStep(context.Context, *connect.Request[v1.SaveOnboardingStepRequest]) (*connect.Response[v1.SaveOnboardingStepResponse], error)
+	// Called on every launch (A3); publishes members.updated on change.
+	SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error)
+	// Stamps deletion_requested_at and publishes members.deletion.requested
+	// (§7.1 step 1).
+	RequestDeletion(context.Context, *connect.Request[v1.RequestDeletionRequest]) (*connect.Response[v1.RequestDeletionResponse], error)
+	// Clears the stamp and publishes members.deletion.cancelled (§7.1 step 2, D60).
+	CancelDeletion(context.Context, *connect.Request[v1.CancelDeletionRequest]) (*connect.Response[v1.CancelDeletionResponse], error)
 }
 
 // NewMembersServiceClient constructs a client for the money_recap.v1.MembersService service. By
@@ -72,6 +101,36 @@ func NewMembersServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(membersServiceMethods.ByName("GetProfile")),
 			connect.WithClientOptions(opts...),
 		),
+		saveProfile: connect.NewClient[v1.SaveProfileRequest, v1.SaveProfileResponse](
+			httpClient,
+			baseURL+MembersServiceSaveProfileProcedure,
+			connect.WithSchema(membersServiceMethods.ByName("SaveProfile")),
+			connect.WithClientOptions(opts...),
+		),
+		saveOnboardingStep: connect.NewClient[v1.SaveOnboardingStepRequest, v1.SaveOnboardingStepResponse](
+			httpClient,
+			baseURL+MembersServiceSaveOnboardingStepProcedure,
+			connect.WithSchema(membersServiceMethods.ByName("SaveOnboardingStep")),
+			connect.WithClientOptions(opts...),
+		),
+		setTimezone: connect.NewClient[v1.SetTimezoneRequest, v1.SetTimezoneResponse](
+			httpClient,
+			baseURL+MembersServiceSetTimezoneProcedure,
+			connect.WithSchema(membersServiceMethods.ByName("SetTimezone")),
+			connect.WithClientOptions(opts...),
+		),
+		requestDeletion: connect.NewClient[v1.RequestDeletionRequest, v1.RequestDeletionResponse](
+			httpClient,
+			baseURL+MembersServiceRequestDeletionProcedure,
+			connect.WithSchema(membersServiceMethods.ByName("RequestDeletion")),
+			connect.WithClientOptions(opts...),
+		),
+		cancelDeletion: connect.NewClient[v1.CancelDeletionRequest, v1.CancelDeletionResponse](
+			httpClient,
+			baseURL+MembersServiceCancelDeletionProcedure,
+			connect.WithSchema(membersServiceMethods.ByName("CancelDeletion")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -79,6 +138,11 @@ func NewMembersServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 type membersServiceClient struct {
 	getOrCreateBySubject *connect.Client[v1.GetOrCreateBySubjectRequest, v1.GetOrCreateBySubjectResponse]
 	getProfile           *connect.Client[v1.GetProfileRequest, v1.GetProfileResponse]
+	saveProfile          *connect.Client[v1.SaveProfileRequest, v1.SaveProfileResponse]
+	saveOnboardingStep   *connect.Client[v1.SaveOnboardingStepRequest, v1.SaveOnboardingStepResponse]
+	setTimezone          *connect.Client[v1.SetTimezoneRequest, v1.SetTimezoneResponse]
+	requestDeletion      *connect.Client[v1.RequestDeletionRequest, v1.RequestDeletionResponse]
+	cancelDeletion       *connect.Client[v1.CancelDeletionRequest, v1.CancelDeletionResponse]
 }
 
 // GetOrCreateBySubject calls money_recap.v1.MembersService.GetOrCreateBySubject.
@@ -91,12 +155,51 @@ func (c *membersServiceClient) GetProfile(ctx context.Context, req *connect.Requ
 	return c.getProfile.CallUnary(ctx, req)
 }
 
+// SaveProfile calls money_recap.v1.MembersService.SaveProfile.
+func (c *membersServiceClient) SaveProfile(ctx context.Context, req *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error) {
+	return c.saveProfile.CallUnary(ctx, req)
+}
+
+// SaveOnboardingStep calls money_recap.v1.MembersService.SaveOnboardingStep.
+func (c *membersServiceClient) SaveOnboardingStep(ctx context.Context, req *connect.Request[v1.SaveOnboardingStepRequest]) (*connect.Response[v1.SaveOnboardingStepResponse], error) {
+	return c.saveOnboardingStep.CallUnary(ctx, req)
+}
+
+// SetTimezone calls money_recap.v1.MembersService.SetTimezone.
+func (c *membersServiceClient) SetTimezone(ctx context.Context, req *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error) {
+	return c.setTimezone.CallUnary(ctx, req)
+}
+
+// RequestDeletion calls money_recap.v1.MembersService.RequestDeletion.
+func (c *membersServiceClient) RequestDeletion(ctx context.Context, req *connect.Request[v1.RequestDeletionRequest]) (*connect.Response[v1.RequestDeletionResponse], error) {
+	return c.requestDeletion.CallUnary(ctx, req)
+}
+
+// CancelDeletion calls money_recap.v1.MembersService.CancelDeletion.
+func (c *membersServiceClient) CancelDeletion(ctx context.Context, req *connect.Request[v1.CancelDeletionRequest]) (*connect.Response[v1.CancelDeletionResponse], error) {
+	return c.cancelDeletion.CallUnary(ctx, req)
+}
+
 // MembersServiceHandler is an implementation of the money_recap.v1.MembersService service.
 type MembersServiceHandler interface {
 	// Upsert on the Keycloak subject: creates on first sight, returns the same
-	// Member on every later call, and refreshes the email each time.
+	// Member on every later call, and refreshes the email each time. A
+	// tombstoned row (deleted_at set) is treated as absent (§7.1 step 3).
 	GetOrCreateBySubject(context.Context, *connect.Request[v1.GetOrCreateBySubjectRequest]) (*connect.Response[v1.GetOrCreateBySubjectResponse], error)
 	GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error)
+	// Display Name, Avatar key and Currency (PRD §6.4, §6.5); publishes
+	// members.updated.
+	SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error)
+	// Records onboarding progress so a force-quit resumes at the next
+	// unanswered step (PRD §6.4).
+	SaveOnboardingStep(context.Context, *connect.Request[v1.SaveOnboardingStepRequest]) (*connect.Response[v1.SaveOnboardingStepResponse], error)
+	// Called on every launch (A3); publishes members.updated on change.
+	SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error)
+	// Stamps deletion_requested_at and publishes members.deletion.requested
+	// (§7.1 step 1).
+	RequestDeletion(context.Context, *connect.Request[v1.RequestDeletionRequest]) (*connect.Response[v1.RequestDeletionResponse], error)
+	// Clears the stamp and publishes members.deletion.cancelled (§7.1 step 2, D60).
+	CancelDeletion(context.Context, *connect.Request[v1.CancelDeletionRequest]) (*connect.Response[v1.CancelDeletionResponse], error)
 }
 
 // NewMembersServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -118,12 +221,52 @@ func NewMembersServiceHandler(svc MembersServiceHandler, opts ...connect.Handler
 		connect.WithSchema(membersServiceMethods.ByName("GetProfile")),
 		connect.WithHandlerOptions(opts...),
 	)
+	membersServiceSaveProfileHandler := connect.NewUnaryHandler(
+		MembersServiceSaveProfileProcedure,
+		svc.SaveProfile,
+		connect.WithSchema(membersServiceMethods.ByName("SaveProfile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	membersServiceSaveOnboardingStepHandler := connect.NewUnaryHandler(
+		MembersServiceSaveOnboardingStepProcedure,
+		svc.SaveOnboardingStep,
+		connect.WithSchema(membersServiceMethods.ByName("SaveOnboardingStep")),
+		connect.WithHandlerOptions(opts...),
+	)
+	membersServiceSetTimezoneHandler := connect.NewUnaryHandler(
+		MembersServiceSetTimezoneProcedure,
+		svc.SetTimezone,
+		connect.WithSchema(membersServiceMethods.ByName("SetTimezone")),
+		connect.WithHandlerOptions(opts...),
+	)
+	membersServiceRequestDeletionHandler := connect.NewUnaryHandler(
+		MembersServiceRequestDeletionProcedure,
+		svc.RequestDeletion,
+		connect.WithSchema(membersServiceMethods.ByName("RequestDeletion")),
+		connect.WithHandlerOptions(opts...),
+	)
+	membersServiceCancelDeletionHandler := connect.NewUnaryHandler(
+		MembersServiceCancelDeletionProcedure,
+		svc.CancelDeletion,
+		connect.WithSchema(membersServiceMethods.ByName("CancelDeletion")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/money_recap.v1.MembersService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case MembersServiceGetOrCreateBySubjectProcedure:
 			membersServiceGetOrCreateBySubjectHandler.ServeHTTP(w, r)
 		case MembersServiceGetProfileProcedure:
 			membersServiceGetProfileHandler.ServeHTTP(w, r)
+		case MembersServiceSaveProfileProcedure:
+			membersServiceSaveProfileHandler.ServeHTTP(w, r)
+		case MembersServiceSaveOnboardingStepProcedure:
+			membersServiceSaveOnboardingStepHandler.ServeHTTP(w, r)
+		case MembersServiceSetTimezoneProcedure:
+			membersServiceSetTimezoneHandler.ServeHTTP(w, r)
+		case MembersServiceRequestDeletionProcedure:
+			membersServiceRequestDeletionHandler.ServeHTTP(w, r)
+		case MembersServiceCancelDeletionProcedure:
+			membersServiceCancelDeletionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -139,4 +282,24 @@ func (UnimplementedMembersServiceHandler) GetOrCreateBySubject(context.Context, 
 
 func (UnimplementedMembersServiceHandler) GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.MembersService.GetProfile is not implemented"))
+}
+
+func (UnimplementedMembersServiceHandler) SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.MembersService.SaveProfile is not implemented"))
+}
+
+func (UnimplementedMembersServiceHandler) SaveOnboardingStep(context.Context, *connect.Request[v1.SaveOnboardingStepRequest]) (*connect.Response[v1.SaveOnboardingStepResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.MembersService.SaveOnboardingStep is not implemented"))
+}
+
+func (UnimplementedMembersServiceHandler) SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.MembersService.SetTimezone is not implemented"))
+}
+
+func (UnimplementedMembersServiceHandler) RequestDeletion(context.Context, *connect.Request[v1.RequestDeletionRequest]) (*connect.Response[v1.RequestDeletionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.MembersService.RequestDeletion is not implemented"))
+}
+
+func (UnimplementedMembersServiceHandler) CancelDeletion(context.Context, *connect.Request[v1.CancelDeletionRequest]) (*connect.Response[v1.CancelDeletionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.MembersService.CancelDeletion is not implemented"))
 }

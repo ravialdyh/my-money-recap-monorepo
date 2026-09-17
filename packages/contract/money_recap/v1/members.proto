@@ -4,8 +4,11 @@ package money_recap.v1;
 
 option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
 
-// Who the Member is (ARCHITECTURE §7.1). This slice carries only what the
-// skeleton reads; onboarding fields arrive with slice 4.
+import "google/protobuf/timestamp.proto";
+
+// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the slice 1
+// skeleton; 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
+// (PRD §6.18, D60).
 message Profile {
   string member_id = 1;
   // The token's email claim, refreshed on every GetOrCreateBySubject.
@@ -18,6 +21,14 @@ message Profile {
   string currency_code = 5;
   // IANA zone name (A3); empty until SetTimezone runs.
   string timezone = 6;
+  // Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1,
+  // 4 once onboarding is done. A skipped step counts as saved (PRD §6.6).
+  int32 onboarding_step = 7;
+  // "YYYY-MM-DD", the local date at the moment of sign-up, fixed forever (A3,
+  // PRD §7, D43); empty until the first SetTimezone converts the create time.
+  string signed_up_on = 8;
+  // Present only while a deletion request is pending (PRD D60).
+  optional google.protobuf.Timestamp deletion_requested_at = 9;
 }
 
 message GetOrCreateBySubjectRequest {
@@ -39,9 +50,88 @@ message GetProfileResponse {
   Profile profile = 1;
 }
 
+// Each present field replaces the stored value; an absent field is untouched,
+// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16,
+// Display Name and Avatar) each send only their answers.
+message SaveProfileRequest {
+  // A14.
+  string idempotency_key = 1;
+  string member_id = 2;
+  optional string display_name = 3;
+  optional string avatar_key = 4;
+  // ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
+  // PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
+  // ledger.currency.converted (§7.1), never by this write.
+  optional string currency_code = 5;
+}
+
+message SaveProfileResponse {
+  Profile profile = 1;
+}
+
+message SaveOnboardingStepRequest {
+  // A14.
+  string idempotency_key = 1;
+  string member_id = 2;
+  // The step just completed or skipped, 1 to 4 (PRD §5 step 6). The BFF sends
+  // it after the step's SaveProfile succeeded, so progress never runs ahead
+  // of the answers.
+  int32 step = 3;
+}
+
+message SaveOnboardingStepResponse {
+  Profile profile = 1;
+}
+
+message SetTimezoneRequest {
+  // A14.
+  string idempotency_key = 1;
+  string member_id = 2;
+  // IANA zone name (A3).
+  string timezone = 3;
+}
+
+message SetTimezoneResponse {
+  Profile profile = 1;
+}
+
+message RequestDeletionRequest {
+  // A14.
+  string idempotency_key = 1;
+  string member_id = 2;
+}
+
+message RequestDeletionResponse {
+  Profile profile = 1;
+}
+
+message CancelDeletionRequest {
+  // A14.
+  string idempotency_key = 1;
+  string member_id = 2;
+}
+
+message CancelDeletionResponse {
+  Profile profile = 1;
+}
+
 service MembersService {
   // Upsert on the Keycloak subject: creates on first sight, returns the same
-  // Member on every later call, and refreshes the email each time.
+  // Member on every later call, and refreshes the email each time. A
+  // tombstoned row (deleted_at set) is treated as absent (§7.1 step 3).
   rpc GetOrCreateBySubject(GetOrCreateBySubjectRequest) returns (GetOrCreateBySubjectResponse) {}
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
+  // Display Name, Avatar key and Currency (PRD §6.4, §6.5); publishes
+  // members.updated.
+  rpc SaveProfile(SaveProfileRequest) returns (SaveProfileResponse) {}
+  // Records onboarding progress so a force-quit resumes at the next
+  // unanswered step (PRD §6.4).
+  rpc SaveOnboardingStep(SaveOnboardingStepRequest) returns (SaveOnboardingStepResponse) {}
+  // Called on every launch (A3); publishes members.updated on change.
+  rpc SetTimezone(SetTimezoneRequest) returns (SetTimezoneResponse) {}
+  // Stamps deletion_requested_at and publishes members.deletion.requested
+  // (§7.1 step 1).
+  rpc RequestDeletion(RequestDeletionRequest) returns (RequestDeletionResponse) {}
+  // Clears the stamp and publishes members.deletion.cancelled (§7.1 step 2, D60).
+  rpc CancelDeletion(CancelDeletionRequest) returns (CancelDeletionResponse) {}
 }

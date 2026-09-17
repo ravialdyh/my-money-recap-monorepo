@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/shared.proto";
+
+// The replica facts ledger and notify keep in member_facts from events alone
+// (ARCHITECTURE §7.1 "Why separate", §7.2, §7.3).
+message MemberFacts {
+  // IANA zone name (A3). Empty on members.created, since the zone arrives with
+  // the first SetTimezone; the members.updated that follows carries it.
+  string timezone = 1;
+  // "YYYY-MM-DD" (PRD §7 Member). Empty on members.created, stamped with the
+  // zone; consumers must not anchor a Streak window (D43) on an empty value.
+  string signed_up_on = 2;
+  // ISO 4217.
+  string currency_code = 3;
+  string display_name = 4;
+  string email = 5;
+}
+
+// Routing key "members.created" (§7.1 "Publishes").
+message MembersCreated {
+  EventEnvelope envelope = 1;
+  MemberFacts facts = 2;
+}
+
+// Routing key "members.updated": the whole replica after any profile,
+// timezone or currency change (§7.1 "Publishes", "Consumes").
+message MembersUpdated {
+  EventEnvelope envelope = 1;
+  MemberFacts facts = 2;
+}
+
+// Routing key "members.deletion.requested" (§7.1 step 1).
+message MembersDeletionRequested {
+  EventEnvelope envelope = 1;
+}
+
+// Routing key "members.deletion.cancelled" (§7.1 step 2).
+message MembersDeletionCancelled {
+  EventEnvelope envelope = 1;
+}
+
+// Routing key "members.deleted" (§7.1 step 3): ledger, notify and currency
+// purge on it and answer with <service>.member.purged.
+message MembersDeleted {
+  EventEnvelope envelope = 1;
+}

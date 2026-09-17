@@ -6,7 +6,8 @@ A Buf module, package `money_recap.v1`, under `money_recap/v1/*.proto`:
 | File | Holds |
 | --- | --- |
 | `money.proto` | `Money`: a decimal-string amount plus an ISO 4217 code, never a float or minor units (PRD §7, D71) |
-| `members.proto` | `MembersService`: `GetOrCreateBySubject`, `GetProfile`; the `Profile` message |
+| `members.proto` | `MembersService`: `GetOrCreateBySubject`, `GetProfile`, `SaveProfile`, `SaveOnboardingStep`, `SetTimezone`, `RequestDeletion`, `CancelDeletion` (ARCHITECTURE §7.1); the `Profile` message with onboarding step, `signed_up_on` and `deletion_requested_at` (D60) |
+| `members_events.proto` | `MemberFacts` (the replica ledger and notify keep) and the five `members.*` events, each embedding `EventEnvelope`: `MembersCreated`, `MembersUpdated`, `MembersDeletionRequested`, `MembersDeletionCancelled`, `MembersDeleted` |
 | `bff.proto` | `BffService`: `GetHome`; the `HomeView` message with every field Home draws (PRD §6.8) |
 | `shared.proto` | What every slice 2 file reuses: the `Category`, `Archetype`, `SalaryAppliesFrom` and `RateSource` enums, `Spend`, `EventEnvelope` (A4); the idempotency convention is the doc comment on its `package` line (A14) |
 
