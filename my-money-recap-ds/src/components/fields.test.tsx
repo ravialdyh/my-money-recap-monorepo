@@ -10,6 +10,10 @@ function field() {
   return document.querySelector<HTMLElement>('.mmr-field');
 }
 
+function fieldInput() {
+  return document.querySelector('.mmr-field-input') as HTMLInputElement;
+}
+
 describe('TextField', () => {
   it('draws the label, the helper and both affixes', () => {
     render(<TextField label="Salary" helper="After tax" prefix="£" suffix="/mo" />);
@@ -33,7 +37,7 @@ describe('TextField', () => {
 
   it('disables the input when the state says disabled, without being told twice', () => {
     render(<TextField state="disabled" />);
-    expect((document.querySelector('.mmr-field-input') as HTMLInputElement).disabled).toBe(true);
+    expect(fieldInput().disabled).toBe(true);
   });
 
   it('hands fieldRef the padded row, which is the width a value must fit', () => {
@@ -78,7 +82,7 @@ describe('TextField', () => {
 
   it('passes the rest of its props through to the input', () => {
     render(<TextField inputMode="decimal" value="12" onChange={() => {}} />);
-    const input = document.querySelector('.mmr-field-input') as HTMLInputElement;
+    const input = fieldInput();
     expect(input.getAttribute('inputmode')).toBe('decimal');
     expect(input.value).toBe('12');
   });
@@ -87,7 +91,7 @@ describe('TextField', () => {
 describe('AmountField (PRD §7, §11, D71)', () => {
   it('shows the amount with the currency decimals and the locale separators', () => {
     render(<AmountField value="2400" currency="GBP" locale="en-GB" />);
-    expect((document.querySelector('.mmr-field-input') as HTMLInputElement).value).toBe('2,400.00');
+    expect(fieldInput().value).toBe('2,400.00');
   });
 
   it('draws the currency symbol as a fixed affix, never part of the value', () => {
@@ -97,13 +101,13 @@ describe('AmountField (PRD §7, §11, D71)', () => {
 
   it('stays empty rather than showing a zero before anything is typed', () => {
     render(<AmountField value="" currency="GBP" locale="en-GB" />);
-    expect((document.querySelector('.mmr-field-input') as HTMLInputElement).value).toBe('');
+    expect(fieldInput().value).toBe('');
   });
 
   it('reports what was typed as an exact decimal string, the form it is stored in', () => {
     const onChange = vi.fn();
     render(<AmountField value="2400" currency="GBP" locale="en-GB" onChange={onChange} />);
-    fireEvent.change(document.querySelector('.mmr-field-input') as HTMLInputElement, {
+    fireEvent.change(fieldInput(), {
       target: { value: '2,400.50' },
     });
     expect(onChange).toHaveBeenCalledWith('2400.50');
@@ -112,7 +116,7 @@ describe('AmountField (PRD §7, §11, D71)', () => {
   it('reads the separators from the locale, not from the currency', () => {
     const onChange = vi.fn();
     render(<AmountField value="2400" currency="GBP" locale="id-ID" onChange={onChange} />);
-    fireEvent.change(document.querySelector('.mmr-field-input') as HTMLInputElement, {
+    fireEvent.change(fieldInput(), {
       target: { value: '2.400,50' },
     });
     expect(onChange).toHaveBeenCalledWith('2400.50');
@@ -137,6 +141,6 @@ describe('AmountField (PRD §7, §11, D71)', () => {
 
   it('follows the currency decimals, so a three decimal currency keeps all three', () => {
     render(<AmountField value="12" currency="BHD" locale="en-GB" />);
-    expect((document.querySelector('.mmr-field-input') as HTMLInputElement).value).toBe('12.000');
+    expect(fieldInput().value).toBe('12.000');
   });
 });

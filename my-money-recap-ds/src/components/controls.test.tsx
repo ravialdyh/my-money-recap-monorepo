@@ -28,6 +28,10 @@ function stubLayout(target: object, name: string, get: (self: HTMLElement) => nu
   });
 }
 
+function fillWidth() {
+  return document.querySelector<HTMLElement>('.mmr-fill')?.style.width;
+}
+
 /** Lays the pills out end to end so the centring arithmetic has real numbers to work on. */
 function stubPillRow() {
   stubLayout(HTMLElement.prototype, 'offsetWidth', () => PILL);
@@ -89,14 +93,14 @@ describe('Slider (PRD §6.7)', () => {
 
   it('fills the track in proportion to the value', () => {
     render(<Slider value={40} aria-label="Saving target" />);
-    expect(document.querySelector<HTMLElement>('.mmr-fill')?.style.width).toBe('40%');
+    expect(fillWidth()).toBe('40%');
   });
 
   it('clamps the fill when the value runs past the ends', () => {
     const { rerender } = render(<Slider value={150} aria-label="Saving target" />);
-    expect(document.querySelector<HTMLElement>('.mmr-fill')?.style.width).toBe('100%');
+    expect(fillWidth()).toBe('100%');
     rerender(<Slider value={-20} aria-label="Saving target" />);
-    expect(document.querySelector<HTMLElement>('.mmr-fill')?.style.width).toBe('0%');
+    expect(fillWidth()).toBe('0%');
   });
 
   it('places the knob where the fill ends', () => {
@@ -106,7 +110,7 @@ describe('Slider (PRD §6.7)', () => {
 
   it('scales the fill to a custom range', () => {
     render(<Slider value={30} min={20} max={40} aria-label="Saving target" />);
-    expect(document.querySelector<HTMLElement>('.mmr-fill')?.style.width).toBe('50%');
+    expect(fillWidth()).toBe('50%');
   });
 
   it('marks itself disabled so the whole control reads as off', () => {
