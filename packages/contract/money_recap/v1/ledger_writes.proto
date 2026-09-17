@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/ledger_views.proto";
+import "money_recap/v1/money.proto";
+import "money_recap/v1/shared.proto";
+
+message LogSpendRequest {
+  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
+  // key returns the original Spend's result, not an error.
+  string idempotency_key = 1;
+  string member_id = 2;
+  // Above zero, at most 11 digits before the separator (PRD D57).
+  Money amount = 3;
+  // One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
+  Category category = 4;
+  // "YYYY-MM-DD", within the last 60 days including today (PRD §8.10).
+  string date = 5;
+  // Optional, at most 80 characters (PRD §6.9).
+  string note = 6;
+}
+
+// The Spend as stored, the recomputed month and whether this write first took
+// Spent past the warning line (PRD §8.8), computed here and nowhere else.
+message LogSpendResponse {
+  Spend spend = 1;
+  MonthSummary month = 2;
+  bool crossed_line = 3;
+}
+
+// Every field is the new value, validated exactly as LogSpend validates it
+// (PRD §8.10, D57, §6.9); the edit sheet reuses the same fields (§6.10).
+message EditSpendRequest {
+  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
+  // key returns the original result, not an error.
+  string idempotency_key = 1;
+  string member_id = 2;
+  string spend_id = 3;
+  // Above zero, at most 11 digits before the separator (PRD D57).
+  Money amount = 4;
+  // One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
+  Category category = 5;
+  // "YYYY-MM-DD" within the last 60 days including today, or the stored date
+  // unchanged when the Spend is already older than that (PRD §8.10, §6.10).
+  string date = 6;
+  // Optional, at most 80 characters (PRD §6.9).
+  string note = 7;
+}
+
+// The Spend after the edit and the recomputed month the Spend now sits in.
+message EditSpendResponse {
+  Spend spend = 1;
+  MonthSummary month = 2;
+  // Never un-fires a warning (PRD §8.8); true only when this edit crossed it.
+  bool crossed_line = 3;
+}
+
+message DeleteSpendRequest {
+  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
+  // key returns the original result, not an error.
+  string idempotency_key = 1;
+  string member_id = 2;
+  string spend_id = 3;
+}
+
+// The Spend as it was and the recomputed month it left.
+message DeleteSpendResponse {
+  Spend spend = 1;
+  MonthSummary month = 2;
+  // Always false, since deleting never fires a warning (PRD §8.8); carried
+  // because every spend write and event answers it (ARCHITECTURE §7.2).
+  bool crossed_line = 3;
+}
+
+message SaveSalaryRequest {
+  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
+  // key returns the original result, not an error.
+  string idempotency_key = 1;
+  string member_id = 2;
+  Money amount = 3;
+  // 1 to 31, or "last" (PRD D51).
+  string payday = 4;
+  // The D56 sheet's answer, or THIS_MONTH when the sheet did not open; the
+  // BFF always sends one, and UNSPECIFIED is invalid_argument.
+  SalaryAppliesFrom applies_from = 5;
+}
+
+// The settings after the append and the recomputed current month.
+message SaveSalaryResponse {
+  LedgerSettings settings = 1;
+  MonthSummary month = 2;
+}
+
+message SaveTargetRequest {
+  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
+  // key returns the original result, not an error.
+  string idempotency_key = 1;
+  string member_id = 2;
+  // 0 to 100; 0 clears the Saving Target (PRD §8.4).
+  int32 percent = 3;
+}
+
+// The settings after the append and the recomputed current month.
+message SaveTargetResponse {
+  LedgerSettings settings = 1;
+  MonthSummary month = 2;
+}
+
+// The BFF forwards the rate the confirm sheet showed and where it came from
+// (ARCHITECTURE §7.2 currency flow).
+message ApplyCurrencyConversionRequest {
+  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
+  // key returns the original result, not an error.
+  string idempotency_key = 1;
+  string member_id = 2;
+  // Decimal string: units of to_currency_code per unit of the current one.
+  string rate = 3;
+  // PROVIDER or MANUAL, for the CurrencyConversion row (PRD §7); UNSPECIFIED
+  // is invalid_argument.
+  RateSource source = 4;
+  // ISO 4217 code to convert into.
+  string to_currency_code = 5;
+}
+
+// The settings and the current month after the rewrite, in the new Currency.
+message ApplyCurrencyConversionResponse {
+  LedgerSettings settings = 1;
+  MonthSummary month = 2;
+}

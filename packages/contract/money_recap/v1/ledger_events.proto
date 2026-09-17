@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/ledger_views.proto";
+import "money_recap/v1/shared.proto";
+
+// Routing key "ledger.spend.logged" (ARCHITECTURE §7.2, A4): the Spend, the
+// recomputed month and crossed_line, so notify stamps and pushes without
+// recalculating anything (§6.2 step 6).
+message LedgerSpendLogged {
+  EventEnvelope envelope = 1;
+  Spend spend = 2;
+  MonthSummary month = 3;
+  bool crossed_line = 4;
+}
+
+// Routing key "ledger.spend.edited": the Spend after the edit and the
+// recomputed month it now sits in.
+message LedgerSpendEdited {
+  EventEnvelope envelope = 1;
+  Spend spend = 2;
+  MonthSummary month = 3;
+  bool crossed_line = 4;
+}
+
+// Routing key "ledger.spend.deleted": the Spend as it was and the recomputed
+// month it left; crossed_line is always false (PRD §8.8) and carried because
+// every spend event answers it (ARCHITECTURE §7.2).
+message LedgerSpendDeleted {
+  EventEnvelope envelope = 1;
+  Spend spend = 2;
+  MonthSummary month = 3;
+  bool crossed_line = 4;
+}
+
+// Routing key "ledger.salary.changed": the salary_setting row appended
+// (PRD D56).
+message LedgerSalaryChanged {
+  EventEnvelope envelope = 1;
+  SalarySetting salary = 2;
+}
+
+// Routing key "ledger.target.changed": the saving_target_setting row appended
+// (PRD D65).
+message LedgerTargetChanged {
+  EventEnvelope envelope = 1;
+  SavingTargetSetting saving_target = 2;
+}
+
+// Routing key "ledger.currency.converted": what members consumes to set
+// currency_code (ARCHITECTURE §7.1, §7.2 currency flow).
+message LedgerCurrencyConverted {
+  EventEnvelope envelope = 1;
+  // ISO 4217 codes.
+  string from_currency_code = 2;
+  string to_currency_code = 3;
+  // Decimal string: units of to_currency_code per unit of from_currency_code.
+  string rate = 4;
+  RateSource source = 5;
+}
+
+// Routing key "ledger.member.purged": every row of the Member is gone, so
+// members stamps deletion_progress (ARCHITECTURE §7.1 step 5).
+message LedgerMemberPurged {
+  EventEnvelope envelope = 1;
+}

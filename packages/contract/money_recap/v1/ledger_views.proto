@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/money.proto";
+import "money_recap/v1/shared.proto";
+
+// Every Home figure for one month (PRD §8), computed by ledger and never
+// recomputed elsewhere (A2). Also the "recomputed month" every write answers
+// and every spend event carries (ARCHITECTURE §7.2).
+message MonthSummary {
+  // "YYYY-MM" in the Member's local dates (PRD D33).
+  string month = 1;
+  // Spent so far in the month (PRD §8.3).
+  Money spent = 2;
+  // Money In for the month (PRD §8.2); 0 before Payday or with no Salary.
+  Money money_in = 3;
+  // Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
+  optional Money saved = 4;
+  // Absent until a Salary is in force for the month (PRD D54).
+  optional SalaryFacts salary = 5;
+  // Absent without a Saving Target in force: no row, or a 0 percent row
+  // (PRD §8.4), so a present target always has percent above 0.
+  optional SavingTargetFacts saving_target = 6;
+  // Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
+  int32 streak_day = 7;
+  // Days left in the month counting today, never below 1 (PRD §8.7).
+  int32 days_remaining = 8;
+  // True for a partial month (PRD §8.11): the Recap is the §6.17 screens.
+  bool partial = 9;
+  // The §8.8 banner with its before-or-after-Payday copy (PRD D53), chosen
+  // here because only ledger holds Spent, the line and Payday (§7.3). Absent
+  // until Spent exceeds the line; the BFF shows it only once notify says fired.
+  optional TargetWarning target_warning = 10;
+}
+
+// Which of the three PRD §6.17 situations a Partial Recap is in: the current
+// month still running, the sign-up month whose Payday preceded sign-up, or a
+// past month with Spends but no Money In. Unspecified on a full Recap.
+enum PartialSituation {
+  PARTIAL_SITUATION_UNSPECIFIED = 0;
+  PARTIAL_SITUATION_CURRENT_MONTH = 1;
+  PARTIAL_SITUATION_SIGN_UP_MONTH = 2;
+  PARTIAL_SITUATION_NO_MONEY_IN = 3;
+}
+
+// The Streak and its window as Recap screen 2 draws them (PRD §6.12, §8.5).
+message StreakFacts {
+  // The longest run of consecutive spend-free days inside the window.
+  int32 days = 1;
+  // First day of the window, "YYYY-MM-DD": the 1st or the sign-up date (D43).
+  string window_start = 2;
+  // Last day of the window, "YYYY-MM-DD": month end, or today this month.
+  string window_end = 3;
+  // One flag per day from window_start to window_end, true when spend-free;
+  // what StreakDots draws.
+  repeated bool spend_free_days = 4;
+  // True when days is at least 7, the badge rule of PRD §6.12.
+  bool badge_unlocked = 5;
+}
+
+// One Category's share of a month: the CategoryBar of Recap screen 3 and the
+// Category row of the Spend list (PRD §6.13, §6.10).
+message CategoryShare {
+  Category category = 1;
+  Money amount = 2;
+  // round(amount ÷ Spent × 100).
+  int32 percent = 3;
+  int32 spend_count = 4;
+}
+
+// One month's Recap as ledger computes it (PRD §6.11 to §6.14, §6.17, §8): the
+// four full screens or the four Partial Recap screens. Fields a screen has a
+// "none" branch for are optional, so the phone passes null, never a zero.
+message Recap {
+  // "YYYY-MM".
+  string month = 1;
+  // Unspecified on a full Recap; any other value means the §6.17 screens
+  // (PRD §8.11). This is the one partial flag.
+  PartialSituation situation = 2;
+  Money money_in = 3;
+  Money spent = 4;
+  // Absent while Money In is 0 (PRD D41).
+  optional Money saved = 5;
+  // Number of Spends in the month; the "{n} spends" chip of §6.17.
+  int32 spend_count = 6;
+  // Absent without a Salary; screen 3 of a Partial Recap names the Payday (D55).
+  optional SalaryFacts salary = 7;
+  // Absent without a Saving Target in force (no row, or a 0 percent row): the
+  // §6.12 and §6.13 no-target branches.
+  optional SavingTargetFacts saving_target = 8;
+  // round(Saved ÷ Target amount × 100), clamped 0 to 999 (PRD §8.4). Absent
+  // without a Saving Target or without Saved.
+  optional int32 kept_percent = 9;
+  StreakFacts streak = 10;
+  // One entry per Category with a Spend, sorted by amount descending; the
+  // phone applies the three-bar cap (PRD D71).
+  repeated CategoryShare categories = 11;
+  // The largest single Spend, ties to the earliest date (PRD §8.3). Absent
+  // with no Spends.
+  optional Spend splurge = 12;
+  // Absent when Money In is 0 or no Saving Target is set (PRD §8.6).
+  optional Archetype archetype = 13;
+  // The Archetype's name as the phone shows it, the same string as
+  // RecapMonth.label (A2: the phone never names one); empty without one.
+  string archetype_name = 14;
+  // The Archetype's one-line description from PRD §8.6; empty without one.
+  string archetype_description = 15;
+  // Screen 4 line of a Partial Recap, chosen per situation (PRD §6.17); empty
+  // on a full Recap.
+  string closing_line = 16;
+}
+
+// One append-only salary_setting row (PRD §7): the amount and Payday in force
+// from effective_from.
+message SalarySetting {
+  Money amount = 1;
+  // 1 to 31, or "last" for the Last day token (PRD D51).
+  string payday = 2;
+  // "YYYY-MM" the row takes effect from (PRD D56).
+  string effective_from = 3;
+}
+
+// One append-only saving_target_setting row (PRD §7, D65).
+message SavingTargetSetting {
+  // 0 to 100; 0 means no Saving Target (PRD §8.4).
+  int32 percent = 1;
+  // "YYYY-MM" the row takes effect from.
+  string effective_from = 2;
+}
+
+// What Settings draws from ledger (PRD §6.16): the rows in force this month,
+// any row already saved for a later month, and the facts the D56 sheet and
+// the §8.9 confirm sheet decide on.
+message LedgerSettings {
+  // The Salary in force this month; absent when the row reads "Not set".
+  optional SalarySetting salary = 1;
+  // A Salary effective from a later month (D56 "from your next payday").
+  optional SalarySetting next_salary = 2;
+  // The Saving Target in force this month; absent when "Not set", which is
+  // no row or a 0 percent row (PRD §8.4).
+  optional SavingTargetSetting saving_target = 3;
+  // A Saving Target effective from next month (D65).
+  optional SavingTargetSetting next_saving_target = 4;
+  // Computed by ledger in the Member's zone; true opens the D56 sheet.
+  bool payday_passed_this_month = 5;
+  // ISO 4217 code every amount is held in.
+  string currency_code = 6;
+  // False with no Salary and no Spends: a currency change then skips the
+  // confirm sheet (PRD §8.9 step 2).
+  bool has_amounts_to_convert = 7;
+}
+
+// The before-and-after values for the currency confirm sheet (PRD §8.9 step
+// 3), rounded by ledger; the Saving Target percent is untouched.
+message ConversionPreview {
+  // ISO 4217 code of every amount today.
+  string from_currency_code = 1;
+  // ISO 4217 code the amounts are rewritten into.
+  string to_currency_code = 2;
+  // Decimal string: units of to_currency_code per unit of from_currency_code.
+  string rate = 3;
+  // The Salary in force; absent with no Salary.
+  optional Money salary_before = 4;
+  optional Money salary_after = 5;
+  // The sum of every Spend that would be rewritten.
+  Money spends_before = 6;
+  Money spends_after = 7;
+}
