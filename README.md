@@ -99,8 +99,53 @@ swiftformat . && swiftlint --fix && swiftlint lint --strict
 
 Coverage does not gate at a fixed number yet. `tools/coverage/` holds a floor per language that can
 only go up — `tools/coverage/README.md` has today's floors and why. The `Security` workflow runs
-govulncheck, `npm audit`, OSV-Scanner (Go, npm and Swift together), Semgrep and Trivy on every pull
-request and every Monday.
+govulncheck, `npm audit`, OSV-Scanner (Go, npm and Swift together), Semgrep, Trivy and a full-tree
+gitleaks scan on every pull request and every Monday.
+
+### Why these settings are what they are
+
+The configs carry no comments, so the reasoning lives here.
+
+- **golangci-lint.** `staticcheck.checks: all` turns on the `ST` group, which already covers package
+  comments, naming, error strings and receiver names; `revive` would repeat all of it, so it is off.
+  The `comments` exclusion preset drops every "should have a comment" finding, because comment style
+  is `tools/policy`'s job and two tools with different opinions is how the old `revive` block ended
+  up enabled but silently suppressed. `gosec` G115 is excluded: it fires on every `int` → `int32` at
+  the generated protobuf boundary.
+- **SwiftLint.** It owns Swift correctness only; SwiftFormat owns every formatting decision and
+  `tools/policy` owns file length and comments. `trailing_comma` is **off on purpose**: SwiftFormat's
+  `--commas always` adds the comma that rule deletes, so with both on, the two tools undo each other
+  every run and `swiftformat --lint` fails in CI. `function_body_length`, `file_length` and `todo`
+  are off because `tools/policy` already caps length and bans tracker tags. `identifier_name`
+  allows one-character names: the design system's size steps are `l`, `m` and `s` in both languages.
+- **Dependabot.** Every ecosystem waits seven days before proposing a newly published version — a
+  release hours old can be a compromised one. Security updates ignore the cooldown, so a real
+  advisory still arrives at once.
+- **Actions are pinned to a commit, never a tag.** A tag is mutable, and whoever owns the action can
+  repoint it at code that runs with this job's token. The trailing `# vN` is Dependabot's, and
+  `tools/policy` exempts it for that reason.
+- **The Compose stack** is documented in `infra/compose/README.md`, including the Keycloak pin, the
+  `/dev/tcp` health check and the parallel-worktree ports.
+
+### What CI costs, and why jobs are skipped
+
+This repository is private, so Actions minutes are billed, and macOS bills at **ten times** the
+Linux rate. A run where every job fires costs about 41 billable minutes, of which 30 are the `ios`
+job alone — even though the whole run finishes in under four minutes of wall clock.
+
+So each job is gated on whether its inputs changed, using `dorny/paths-filter` at the **job** level
+rather than a workflow-level `paths:` filter. That distinction matters: a workflow skipped by
+`paths:` never reports a status at all, so a required check would wait for it forever, while a job
+skipped by `if:` reports success. The `all green` job gathers the results and is the one worth
+requiring. Over the last twenty merges this drops the average run from 41 to about 18 billable
+minutes; a docs-only change costs 5.
+
+To move the iOS job onto your own Mac and stop paying for it entirely, register a self-hosted runner
+(repository → Settings → Actions → Runners → New self-hosted runner, macOS), then set a repository
+**variable** `IOS_RUNNER` to `self-hosted`. The workflow reads
+`runs-on: ${{ vars.IOS_RUNNER || 'macos-latest' }}`, so nothing else changes, and unsetting the
+variable moves it straight back. Self-hosted runners are only safe on a private repository like this
+one — on a public repo a fork's pull request could run its own code on your machine.
 
 ## Docs
 
