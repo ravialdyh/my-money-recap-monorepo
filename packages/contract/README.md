@@ -10,6 +10,10 @@ A Buf module, package `money_recap.v1`, under `money_recap/v1/*.proto`:
 | `members_events.proto` | `MemberFacts` (the replica ledger and notify keep) and the five `members.*` events, each embedding `EventEnvelope`: `MembersCreated`, `MembersUpdated`, `MembersDeletionRequested`, `MembersDeletionCancelled`, `MembersDeleted` |
 | `bff.proto` | `BffService`: `GetHome`; the `HomeView` message with every field Home draws (PRD §6.8) |
 | `shared.proto` | What every slice 2 file reuses: the `Category`, `Archetype`, `SalaryAppliesFrom` and `RateSource` enums, `Spend`, `EventEnvelope` (A4); the idempotency convention is the doc comment on its `package` line (A14) |
+| `notify.proto` | `NotifyService` (§7.3): `GetWarningState`, `EvaluateWarning`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailMagicLink`, `EmailExport`; `NotificationPrefs`; the `EmailBounced` error detail behind the PRD §6.16 inline error |
+| `notify_events.proto` | `NotifyMemberPurged`, routing key `notify.member.purged`, embedding `EventEnvelope` |
+| `currency.proto` | `CurrencyService` (§7.4): `Quote` returning rate, `RateSource` and as-of date; the `UnsupportedPair` error detail (D35, PRD §8.9 step 1) |
+| `currency_events.proto` | `CurrencyMemberPurged`, routing key `currency.member.purged`, embedding `EventEnvelope` |
 
 Slice 1 defines only what the walking skeleton calls (#10). Slice 2 adds the other RPCs and the event messages (#42); `shared.proto` is its first piece (#50).
 

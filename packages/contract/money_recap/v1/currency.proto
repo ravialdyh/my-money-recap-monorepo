@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/shared.proto";
+
+// Typed error detail on Quote (ARCHITECTURE §7.4): the provider has no rate
+// for this pair, so the phone asks the Member for one (PRD D35, §8.9 step 1).
+message UnsupportedPair {
+  string from_currency_code = 1;
+  string to_currency_code = 2;
+}
+
+message QuoteRequest {
+  // ISO 4217.
+  string from_currency_code = 1;
+  // ISO 4217.
+  string to_currency_code = 2;
+}
+
+message QuoteResponse {
+  // Units of "to" per one unit of "from", as a decimal string, never a
+  // float (PRD D71).
+  string rate = 1;
+  RateSource source = 2;
+  // "YYYY-MM-DD" the provider's snapshot is dated (PRD D35).
+  string as_of = 3;
+}
+
+// Exchange rates only (ARCHITECTURE §7.4, PRD D35). No arithmetic on amounts
+// happens here: rounding and rewriting are ledger's (PRD §8.9 step 4).
+service CurrencyService {
+  // Errors (ARCHITECTURE §7.4, PRD §8.9 step 1): failed_precondition with
+  // UnsupportedPair; unavailable when the provider fetch fails, which the
+  // phone shows as an InlineError with Retry.
+  rpc Quote(QuoteRequest) returns (QuoteResponse) {}
+}

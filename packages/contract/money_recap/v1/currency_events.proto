@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/shared.proto";
+
+// Routing key "currency.member.purged": published on members.deleted even
+// though currency holds nothing per Member, so members can complete its
+// deletion tracking (ARCHITECTURE §4.3, §7.1, §7.4, A4).
+message CurrencyMemberPurged {
+  EventEnvelope envelope = 1;
+}

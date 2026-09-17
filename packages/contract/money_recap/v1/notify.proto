@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "google/protobuf/timestamp.proto";
+
+// The three toggles and the reminder time from PRD §6.16 and §10. The
+// push-permission state lives on the phone, not here.
+message NotificationPrefs {
+  // "Recap ready", default on (PRD §10).
+  bool recap_ready = 1;
+  // "Daily reminder", default off (PRD §10).
+  bool daily_reminder = 2;
+  // "HH:MM" in the Member's local zone (A3), default "20:00" (PRD §6.16).
+  string reminder_time = 3;
+  // "Target Warning", default on (PRD §10).
+  bool target_warning = 4;
+}
+
+// Typed error detail on EmailExport (ARCHITECTURE §7.3): the address has a
+// hard bounce newer than its last change, so the BFF answers with the §6.16
+// InlineError that offers Profile.
+message EmailBounced {
+  string address = 1;
+  google.protobuf.Timestamp bounced_at = 2;
+}
+
+message GetWarningStateRequest {
+  string member_id = 1;
+  // "YYYY-MM".
+  string month = 2;
+}
+
+// Whether the Target Warning has fired this month (PRD §8.8). Only the stamp
+// lives here; the banner copy is ledger's (ARCHITECTURE §7.3).
+message GetWarningStateResponse {
+  bool fired = 1;
+  // Present when fired: month_flag.target_warning_sent_at.
+  optional google.protobuf.Timestamp fired_at = 2;
+}
+
+message EvaluateWarningRequest {
+  string member_id = 1;
+  // "YYYY-MM".
+  string month = 2;
+  // Computed by ledger (ARCHITECTURE §7.2); notify holds no PRD §8 rule.
+  bool crossed_line = 3;
+}
+
+message EvaluateWarningResponse {
+  // True when this call stamped the month, so exactly one call per month
+  // sees it (PRD §8.8).
+  bool fired_now = 1;
+}
+
+message GetPrefsRequest {
+  string member_id = 1;
+}
+
+message GetPrefsResponse {
+  NotificationPrefs prefs = 1;
+}
+
+message SavePrefsRequest {
+  // A14; see the package doc in shared.proto.
+  string idempotency_key = 1;
+  string member_id = 2;
+  NotificationPrefs prefs = 3;
+}
+
+message SavePrefsResponse {
+  NotificationPrefs prefs = 1;
+}
+
+message RegisterDeviceRequest {
+  // A14; see the package doc in shared.proto.
+  string idempotency_key = 1;
+  string member_id = 2;
+  // The APNs device token as hex; a 410 from Apple deletes the row
+  // (ARCHITECTURE §7.3).
+  string apns_token = 3;
+}
+
+message RegisterDeviceResponse {}
+
+message EmailMagicLinkRequest {
+  // The address as typed, because no Member row may exist yet
+  // (ARCHITECTURE §7.3).
+  string email = 1;
+  // The full https://…/magic?lt=… link the BFF built (ARCHITECTURE §7.5).
+  string link = 2;
+}
+
+message EmailMagicLinkResponse {}
+
+message EmailExportRequest {
+  string member_id = 1;
+  // Every non-deleted Spend as CSV, straight from ledger.ExportCSV; never
+  // stored server-side (ARCHITECTURE §7.3, PRD D39).
+  bytes csv = 2;
+}
+
+message EmailExportResponse {}
+
+// Notifications, device tokens, preferences, the Target Warning stamp and
+// every outbound email (ARCHITECTURE §7.3). Optional on every BFF path (A14).
+service NotifyService {
+  rpc GetWarningState(GetWarningStateRequest) returns (GetWarningStateResponse) {}
+  // Stamps month_flag when crossed_line and unstamped, then pushes if the
+  // stamp is fresh (PRD §8.8). Idempotent by the stamp, so no key.
+  rpc EvaluateWarning(EvaluateWarningRequest) returns (EvaluateWarningResponse) {}
+  rpc GetPrefs(GetPrefsRequest) returns (GetPrefsResponse) {}
+  // Each toggle writes immediately (PRD §6.16); the key dedupes a retry (A14).
+  rpc SavePrefs(SavePrefsRequest) returns (SavePrefsResponse) {}
+  // Upserts the device row on the token (A14).
+  rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+  // Errors (ARCHITECTURE §7.3, §7.5): failed_precondition with EmailBounced
+  // when the address has a recorded hard bounce; unavailable when SMTP
+  // refuses. Both reach the phone as the PRD §6.3 InlineError.
+  rpc EmailMagicLink(EmailMagicLinkRequest) returns (EmailMagicLinkResponse) {}
+  // Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
+  // failed_precondition with EmailBounced, which the BFF turns into the PRD
+  // §6.16 InlineError offering Profile; unavailable when SMTP refuses.
+  rpc EmailExport(EmailExportRequest) returns (EmailExportResponse) {}
+}
