@@ -38,7 +38,7 @@ func (f *fakeMembers) GetProfile(ctx context.Context, _ *connect.Request[moneyre
 // hangingNotify never answers, like a notify container that is stopped.
 type hangingNotify struct{}
 
-func (hangingNotify) GetWarningState(ctx context.Context, _, _ string) (*moneyrecapv1.TargetWarning, error) {
+func (hangingNotify) GetWarningState(ctx context.Context, _ *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error) {
 	<-ctx.Done()
 	return nil, ctx.Err()
 }
