@@ -12,7 +12,7 @@ Seven canvases: the IDR proofs first, then the month-so-far recap, then the four
 | `Settings and Account.dc.html` | 6 | D1 ×2, D3 ×2, D4, D6 ×2, D9 ×2, D11b, flow |
 | `iPad.dc.html` | 7 | X1, X2 at the 600pt column (D68) |
 
-Same conventions as the four canvases in the parent folder: every screen is a `<div data-screen-label>` around a 390×844 `MMR.Screen` built from `@my-money-recap/ui`; yellow stickies are annotations, not UI; the `_ds/…` references resolve only inside the Claude Design project, so these files are the record, not a local preview. The logic classes hold layout glue and sample values only — **PRD §8 is the only source of the formulas**, and every number on a sticky was checked against its worked examples.
+Same conventions and caveats as the four canvases in the parent folder (`../../README.md`, "About the design files"): the files are the record, not a local preview, and PRD §8 is the only source of the formulas; every number on a sticky was checked against its worked examples.
 
 `build/` holds the sources the canvases were generated from (`node build.mjs <Name>` writes `out/<Name>.dc.html` with the design-system bundle inlined, which is what the live copy runs). `canvas.json` is the page layout.
 

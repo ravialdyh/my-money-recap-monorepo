@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft v1, 2026-09-14. Decisions I1–I9 in §2 are the decision register for the app; acceptance is recorded there, not in separate files. |
+| Status | Draft v1, 2026-09-14. Decisions I1–I9 in §2 are the decision register for the app; its Status column is the only place acceptance is recorded. |
 | Scope | What is inside the iPhone and iPad app: sign-in, session, networking, the on-device cache, design tokens, formatting, sharing, notifications and tests. The screens themselves are `SCREEN-STATES.md`; the rules are `PRD.md`; the backend is `ARCHITECTURE.md`. |
 | Platform | iOS 17+, SwiftUI, iPhone and iPad (PRD D11, D68). |
 
@@ -12,36 +12,40 @@ The app is a display for numbers the server computes (`ARCHITECTURE.md` A2). It 
 
 ## 2. Decisions
 
-| # | Decision | Why | Rejected |
-|---|---|---|---|
-| I1 | **Sign-in with AppAuth-iOS.** For Apple and Google the OpenID-certified library drives `ASWebAuthenticationSession` with PKCE, discovers Keycloak's endpoints from `.well-known/openid-configuration`, and handles refresh. For email the app opens no browser: the universal link hands it a login token and it sends one `OIDTokenRequest` with the direct grant (`ARCHITECTURE.md` §7.5, A10); the resulting tokens go into the same `OIDAuthState`. | PRD §6.1 names `ASWebAuthenticationSession` and PKCE; AppAuth is the reference implementation of exactly that and removes a hand-written token flow from a money app. | Hand-rolled PKCE: less code to depend on, more code to get wrong. |
-| I2 | **Session in the Keychain behind `LAContext`.** Refresh token stored with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`, released only after Face ID, Touch ID or passcode; a `lastUsedAt` stamp enforces the 30-day rule (PRD D62); log out erases the item and the cache. | Straight from PRD §9. | iCloud Keychain sync: would move a session between devices, which D61's per-device cache does not expect. |
-| I3 | **Networking is the generated client.** `connect-swift` code generated from `packages/contract` by `buf generate`; one interceptor adds the bearer token and asks AppAuth to refresh on 401; one interceptor adds the `Idempotency-Key` on writes. No hand-written request or response types. | One contract for every client (`ARCHITECTURE.md` A1). | URLSession by hand with Codable structs: a second copy of every message type. |
-| I4 | **The cache is one SwiftData model per screen answer.** `HomeSnapshot`, `RecapSnapshot(month)`, `SpendListSnapshot(month)`, `SettingsSnapshot`, each holding the BFF response bytes plus `updatedAt`. A successful response replaces its snapshot whole; the app never edits a snapshot; log out and deletion delete the store (PRD §7 "on device only"). | The cache is read-only by definition, so a normalised schema would be structure with no reader. | Core Data or GRDB with Spend rows: implies the phone recomputes, which A2 forbids. |
-| I5 | **Design tokens are generated into Swift.** A `build:swift-tokens` script in `my-money-recap-ds` emits `Tokens.swift` (colours, radii, type ramp, motion curves) from `tokens.json`, and `build:assets` also writes the WebP illustrations into an asset catalog. Both outputs are checked in and CI fails if stale, the same rule the CSS outputs already follow. | `tokens.json` stays the single source (README "Single source of truth"). | Typing the hex values into Swift: the drift this repo has spent two weeks removing. |
-| I6 | **SwiftUI with `@Observable` view models, no framework.** One view model per screen, holding the snapshot and the loading, offline and error states named in `SCREEN-STATES.md`. Navigation is `NavigationStack` plus `.sheet`. | The app has about twenty screens and no shared mutable state beyond the session. | TCA or similar: a second vocabulary for a small app. |
-| I7 | **Formatting and dates are Foundation.** Money through `Decimal.FormatStyle.Currency` with the Member's ISO code and the device locale (PRD D71); `StatHero` and `AmountField` sizes through `.minimumScaleFactor` over the three steps (§11); the payday helper's three dates through `Calendar`. | These are platform calls, not rules; `money.ts` in the design system does the same with `Intl`. | A shared Swift package of rules: A2 puts them on the server. |
-| I8 | **Share and notifications use the system APIs.** `ImageRenderer` draws screen 4 at 1080 × 1920 for `UIActivityViewController` (PRD §6.15); `UNUserNotificationCenter` asks permission after the first Spend and the device token goes to `RegisterDevice` (§10). | Nothing here needs a library. | — |
-| I9 | **Tests are unit tests plus snapshot proofs.** XCTest on view models with recorded BFF responses as fixtures; `swift-snapshot-testing` images of Home, the Recap cover and the share image in IDR, which is the proof PRD D45 demands before new work lands; one UI test for the sign-in-to-Home path. | The arithmetic is tested on the server; the phone's risk is layout at long numbers and accessibility sizes (D66). | Full UI test suites: slow on Mac runners, and they retest the server's numbers. |
+| # | Decision | Why | Rejected | Status |
+|---|---|---|---|---|
+| I1 | **Sign-in with AppAuth-iOS.** For Apple and Google the OpenID-certified library drives `ASWebAuthenticationSession` with PKCE, discovers Keycloak's endpoints from `.well-known/openid-configuration`, and handles refresh. For email the app opens no browser: the universal link hands it a login token and it sends one `OIDTokenRequest` with the direct grant (`ARCHITECTURE.md` §7.5, A10); the resulting tokens go into the same `OIDAuthState`. | PRD §6.1 names `ASWebAuthenticationSession` and PKCE; AppAuth is the reference implementation of exactly that and removes a hand-written token flow from a money app. | Hand-rolled PKCE: less code to depend on, more code to get wrong. | in use since slice 1 for the Keycloak login page (the realm test user); Apple, Google and the login token arrive with slice 3 |
+| I2 | **Session in the Keychain behind `LAContext`.** As PRD §9 "Session on the device" specifies; the iOS-only detail is that the whole AppAuth `OIDAuthState` is the Keychain item. | Straight from PRD §9. | iCloud Keychain sync: would move a session between devices, which D61's per-device cache does not expect. | Keychain item in use since slice 1; the `LAContext` gate and the 30-day rule arrive with slices 3 and 8 |
+| I3 | **Networking is the generated client.** `connect-swift` code generated from `packages/contract` by `buf generate`; one interceptor adds the bearer token and asks AppAuth to refresh on 401; a second interceptor adds the `Idempotency-Key` once the first write RPC exists (slice 5). No hand-written request or response types. | One contract for every client (`ARCHITECTURE.md` A1). | URLSession by hand with Codable structs: a second copy of every message type. | in use since slice 1 (`BearerInterceptor`) |
+| I4 | **The cache is one SwiftData model per screen answer.** `HomeSnapshot`, `RecapSnapshot(month)`, `SpendListSnapshot(month)`, `SettingsSnapshot`, each holding the BFF response bytes plus `updatedAt`. A successful response replaces its snapshot whole; the app never edits a snapshot; log out and deletion delete the store (PRD §7 "on device only"). | The cache is read-only by definition, so a normalised schema would be structure with no reader. | Core Data or GRDB with Spend rows: implies the phone recomputes, which A2 forbids. | in use since slice 1 (`HomeSnapshot`) |
+| I5 | **Design tokens are generated into Swift.** A `build:swift-tokens` script in `my-money-recap-ds` emits `Tokens.swift` from `tokens.json`; the output is checked in and CI fails if stale, the same rule the CSS outputs already follow. The illustrations are placed in the asset catalog by hand (the cover today) until a script exists. | `tokens.json` stays the single source (README "Single source of truth"). | Typing the hex values into Swift: the drift this repo has spent two weeks removing. | in use since slice 1 |
+| I6 | **SwiftUI with `@Observable` view models, no framework.** One view model per screen, holding the snapshot and the loading, offline and error states named in `SCREEN-STATES.md`. Navigation is `NavigationStack` plus `.sheet`. | The app has about twenty screens and no shared mutable state beyond the session. | TCA or similar: a second vocabulary for a small app. | in use since slice 1 |
+| I7 | **Formatting and dates are Foundation.** Money through `Decimal.FormatStyle.Currency` with the Member's ISO code and the device locale (PRD D71); `StatHero` and `AmountField` sizes through `.minimumScaleFactor` over the three steps (§11); the payday helper's three dates through `Calendar`. | These are platform calls, not rules; `money.ts` in the design system does the same with `Intl`. | A shared Swift package of rules: A2 puts them on the server. | in use since slice 1 (`Money`, `ISODate`); the three-step sizes arrive with the IDR proof |
+| I8 | **Share and notifications use the system APIs.** `ImageRenderer` draws screen 4 at 1080 × 1920 for `UIActivityViewController` (PRD §6.15); `UNUserNotificationCenter` asks permission after the first Spend and the device token goes to `RegisterDevice` (§10). | Nothing here needs a library. | — | proposed (slices 6 and 7) |
+| I9 | **Tests are unit tests plus snapshot proofs.** XCTest on view models with recorded BFF responses as fixtures; `swift-snapshot-testing` images of Home, the Recap cover and the share image in IDR, which is the proof PRD D45 demands before new work lands; one UI test for the sign-in-to-Home path. | The arithmetic is tested on the server; the phone's risk is layout at long numbers and accessibility sizes (D66). | Full UI test suites: slow on Mac runners, and they retest the server's numbers. | in use since slice 1 (view-model tests, one UI test); the snapshot proofs start with X3 |
 
 ## 3. App structure
 
 ```
 apps/ios/
   MyMoneyRecap.xcodeproj
-  App/            entry, session gate (Face ID), root navigation
-  Screens/        one folder per SCREEN-STATES.md group: SignIn, Onboarding, Home, Spend, Recap, Settings
+  App/            entry, the SwiftData container, root switch between Sign in and Home, Info.plist
+  Screens/        one folder per SCREEN-STATES.md group, each a view plus its view model (I6): SignIn, Home
   Snapshots/      SwiftData models (I4)
-  Networking/     generated Connect client + the two interceptors (I3)
-  Auth/           AppAuth configuration, Keychain, LAContext (I1, I2)
+  Networking/     the generated Connect client and the bearer interceptor (I3)
+  Auth/           AppAuth configuration and session, Keychain (I1, I2)
   DesignSystem/   generated Tokens.swift and the SwiftUI components rebuilt from @my-money-recap/ui (I5)
-  Resources/      asset catalog with the generated illustrations and app icon
+  Resources/      asset catalog (the cover illustration)
+  Tests/, UITests/, scripts/   XCTest targets and the simulator scripts (apps/ios/README.md)
 ```
 
-The SwiftUI components mirror the names in `my-money-recap-ds/src/components`, one Swift file per component, so a screen in `SCREEN-STATES.md` reads the same in both codebases.
+Later slices add the Onboarding, Spend, Recap and Settings folders under `Screens/`, the Face ID gate in
+`App/`, and the app icon and avatars in `Resources/`. The SwiftUI components mirror the names in
+`my-money-recap-ds/src/components`, one Swift file per component, so a screen in `SCREEN-STATES.md` reads
+the same in both codebases.
 
 ## 4. Open items
 
-- Pinned in the Xcode project (2026-09-17): AppAuth-iOS 3.0.0, `connect-swift` 1.2.3 and `swift-protobuf` 1.38.1, the same exact versions `packages/contract/swift` pins. `swift-snapshot-testing` is pinned when the first snapshot proof lands (X3, the IDR Home).
-- Simulator runtimes for I9 are chosen when the tests run (`apps/ios/scripts/ui-test.sh`): the newest installed and the oldest installed. Xcode 27 on macOS 27 no longer offers the iOS 17 or 18 runtimes for download, so on such a Mac the floor is the oldest runtime Xcode still lists (iOS 26.0); the iOS 17 run needs an older Xcode.
+- Dependency versions are pinned in the Xcode project (`apps/ios/README.md`, "Open"); `swift-snapshot-testing` is pinned when the first snapshot proof lands (X3, the IDR Home).
+- Simulator runtimes for I9 are chosen when the tests run, newest and oldest installed (`apps/ios/README.md`, "The UI test against Compose"); the iOS 17 run needs a Mac whose Xcode still offers that runtime.
 - Mac CI runner: GitHub-hosted macOS runners are the default; the cost is measured after the first month.

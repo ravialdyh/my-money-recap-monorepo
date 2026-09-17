@@ -18,7 +18,7 @@ lands (A3).
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary; serves on `BFF_LISTEN` (default `:8080`). No subcommands. |
-| `Dockerfile` | Built with the module root `apps/backend` as context: `docker build -f cmd/bff/Dockerfile .` |
+| `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=bff .` |
 | `../../internal/bff/` | The handler, the `Ledger` and `Notify` interfaces and their stubs, the unit tests and the end-to-end test. |
 | `../../internal/auth/` | The JWT interceptor and the token-forwarding client interceptor. |
 
@@ -26,30 +26,25 @@ lands (A3).
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `BFF_OIDC_ISSUER` | required | The `iss` Keycloak stamps into tokens: `http://localhost:8080/realms/mmr`. |
-| `BFF_OIDC_JWKS_URL` | required | Where to fetch the signing keys from this process: `http://keycloak:8080/realms/mmr/protocol/openid-connect/certs`. The two are separate settings because the phone and a container reach Keycloak by different hostnames. |
+| `BFF_OIDC_ISSUER` | required | The `iss` Keycloak stamps into tokens; Compose derives it from `MMR_HOST` and `KEYCLOAK_HOST_PORT` (`http://localhost:8080/realms/mmr` with the stock `.env`). |
+| `BFF_OIDC_JWKS_URL` | required | Where to fetch the signing keys from this process: `http://keycloak:8080/realms/mmr/protocol/openid-connect/certs` inside the Compose network, `http://localhost:8080/...` from the host. The two are separate settings because the phone and a container reach Keycloak by different hostnames. |
 | `BFF_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry. |
 | `BFF_MEMBERS_URL` | required | The `members` service: `http://members:8080` in Compose. |
 | `BFF_LISTEN` | `:8080` | Listen address. |
 
 ## Run
 
-The normal way is the whole stack: `docker compose -f infra/compose/compose.yaml up -d --build --wait`
-starts `bff` once `members` is healthy and publishes it on `BFF_HOST_PORT` (8082; Keycloak owns
-8080 on the host, `infra/compose/README.md`).
+The normal way is the whole stack (`infra/compose/README.md`, "Run it"), which starts `bff` once
+`members` is healthy and publishes it on `BFF_HOST_PORT`.
 
-By hand, against that stack's Keycloak and `members`:
+By hand, against that stack's Keycloak and `members`, on a port the stack does not publish:
 
 ```bash
 cd apps/backend
-BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_LISTEN=:8083 go run ./cmd/bff
+BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_LISTEN=:8084 go run ./cmd/bff
 ```
 
-Call it with a token for the realm's test user (`infra/compose/README.md`, "Try it"):
-
-```bash
-curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
-```
+A token for the realm's test user and the `GetHome` call are in `infra/compose/README.md`, "Try it".
 
 ## Tests
 

@@ -31,15 +31,17 @@ Stop with `down`; add `-v` to drop the volumes, which is also how you get a fres
 
 ## What comes up
 
+The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.example`.
+
 | Container | Image | Host port | Notes |
 | --- | --- | --- | --- |
-| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` (5432) | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak` and `members`, one role each, `CONNECT` revoked from `PUBLIC` so neither role can reach the other's database (A9). |
-| keycloak | `quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980` | `KEYCLOAK_HOST_PORT` (8080) | Keycloak 26.6.6 with magic-link 0.75. The tag is the single `KEYCLOAK_TAG` default in `compose.yaml`; never `latest` or a shorter tag (§7.5). |
-| rabbitmq | `rabbitmq:4-management` | — | No consumer yet. |
-| redis | `redis:8` | — | No client yet. |
-| members-migrate | built from `apps/backend`, `cmd/members/Dockerfile` | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. |
-| members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` (8081) | `MembersService` over Connect, `/healthz` pings the database. Starts after the migration step completed and Keycloak is healthy; verifies every bearer token against the realm JWKS (audience `bff`). |
-| bff | built from `apps/backend`, `cmd/bff/Dockerfile` | `BFF_HOST_PORT` (8082) | `BffService` over Connect: what the phone calls. Keycloak owns host port 8080, so the BFF publishes on 8082 while listening on 8080 inside the network (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` and `notify` are in-process stubs until slices 5 and 7. |
+| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak` and `members`, one role each, `CONNECT` revoked from `PUBLIC` so neither role can reach the other's database (A9). |
+| keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). |
+| rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
+| redis | `redis:8` | — | No client until slice 5. |
+| members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. |
+| members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect, `/healthz` pings the database. Starts after the migration step completed and Keycloak is healthy; verifies every bearer token against the realm JWKS (audience `bff`). |
+| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` and `notify` are in-process stubs until slices 5 and 7. |
 
 Every long-running container has a health check and `depends_on: condition: service_healthy` orders
 the start; the migration step is ordered with `condition: service_completed_successfully`. Keycloak
@@ -63,9 +65,10 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
 `members` issuer check and the BFF issuer check all derive from it. To sign in from a device:
 
 1. Set `MMR_HOST=<the Mac's LAN IP>` in `.env` and recreate the stack (`up -d --wait`); Keycloak, `members`
-   and `bff` restart with the new issuer `http://<ip>:8080/realms/mmr`. The realm import is unaffected.
-2. Run the app on the phone with the Run environment `MMR_ISSUER=http://<ip>:8080/realms/mmr` and
-   `MMR_BFF_URL=http://<ip>:8082` (`apps/ios/README.md`, "Run on a physical iPhone").
+   and `bff` restart with the new issuer `http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr`. The realm import is unaffected.
+2. In Xcode, edit the scheme's Run action and add the environment variables
+   `MMR_ISSUER=http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr` and `MMR_BFF_URL=http://<ip>:${BFF_HOST_PORT}`; select
+   a signing team, pick the phone, Run (`apps/ios/README.md`, "Run on a physical iPhone").
 3. Set it back to `localhost` and recreate again before the simulator or the UI test next run.
 
 ## The `mmr` realm
@@ -96,6 +99,7 @@ Compose reads from `.env`. Nothing secret is in a committed file.
 
 ## Try it
 
+With the stock `.env`; a non-default `.env` substitutes its `KEYCLOAK_HOST_PORT` and `BFF_HOST_PORT`.
 Discovery document from the host:
 
 ```bash
@@ -108,7 +112,7 @@ A password grant for the test user on the `ios` client:
 curl -s -X POST http://localhost:8080/realms/mmr/protocol/openid-connect/token -d grant_type=password -d client_id=ios -d username=test -d "password=$TEST_USER_PASSWORD" | jq -r .access_token
 ```
 
-`GetHome` through the BFF with that token (the shape the app sees; `apps/backend/cmd/bff/README.md`):
+`GetHome` through the BFF with that token (the shape the app sees):
 
 ```bash
 curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
@@ -117,7 +121,7 @@ curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorizatio
 ## A10 smoke test
 
 `a10-smoke.sh` proves A10 on the pinned image, and CI runs it on every pull request (`a10-smoke` job,
-throwaway `.env`, only `keycloak` and `postgres` started). Against the running stack, using the same `.env`, it:
+throwaway `.env`, only the `keycloak` service and its `postgres` dependency started). Against the running stack, using the same `.env`, it:
 
 1. gets a service-account token for `bff` and calls `POST /realms/mmr/login-token` for the test
    user's email with `expiration_seconds` 900, `reusable` false, `force_create` true and
@@ -132,7 +136,7 @@ throwaway `.env`, only `keycloak` and `postgres` started). Against the running s
 infra/compose/a10-smoke.sh
 ```
 
-It reads `KEYCLOAK_HOST_PORT` from `.env` (see "Parallel worktrees"); `KEYCLOAK_URL` overrides the whole base URL.
+It reads `KEYCLOAK_HOST_PORT` from `.env` (see "Parallel worktrees").
 
 ## Admin access
 
