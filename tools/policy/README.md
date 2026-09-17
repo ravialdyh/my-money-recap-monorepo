@@ -8,27 +8,52 @@ python3 tools/policy/check_policy.py                 # every tracked file
 python3 tools/policy/check_policy.py path/to/file.go # just these
 ```
 
-`policy.json` holds the numbers and the exclusions. `scanner.py` is a small tokeniser that knows
-string literals, so `"http://localhost:8080"` is never mistaken for a comment.
+`policy.json` holds the numbers and the exclusions. `scanner.py` is a tokeniser that knows string
+literals, so `"http://localhost:8080"` is never mistaken for a comment, and knows four comment
+syntaxes: `// /// /* */` for Go, Swift, TypeScript, JavaScript and protobuf, `#` for YAML, shell,
+Python, Dockerfile and the ignore files, `--` for SQL, and `/* */` for CSS.
 
 ## The rules
 
-**A source file is at most 300 lines.** Nothing hand-written in this repo was over it when the rule
-landed; the largest was `RecapScreens.tsx` at 279. The cap is a ratchet, not a cleanup.
+**A file is at most 300 lines.** Every file the checker opens, not just source.
 
-**A comment either states a contract or is a directive. Nothing else.**
+**A comment is either a directive or a docstring on a declaration. Nothing else survives.**
 
-| Allowed | Why |
-| --- | --- |
-| `//go:embed`, `//go:build`, `//nolint`, `// MARK:`, `// swiftlint:`, `@ts-expect-error`, `eslint-disable`, `biome-ignore`, `#!` | These are instructions to a compiler or an editor. `//go:embed migrations/*.sql` in `internal/members` **is** the migration bundle: delete it and the members binary ships with no schema. |
-| A doc comment at file or type scope | Go package docs (`// Package bff …`), Swift `///` on a type or member, TSDoc on an export. This is where a `D*`, `A*`, `I*` or `§` citation lives, which is the only machine-greppable link from code back to the decision that caused it (`AGENTS.md`). |
+Concretely, all of these are rejected:
 
 | Rejected | Instead |
 | --- | --- |
-| A comment inside a function body | Name the code. Extract the step into a function whose name says what the comment said — `lockMigrationLedger`, `daysRemainingInclusive` — or move the "why" up to the enclosing doc comment. |
-| A doc comment over 255 characters | State the contract; put the reasoning in the nearest README or in `docs/`. |
+| A comment attached to no declaration — a file header, a section banner, a stray note | Delete it. If it carries a decision, the decision belongs in a README or in `docs/`. |
+| A trailing comment after code on the same line | Delete it, or rename the thing it was explaining. `const field = useRef() // the padded row` became `const paddedRow = useRef()`. |
+| A comment inside a function body | Name the code. Extract the step into a function whose name says what the comment said — `lockMigrationLedger`, `daysRemainingInclusive`. |
+| A Python module docstring | The file's name and its code say what it is. |
+| A docstring over 255 characters | State the contract; put the reasoning in the nearest README. |
 | `TODO`, `FIXME`, `XXX`, `HACK`, `WIP` | Open a GitHub issue. A tag in the source has no owner and no date. |
 | Commented-out code | Delete it. Git remembers. |
+
+Two things survive.
+
+**Docstrings on a declaration**, under 255 characters: Go package docs (`// Package bff …`), Go doc
+comments on a `func`/`type`/`var`/`const`, Swift `///` on a type or member, TSDoc on an export, and
+a comment on a field inside a struct or class body. This is where a `D*`, `A*`, `I*` or `§` citation
+lives, which is the only machine-greppable link from code back to the decision that caused it
+(`AGENTS.md`). A block counts as a docstring only when the next non-blank, non-comment line opens a
+declaration; a block followed by a blank line, or by nothing, is a file header and is rejected.
+
+**Directives**, which are instructions to a compiler or a tool rather than prose. The list is
+deliberately short, and every entry is there because deleting it breaks something:
+
+| Directive | What breaks without it |
+| --- | --- |
+| `#!/bin/sh` and the other shebangs | `execve` fails with `ENOEXEC`. pre-commit reads the shebang itself to build the command, so deleting the one in `tools/hooks/if-installed.sh` kills the gofmt, golangci-lint, swiftformat, swiftlint, hadolint and buf-lint hooks at once. Two pre-commit hooks also enforce it both ways. |
+| `// swift-tools-version:` | SwiftPM cannot load `packages/contract/swift/Package.swift` at all. |
+| `//go:embed` | It **is** the migration bundle. `internal/members` still compiles and still vets without it — the `embed.FS` is simply empty, `ReadDir` fails at run time, `members-migrate` exits 1, and the Compose stack never comes up. CI catches it, but only at the integration step. |
+| `//go:build`, `// +build` | Build constraints; the file silently joins or leaves the build. |
+| `# shellcheck disable=SC1091` | `infra/compose/a10-smoke.sh` sources `.env`, which is git-ignored and absent at lint time. The shellcheck hook fails without the waiver. |
+| `//nolint`, `// swiftlint:`, `// swiftformat:`, `@ts-expect-error`, `eslint-disable`, `biome-ignore`, `prettier-ignore`, `c8/v8/istanbul ignore` | Linter waivers. `.golangci.yml` sets `nolintlint` to require both an explanation and a specific linter, so a bare `//nolint` is already rejected by golangci-lint. |
+| `# syntax=`, `# escape=`, `# hadolint ignore=` | Docker parser directives; the first two change how the Dockerfile is parsed. |
+| `# type:`, `# noqa`, `# pragma:`, `# mypy:`, `# ruff:` | Python tool waivers. |
+| `# vN` after `uses: owner/action@<sha>` | Dependabot maintains these alongside the pin. Strip them and Dependabot's next PR puts them back, which the policy would then reject — a loop no commit can leave. |
 
 A comment that merely restates the code is out of scope for the hook — no linter can see it. That one
 is a review concern.
@@ -37,20 +62,23 @@ is a review concern.
 
 Three mechanisms, in this order. None of them repeats another.
 
-**The extension lists.** The line cap reads `.go .swift .ts .tsx .js .mjs .py .sh .css .proto .sql
-.yaml .yml`; the comment rule reads the first six of those. Everything else — `package-lock.json`,
-`*.pbxproj`, `Package.resolved`, the Keycloak realm export, `tokens.json`, every `*.md` — is never
-opened, so it needs no exclusion and has none.
+**No known comment syntax.** `package-lock.json`, `*.pbxproj`, `Package.resolved`, the Keycloak realm
+export, `tokens.json`, every `*.md`, every image: never opened, so they need no exclusion and have
+none.
 
-**The generated-file header.** A file whose first five lines contain `Code generated by`,
-`@generated`, `DO NOT EDIT` or `Do not edit by hand` is skipped. That is every file buf writes, plus
-`Tokens.swift`, `css.generated.ts` and `illustrations.ts` — thirteen files, all thirteen carrying a
-header. A new generator is covered the day it lands, with no config change.
+**The generated-file header.** A file with `Code generated by`, `@generated`, `DO NOT EDIT`,
+`Do not edit by hand` or `Generated from` **inside a comment** in its first five lines is skipped:
+everything buf writes, plus `Tokens.swift`, `css.generated.ts` and `illustrations.ts`. The marker has
+to be in a comment, not merely somewhere in the first five lines — otherwise a string literal like
+`const helpText = "Ask before you DO NOT EDIT the ledger"` would exempt its whole file, which is a
+bypass the earlier substring match allowed.
 
-**`exclude`, which holds three paths** and only three, because nothing else survived the two rules
-above: `my-money-recap/**` (the illustration pipeline — one-off tooling, not shipped code),
-`my-money-recap-ds/.design-sync/**` (owned by the design-sync tool) and `docs/**`.
+**`exclude`, which holds three paths** and only three: `my-money-recap/**` (the illustration
+pipeline — one-off tooling, not shipped code), `my-money-recap-ds/.design-sync/**` (owned by the
+design-sync tool) and `docs/**`.
 
-`.pre-commit-config.yaml` carries a longer list. That is not a copy: its hooks touch JSON, CSS and
-Markdown, which this checker never opens, and nine generated files carry trailing whitespace exactly
-as their generator emits it.
+`.pre-commit-config.yaml` carries a longer list, on the three hooks that rewrite files. That is not a
+copy: those hooks touch JSON, CSS and Markdown, which this checker never opens, and nine generated
+files carry trailing whitespace exactly as their generator emits it. It is attached per hook rather
+than globally so that `detect-private-key`, `gitleaks` and `check-added-large-files` still see every
+file in the repo.
