@@ -1,8 +1,8 @@
 {
-  "target": 80.0,
   "floors": {
-    "go": 36.0,
-    "typescript": 8.6,
-    "ios": 0.0
-  }
+    "go": 46.8,
+    "ios": 30.9,
+    "typescript": 8.6
+  },
+  "target": 80.0
 }

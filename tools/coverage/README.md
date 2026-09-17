@@ -14,22 +14,21 @@ pull request that added the tests. Once a language reaches 80% the floor becomes
 
 ## The floors, and where they came from
 
-| Language | Floor | How it was measured |
+All three come from a CI run, not a guess.
+
+| Language | Floor | Where it comes from |
 | --- | --- | --- |
-| `typescript` | 8.6% | Real. `npm run test:coverage` — one test file, `money.test.ts`, against 33 modules. |
-| `go` | 36.0% | **Placeholder.** Measured without a Docker daemon, so the members and end-to-end suites skipped. |
-| `ios` | 0.0% | **Placeholder.** Measured without Xcode, so nothing ran. |
+| `go` | 46.8% | The backend job, with the Compose stack up, so `internal/members` and the end-to-end test really run. |
+| `ios` | 30.9% | The iOS job on a macOS runner, ten tests, `-enableCodeCoverage YES` on both halves of the build-then-test split. |
+| `typescript` | 8.6% | `npm run test:coverage` — one test file, `money.test.ts`, against 33 modules. |
 
-The two placeholders are low because of where they were measured, not because the tests are broken.
-CI has both: the backend job starts the Compose stack, so `internal/members` and the end-to-end test
-really run; the iOS job runs on a macOS runner with `-enableCodeCoverage YES`. The first run of each
-will print
+When a run beats its floor the gate passes and prints the command that records the new one:
 
 ```
-go: 71.3%, up from 36.0%. Run python3 tools/coverage/coverage_gate.py go 71.3 --update and commit the floor.
+go: 52.1%, up from 46.8%. Run python3 tools/coverage/coverage_gate.py go 52.1 --update and commit the floor.
 ```
 
-Run that once per language and commit `baseline.json`. From then on the floors are the real numbers.
+Run it and commit `baseline.json` in the same pull request that added the tests.
 
 ## What is not counted
 
@@ -40,6 +39,10 @@ say nothing.
 
 ## Getting to 80%
 
-The gap is almost entirely the design system: 26 components with no tests at all, and the `internal/serve`
-and `internal/members` Go packages whose tests only run with Compose up. Nothing here forces that work into
-one change — add tests with the slice that touches the code, raise the floor, and the ratchet keeps it.
+TypeScript is the long way from it: 38 source modules under `my-money-recap-ds/src`, one test file
+between them, and 26 components with no test at all. Go's 46.8% is mostly `internal/serve`, which has
+no tests; `internal/members` is covered, because CI runs its suite against the Compose stack. iOS at
+30.9% is ten tests over the view models, the Keychain and money formatting, with the views untested.
+
+Nothing forces that into one change. Add tests with the slice that touches the code, raise the floor
+in the same pull request, and the ratchet keeps what you gained.
