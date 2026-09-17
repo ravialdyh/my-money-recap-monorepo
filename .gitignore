@@ -24,6 +24,8 @@ xcuserdata/
 apps/ios/build/
 
 .claude/
+.claude.json
+.mcp.json
 
 __pycache__/
 *.pyc
