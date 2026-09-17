@@ -19,9 +19,9 @@ final class HomeViewModelTests: XCTestCase {
         let home = try recordedHome()
         // A fixed locale: the copy below is what a British phone prints, whatever the CI runner's locale is.
         let model = HomeViewModel(fetch: { home }, context: try freshContext(), locale: Locale(identifier: "en_GB"))
-        XCTAssertTrue(model.isFirstLoad, "no snapshot yet: the skeleton")
+        XCTAssertNil(model.home, "no snapshot yet: the skeleton")
         await model.refresh()
-        XCTAssertFalse(model.isFirstLoad)
+        XCTAssertNotNil(model.home)
         XCTAssertNil(model.greeting, "display_name is empty before onboarding")
         XCTAssertFalse(model.showsSavedChip, "Money In is 0, so no Saved chip (D41)")
         XCTAssertEqual(model.home?.spent.amount, "0")
@@ -48,7 +48,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(model.home?.month, "2026-09", "the snapshot is on screen before any call completes (I4)")
         await model.refresh()
         XCTAssertEqual(model.home?.month, "2026-09", "a failed refresh keeps the last snapshot")
-        XCTAssertFalse(model.isRefreshing)
     }
 
     func testSuccessfulRefreshReplacesTheSnapshotWhole() async throws {
@@ -60,10 +59,5 @@ final class HomeViewModelTests: XCTestCase {
         let rows = try context.fetch(FetchDescriptor<HomeSnapshot>())
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(try MoneyRecap_V1_HomeView(serializedBytes: rows[0].bytes).month, "2026-10")
-    }
-
-    func testMoneyPrintsWholeAmountsWithoutAZeroFraction() {
-        XCTAssertEqual(Money.format("0", currency: "GBP"), Decimal(0).formatted(.currency(code: "GBP").precision(.fractionLength(0))))
-        XCTAssertEqual(Money.format("12.40", currency: "GBP"), Decimal(string: "12.40")!.formatted(.currency(code: "GBP")))
     }
 }

@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 import type { Ground } from './types';
 
 export interface ScreenProps extends HTMLAttributes<HTMLDivElement> {
@@ -9,7 +9,7 @@ export interface ScreenProps extends HTMLAttributes<HTMLDivElement> {
 }
 /** 390x844 story-card canvas. Owns the ground colour, the insets and the text colour for everything inside. */
 export function Screen({ ground, children, className = '', ...rest }: ScreenProps) {
-  useStyles();
+  ensureStyles();
   return (
     <div className={`mmr-screen ${className}`} data-ground={ground} {...rest}>
       {children}

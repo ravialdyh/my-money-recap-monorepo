@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 set -a; . ./.env; set +a
 
-KC=${KEYCLOAK_URL:-http://localhost:${KEYCLOAK_HOST_PORT:-8080}}
+KC=http://localhost:${KEYCLOAK_HOST_PORT:-8080}
 REALM=$KC/realms/mmr
 TOKEN=$REALM/protocol/openid-connect/token
 EMAIL=test@example.com

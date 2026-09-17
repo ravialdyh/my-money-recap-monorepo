@@ -1,4 +1,4 @@
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 
 export interface PageDotsProps {
   count: number;
@@ -10,7 +10,7 @@ export interface PageDotsProps {
 }
 /** 6px dots, the active one stretched to 22px. Omit on shareable screens so screenshots stay clean. */
 export function PageDots({ count, active, onLight = false, onSelect }: PageDotsProps) {
-  useStyles();
+  ensureStyles();
   return (
     <div className="mmr-pagedots" data-on-light={onLight ? 'true' : 'false'} role="tablist" aria-label="Pages">
       {Array.from({ length: count }, (_, i) =>

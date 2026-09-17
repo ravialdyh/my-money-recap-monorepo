@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 import type { Hue, InteractiveState } from './types';
 
 export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
@@ -23,7 +23,7 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
 }
 /** Uppercase caption pill used in screen headers. ~30px tall, so set `tappable` when it is a control. */
 export function Chip({ variant = 'onGround', tone, selected = false, state = 'default', asLabel = false, tappable = false, children, className = '', ...rest }: ChipProps) {
-  useStyles();
+  ensureStyles();
   const cls = `mmr-chip ${asLabel ? '' : 'mmr-pressable'} ${className}`;
   if (asLabel) return <span className={cls} data-variant={variant} data-tone={tone}>{children}</span>;
   return (
@@ -39,6 +39,6 @@ export function Chip({ variant = 'onGround', tone, selected = false, state = 'de
   );
 }
 export function ChipRow({ children }: { children: ReactNode }) {
-  useStyles();
+  ensureStyles();
   return <div className="mmr-chip-row">{children}</div>;
 }

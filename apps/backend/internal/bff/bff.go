@@ -67,6 +67,9 @@ type Service struct {
 // A skeleton-only state; slice 4 removes it (#10).
 const fallbackCurrency = "GBP"
 
+// The server's calendar strings (PRD §6.8): a Recap Month and a date.
+const monthLayout, dateLayout = "2006-01", "2006-01-02"
+
 func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
 	claims := auth.From(ctx)
 	// PRD §5 step 5: first sight of a subject creates the Member.
@@ -75,11 +78,15 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		return nil, err
 	}
 	memberID := created.Msg.Profile.MemberId
-	now := time.Now().UTC()
-	if s.Now != nil {
-		now = s.Now().UTC()
+	nowFn, timeout := s.Now, s.Timeout
+	if nowFn == nil {
+		nowFn = time.Now
 	}
-	month := now.Format("2006-01")
+	if timeout == 0 {
+		timeout = time.Second
+	}
+	now := nowFn().UTC()
+	month := now.Format(monthLayout)
 
 	// §6.1 fan-out: members and ledger required, notify optional.
 	var (
@@ -93,10 +100,6 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			timeout := s.Timeout
-			if timeout == 0 {
-				timeout = time.Second
-			}
 			ctx, cancel := context.WithTimeout(ctx, timeout)
 			defer cancel()
 			f(ctx)
@@ -118,7 +121,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		return nil, connect.NewError(connect.CodeUnavailable, sumErr)
 	}
 	if warnErr != nil {
-		// ponytail: a log line stands in for the §6.1 metric until OpenTelemetry lands (slice 8, A11).
+		// A log line stands in for the §6.1 metric until OpenTelemetry lands (slice 8, A11).
 		log.Printf("notify.GetWarningState: %v (HomeView returned without a banner)", warnErr)
 		warning = nil
 	}
@@ -145,9 +148,9 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		Salary:        summary.Salary,
 		SavingTarget:  summary.SavingTarget,
 		StreakDay:     summary.StreakDay,
-		DaysRemaining: int32(firstOfNext.AddDate(0, 0, -1).Day() - now.Day() + 1), // counting today, never below 1 (PRD §8.7)
+		DaysRemaining: int32(firstOfNext.AddDate(0, 0, -1).Day() - now.Day() + 1), // counting today; the last day of the month gives 1 (PRD §8.7)
 		TargetWarning: warning,
 		RecapMonths:   summary.RecapMonths,
-		FirstRecapOn:  firstOfNext.Format("2006-01-02"),
+		FirstRecapOn:  firstOfNext.Format(dateLayout),
 	}}), nil
 }

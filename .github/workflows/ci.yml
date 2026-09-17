@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# A new push to the same branch cancels the run still going for the old one.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   design-system:
     runs-on: ubuntu-latest
@@ -40,58 +45,47 @@ jobs:
         with:
           version: 1.73.0
           setup_only: true
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: apps/backend/go.mod
       - run: buf lint
       - name: No breaking change against main (A1)
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main
-          if git cat-file -e origin/main:packages/contract/buf.yaml 2>/dev/null; then
-            buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
-          else
-            echo "packages/contract is not on main yet; nothing to compare against"
-          fi
-      - name: Generated Go and Swift code is up to date with the .proto files
+          buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
+      - name: Generated Go and Swift code is up to date with the .proto files (the backend job compiles the Go)
         run: |
           buf generate
           git diff --exit-code -- ../../apps/backend/gen swift/Sources
-      - name: Generated Go compiles
-        working-directory: apps/backend
-        run: go build ./...
 
   backend:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: apps/backend
+    # The stock .env.example ports and the throwaway credentials the step below writes (never committed).
+    env:
+      MEMBERS_TEST_URL: http://localhost:8081
+      MEMBERS_TEST_DATABASE_URL: postgres://members:ci-throwaway@localhost:5432/members
+      MEMBERS_TEST_KEYCLOAK: http://localhost:8080
+      MEMBERS_TEST_USER_PASSWORD: ci-throwaway
+      MEMBERS_TEST_BFF_CLIENT_SECRET: ci-throwaway
+      BFF_TEST_URL: http://localhost:8082
+      BFF_TEST_KEYCLOAK: http://localhost:8080
+      BFF_TEST_USER_PASSWORD: ci-throwaway
+      BFF_TEST_DATABASE_URL: postgres://members:ci-throwaway@localhost:5432/members
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: apps/backend/go.mod
-      - run: go vet ./...
-      - run: go test ./...
       - name: Compose stack with the migration step, members and the BFF (#15, #17)
         working-directory: infra/compose
         run: |
-          printf 'POSTGRES_PASSWORD=ci\nKEYCLOAK_DB_PASSWORD=ci\nMEMBERS_DB_PASSWORD=ci\nKC_BOOTSTRAP_ADMIN_USERNAME=admin\nKC_BOOTSTRAP_ADMIN_PASSWORD=ci\nTEST_USER_PASSWORD=ci\nBFF_CLIENT_SECRET=ci\n' > .env
+          sed 's/=$/=ci-throwaway/' .env.example > .env
           docker compose up -d --build --wait
-      - name: Connect-boundary tests against Compose
-        env:
-          MEMBERS_TEST_URL: http://localhost:8081
-          MEMBERS_TEST_DATABASE_URL: postgres://members:ci@localhost:5432/members
-          MEMBERS_TEST_KEYCLOAK: http://localhost:8080
-          MEMBERS_TEST_USER_PASSWORD: ci
-          MEMBERS_TEST_BFF_CLIENT_SECRET: ci
-        run: go test -v -run 'TestConcurrentFirstCallsCreateOneRow|TestConnectBoundary' ./internal/members/
-      - name: Backend end-to-end test at the BFF's HTTP boundary (#17)
-        env:
-          BFF_TEST_URL: http://localhost:8082
-          BFF_TEST_KEYCLOAK: http://localhost:8080
-          BFF_TEST_USER_PASSWORD: ci
-          BFF_TEST_DATABASE_URL: postgres://members:ci@localhost:5432/members
-        run: go test -v -run TestEndToEnd ./internal/bff/
+      - name: Unit tests, the Connect-boundary tests and the end-to-end test at the BFF's HTTP boundary
+        # -p 1: the members and bff packages both sign in as the realm's one test user, so they must not run at once.
+        run: |
+          go vet ./...
+          go test -v -p 1 ./...
       - name: Stack logs and teardown
         if: always()
         working-directory: infra/compose
@@ -106,7 +100,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Throwaway .env (development credentials only, never committed)
         run: sed 's/=$/=ci-throwaway/' infra/compose/.env.example > infra/compose/.env
-      - name: Keycloak and Postgres only; members is the backend job's concern
+      - name: Keycloak only (Postgres follows via depends_on); members is the backend job's concern
         run: docker compose -f infra/compose/compose.yaml up -d --wait --wait-timeout 300 keycloak
       - name: Login Token issued and redeemed on the pinned image (A10)
         run: infra/compose/a10-smoke.sh

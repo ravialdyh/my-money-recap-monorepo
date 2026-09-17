@@ -1,9 +1,8 @@
 // Concatenates tokens.css + components.css into src/styles/css.generated.ts so components can
 // inject styles at runtime without needing a CSS loader in the consuming bundler.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-const here = dirname(fileURLToPath(import.meta.url));
+import { resolve } from 'node:path';
+import { here } from './lib.mjs';
 const tokens = readFileSync(resolve(here, '../src/tokens/tokens.css'), 'utf8');
 const comps = readFileSync(resolve(here, '../src/styles/components.css'), 'utf8');
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap');\n`;

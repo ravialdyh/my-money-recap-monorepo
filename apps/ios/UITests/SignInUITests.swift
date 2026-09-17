@@ -78,9 +78,7 @@ final class SignInUITests: XCTestCase {
 
     /// The web sheet and its "wants to use localhost to sign in" alert are drawn by system processes
     /// (SpringBoard, SafariViewService), not the app, so element queries look there first.
-    private var hosts: [XCUIApplication] {
-        ["com.apple.springboard", "com.apple.SafariViewService"].map(XCUIApplication.init(bundleIdentifier:)) + [XCUIApplication()]
-    }
+    private let hosts = ["com.apple.springboard", "com.apple.SafariViewService"].map(XCUIApplication.init(bundleIdentifier:)) + [XCUIApplication()]
 
     private func systemButton(_ title: String, in app: XCUIApplication) throws -> XCUIElement {
         try XCTUnwrap(first(hosts.map { $0.buttons[title] }, attempts: 6), "no system button titled \(title)")

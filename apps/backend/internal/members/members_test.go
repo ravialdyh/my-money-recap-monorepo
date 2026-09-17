@@ -2,8 +2,6 @@ package members
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,6 +14,7 @@ import (
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
 // Both tests need the Compose stack (infra/compose) and skip without it:
@@ -80,36 +79,6 @@ func TestConcurrentFirstCallsCreateOneRow(t *testing.T) {
 	t.Logf("%d concurrent first calls → 1 row, every call returned member id %s", n, ids[0])
 }
 
-func token(t *testing.T, form url.Values) string {
-	t.Helper()
-	form.Set("client_id", form.Get("client_id"))
-	res, err := http.PostForm(os.Getenv("MEMBERS_TEST_KEYCLOAK")+"/realms/mmr/protocol/openid-connect/token", form)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer res.Body.Close()
-	var body struct {
-		AccessToken string `json:"access_token"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&body); err != nil || body.AccessToken == "" {
-		t.Fatalf("token request: status %d, err %v", res.StatusCode, err)
-	}
-	return body.AccessToken
-}
-
-func claims(t *testing.T, tok string) (sub, email string) {
-	t.Helper()
-	raw, err := base64.RawURLEncoding.DecodeString(strings.Split(tok, ".")[1])
-	if err != nil {
-		t.Fatal(err)
-	}
-	var c struct{ Sub, Email string }
-	if err := json.Unmarshal(raw, &c); err != nil {
-		t.Fatal(err)
-	}
-	return c.Sub, c.Email
-}
-
 func TestConnectBoundary(t *testing.T) {
 	base := os.Getenv("MEMBERS_TEST_URL")
 	if base == "" || os.Getenv("MEMBERS_TEST_KEYCLOAK") == "" || os.Getenv("MEMBERS_TEST_USER_PASSWORD") == "" {
@@ -117,22 +86,16 @@ func TestConnectBoundary(t *testing.T) {
 	}
 	db := testDB(t)
 	ctx := context.Background()
-	tok := token(t, url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "username": {"test"}, "password": {os.Getenv("MEMBERS_TEST_USER_PASSWORD")}})
-	sub, email := claims(t, tok)
+	kc := os.Getenv("MEMBERS_TEST_KEYCLOAK")
+	tok := testauth.Token(t, kc, url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "username": {"test"}, "password": {os.Getenv("MEMBERS_TEST_USER_PASSWORD")}})
+	claims := testauth.Decode(t, tok)
+	sub, email := claims.Sub, claims.Email
 	if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, sub); err != nil {
 		t.Fatal(err)
 	}
 
 	client := moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base)
-	withToken := func(tok string) connect.ClientOption {
-		return connect.WithInterceptors(connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
-			return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-				req.Header().Set("Authorization", "Bearer "+tok)
-				return next(ctx, req)
-			}
-		}))
-	}
-	authed := moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, withToken(tok))
+	authed := moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, testauth.Bearer(tok))
 	getOrCreate := func(c moneyrecapv1connect.MembersServiceClient, subject, email string) (*moneyrecapv1.Profile, error) {
 		res, err := c.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: subject, Email: email}))
 		if err != nil {
@@ -187,12 +150,12 @@ func TestConnectBoundary(t *testing.T) {
 	}
 	unauth := map[string]moneyrecapv1connect.MembersServiceClient{
 		"no token":      client,
-		"garbage token": moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, withToken("not.a.jwt")),
+		"garbage token": moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, testauth.Bearer("not.a.jwt")),
 	}
 	if secret := os.Getenv("MEMBERS_TEST_BFF_CLIENT_SECRET"); secret != "" {
 		// The bff service account's token carries no `bff` audience.
-		bffTok := token(t, url.Values{"grant_type": {"client_credentials"}, "client_id": {"bff"}, "client_secret": {secret}})
-		unauth["wrong audience"] = moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, withToken(bffTok))
+		bffTok := testauth.Token(t, kc, url.Values{"grant_type": {"client_credentials"}, "client_id": {"bff"}, "client_secret": {secret}})
+		unauth["wrong audience"] = moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, testauth.Bearer(bffTok))
 	}
 	for name, c := range unauth {
 		if _, err := getOrCreate(c, sub, email); connect.CodeOf(err) != connect.CodeUnauthenticated {

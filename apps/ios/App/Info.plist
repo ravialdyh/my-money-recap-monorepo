@@ -15,20 +15,12 @@
 		</dict>
 	</array>
 	<!-- Local Compose is plain HTTP: on localhost from the simulator, and on the Mac's LAN address from a
-	     physical device (MMR_ISSUER / MMR_BFF_URL). NSAllowsLocalNetworking covers the LAN case; slice 3
-	     removes it when Nginx terminates TLS (ARCHITECTURE A9). -->
+	     physical device (MMR_ISSUER / MMR_BFF_URL). NSAllowsLocalNetworking covers both (unqualified hosts
+	     and private addresses); slice 3 removes it when Nginx terminates TLS (ARCHITECTURE A9). -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
 	</dict>
 </dict>
 </plist>

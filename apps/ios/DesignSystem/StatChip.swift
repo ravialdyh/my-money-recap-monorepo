@@ -33,12 +33,3 @@ struct StatChip: View {
         }
     }
 }
-
-/// Chips 8pt apart under a `StatHero`, wrapping when they must.
-struct StatChipRow<Content: View>: View {
-    @ViewBuilder let content: () -> Content
-
-    var body: some View {
-        HStack(spacing: 8, content: content)
-    }
-}

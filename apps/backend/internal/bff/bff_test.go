@@ -60,6 +60,17 @@ func newService(t *testing.T, members *fakeMembers, notify Notify) *Service {
 
 var ctx = auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com", Raw: "tok"})
 
+// assertZeroHome is the HomeView of zeros both the unit test and the end-to-end test expect (#10):
+// nothing spent or in, no Saved, Salary, target, warning or recaps, no name, the fallback currency, streak day 1.
+func assertZeroHome(t *testing.T, h *moneyrecapv1.HomeView) {
+	t.Helper()
+	if h.Spent.Amount != "0" || h.Spent.CurrencyCode != fallbackCurrency || h.MoneyIn.Amount != "0" || h.Saved != nil ||
+		h.Salary != nil || h.SavingTarget != nil || h.TargetWarning != nil || len(h.RecapMonths) != 0 ||
+		h.DisplayName != "" || h.CurrencyCode != fallbackCurrency || h.StreakDay != 1 || h.DaysRemaining < 1 {
+		t.Fatalf("HomeView: %v", h)
+	}
+}
+
 func TestGetHomeZeros(t *testing.T) {
 	members := &fakeMembers{}
 	res, err := newService(t, members, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
@@ -67,11 +78,9 @@ func TestGetHomeZeros(t *testing.T) {
 		t.Fatal(err)
 	}
 	h := res.Msg.Home
-	if h.Spent.Amount != "0" || h.Spent.CurrencyCode != "GBP" || h.MoneyIn.Amount != "0" || h.Saved != nil ||
-		h.Salary != nil || h.SavingTarget != nil || h.TargetWarning != nil || len(h.RecapMonths) != 0 ||
-		h.DisplayName != "" || h.CurrencyCode != "GBP" || h.Month != "2026-09" || h.StreakDay != 1 ||
-		h.DaysRemaining != 15 || h.FirstRecapOn != "2026-10-01" {
-		t.Fatalf("HomeView: %v", h)
+	assertZeroHome(t, h)
+	if h.Month != "2026-09" || h.DaysRemaining != 15 || h.FirstRecapOn != "2026-10-01" {
+		t.Fatalf("HomeView dates: %v", h)
 	}
 	if members.gotToken != "Bearer tok" {
 		t.Fatalf("members received %q, want the caller's token forwarded", members.gotToken)

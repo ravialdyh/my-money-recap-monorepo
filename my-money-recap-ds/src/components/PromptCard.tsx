@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { useStyles } from '../styles/useStyles';
+import { ensureStyles } from '../styles/ensureStyles';
 import { Icon } from '../icons';
 import { IconWell } from './DataRow';
 import { CardTitle } from './Card';
@@ -33,7 +33,7 @@ export interface PromptCardProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
 export function PromptCard({
   height, eyebrow = null, title, helper = null, state = 'default', className = '', style, ...rest
 }: PromptCardProps) {
-  useStyles();
+  ensureStyles();
   return (
     <button
       type="button" className={`mmr-card mmr-prompt-card mmr-pressable ${className}`}

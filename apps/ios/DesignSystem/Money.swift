@@ -4,9 +4,9 @@ import Foundation
 /// device locale with the currency's own decimals (IOS I7, the Swift twin of `money.ts`). Nothing here knows how
 /// many decimals a currency has; a whole amount prints without a zero fraction (README "Money").
 enum Money {
-    static func format(_ amount: String, currency: String) -> String {
+    static func format(_ amount: String, currency: String, locale: Locale = .autoupdatingCurrent) -> String {
         let value = Decimal(string: amount) ?? 0
-        let style = Decimal.FormatStyle.Currency(code: currency)
+        let style = Decimal.FormatStyle.Currency(code: currency, locale: locale)
         return value.isWhole ? value.formatted(style.precision(.fractionLength(0))) : value.formatted(style)
     }
 }

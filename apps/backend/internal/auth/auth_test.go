@@ -13,6 +13,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
+
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
 const issuer = "http://localhost:8080/realms/mmr"
@@ -25,21 +27,13 @@ func TestInterceptor(t *testing.T) {
 	jwks := jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{Key: &key.PublicKey, KeyID: "k1", Algorithm: "RS256", Use: "sig"}}}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { json.NewEncoder(w).Encode(jwks) }))
 	defer srv.Close()
-	signer, err := jose.NewSigner(jose.SigningKey{Algorithm: jose.RS256, Key: key}, (&jose.SignerOptions{}).WithHeader("kid", "k1"))
-	if err != nil {
-		t.Fatal(err)
-	}
 	mint := func(aud string, exp time.Time) string {
-		s, err := jwt.Signed(signer).Claims(jwt.Claims{Issuer: issuer, Subject: "sub-1", Audience: jwt.Audience{aud}, Expiry: jwt.NewNumericDate(exp), IssuedAt: jwt.NewNumericDate(time.Now())}).Serialize()
-		if err != nil {
-			t.Fatal(err)
-		}
-		return s
+		return testauth.Mint(t, key, "k1", jwt.Claims{Issuer: issuer, Subject: "sub-1", Audience: jwt.Audience{aud}, Expiry: jwt.NewNumericDate(exp), IssuedAt: jwt.NewNumericDate(time.Now())})
 	}
 	v := NewVerifier(context.Background(), issuer, srv.URL, "bff")
 	var got string
 	next := func(ctx context.Context, _ connect.AnyRequest) (connect.AnyResponse, error) {
-		got = Subject(ctx)
+		got = From(ctx).Subject
 		return nil, nil
 	}
 	call := func(header string) connect.Code {

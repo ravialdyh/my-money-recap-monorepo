@@ -27,11 +27,10 @@ docs/design/**/screens/
 *.p12
 *.pem
 *.key
-age.key
 
 # SwiftPM build output and resolution for the generated contract package; the
 # app's Xcode project owns dependency resolution.
-.build/
+packages/contract/swift/.build/
 packages/contract/swift/Package.resolved
 
 # Xcode per-user state and the CI derived-data folder for the iOS app.

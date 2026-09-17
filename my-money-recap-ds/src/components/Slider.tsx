@@ -1,5 +1,5 @@
-import { useStyles } from '../styles/useStyles';
-import type { BarTone } from './types';
+import { ensureStyles } from '../styles/ensureStyles';
+import type { Hue } from './types';
 
 export interface SliderProps {
   value: number;
@@ -7,7 +7,7 @@ export interface SliderProps {
   max?: number;
   /** Saving Target moves in steps of 5 (PRD §6.7). */
   step?: number;
-  tone?: BarTone;
+  tone?: Hue;
   /** Rendered under the track, e.g. "£480 of £2,400 each month". */
   helper?: string;
   disabled?: boolean;
@@ -16,7 +16,7 @@ export interface SliderProps {
 }
 /** The ProgressBar track with a draggable knob. Used for the Saving Target percentage. */
 export function Slider({ value, min = 0, max = 100, step = 5, tone = 'violet', helper, disabled = false, onChange, ...rest }: SliderProps) {
-  useStyles();
+  ensureStyles();
   const pct = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
   return (
     <div className="mmr-slider" data-disabled={disabled ? 'true' : undefined}>

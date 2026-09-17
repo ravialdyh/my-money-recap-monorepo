@@ -1,31 +1,14 @@
 // Generates src/tokens/tokens.css from src/tokens/tokens.json.
 // Aliases like "{palette.violet.500}" become var(--mmr-palette-violet-500).
-import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const here = dirname(fileURLToPath(import.meta.url));
-const src = resolve(here, '../src/tokens/tokens.json');
-const tokens = JSON.parse(readFileSync(src, 'utf8'));
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { here, tokens, walk } from './lib.mjs';
 
 const vars = []; // [name, cssValue]
 
-const isToken = (o) => o && typeof o === 'object' && '$value' in o;
 const aliasToVar = (v) => v.replace(/\{([^}]+)\}/g, (_, p) => `var(--mmr-${p.replace(/\./g, '-')})`);
 const flatRaw = {};
-
-function walk(node, path) {
-  for (const [k, v] of Object.entries(node)) {
-    if (k.startsWith('$')) continue;
-    const p = [...path, k];
-    if (isToken(v)) {
-      flatRaw[p.join('.')] = v.$value;
-    } else if (v && typeof v === 'object') {
-      walk(v, p);
-    }
-  }
-}
-walk(tokens, []);
+walk(tokens, (p, v) => { flatRaw[p.join('.')] = v.$value; });
 
 for (const [p, raw] of Object.entries(flatRaw)) {
   const name = `--mmr-${p.replace(/\./g, '-')}`;
