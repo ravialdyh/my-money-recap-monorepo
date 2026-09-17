@@ -5,6 +5,7 @@ package money_recap.v1;
 option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
 
 import "money_recap/v1/money.proto";
+import "money_recap/v1/shared.proto";
 
 // Everything Home draws (PRD §6.8), joined by the BFF (ARCHITECTURE §6.1).
 // The phone stores this message whole and never recomputes a figure (A2, I4).
@@ -36,36 +37,6 @@ message HomeView {
   repeated RecapMonth recap_months = 13;
   // ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
   string first_recap_on = 14;
-}
-
-// The Salary as Home needs it: the hero eyebrow's countdown (PRD §6.8).
-message SalaryFacts {
-  Money amount = 1;
-  // 1 to 31, or "last" for the Last day token (PRD D51).
-  string payday = 2;
-  // Days until the effective Payday; 0 when it has passed or is today.
-  int32 days_until_payday = 3;
-}
-
-// The Saving Target as Home's target card needs it (PRD §8.4, §8.7).
-message SavingTargetFacts {
-  int32 percent = 1;
-  // round-half-up(Salary × percent ÷ 100), computed by ledger.
-  Money amount = 2;
-  // The §8.7 sentence, already chosen server-side.
-  string progress_sentence = 3;
-}
-
-// The coral Banner (PRD D38, D53); copy chosen server-side per §8.8.
-message TargetWarning {
-  string message = 1;
-}
-
-message RecapMonth {
-  // "YYYY-MM".
-  string month = 1;
-  // Archetype name, or "Partial" for a Partial Recap (PRD §8.11).
-  string label = 2;
 }
 
 message GetHomeRequest {}

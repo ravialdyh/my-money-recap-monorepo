@@ -184,231 +184,6 @@ func (x *HomeView) GetFirstRecapOn() string {
 	return ""
 }
 
-// The Salary as Home needs it: the hero eyebrow's countdown (PRD §6.8).
-type SalaryFacts struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	Amount *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
-	// 1 to 31, or "last" for the Last day token (PRD D51).
-	Payday string `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
-	// Days until the effective Payday; 0 when it has passed or is today.
-	DaysUntilPayday int32 `protobuf:"varint,3,opt,name=days_until_payday,json=daysUntilPayday,proto3" json:"days_until_payday,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *SalaryFacts) Reset() {
-	*x = SalaryFacts{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SalaryFacts) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SalaryFacts) ProtoMessage() {}
-
-func (x *SalaryFacts) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SalaryFacts.ProtoReflect.Descriptor instead.
-func (*SalaryFacts) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *SalaryFacts) GetAmount() *Money {
-	if x != nil {
-		return x.Amount
-	}
-	return nil
-}
-
-func (x *SalaryFacts) GetPayday() string {
-	if x != nil {
-		return x.Payday
-	}
-	return ""
-}
-
-func (x *SalaryFacts) GetDaysUntilPayday() int32 {
-	if x != nil {
-		return x.DaysUntilPayday
-	}
-	return 0
-}
-
-// The Saving Target as Home's target card needs it (PRD §8.4, §8.7).
-type SavingTargetFacts struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Percent int32                  `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
-	// round-half-up(Salary × percent ÷ 100), computed by ledger.
-	Amount *Money `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	// The §8.7 sentence, already chosen server-side.
-	ProgressSentence string `protobuf:"bytes,3,opt,name=progress_sentence,json=progressSentence,proto3" json:"progress_sentence,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *SavingTargetFacts) Reset() {
-	*x = SavingTargetFacts{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SavingTargetFacts) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SavingTargetFacts) ProtoMessage() {}
-
-func (x *SavingTargetFacts) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SavingTargetFacts.ProtoReflect.Descriptor instead.
-func (*SavingTargetFacts) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *SavingTargetFacts) GetPercent() int32 {
-	if x != nil {
-		return x.Percent
-	}
-	return 0
-}
-
-func (x *SavingTargetFacts) GetAmount() *Money {
-	if x != nil {
-		return x.Amount
-	}
-	return nil
-}
-
-func (x *SavingTargetFacts) GetProgressSentence() string {
-	if x != nil {
-		return x.ProgressSentence
-	}
-	return ""
-}
-
-// The coral Banner (PRD D38, D53); copy chosen server-side per §8.8.
-type TargetWarning struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TargetWarning) Reset() {
-	*x = TargetWarning{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TargetWarning) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TargetWarning) ProtoMessage() {}
-
-func (x *TargetWarning) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TargetWarning.ProtoReflect.Descriptor instead.
-func (*TargetWarning) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *TargetWarning) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-type RecapMonth struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "YYYY-MM".
-	Month string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
-	// Archetype name, or "Partial" for a Partial Recap (PRD §8.11).
-	Label         string `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RecapMonth) Reset() {
-	*x = RecapMonth{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RecapMonth) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RecapMonth) ProtoMessage() {}
-
-func (x *RecapMonth) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RecapMonth.ProtoReflect.Descriptor instead.
-func (*RecapMonth) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *RecapMonth) GetMonth() string {
-	if x != nil {
-		return x.Month
-	}
-	return ""
-}
-
-func (x *RecapMonth) GetLabel() string {
-	if x != nil {
-		return x.Label
-	}
-	return ""
-}
-
 type GetHomeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -417,7 +192,7 @@ type GetHomeRequest struct {
 
 func (x *GetHomeRequest) Reset() {
 	*x = GetHomeRequest{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[5]
+	mi := &file_money_recap_v1_bff_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -429,7 +204,7 @@ func (x *GetHomeRequest) String() string {
 func (*GetHomeRequest) ProtoMessage() {}
 
 func (x *GetHomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[5]
+	mi := &file_money_recap_v1_bff_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -442,7 +217,7 @@ func (x *GetHomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHomeRequest.ProtoReflect.Descriptor instead.
 func (*GetHomeRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{5}
+	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{1}
 }
 
 type GetHomeResponse struct {
@@ -454,7 +229,7 @@ type GetHomeResponse struct {
 
 func (x *GetHomeResponse) Reset() {
 	*x = GetHomeResponse{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[6]
+	mi := &file_money_recap_v1_bff_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -466,7 +241,7 @@ func (x *GetHomeResponse) String() string {
 func (*GetHomeResponse) ProtoMessage() {}
 
 func (x *GetHomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[6]
+	mi := &file_money_recap_v1_bff_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -479,7 +254,7 @@ func (x *GetHomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHomeResponse.ProtoReflect.Descriptor instead.
 func (*GetHomeResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{6}
+	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetHomeResponse) GetHome() *HomeView {
@@ -493,7 +268,7 @@ var File_money_recap_v1_bff_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_bff_proto_rawDesc = "" +
 	"\n" +
-	"\x18money_recap/v1/bff.proto\x12\x0emoney_recap.v1\x1a\x1amoney_recap/v1/money.proto\"\xcf\x05\n" +
+	"\x18money_recap/v1/bff.proto\x12\x0emoney_recap.v1\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"\xcf\x05\n" +
 	"\bHomeView\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
@@ -515,21 +290,7 @@ const file_money_recap_v1_bff_proto_rawDesc = "" +
 	"\x06_savedB\t\n" +
 	"\a_salaryB\x10\n" +
 	"\x0e_saving_targetB\x11\n" +
-	"\x0f_target_warning\"\x80\x01\n" +
-	"\vSalaryFacts\x12-\n" +
-	"\x06amount\x18\x01 \x01(\v2\x15.money_recap.v1.MoneyR\x06amount\x12\x16\n" +
-	"\x06payday\x18\x02 \x01(\tR\x06payday\x12*\n" +
-	"\x11days_until_payday\x18\x03 \x01(\x05R\x0fdaysUntilPayday\"\x89\x01\n" +
-	"\x11SavingTargetFacts\x12\x18\n" +
-	"\apercent\x18\x01 \x01(\x05R\apercent\x12-\n" +
-	"\x06amount\x18\x02 \x01(\v2\x15.money_recap.v1.MoneyR\x06amount\x12+\n" +
-	"\x11progress_sentence\x18\x03 \x01(\tR\x10progressSentence\")\n" +
-	"\rTargetWarning\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\"8\n" +
-	"\n" +
-	"RecapMonth\x12\x14\n" +
-	"\x05month\x18\x01 \x01(\tR\x05month\x12\x14\n" +
-	"\x05label\x18\x02 \x01(\tR\x05label\"\x10\n" +
+	"\x0f_target_warning\"\x10\n" +
 	"\x0eGetHomeRequest\"?\n" +
 	"\x0fGetHomeResponse\x12,\n" +
 	"\x04home\x18\x01 \x01(\v2\x18.money_recap.v1.HomeViewR\x04home2Z\n" +
@@ -549,35 +310,33 @@ func file_money_recap_v1_bff_proto_rawDescGZIP() []byte {
 	return file_money_recap_v1_bff_proto_rawDescData
 }
 
-var file_money_recap_v1_bff_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_money_recap_v1_bff_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_money_recap_v1_bff_proto_goTypes = []any{
 	(*HomeView)(nil),          // 0: money_recap.v1.HomeView
-	(*SalaryFacts)(nil),       // 1: money_recap.v1.SalaryFacts
-	(*SavingTargetFacts)(nil), // 2: money_recap.v1.SavingTargetFacts
-	(*TargetWarning)(nil),     // 3: money_recap.v1.TargetWarning
-	(*RecapMonth)(nil),        // 4: money_recap.v1.RecapMonth
-	(*GetHomeRequest)(nil),    // 5: money_recap.v1.GetHomeRequest
-	(*GetHomeResponse)(nil),   // 6: money_recap.v1.GetHomeResponse
-	(*Money)(nil),             // 7: money_recap.v1.Money
+	(*GetHomeRequest)(nil),    // 1: money_recap.v1.GetHomeRequest
+	(*GetHomeResponse)(nil),   // 2: money_recap.v1.GetHomeResponse
+	(*Money)(nil),             // 3: money_recap.v1.Money
+	(*SalaryFacts)(nil),       // 4: money_recap.v1.SalaryFacts
+	(*SavingTargetFacts)(nil), // 5: money_recap.v1.SavingTargetFacts
+	(*TargetWarning)(nil),     // 6: money_recap.v1.TargetWarning
+	(*RecapMonth)(nil),        // 7: money_recap.v1.RecapMonth
 }
 var file_money_recap_v1_bff_proto_depIdxs = []int32{
-	7,  // 0: money_recap.v1.HomeView.spent:type_name -> money_recap.v1.Money
-	7,  // 1: money_recap.v1.HomeView.money_in:type_name -> money_recap.v1.Money
-	7,  // 2: money_recap.v1.HomeView.saved:type_name -> money_recap.v1.Money
-	1,  // 3: money_recap.v1.HomeView.salary:type_name -> money_recap.v1.SalaryFacts
-	2,  // 4: money_recap.v1.HomeView.saving_target:type_name -> money_recap.v1.SavingTargetFacts
-	3,  // 5: money_recap.v1.HomeView.target_warning:type_name -> money_recap.v1.TargetWarning
-	4,  // 6: money_recap.v1.HomeView.recap_months:type_name -> money_recap.v1.RecapMonth
-	7,  // 7: money_recap.v1.SalaryFacts.amount:type_name -> money_recap.v1.Money
-	7,  // 8: money_recap.v1.SavingTargetFacts.amount:type_name -> money_recap.v1.Money
-	0,  // 9: money_recap.v1.GetHomeResponse.home:type_name -> money_recap.v1.HomeView
-	5,  // 10: money_recap.v1.BffService.GetHome:input_type -> money_recap.v1.GetHomeRequest
-	6,  // 11: money_recap.v1.BffService.GetHome:output_type -> money_recap.v1.GetHomeResponse
-	11, // [11:12] is the sub-list for method output_type
-	10, // [10:11] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	3, // 0: money_recap.v1.HomeView.spent:type_name -> money_recap.v1.Money
+	3, // 1: money_recap.v1.HomeView.money_in:type_name -> money_recap.v1.Money
+	3, // 2: money_recap.v1.HomeView.saved:type_name -> money_recap.v1.Money
+	4, // 3: money_recap.v1.HomeView.salary:type_name -> money_recap.v1.SalaryFacts
+	5, // 4: money_recap.v1.HomeView.saving_target:type_name -> money_recap.v1.SavingTargetFacts
+	6, // 5: money_recap.v1.HomeView.target_warning:type_name -> money_recap.v1.TargetWarning
+	7, // 6: money_recap.v1.HomeView.recap_months:type_name -> money_recap.v1.RecapMonth
+	0, // 7: money_recap.v1.GetHomeResponse.home:type_name -> money_recap.v1.HomeView
+	1, // 8: money_recap.v1.BffService.GetHome:input_type -> money_recap.v1.GetHomeRequest
+	2, // 9: money_recap.v1.BffService.GetHome:output_type -> money_recap.v1.GetHomeResponse
+	9, // [9:10] is the sub-list for method output_type
+	8, // [8:9] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_bff_proto_init() }
@@ -586,6 +345,7 @@ func file_money_recap_v1_bff_proto_init() {
 		return
 	}
 	file_money_recap_v1_money_proto_init()
+	file_money_recap_v1_shared_proto_init()
 	file_money_recap_v1_bff_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -593,7 +353,7 @@ func file_money_recap_v1_bff_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_money_recap_v1_bff_proto_rawDesc), len(file_money_recap_v1_bff_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

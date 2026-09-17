@@ -13,7 +13,7 @@ A Buf module, package `money_recap.v1`, under `money_recap/v1/*.proto`:
 | `ledger_views.proto` | What ledger computes and the BFF stores whole (A2): `MonthSummary` (every Home figure plus days remaining and the partial flag), `Recap` for the full and the Partial Recap (PRD §6.11 to §6.14, §6.17), `LedgerSettings`, `ConversionPreview` |
 | `ledger_writes.proto` | The six ledger write requests and responses; each request opens with `idempotency_key` (A14), each response carries the recomputed month, spend writes carry `crossed_line` (PRD §8.8) |
 | `ledger_events.proto` | The seven `ledger.*` events, each embedding `EventEnvelope`; spend events carry the Spend, the month and `crossed_line` (§7.2 "Publishes") |
-| `shared.proto` | What every slice 2 file reuses: the `Category`, `Archetype`, `SalaryAppliesFrom` and `RateSource` enums, `Spend`, `EventEnvelope` (A4); the idempotency convention is the doc comment on its `package` line (A14) |
+| `shared.proto` | What every file reuses: the `Category`, `Archetype`, `SalaryAppliesFrom` and `RateSource` enums, `Spend`, `EventEnvelope` (A4), and the view pieces both the BFF and ledger carry: `SalaryFacts`, `SavingTargetFacts`, `TargetWarning`, `RecapMonth`; the idempotency convention is the doc comment on its `package` line (A14) |
 | `notify.proto` | `NotifyService` (§7.3): `GetWarningState`, `EvaluateWarning`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailMagicLink`, `EmailExport`; `NotificationPrefs`; the `EmailBounced` error detail behind the PRD §6.16 inline error |
 | `notify_events.proto` | `NotifyMemberPurged`, routing key `notify.member.purged`, embedding `EventEnvelope` |
 | `currency.proto` | `CurrencyService` (§7.4): `Quote` returning rate, `RateSource` and as-of date; the `UnsupportedPair` error detail (D35, PRD §8.9 step 1) |
@@ -51,7 +51,8 @@ cd packages/contract && buf breaking --against "$(git rev-parse --git-common-dir
 ## Rules CI enforces on every pull request (`.github/workflows/ci.yml`, job `contract`)
 
 - `buf lint` (the `STANDARD` rule set).
-- `buf breaking --against` the `main` branch: a renamed, removed or retyped field fails the build.
-  Add fields; never reuse a number or rename one.
+- `buf breaking --against` the `main` branch, `PACKAGE` rules: a renamed, removed or retyped field fails the build.
+  Add fields; never reuse a number or rename one. A message may move to another file of the package,
+  since Go and Swift see one package either way; the cross-file cycle #54 hit is why it is `PACKAGE`, not `FILE`.
 - `buf generate` then `git diff --exit-code`: stale generated code fails the build,
   the same freshness rule the design tokens follow. The `backend` job compiles the Go output.

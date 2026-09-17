@@ -4,7 +4,6 @@ package money_recap.v1;
 
 option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
 
-import "money_recap/v1/bff.proto";
 import "money_recap/v1/ledger_views.proto";
 import "money_recap/v1/ledger_writes.proto";
 import "money_recap/v1/money.proto";

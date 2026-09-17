@@ -874,7 +874,7 @@ var File_money_recap_v1_ledger_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_ledger_proto_rawDesc = "" +
 	"\n" +
-	"\x1bmoney_recap/v1/ledger.proto\x12\x0emoney_recap.v1\x1a\x18money_recap/v1/bff.proto\x1a!money_recap/v1/ledger_views.proto\x1a\"money_recap/v1/ledger_writes.proto\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"K\n" +
+	"\x1bmoney_recap/v1/ledger.proto\x12\x0emoney_recap.v1\x1a!money_recap/v1/ledger_views.proto\x1a\"money_recap/v1/ledger_writes.proto\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"K\n" +
 	"\x16GetMonthSummaryRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12\x14\n" +
 	"\x05month\x18\x02 \x01(\tR\x05month\"\x90\x01\n" +
@@ -1047,7 +1047,6 @@ func file_money_recap_v1_ledger_proto_init() {
 	if File_money_recap_v1_ledger_proto != nil {
 		return
 	}
-	file_money_recap_v1_bff_proto_init()
 	file_money_recap_v1_ledger_views_proto_init()
 	file_money_recap_v1_ledger_writes_proto_init()
 	file_money_recap_v1_money_proto_init()

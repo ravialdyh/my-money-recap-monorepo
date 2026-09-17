@@ -875,7 +875,7 @@ var File_money_recap_v1_ledger_views_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\n" +
-	"!money_recap/v1/ledger_views.proto\x12\x0emoney_recap.v1\x1a\x18money_recap/v1/bff.proto\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"\xa1\x04\n" +
+	"!money_recap/v1/ledger_views.proto\x12\x0emoney_recap.v1\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"\xa1\x04\n" +
 	"\fMonthSummary\x12\x14\n" +
 	"\x05month\x18\x01 \x01(\tR\x05month\x12+\n" +
 	"\x05spent\x18\x02 \x01(\v2\x15.money_recap.v1.MoneyR\x05spent\x120\n" +
@@ -1043,7 +1043,6 @@ func file_money_recap_v1_ledger_views_proto_init() {
 	if File_money_recap_v1_ledger_views_proto != nil {
 		return
 	}
-	file_money_recap_v1_bff_proto_init()
 	file_money_recap_v1_money_proto_init()
 	file_money_recap_v1_shared_proto_init()
 	file_money_recap_v1_ledger_views_proto_msgTypes[0].OneofWrappers = []any{}
