@@ -9,6 +9,10 @@ A Buf module, package `money_recap.v1`, under `money_recap/v1/*.proto`:
 | `members.proto` | `MembersService`: `GetOrCreateBySubject`, `GetProfile`, `SaveProfile`, `SaveOnboardingStep`, `SetTimezone`, `RequestDeletion`, `CancelDeletion` (ARCHITECTURE §7.1); the `Profile` message with onboarding step, `signed_up_on` and `deletion_requested_at` (D60) |
 | `members_events.proto` | `MemberFacts` (the replica ledger and notify keep) and the five `members.*` events, each embedding `EventEnvelope`: `MembersCreated`, `MembersUpdated`, `MembersDeletionRequested`, `MembersDeletionCancelled`, `MembersDeleted` |
 | `bff.proto` | `BffService`: `GetHome`; the `HomeView` message with every field Home draws (PRD §6.8) |
+| `ledger.proto` | `LedgerService`: the fourteen RPCs of ARCHITECTURE §7.2 with their read requests and responses (`GetSpentToday` over a batch of Member ids, `ExportCSV` as bytes) |
+| `ledger_views.proto` | What ledger computes and the BFF stores whole (A2): `MonthSummary` (every Home figure plus days remaining and the partial flag), `Recap` for the full and the Partial Recap (PRD §6.11 to §6.14, §6.17), `LedgerSettings`, `ConversionPreview` |
+| `ledger_writes.proto` | The six ledger write requests and responses; each request opens with `idempotency_key` (A14), each response carries the recomputed month, spend writes carry `crossed_line` (PRD §8.8) |
+| `ledger_events.proto` | The seven `ledger.*` events, each embedding `EventEnvelope`; spend events carry the Spend, the month and `crossed_line` (§7.2 "Publishes") |
 | `shared.proto` | What every slice 2 file reuses: the `Category`, `Archetype`, `SalaryAppliesFrom` and `RateSource` enums, `Spend`, `EventEnvelope` (A4); the idempotency convention is the doc comment on its `package` line (A14) |
 | `notify.proto` | `NotifyService` (§7.3): `GetWarningState`, `EvaluateWarning`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailMagicLink`, `EmailExport`; `NotificationPrefs`; the `EmailBounced` error detail behind the PRD §6.16 inline error |
 | `notify_events.proto` | `NotifyMemberPurged`, routing key `notify.member.purged`, embedding `EventEnvelope` |

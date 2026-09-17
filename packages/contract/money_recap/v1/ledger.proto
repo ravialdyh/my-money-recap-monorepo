@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/bff.proto";
+import "money_recap/v1/ledger_views.proto";
+import "money_recap/v1/ledger_writes.proto";
+import "money_recap/v1/money.proto";
+import "money_recap/v1/shared.proto";
+
+message GetMonthSummaryRequest {
+  string member_id = 1;
+  // "YYYY-MM".
+  string month = 2;
+}
+
+// Everything the BFF's GetHome join takes from ledger (ARCHITECTURE §6.1).
+message GetMonthSummaryResponse {
+  MonthSummary summary = 1;
+  // Past months with a Recap, newest first, labelled by Archetype or
+  // "Partial" (PRD §6.8, §8.11).
+  repeated RecapMonth recap_months = 2;
+}
+
+message GetRecapRequest {
+  string member_id = 1;
+  // "YYYY-MM".
+  string month = 2;
+}
+
+message GetRecapResponse {
+  Recap recap = 1;
+}
+
+message ListMonthsWithDataRequest {
+  string member_id = 1;
+}
+
+message ListMonthsWithDataResponse {
+  // Every month with a Spend or Money In, newest first, the current month
+  // included (PRD D59).
+  repeated RecapMonth months = 1;
+}
+
+message ListSpendsRequest {
+  string member_id = 1;
+  // "YYYY-MM".
+  string month = 2;
+}
+
+// One month's Spends and the Category rows the Spend list draws (PRD §6.10).
+message ListSpendsResponse {
+  // Newest first, deleted rows excluded.
+  repeated Spend spends = 1;
+  // One row per Category with a Spend, largest first.
+  repeated CategoryShare categories = 2;
+  Money spent = 3;
+}
+
+message GetSettingsRequest {
+  string member_id = 1;
+}
+
+message GetSettingsResponse {
+  LedgerSettings settings = 1;
+}
+
+message PreviewConversionRequest {
+  string member_id = 1;
+  // Decimal string, from currency.Quote or typed by the Member (PRD §8.9).
+  string rate = 2;
+  // ISO 4217 code to convert into.
+  string to_currency_code = 3;
+}
+
+message PreviewConversionResponse {
+  ConversionPreview preview = 1;
+}
+
+// One batch of the notify daily-reminder loop (ARCHITECTURE §7.3).
+message GetSpentTodayRequest {
+  repeated string member_ids = 1;
+}
+
+// What one Member spent today, today being in that Member's zone (A3).
+message SpentToday {
+  string member_id = 1;
+  Money spent = 2;
+  int32 spend_count = 3;
+}
+
+message GetSpentTodayResponse {
+  // One entry per requested Member, in request order.
+  repeated SpentToday entries = 1;
+}
+
+message ExportCSVRequest {
+  string member_id = 1;
+}
+
+// Every non-deleted Spend of the Member as one CSV document (PRD §6.16, D39):
+// a Member's Spends fit in one message, and the BFF hands the bytes straight
+// to notify.EmailExport. Nothing is stored server-side.
+message ExportCSVResponse {
+  bytes csv = 1;
+}
+
+// All money facts and all of PRD §8 (ARCHITECTURE §7.2). Every write takes an
+// idempotency_key (A14) and a duplicate key returns the original result
+// (§6.2 step 3).
+service LedgerService {
+  // Every Home figure for one month (PRD §6.8).
+  rpc GetMonthSummary(GetMonthSummaryRequest) returns (GetMonthSummaryResponse) {}
+  // One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17).
+  rpc GetRecap(GetRecapRequest) returns (GetRecapResponse) {}
+  // The month switcher's list and the Recap-ready check (PRD D59, §10).
+  rpc ListMonthsWithData(ListMonthsWithDataRequest) returns (ListMonthsWithDataResponse) {}
+  rpc ListSpends(ListSpendsRequest) returns (ListSpendsResponse) {}
+  // Validates D57 and §8.10 in the Member's zone, then writes the Spend, the
+  // outbox row and the recomputed month in one transaction (§6.2 step 3).
+  rpc LogSpend(LogSpendRequest) returns (LogSpendResponse) {}
+  // Editing a Spend in a past month changes that month's Recap at once (D22).
+  rpc EditSpend(EditSpendRequest) returns (EditSpendResponse) {}
+  // Soft-deletes; the row leaves every computation (PRD §7).
+  rpc DeleteSpend(DeleteSpendRequest) returns (DeleteSpendResponse) {}
+  rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse) {}
+  // Appends a salary_setting row effective from the month applies_from names
+  // (PRD D56, §8.10); a Payday change always starts next month.
+  rpc SaveSalary(SaveSalaryRequest) returns (SaveSalaryResponse) {}
+  // Appends a saving_target_setting row effective from next month (PRD D65).
+  rpc SaveTarget(SaveTargetRequest) returns (SaveTargetResponse) {}
+  // The before-and-after values for the confirm sheet; nothing is written.
+  rpc PreviewConversion(PreviewConversionRequest) returns (PreviewConversionResponse) {}
+  // Rewrites every Salary and Spend amount in one transaction, keeping the
+  // originals, and records the conversion (PRD §8.9 step 4).
+  rpc ApplyCurrencyConversion(ApplyCurrencyConversionRequest) returns (ApplyCurrencyConversionResponse) {}
+  // Batched for the daily reminder: one call per 500 Members (§7.3).
+  rpc GetSpentToday(GetSpentTodayRequest) returns (GetSpentTodayResponse) {}
+  rpc ExportCSV(ExportCSVRequest) returns (ExportCSVResponse) {}
+}
