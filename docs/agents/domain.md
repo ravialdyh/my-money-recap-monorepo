@@ -7,7 +7,7 @@ How the engineering skills consume this repo's domain documentation.
 - `docs/CONTEXT.md` — the glossary. Use its terms exactly; never a synonym it lists under "Avoid".
 - The decision registers, in place of ADRs:
   - `docs/PRD.md` §4 — product decisions D1–D71, and §8 for the money rules
-  - `docs/ARCHITECTURE.md` §11 — backend decisions A1–A14; §9 explains each
+  - `docs/ARCHITECTURE.md` §11 — backend decisions A1–A15; §9 records the alternatives rejected
   - `docs/IOS.md` §2 — app decisions I1–I9
 - `docs/SCREEN-STATES.md` — the per-screen contract and copy, keyed by screen id.
 
@@ -15,7 +15,7 @@ There is no `docs/adr/` folder and none should be created. A new decision is a n
 
 ## Layout
 
-Single-context. One glossary, three registers, all under `docs/`. `packages/contract/` will hold the protobuf schema and the ledger fixtures once they exist.
+Single-context. One glossary, three registers, all under `docs/`. `packages/contract/` holds the protobuf schema; the ledger fixtures arrive there with slice 5.
 
 ## Use the glossary's vocabulary
 

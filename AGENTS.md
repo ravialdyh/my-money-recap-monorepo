@@ -14,7 +14,7 @@ Issues and specs are GitHub Issues on `ravialdyh/my-money-recap-monorepo`, via t
 
 ### Triage labels
 
-The five default labels, each string equal to its role name. See `docs/agents/triage-labels.md`.
+See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 

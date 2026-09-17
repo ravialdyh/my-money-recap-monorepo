@@ -9,21 +9,22 @@ This repository is the monorepo for it: product docs and design record, illustra
 
 | Path | What lives here |
 | --- | --- |
-| `docs/` | Product-level docs: the PRD, the screen-state contract, the domain glossary, the backend architecture and the design handoff (all 118 screens) |
+| `docs/` | Product-level docs: the PRD, the screen-state contract, the domain glossary, the backend architecture, the iOS design and the design handoff (all 111 artboards) |
 | `my-money-recap/` | Illustration source: the WebP artwork, the app icon, and the scripts and prompts that produce them |
 | `my-money-recap-ds/` | `@my-money-recap/ui` — the React design system: tokens, components, the four Recap screens |
-| `apps/` | Runnable products (mobile, web, backend). Empty for now |
-| `packages/` | Shared libraries beyond the design system. Empty for now |
-| `infra/` | Deployment and infrastructure. Empty for now |
+| `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members` service) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
+| `packages/` | `packages/contract`, the Buf module every client is generated from |
+| `infra/` | `infra/compose`, the phase-1 Compose stack (Keycloak, Postgres, RabbitMQ, Redis, `members`, the BFF) |
 
-It is an npm workspace: `my-money-recap-ds`, `apps/*` and `packages/*` are members, so one
-`npm install` at the root wires everything up and there is a single `package-lock.json`.
+It is an npm workspace with one member today, `my-money-recap-ds` (`apps/*` and `packages/*` are
+declared for later JavaScript packages; nothing there has a `package.json`), so one `npm install` at
+the root wires it up and there is a single `package-lock.json`. Go, Buf and Xcode are separate
+toolchains; each area's README says what it needs.
 
 ## How the pieces connect
 
 ```
 docs/PRD.md + docs/SCREEN-STATES.md ──rules──►  docs/design/design_handoff_my_money_recap/  (the drawings)
-                                                          │ built from
 my-money-recap/assets/illustrations/ ──build:assets──►  my-money-recap-ds/src/assets/illustrations.ts
 my-money-recap-ds/src/tokens/tokens.json ──build:tokens──►  tokens.css, styles/css.generated.ts, dist/mmr.css
 my-money-recap-ds/src/tokens/tokens.json ──build:swift-tokens──►  apps/ios/DesignSystem/Tokens.swift
@@ -54,8 +55,9 @@ npm run build:swift-tokens
 
 `build:assets` re-inlines `my-money-recap/assets/illustrations/*.webp` into the design system;
 `build:tokens` regenerates `tokens.css`, `css.generated.ts` and `dist/mmr.css` from `tokens.json`;
-`build:swift-tokens` regenerates `apps/ios/DesignSystem/Tokens.swift` (colours, radii, type ramp, motion) from the same `tokens.json` (`docs/IOS.md` I5).
-CI runs all three and fails if any output is stale, so generated files can never drift from source.
+`build:swift-tokens` regenerates `apps/ios/DesignSystem/Tokens.swift` from the same `tokens.json` (`docs/IOS.md` I5).
+The `design-system` CI job runs all three and fails if any output is stale, so generated files can never
+drift from source. The other CI jobs (`contract`, `backend`, `a10-smoke`, `ios`) are listed under Delivery in `docs/ARCHITECTURE.md` §10.
 
 ## Docs
 
@@ -64,9 +66,12 @@ CI runs all three and fails if any output is stale, so generated files can never
 - [`docs/CONTEXT.md`](docs/CONTEXT.md) — domain glossary (Member, Salary, Spend, Recap, Archetype…). Read this before naming anything.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the backend design: Nginx, the Go BFF, the four services, RabbitMQ, Redis, Postgres, Keycloak, and the numbered `A*` decisions
 - [`docs/IOS.md`](docs/IOS.md) — the iOS app's internals: sign-in, session, networking, the SwiftData cache, generated tokens, and the numbered `I*` decisions
-- [`docs/design/design_handoff_my_money_recap/README.md`](docs/design/design_handoff_my_money_recap/README.md) — the design handoff: eleven canvases, 118 screens
+- [`docs/design/design_handoff_my_money_recap/README.md`](docs/design/design_handoff_my_money_recap/README.md) — the design handoff: eleven canvases, 111 artboards
 - [`my-money-recap-ds/README.md`](my-money-recap-ds/README.md) — the design system: visual rules and component API
 - [`my-money-recap/README.md`](my-money-recap/README.md) — how a rendered illustration becomes a shipped asset
+- [`apps/README.md`](apps/README.md) — the Go backend and the iOS app: build, test, run
+- [`infra/compose/README.md`](infra/compose/README.md) — the local stack: ports, the `mmr` realm, a phone on the LAN
+- [`packages/contract/README.md`](packages/contract/README.md) — the contract: what is generated where, and the breaking-change rule
 
 ## Single source of truth
 

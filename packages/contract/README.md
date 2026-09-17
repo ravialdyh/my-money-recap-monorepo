@@ -44,5 +44,4 @@ cd packages/contract && buf breaking --against "$(git rev-parse --git-common-dir
 - `buf breaking --against` the `main` branch: a renamed, removed or retyped field fails the build.
   Add fields; never reuse a number or rename one.
 - `buf generate` then `git diff --exit-code`: stale generated code fails the build,
-  the same freshness rule the design tokens follow.
-- `go build ./...` in `apps/backend`.
+  the same freshness rule the design tokens follow. The `backend` job compiles the Go output.

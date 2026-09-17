@@ -4,6 +4,12 @@ A personal money tracker for adults, styled as a playful kids' app, that turns o
 
 ## Language
 
+### System
+
+**BFF**:
+The one backend the app talks to (backend for frontend): it verifies the sign-in token, then joins answers from the services (`ARCHITECTURE.md` §6).
+_Avoid_: API, server, gateway
+
 ### People
 
 **Member**:

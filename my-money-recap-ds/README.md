@@ -7,9 +7,11 @@ below; the values are in `src/tokens/tokens.json`.
 ## Layout
 
 ```
+scripts/         build-tokens, build-styles, build-swift-tokens, build-assets (see "Rebuilding generated files")
+dist/            mmr.css, the static stylesheet build:tokens writes for design-sync and plain-CSS consumers
 src/
-  tokens/        tokens.json (source of truth) → tokens.css and ../../apps/ios/DesignSystem/Tokens.swift (generated)
-  styles/        components.css → css.generated.ts (generated); useStyles() injects it once
+  tokens/        tokens.json (source of truth) → tokens.css and apps/ios/DesignSystem/Tokens.swift (generated)
+  styles/        components.css → css.generated.ts (generated); ensureStyles() injects it once
   components/    one component per file, states via data-state / :active / :disabled
   icons/         one <Icon name=…> component; glyph drawings live in glyphs.tsx
   screens/       the four recap screens as components (RecapCoverScreen, RecapEarningScreen, RecapGoalScreen, RecapPersonalityScreen)
@@ -30,7 +32,7 @@ import { Screen, Headline, Card, StatHero } from '@my-money-recap/ui';
 </Screen>
 ```
 
-Styles are injected by the components themselves (`useStyles`), so no CSS import is required.
+Styles are injected by the components themselves (`ensureStyles`), so no CSS import is required.
 If you prefer a stylesheet, import `@my-money-recap/ui/tokens.css` and `src/styles/components.css`.
 Fonts: Fredoka and Nunito from Google Fonts, loaded by the injected stylesheet.
 
@@ -41,13 +43,13 @@ you may prefer to serve the WebP files from `../my-money-recap/` and pass their 
 
 ## Design rules
 
-The rules every screen follows. The numbers behind them are tokens in `src/tokens/tokens.json`; the decisions that set them are PRD D1–D71.
+The rules every screen follows. The numbers behind them are tokens in `src/tokens/tokens.json`; the decisions that set them are the numbered `D*` rows of `../docs/PRD.md` §4.
 
 - **One ground per screen, from four.** `recap` violet, `earning` yellow, `goal` coral, `personality` green. A screen's ground says what it is about; the same hue inside a card says what a number is about. Sky is a supporting hue for icons, wells and the Rides category, never a ground.
 - **Yellow inverts the text.** It is the only ground light enough for ink text, so the earning screen uses ink type and the ink header chip. Every other ground uses white type.
 - **Two fonts, split by job.** Fredoka for numbers, headlines and titles; Nunito for anything a person reads as a sentence.
 - **Three radii.** `radius.card` 28, `radius.inset` 16 (a block nested inside a card: `InlineError`, the row press wash), `radius.pill` 999. Nothing in between.
-- **No shadows.** Depth comes from overlap (an illustration hangs `space.overlap` 44px into the card below it) and from ground-versus-card colour. The only `box-shadow`s in the CSS are rings: focus, invalid, selected.
+- **No shadows.** Depth comes from overlap (an illustration hangs `space.overlap` 44px into the card below it) and from ground-versus-card colour. The only `box-shadow`s in the CSS are rings: focus, invalid, selected, and the slider knob's 3px white ring.
 - **One story per screen.** One big number and at most two supporting facts; one asymmetric move (an illustration breaking a card edge) and otherwise a single-column stack.
 - **Every screen has one hero illustration**, drawn from the style block in `../my-money-recap/docs/illustration-prompts.md`. No CSS stand-ins.
 - **Shareable screens carry no page dots**, so a screenshot is clean.

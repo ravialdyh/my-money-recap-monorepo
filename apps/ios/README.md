@@ -27,7 +27,7 @@ fails with `errSecMissingEntitlement`, so a relaunch shows Sign in again.
    user `test`, password `TEST_USER_PASSWORD` from `infra/compose/.env`; the BFF on
    `http://localhost:8082` (`BFF_HOST_PORT`), which is what the app calls.
 2. Pick any iPhone simulator in Xcode and Run. The simulator shares the Mac's `localhost`, and the
-   app allows plain HTTP to `localhost` only (`App/Info.plist`).
+   app allows plain HTTP on the local network only (`NSAllowsLocalNetworking` in `App/Info.plist`).
 3. Tap **Continue with email**, allow the system web sheet, sign in as the test user. Home loads:
    the first time the §6.19 skeleton (two cards at their filled heights, no spinner) until `GetHome`
    answers, then "Spent so far" at zero, `Money in` at zero and no Saved chip (D41), the two
@@ -44,23 +44,18 @@ renders offline.
 
 ## Run on a physical iPhone
 
-The phone reaches the Mac by its LAN address, and the token issuer must be that same address
-(`infra/compose/README.md`, "A phone on the LAN"):
-
-1. In `infra/compose/.env` set `MMR_HOST=<the Mac's LAN IP>` and recreate the stack.
-2. In Xcode, edit the scheme's Run action and add the environment variables
-   `MMR_ISSUER=http://<ip>:8080/realms/mmr` and `MMR_BFF_URL=http://<ip>:8082`. Select your team for
-   signing, pick the phone, Run.
-3. Sign in as the test user; Home at zero appears, and a relaunch draws it from the snapshot.
-
-App Transport Security in `App/Info.plist` permits local-network HTTP for this development stack only,
-until slice 3 terminates TLS in Nginx; nothing needs to be edited for a device build.
+The phone reaches the Mac by its LAN address, and the token issuer must be that same address. The three
+steps (the `MMR_HOST` variable in `.env`, the `MMR_ISSUER` and `MMR_BFF_URL` Run-action variables, and
+setting it back) are in `infra/compose/README.md`, "A phone on the LAN". Sign in as the test user; Home at
+zero appears, and a relaunch draws it from the snapshot. App Transport Security in `App/Info.plist` permits
+local-network HTTP for this development stack only, until slice 3 terminates TLS in Nginx; nothing needs to
+be edited for a device build.
 
 ## Build and test from the command line
 
-The same two commands CI runs. Nothing names a simulator device or OS version (issue #16, "Device
-and OS coverage"): the build uses the generic simulator destination and `scripts/simulator-udid.sh`
-picks a booted or available iPhone simulator through `simctl`.
+The same two commands CI runs. Nothing names a simulator device or OS version (the "Device and OS
+coverage" section of issues #16 and #18): the build uses the generic simulator destination and
+`scripts/simulator-udid.sh` picks a booted or available iPhone simulator through `simctl`.
 
 ```bash
 cd apps/ios
@@ -77,9 +72,10 @@ unreachable BFF, and relaunches with `--reset-snapshot` to prove the first load 
 skips itself unless the test user's password is in the runner's environment, so CI's `ios` job runs
 only the unit tests.
 
-Issue #18 "Device and OS coverage" asks for two simulator runtimes, both chosen when the script runs
-and never written down: the newest installed iOS runtime and the oldest (the deployment target's floor,
-iOS 17, when Xcode offers that runtime; on a Mac whose Xcode no longer lists it, the oldest it does).
+The same section asks for two simulator runtimes, both chosen when the script runs and never written
+down: the newest installed iOS runtime and the oldest (the deployment target's floor, iOS 17, when Xcode
+offers that runtime; on a Mac whose Xcode no longer lists it, the oldest it does; Xcode 27 no longer
+offers iOS 17 or 18 for download, so on such a Mac the floor is iOS 26.0).
 `scripts/ui-test.sh` builds once, then runs the UI test on each, taking the password from
 `MMR_TEST_USER_PASSWORD` or, failing that, from the running `mmr-keycloak-1` container:
 
@@ -104,12 +100,12 @@ Install an older runtime through Xcode > Settings > Components (or `xcodebuild -
 
 | Folder | What lives here |
 | --- | --- |
-| `App/` | Entry point, the SwiftData container, root switch between Sign in and Home (sign-out deletes the cache), `Info.plist` (URL scheme, ATS exception for `localhost`). |
+| `App/` | Entry point, the SwiftData container, root switch between Sign in and Home (sign-out deletes the cache), `Info.plist` (URL scheme, the ATS local-networking allowance). |
 | `Auth/` | `AuthConfig` (issuer, client id, redirect; no secret exists in the target), `AuthSession` (AppAuth discovery, PKCE authorization, `OIDAuthState`, fresh tokens and the refresh-or-sign-out on `unauthenticated`), `Keychain`. |
-| `Networking/` | `BffClient` builds the generated `MoneyRecap_V1_BffServiceClient` (proto codec, `http://localhost:8082`); `BearerInterceptor` is the one interceptor of I3. No request or response type is written here. |
+| `Networking/` | `BffClient` builds the generated `MoneyRecap_V1_BffServiceClient` (proto codec, `MMR_BFF_URL` or its default); `BearerInterceptor` is the one interceptor of I3 so far. No request or response type is written here. |
 | `Snapshots/` | `HomeSnapshot`, the one SwiftData model of I4: the `HomeView` bytes plus `updatedAt`, replaced whole on every success. |
 | `Screens/` | One folder per SCREEN-STATES group: `SignIn/` and `Home/`, each a view plus an `@Observable` view model (I6). |
-| `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `Money` (the platform currency formatter, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen`, `Headline` (+ `SubCopy`, `Eyebrow`, `HelperText`), `Illustration`, `Avatar`, `Card` (+ `CardTitle`), `Chip` (+ `ChipRow`), `StatHero`, `StatChip` (+ `StatChipRow`), `PromptCard`, `ListRow`, `MMRButton`, `InlineError`. Colours, radii and type come only from the tokens. |
+| `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `Money` (the platform currency formatter, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen`, `Headline` (+ `SubCopy`, `Eyebrow`, `HelperText`), `Illustration`, `Avatar`, `Card` (+ `CardTitle`), `Chip`, `StatHero`, `StatChip`, `PromptCard`, `ListRow`, `MMRButton`, `InlineError`. Colours, radii and type come only from the tokens. The React row wrappers (`ChipRow`, `StatChipRow`) are a plain `HStack` here, and `PromptCard` has a `dashed` variant (the D47 outline card) the React one draws by hand. |
 | `Resources/` | Asset catalog with the cover illustration (PNG from `my-money-recap/assets/illustrations/ill-cover.webp`). |
 | `Tests/`, `UITests/` | XCTest unit tests on the view models, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test user; the one UI test above. |
 | `scripts/` | `simulator-udid.sh`, `ui-test.sh`. |

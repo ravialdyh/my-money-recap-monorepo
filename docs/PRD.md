@@ -2,13 +2,13 @@
 
 | | |
 |---|---|
-| Status | Draft v2. Decisions D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11. Rows rewritten by the architecture work of 2026-09-12 to 2026-09-16 are marked in place. |
+| Status | Draft v2. Decisions D1–D40 from 2026-09-04; D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11. Rows rewritten by the architecture work of 2026-09-12 to 2026-09-16 are marked in place. |
 | Platform | Native iOS 17+, iPhone and iPad |
 | Vocabulary | `CONTEXT.md` (beside this file) is the glossary. Terms in **bold caps** below are defined there. |
 | Design system | `../my-money-recap-ds/` (`@my-money-recap/ui`). Its `README.md` carries the visual rules; `src/tokens/tokens.json` the values. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
 | Architecture | `ARCHITECTURE.md` (beside this file) is the backend design that implements these rules: the edge, the BFF, the four services, the broker, the cache and identity. Its decisions are numbered `A*`. |
-| Design handoff | `design/design_handoff_my_money_recap/` — eleven canvases holding all 118 screens (four from 2026-09-08, seven under `design-files/2026-09-11/`), plus the quoted canvas notes. Live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>. Renders are not in git. |
+| Design handoff | `design/design_handoff_my_money_recap/` — eleven canvases holding all 111 artboards (four from 2026-09-08, seven under `design-files/2026-09-11/`), plus the quoted canvas notes. The live links are in that folder's README. Renders are not in git. |
 
 ## 1. Summary
 
@@ -44,7 +44,7 @@ One persona: an adult (18+) who wants a light, fun way to see whether they kept 
 
 ## 4. Decisions log
 
-Every design question raised while writing this document, with the decision taken. These are settled; reopen one only with a reason. D1–D40 date from 2026-09-04; D41–D67 from the design review of 2026-09-08; D68–D71 from drawing the remaining screens on 2026-09-11. Where a later entry changed an earlier one, the earlier row was rewritten in place, so every row is current.
+Every design question raised while writing this document, with the decision taken. These are settled; reopen one only with a reason. Where a later entry changed an earlier one, the earlier row was rewritten in place, so every row is current. D9, D19 and D30 were retired in the 2026-09-08 review, superseded by later rows; the numbers are not reused.
 
 | # | Question | Decision |
 |---|---|---|
@@ -85,7 +85,7 @@ Every design question raised while writing this document, with the decision take
 | D38 | Target Warning | Fires once per month, the first time total Spends exceed Salary × (1 − Saving Target). **Extended by D53.** |
 | D39 | Deletion and export | Both in v1. Deletion removes the Keycloak user and all data within 24 hours. Export is a CSV of all Spends emailed to the Member. **Extended by D60.** |
 | D40 | iPad | Same single-column layout capped at 390pt width, centred on a full-bleed ground, portrait and landscape. **Cap raised to 600pt by D68.** |
-| **D41** | **Does a "month" follow the calendar or the pay cycle?** | **The calendar month, always — D33 stands.** A Member paid on the 25th lives 25 Aug → 24 Sep, but a pay-cycle month would rename every month chip to a date range, break "Your September in money" as a shareable line, and rewrite §8.1, §8.5, D26 and all 62 artboards. Instead the *display* is corrected: **the Saved figure is hidden entirely until Money In > 0** (§8.3, §6.8). |
+| **D41** | **Does a "month" follow the calendar or the pay cycle?** | **The calendar month, always — D33 stands.** A Member paid on the 25th lives 25 Aug → 24 Sep, but a pay-cycle month would rename every month chip to a date range, break "Your September in money" as a shareable line, and rewrite §8.1, §8.5, D26 and every artboard. Instead the *display* is corrected: **the Saved figure is hidden entirely until Money In > 0** (§8.3, §6.8). |
 | **D42** | **What is the hero number on Home?** | **Spent.** It is the figure that changes daily and the only one the Member can act on. Money In and Saved are chips beneath it. This matches the drawn design (B1, A8). |
 | **D43** | **Where does the Streak start in the Member's first month?** | **`max(1st of the month, the Member's sign-up date)`.** Counting from the 1st awards no-spend days from before the app existed. Applies to the sign-up month only; every later month starts on the 1st. |
 | **D44** | **Can a Saving Target be set without a Salary?** | **No.** If Salary was skipped, onboarding step 4 shows a prompt back to step 3 and Done goes to Home. A percentage of an unknown Salary has no amount, no `kept%`, no progress bar and no Archetype; forbidding the state removes four undrawn screens. |
@@ -93,7 +93,7 @@ Every design question raised while writing this document, with the decision take
 | **D46** | **How does a Member leave a Recap?** | **A 44pt close control, top-left of Recap screens 1–4, and tappable `PageDots`.** The drawn design has no exit control of any kind. |
 | **D47** | **What does a Member look at before their first Recap?** | **A "month so far" preview**, reachable from the Home card that currently reads "Your first recap arrives on 1 October". Read-only, no Archetype, no Share. See D64 for its artboards. |
 | **D48** | **Where does the screen-by-screen contract live?** | **`SCREEN-STATES.md`**, keyed to the handoff's screen ids (A0–A8, B1–B8, C1–C7, D1–D12). This document owns the rules; that file owns the states and the copy. The 2026-09-08 gaps list was closed out against both and has since been deleted; its decisions are D41–D67. |
-| **D49** | **How much of the non-happy path is specified now?** | **All of it, weighted.** Loading, offline and error states get artboards (§11, §6.19). Dynamic Type and iPad get written rules plus demonstration artboards, not 62 redraws. |
+| **D49** | **How much of the non-happy path is specified now?** | **All of it, weighted.** Loading, offline and error states get artboards (§11, §6.19). Dynamic Type and iPad get written rules plus demonstration artboards, not a redraw of every screen. |
 | **D50** | **Components the design uses that the library does not have** | **Build `PromptCard`, `DayPicker` and `InlineError`.** Each is hand-composed on the canvases today and appears on two or more screens, so they will drift. Built 2026-09-08. A fourth candidate, `SelectRow`, was dropped on inspection: the shipped `ListRow` with `trailing="check"` and `selected` already has no `IconWell` and already draws a violet check, so it *is* the currency select row. A fifth, `Toast`, is **not** built — see D67. |
 | **D51** | **Payday 29, 30 and 31** | **The picker offers 1–31 plus `Last day`, disables nothing, and shows the three real dates that follow the selection** — e.g. tapping 31 in September shows `Next paydays: 30 Sep · 31 Oct · 30 Nov`, computed on device. Disabling days is possible but wrong: the picker is on screen twice in the app's life and cannot guard the eleven months the Member is not looking at, while disabling 29–31 in a February setup locks out anyone genuinely paid on the 30th. |
 | **D52** | **The Member's first month, when Payday already passed before sign-up** | **A Partial Recap** (§8.11) built around Spent, not Salary. Money In is 0, there is no Archetype, and screen 1 reads `Your first {n} days`. Showing the full Salary would credit money the app never observed; showing nothing at all would discard real spending data. |
@@ -572,7 +572,7 @@ The four grounds, two fonts and white cards are unchanged. **The radius scale ga
 | `DayPicker` | Onboarding 3, Settings salary | Horizontal 44pt pills 1–31 plus `Last day`, selected as an ink pill, scrolled to centre the selection, with the three-date helper below (D51). The dates are a **prop**: the component does no calendar arithmetic, so §8.2's `min(Payday, days in month)` stays with the caller. |
 | `InlineError` | Sign in, email, log-a-spend write failure, currency rate failure, export failure | coral-100 fill, `radius.inset` 16, coral-500 dot, coral text Nunito 800 13. Pushes content down; never overlays. |
 
-There is no `Toast` (D67): the export confirmation is the button's own `Sent ✓` state.
+The export confirmation is the button's own `Sent ✓` state (D67).
 
 **No new illustrations.** The existing set covers every screen, including the four Archetype mascots, the magic-link envelope and the saving-target jar.
 

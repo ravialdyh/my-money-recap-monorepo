@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft v2, 2026-09-16. Decisions A1–A14 are listed in §11, which is the decision register; its Status column is the only place acceptance is recorded. |
+| Status | Draft v2, 2026-09-16. Decisions A1–A15 are listed in §11, which is the decision register; its Status column is the only place acceptance is recorded. |
 | Scope | The backend behind the iOS app named in `PRD.md` D11: the edge, the API the phone calls, the services, the broker, the cache, the databases and identity. The iOS app's internals live in `IOS.md` (beside this file), whose decisions are numbered `I*`. |
 | Vocabulary | `CONTEXT.md` is the glossary. Terms in **bold caps** are defined there. Service names are lower-case code: `members`, `ledger`, `notify`, `currency`, `bff`. |
 | Rules | `PRD.md` owns every product rule this document implements. Section references like §8.9 point there. |
@@ -151,7 +151,7 @@ Once one tap on the phone crosses Nginx, the BFF and up to three services, a slo
 | Responsibility | TLS termination, per-IP and per-connection limits, routing, static files, hiding every internal address. No business logic, no token parsing. |
 | Routes | `/api/` → bff. `/auth/` → Keycloak. `/.well-known/apple-app-site-association` → static, `application/json`, no redirect. `/magic` → the static fallback page. |
 | Limits | `limit_req_zone $binary_remote_addr rate=60r/s burst=120`, deliberately generous because a mobile carrier can put thousands of phones behind one address. `limit_conn` 100 per address. A stricter 5 r/min on the magic-link path only, matching PRD §11. |
-| Certificates | Let's Encrypt via an `acme.sh` sidecar whose deploy hook runs `nginx -s reload`. The `certbot/certbot` image's own docs say it cannot install certificates or reload a web server, so it was dropped. |
+| Certificates | Let's Encrypt via an `acme.sh` sidecar whose deploy hook runs `nginx -s reload` (`certbot/certbot` was rejected: `research/2026-09-14-setup-automation.md` §1.5). |
 | Why Nginx | The most widely deployed reverse proxy, documented everywhere, and it keeps TLS and abuse control out of Go. |
 | Known limit | JWT validation needs Nginx Plus or the njs module. The design does not depend on it; the BFF verifies tokens. |
 
@@ -228,7 +228,7 @@ Flow: deletion and restore (D39, D60)
 | Rounding | Decimals per currency come from CLDR through `golang.org/x/text/currency`, the same data the phone's formatter reads, so no table of currencies exists in the code. The stored value is the truth; the phone only prints it. |
 | Publishes | `ledger.spend.logged`, `ledger.spend.edited`, `ledger.spend.deleted`, `ledger.salary.changed`, `ledger.target.changed`, `ledger.currency.converted`, `ledger.member.purged`. Every spend event carries the recomputed month figures and `crossed_line`, so `notify` never recalculates. |
 | Consumes | `members.created`, `members.updated` → upsert `member_facts`. `members.deleted` → purge, then publish `ledger.member.purged`. |
-| Tests | The PRD §8 worked examples and the §12 acceptance criteria live as JSON fixtures in `packages/contract/fixtures/ledger/`. Each fixture is one ledger and one "as of" date with the expected numbers, including `crossed_line` and the rounded conversion results. The ledger's test suite runs every fixture. Because no other service implements any of §8, this is the single answer key for the arithmetic. |
+| Tests | The PRD §8 worked examples and the §12 acceptance criteria will live as JSON fixtures in `packages/contract/fixtures/ledger/` (slice 5). Each fixture is one ledger and one "as of" date with the expected numbers, including `crossed_line` and the rounded conversion results. The ledger's test suite runs every fixture. Because no other service implements any of §8, this is the single answer key for the arithmetic. |
 | Why one service for all of it | §8.9 rewrites salary rows and Spend rows "in one transaction". Keeping both tables in one database keeps that a real transaction instead of a saga. The §8 rules read every table here; splitting them would turn every computation into three network calls. |
 
 Flow: currency change (§8.9)
@@ -310,8 +310,8 @@ Flow: CSV export (PRD §6.16, D39)
 | Responsibility | Sign-in. Brokers Apple and Google, issues login tokens through the Phase Two extension, issues and refreshes session tokens, ends sessions. Holds no app data and sends no email. |
 | Owns | Its own database, `keycloak`, in the same Postgres container. |
 | Image | `quay.io/phasetwo/phasetwo-keycloak`, pinned to a tag whose bundled `keycloak-magic-link` and Apple identity-provider extensions match its Keycloak version. Never `latest`: the magic-link extension is compiled against one Keycloak minor and has broken on the next (`research/2026-09-14-a10-magic-link.md` §1). |
-| Configuration as code | The official `keycloak/keycloak` OpenTofu provider under `infra/tofu/`: the realm, the Google identity provider, the Apple identity provider, the `ios` public client and the BFF's service-account client. No SMTP block: Keycloak sends nothing. A realm JSON import is skipped once the realm exists, so JSON cannot carry later changes; kcadm is imperative. |
-| Apple sign-in | The bundled Apple identity-provider extension takes the Team ID, Key ID and `.p8` key and signs the client-secret JWT itself on every code exchange. There is no six-month rotation job; the `.p8` is a static secret (`research/2026-09-14-setup-automation.md` §3). |
+| Configuration as code | Today: `infra/compose/keycloak/mmr-realm.json`, imported on first boot (slice 1). Slice 3 replaces it with the official `keycloak/keycloak` OpenTofu provider under `infra/tofu/` (A13): the realm, the Google identity provider, the Apple identity provider, the `ios` public client and the BFF's service-account client. No SMTP block: Keycloak sends nothing. A realm JSON import is skipped once the realm exists, so JSON cannot carry later changes; kcadm is imperative. |
+| Apple sign-in | The bundled Apple identity-provider extension takes the Team ID, Key ID and `.p8` key and signs the client-secret JWT itself on every code exchange (§9; `research/2026-09-14-setup-automation.md` §3). |
 | Secrets | Keycloak's file vault: `--vault=file --vault-dir=/run/secrets`, with the two identity-provider secrets referenced by name. The files are mounted from the SOPS-decrypted set (§10, A13), so no secret is in OpenTofu state, JSON or the environment. |
 
 Flow: email sign-in (D7, D32, acceptance 2)
@@ -368,8 +368,8 @@ One Postgres container, five databases, five roles, each role granted only its o
 |---|---|---|---|
 | nginx | nginx:stable | 443, 80 | bff, keycloak |
 | acme | neilpang/acme.sh | — | shares the cert volume with nginx; deploy hook reloads nginx |
-| bff | built from the one Go module `apps/backend`, command `cmd/bff` (`cmd/bff/Dockerfile`; rewritten 2026-09-16, was `apps/bff`) | 8080 internal | members, ledger, notify, currency, redis |
-| members, ledger, notify, currency | built from the one Go module `apps/backend`, command `cmd/<service>` (`cmd/<service>/Dockerfile`; rewritten 2026-09-16, was `apps/<service>`) | 8080 internal each | postgres, rabbitmq, and redis where §4.4 lists it |
+| bff | built from the one Go module `apps/backend`, command `cmd/bff` (the one `Dockerfile`, `CMD=bff`) | 8080 internal | members, ledger, notify, currency, redis |
+| members, ledger, notify, currency | built from the one Go module `apps/backend`, command `cmd/<service>` (the one `Dockerfile`, `CMD=<service>`) | 8080 internal each | postgres, rabbitmq, and redis where §4.4 lists it |
 | keycloak | quay.io/phasetwo/phasetwo-keycloak, pinned tag (§7.5) | 8080 internal | postgres |
 | postgres | postgres:17 | 5432 internal | volume |
 | rabbitmq | rabbitmq:4-management | 5672, 15672 internal | volume |
@@ -385,7 +385,7 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 
 **Infrastructure as code.** `infra/tofu/` holds DNS records and the apple-app-site-association file, the VM with cloud-init and firewall, the Keycloak realm, and API tokens for providers that expose them (Resend or Postmark for SMTP). What stays human is one browser session each: Apple Developer Program enrolment and its two `.p8` keys and Services ID, the Google OAuth client, the Open Exchange Rates App ID, the first SMTP-provider account, the domain purchase, the cloud account, and one `age-keygen`. The setup wizard is scoped to exactly those, each ending in pasting the value into `sops edit infra/secrets/prod.yaml` (`research/2026-09-14-setup-automation.md` §4).
 
-**Delivery (A15).** One long-lived branch, `main`. CI (`.github/workflows/ci.yml`) runs on every pull request and on `main`: the design-system checks it already has, plus `buf lint`, `buf breaking`, `go test ./...` and the iOS build once those exist. Merging to `main` means tested and integrated, not deployed. Deployment is a tag: pushing `vX.Y.Z` runs a deploy workflow in the GitHub `production` environment that builds the images, decrypts `infra/secrets/prod.yaml` with the environment's age key, and runs Compose on the VM; the iOS build for the same tag goes to TestFlight. No `development` branch: for one developer merging one ticket at a time, git-flow adds a second merge per change and lets finished work sit unreleased. GitHub's branch protection is unavailable on this repository's plan, so "never commit to `main`" is a rule in `AGENTS.md` rather than a server-side gate.
+**Delivery (A15).** One long-lived branch, `main`. CI (`.github/workflows/ci.yml`) runs on every pull request and on `main`, five jobs: `design-system` (generated tokens, Swift tokens and inlined artwork are fresh; typecheck), `contract` (`buf lint`, `buf breaking` against `main`, generated code is fresh), `backend` (`go vet`, `go test`, then the Compose stack with the Connect-boundary tests and the end-to-end test), `a10-smoke` (`infra/compose/a10-smoke.sh` on the pinned Keycloak image) and `ios` (build and unit tests on a simulator picked at runtime). Merging to `main` means tested and integrated, not deployed. Deployment is a tag: pushing `vX.Y.Z` runs a deploy workflow in the GitHub `production` environment that builds the images, decrypts `infra/secrets/prod.yaml` with the environment's age key, and runs Compose on the VM; the iOS build for the same tag goes to TestFlight. No `development` branch: for one developer merging one ticket at a time, git-flow adds a second merge per change and lets finished work sit unreleased. GitHub's branch protection is unavailable on this repository's plan, so "never commit to `main`" is a rule in `AGENTS.md` rather than a server-side gate.
 
 **Backups (A12).** `pg-backup` runs `pg_dump` of each of the five databases at 03:00 UTC to an S3-compatible bucket in the same region, encrypted with a key from the secrets file, and keeps 30 daily copies. RabbitMQ and Redis hold nothing that cannot be rebuilt: an unpublished outbox row is re-published by the relay, and every Redis key is a cache or a short-lived lock. Once a quarter, a restore into a scratch Postgres is run and the ledger fixtures are executed against it; a backup that has never been restored is not a backup.
 
@@ -401,10 +401,10 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 | A6 | Redis for rate limits, idempotency, rate cache and JWKS; fail-open and fail-closed rules per job; AGPL noted. | proposed |
 | A7 | Front door: Nginx for TLS, per-IP limits and static files; the BFF verifies the JWT; every service verifies again. | proposed |
 | A8 | Service boundaries: `members`, `ledger`, `notify`, `currency`; payment and AI reserved; replicated member facts fed by events. | proposed |
-| A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | proposed; in use since slice 1 |
+| A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | in use since slice 1 |
 | A10 | Email sign-in: Phase Two Login Token redeemed by the app through the direct grant; the BFF requests it and limits 5 per email per hour; `notify` emails the app-domain link; the static fallback never touches the token; the Phase Two image is pinned. | accepted on tag 26.6.6.1789466980, 2026-09-16 (`infra/compose/a10-smoke.sh`, #14) |
 | A11 | Observability: OpenTelemetry in every Go process, OTLP to one `otel-lgtm` container, trace context carried in Connect and RabbitMQ headers. | proposed |
 | A12 | Backups: nightly `pg_dump` per database to object storage, 30 days kept, quarterly restore drill. | proposed |
 | A13 | Secrets: SOPS + age, encrypted in git, mounted as files; Keycloak file vault; OpenTofu for DNS, VM, realm and provider tokens; the wizard covers only the nine human steps. | proposed |
 | A14 | Every write RPC carries an idempotency key; the owning service enforces it with a unique index inside the write's transaction; Redis is only a fast path. `notify` is optional on every path. Schedulers insert `sent_log` before sending. Conversions keep the typed originals. | proposed |
-| A15 | Trunk-based delivery: `main` is the only long-lived branch; every change is a short branch and a pull request with CI green; deployment is a separate step triggered by a version tag, run by a GitHub Actions job in the `production` environment; a staging server, if ever needed, is another environment, never a branch. | proposed |
+| A15 | Trunk-based delivery: `main` is the only long-lived branch; every change is a short branch and a pull request with CI green; deployment is a separate step triggered by a version tag, run by a GitHub Actions job in the `production` environment; a staging server, if ever needed, is another environment, never a branch. | in use since slice 1 (`AGENTS.md` "Branching"; the deploy workflow arrives with slice 3) |

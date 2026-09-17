@@ -1,6 +1,6 @@
 # Design handoff: My Money Recap
 
-The design record for the whole v1 product: 118 screens on eleven canvases. Build from `../../PRD.md` (the rules) and `../../SCREEN-STATES.md` (every screen and state, with its copy); this folder is where the drawings live.
+The design record for the whole v1 product: 111 artboards on eleven canvases (`../../SCREEN-STATES.md` counts them). Build from `../../PRD.md` (the rules) and `../../SCREEN-STATES.md` (every screen and state, with its copy); this folder is where the drawings live.
 
 | Canvas | Prefix | File | Screens |
 |---|---|---|---|
@@ -8,7 +8,7 @@ The design record for the whole v1 product: 118 screens on eleven canvases. Buil
 | Home and the daily loop | B | `design-files/Home and Core Features.dc.html` | B1 and two variants, B2–B5, B6b–B8 |
 | Recap and Share | C | `design-files/Recap and Share.dc.html` | C5, C6, C7 |
 | Settings and Account | D | `design-files/Settings and Account.dc.html` | D1, D2, D5–D12 and their variants |
-| The remaining 75 screens | A–D, P, X | [`design-files/2026-09-11/`](design-files/2026-09-11/README.md) | The IDR proofs, the month-so-far recap, every other state, iPad, the four flow maps |
+| The seven 2026-09-11 canvases (71 artboards) | A–D, P, X | [`design-files/2026-09-11/`](design-files/2026-09-11/README.md) | The IDR proofs, the month-so-far recap, every other state, iPad, the four flow maps |
 
 The four canvases above are live at <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e>; the `2026-09-11` set at <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>. Renders are not in git.
 
@@ -81,11 +81,11 @@ Each entry: purpose · composition · notable rules. Exact copy is in the HTML. 
 
 ## Assets
 
-Illustrations and avatars are data URIs on `MMR.ILLUSTRATIONS` in the design system; the canvases additionally use `uploads/ill-avatar-otter.webp` for the Home avatar (same otter as the system's `avatar-otter`). Apple and Google marks are the providers' own. Category glyphs, settings/chevron/plus/share/sparkle/piggy come from `Icon`.
+Illustrations and avatars are data URIs on `MMR.ILLUSTRATIONS` in the design system; the canvases additionally use `uploads/ill-avatar-otter.webp` for the Home avatar (same otter as the system's `avatar-otter`); like `_ds/…`, `uploads/…` resolves only inside the Claude Design project. Apple and Google marks are the providers' own. Category glyphs, settings/chevron/plus/share/sparkle/piggy come from `Icon`.
 
 ## Files in this package
 
 - `README.md` — this file.
 - `DESIGN_NOTES_VERBATIM.md` — the yellow annotations of the four canvases, quoted, so nobody has to parse the HTML.
-- `design-files/*.dc.html` — the four canvases; `design-files/2026-09-11/` — the seven later canvases, with their build sources.
+- `design-files/*.dc.html` — the four canvases; `design-files/2026-09-11/` — the seven 2026-09-11 canvases, with their build sources.
 - Screen renders are not in git: they are live in the two projects linked above and re-exportable from the canvases.
