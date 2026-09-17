@@ -128,7 +128,11 @@ The configs carry no comments, so the reasoning lives here.
   allows one-character names: the design system's size steps are `l`, `m` and `s` in both languages.
 - **Dependabot.** Every ecosystem waits seven days before proposing a newly published version — a
   release hours old can be a compromised one. Security updates ignore the cooldown, so a real
-  advisory still arrives at once.
+  advisory still arrives at once. Each group is also `update-types: ["minor", "patch"]`, so routine
+  bumps arrive batched and quiet while every **major** gets a pull request of its own. Without that
+  a wildcard group hides majors inside a routine-looking update: the first npm group PR raised here
+  was titled "bump the node group with 5 updates" and was in fact React 18 → 19 *and* TypeScript
+  5 → 7. `swift` and `docker` are ungrouped, so their majors already arrive one per pull request.
 - **Actions are pinned to a commit, never a tag.** A tag is mutable, and whoever owns the action can
   repoint it at code that runs with this job's token. The trailing `# vN` is Dependabot's, and
   `tools/policy` exempts it for that reason.
