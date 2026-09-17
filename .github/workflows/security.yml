@@ -82,8 +82,9 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
           skip-dirs: node_modules,apps/backend/gen,packages/contract/swift/Sources
-      # The Dockerfile and the Compose file: root users, missing healthchecks, host mounts.
-      - name: Misconfiguration in the Dockerfile and Compose stack
+      # Dockerfile only: Trivy's misconfiguration scanners cover Dockerfile, Kubernetes, Helm and
+      # the IaC formats, not Compose. The Compose stack is reviewed by hand (infra/compose/README.md).
+      - name: Misconfiguration in the Dockerfile
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           scan-type: config
