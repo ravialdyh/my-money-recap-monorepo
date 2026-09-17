@@ -164,6 +164,8 @@ jobs:
             -resultBundlePath build/MyMoneyRecap.xcresult
       - name: Coverage may not fall (tools/coverage/README.md)
         run: |
+          # xccov_percent exits non-zero if the target is missing; reporting 0.0 would sail
+          # through the gate forever, because the ios floor starts at 0.0.
           pct=$(xcrun xccov view --report --only-targets --json build/MyMoneyRecap.xcresult \
-            | python3 -c "import json,sys; t=[x for x in json.load(sys.stdin) if x['name'].startswith('MyMoneyRecap.app')]; print(round(t[0]['lineCoverage'] * 100, 1) if t else 0.0)")
+            | python3 ../../tools/coverage/xccov_percent.py)
           python3 ../../tools/coverage/coverage_gate.py ios "$pct"
