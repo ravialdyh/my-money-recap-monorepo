@@ -4,7 +4,7 @@ Runnable products.
 
 | Path | What lives here |
 | --- | --- |
-| `apps/backend/` | The one Go module for the backend (spec #10): the generated contract package under `gen/`, shared packages under `internal/`, and one binary per app under `cmd/`, each with its own Dockerfile built from the module root, per `docs/ARCHITECTURE.md` §10. Today: `cmd/members` (see its README); the BFF and the other services land with later tickets. |
+| `apps/backend/` | The one Go module for the backend (spec #10): the generated contract package under `gen/`, shared packages under `internal/`, and one binary per app under `cmd/`, each with its own Dockerfile built from the module root, per `docs/ARCHITECTURE.md` §10. Today: `cmd/members` and `cmd/bff` (see their READMEs); `ledger`, `notify` and `currency` land with later slices. |
 | `apps/ios/` | The SwiftUI app (`docs/IOS.md`): `MyMoneyRecap.xcodeproj`, Sign in through Keycloak with AppAuth-iOS, and the generated `DesignSystem/Tokens.swift`. See `apps/ios/README.md` to open, build and run it against local Compose. |
 
 The iOS app consumes the design tokens and illustrations from `my-money-recap-ds` and, once wired,
@@ -19,9 +19,20 @@ From `apps/backend`:
 go vet ./... && go test ./...
 ```
 
-`go test ./...` alone runs the unit tests. The Connect-boundary tests skip unless the Compose stack
-is up and the `MEMBERS_TEST_*` variables listed at the top of
-`internal/members/members_test.go` are set; the CI job `backend` runs them that way.
+`go test ./...` alone runs the unit tests. The tests against the Compose stack skip unless it is up
+and their variables are set; the CI job `backend` runs them that way:
+
+- the `members` Connect-boundary tests, `MEMBERS_TEST_*` listed at the top of
+  `internal/members/members_test.go`;
+- the backend end-to-end test at the BFF's HTTP boundary (`TestEndToEnd`), `BFF_TEST_*` listed at
+  the top of `internal/bff/e2e_test.go`. With the stock `.env`:
+
+```bash
+BFF_TEST_URL=http://localhost:8082 BFF_TEST_KEYCLOAK=http://localhost:8080 BFF_TEST_USER_PASSWORD=$TEST_USER_PASSWORD BFF_TEST_DATABASE_URL=postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members go test -v -run TestEndToEnd ./internal/bff/
+```
+
+A worktree running its own stack substitutes its `.env` ports (`infra/compose/README.md`,
+"Parallel worktrees").
 
 Each service is one binary that serves by default and applies its embedded SQL migrations with the
 `migrate` subcommand; Compose runs `migrate` as a one-shot step the service waits on
