@@ -61,6 +61,8 @@ public nonisolated struct MoneyRecap_V1_QuoteResponse: Sendable {
   /// float (PRD D71).
   public var rate: String = String()
 
+  /// Always PROVIDER: a manual rate is typed on the phone and never passes
+  /// through here (PRD §8.9 step 1); kept because §7.4 names it.
   public var source: MoneyRecap_V1_RateSource = .unspecified
 
   /// "YYYY-MM-DD" the provider's snapshot is dated (PRD D35).

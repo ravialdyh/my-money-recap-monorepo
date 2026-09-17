@@ -24,6 +24,8 @@ message QuoteResponse {
   // Units of "to" per one unit of "from", as a decimal string, never a
   // float (PRD D71).
   string rate = 1;
+  // Always PROVIDER: a manual rate is typed on the phone and never passes
+  // through here (PRD §8.9 step 1); kept because §7.4 names it.
   RateSource source = 2;
   // "YYYY-MM-DD" the provider's snapshot is dated (PRD D35).
   string as_of = 3;

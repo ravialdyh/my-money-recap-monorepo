@@ -133,7 +133,9 @@ type QuoteResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Units of "to" per one unit of "from", as a decimal string, never a
 	// float (PRD D71).
-	Rate   string     `protobuf:"bytes,1,opt,name=rate,proto3" json:"rate,omitempty"`
+	Rate string `protobuf:"bytes,1,opt,name=rate,proto3" json:"rate,omitempty"`
+	// Always PROVIDER: a manual rate is typed on the phone and never passes
+	// through here (PRD §8.9 step 1); kept because §7.4 names it.
 	Source RateSource `protobuf:"varint,2,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
 	// "YYYY-MM-DD" the provider's snapshot is dated (PRD D35).
 	AsOf          string `protobuf:"bytes,3,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`

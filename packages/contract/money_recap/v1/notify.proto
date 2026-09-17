@@ -6,8 +6,9 @@ option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/g
 
 import "google/protobuf/timestamp.proto";
 
-// The three toggles and the reminder time from PRD §6.16 and §10. The
-// push-permission state lives on the phone, not here.
+// The three toggles and the reminder time from PRD §6.16 and §10. notify
+// fills every field on read: a Member with no row gets the PRD §10 defaults,
+// never proto3 zeros. The push-permission state lives on the phone, not here.
 message NotificationPrefs {
   // "Recap ready", default on (PRD §10).
   bool recap_ready = 1;

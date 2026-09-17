@@ -22,8 +22,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The three toggles and the reminder time from PRD §6.16 and §10. The
-// push-permission state lives on the phone, not here.
+// The three toggles and the reminder time from PRD §6.16 and §10. notify
+// fills every field on read: a Member with no row gets the PRD §10 defaults,
+// never proto3 zeros. The push-permission state lives on the phone, not here.
 type NotificationPrefs struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// "Recap ready", default on (PRD §10).
