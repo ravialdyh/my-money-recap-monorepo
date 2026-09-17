@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		A1000000000000000000000040 /* AppAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000000042 /* AppAuth */; };
+		A1000000000000000000000045 /* MoneyRecapContract in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000000044 /* MoneyRecapContract */; };
+		A1000000000000000000000047 /* MoneyRecapContract in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000000046 /* MoneyRecapContract */; };
+		A100000000000000000000004D /* Connect in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000004A /* Connect */; };
+		A100000000000000000000004E /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000004B /* SwiftProtobuf */; };
+		A100000000000000000000004F /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000004C /* SwiftProtobuf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,6 +87,16 @@
 			path = UITests;
 			sourceTree = "<group>";
 		};
+		A1000000000000000000000028 /* Networking */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		A1000000000000000000000029 /* Snapshots */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Snapshots;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +105,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000000000000000000000040 /* AppAuth in Frameworks */,
+				A1000000000000000000000045 /* MoneyRecapContract in Frameworks */,
+				A100000000000000000000004D /* Connect in Frameworks */,
+				A100000000000000000000004E /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,6 +115,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1000000000000000000000047 /* MoneyRecapContract in Frameworks */,
+				A100000000000000000000004F /* SwiftProtobuf in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,6 +135,8 @@
 			children = (
 				A1000000000000000000000020 /* App */,
 				A1000000000000000000000021 /* Auth */,
+				A1000000000000000000000028 /* Networking */,
+				A1000000000000000000000029 /* Snapshots */,
 				A1000000000000000000000022 /* Screens */,
 				A1000000000000000000000023 /* DesignSystem */,
 				A1000000000000000000000024 /* Resources */,
@@ -152,6 +174,8 @@
 			fileSystemSynchronizedGroups = (
 				A1000000000000000000000020 /* App */,
 				A1000000000000000000000021 /* Auth */,
+				A1000000000000000000000028 /* Networking */,
+				A1000000000000000000000029 /* Snapshots */,
 				A1000000000000000000000022 /* Screens */,
 				A1000000000000000000000023 /* DesignSystem */,
 				A1000000000000000000000024 /* Resources */,
@@ -159,6 +183,9 @@
 			name = MyMoneyRecap;
 			packageProductDependencies = (
 				A1000000000000000000000042 /* AppAuth */,
+				A1000000000000000000000044 /* MoneyRecapContract */,
+				A100000000000000000000004A /* Connect */,
+				A100000000000000000000004B /* SwiftProtobuf */,
 			);
 			productName = MyMoneyRecap;
 			productReference = A1000000000000000000000012 /* MyMoneyRecap.app */;
@@ -182,6 +209,8 @@
 			);
 			name = MyMoneyRecapTests;
 			packageProductDependencies = (
+				A1000000000000000000000046 /* MoneyRecapContract */,
+				A100000000000000000000004C /* SwiftProtobuf */,
 			);
 			productName = MyMoneyRecapTests;
 			productReference = A1000000000000000000000013 /* MyMoneyRecapTests.xctest */;
@@ -244,6 +273,9 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A1000000000000000000000041 /* XCRemoteSwiftPackageReference "AppAuth-iOS" */,
+				A1000000000000000000000043 /* XCLocalSwiftPackageReference "../../packages/contract/swift" */,
+				A1000000000000000000000048 /* XCRemoteSwiftPackageReference "connect-swift" */,
+				A1000000000000000000000049 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A1000000000000000000000003 /* Products */;
@@ -540,13 +572,59 @@
 				version = 3.0.0;
 			};
 		};
+		A1000000000000000000000048 /* XCRemoteSwiftPackageReference "connect-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/connectrpc/connect-swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.2.3;
+			};
+		};
+		A1000000000000000000000049 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.38.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A1000000000000000000000043 /* XCLocalSwiftPackageReference "../../packages/contract/swift" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../packages/contract/swift;
+		};
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		A1000000000000000000000042 /* AppAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A1000000000000000000000041 /* XCRemoteSwiftPackageReference "AppAuth-iOS" */;
 			productName = AppAuth;
+		};
+		A1000000000000000000000044 /* MoneyRecapContract */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoneyRecapContract;
+		};
+		A1000000000000000000000046 /* MoneyRecapContract */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoneyRecapContract;
+		};
+		A100000000000000000000004A /* Connect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1000000000000000000000048 /* XCRemoteSwiftPackageReference "connect-swift" */;
+			productName = Connect;
+		};
+		A100000000000000000000004B /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1000000000000000000000049 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		A100000000000000000000004C /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1000000000000000000000049 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

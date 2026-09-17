@@ -5,7 +5,7 @@ struct SignInView: View {
     @State private var model: SignInViewModel
 
     init(session: AuthSession) {
-        _model = State(initialValue: SignInViewModel(signIn: { try await session.signIn() }))
+        _model = State(initialValue: SignInViewModel(signIn: { try await session.signIn() }, initialError: session.signInMessage))
     }
 
     var body: some View {

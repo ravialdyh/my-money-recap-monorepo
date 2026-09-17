@@ -6,6 +6,8 @@ struct MMRButton: View {
     enum Variant { case primary, secondary }
     let title: String
     var variant: Variant = .primary
+    /// SF Symbol name for the 20pt leading glyph ("plus" on Log a spend) until the design-system glyphs are drawn in Swift.
+    var icon: String? = nil
     var loading = false
     let action: () -> Void
 
@@ -14,6 +16,8 @@ struct MMRButton: View {
             HStack(spacing: 12) {
                 if loading {
                     ProgressView().tint(foreground)
+                } else if let icon {
+                    Image(systemName: icon).font(.system(size: 18, weight: .bold))
                 }
                 Text(title).textStyle(Tokens.TypeRamp.bodyM).fontWeight(.heavy)
             }

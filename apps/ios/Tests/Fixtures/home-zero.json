@@ -1,0 +1,17 @@
+{
+    "home": {
+        "currencyCode": "GBP",
+        "month": "2026-09",
+        "spent": {
+            "amount": "0",
+            "currencyCode": "GBP"
+        },
+        "moneyIn": {
+            "amount": "0",
+            "currencyCode": "GBP"
+        },
+        "streakDay": 1,
+        "daysRemaining": 14,
+        "firstRecapOn": "2026-10-01"
+    }
+}

@@ -6,7 +6,12 @@ import SwiftUI
 @Observable
 @MainActor
 final class AuthSession {
+    /// Copy Sign in shows after a token refresh failed (IOS I3): the session is gone, not the tap.
+    static let expiredCopy = "Your session expired. Sign in again."
+
     private(set) var authState: OIDAuthState?
+    /// Set when sign-out was not the Member's choice, read once by Sign in.
+    private(set) var signInMessage: String?
     /// AppAuth needs the in-flight session retained until the redirect arrives.
     private var flow: OIDExternalUserAgentSession?
 
@@ -43,9 +48,38 @@ final class AuthSession {
         }
         flow = nil
         authState = state
-        if let data = try? NSKeyedArchiver.archivedData(withRootObject: state, requiringSecureCoding: true) {
-            Keychain.write(data)
+        signInMessage = nil
+        persist()
+    }
+
+    /// A current access token, refreshed by AppAuth first when it has expired (I1, I3).
+    func freshAccessToken() async throws -> String {
+        guard let authState else { throw CancellationError() }
+        let token: String = try await withCheckedThrowingContinuation { continuation in
+            authState.performAction { accessToken, _, error in
+                if let accessToken { continuation.resume(returning: accessToken) } else { continuation.resume(throwing: error ?? CancellationError()) }
+            }
         }
+        persist() // a refresh rotated the tokens inside the state
+        return token
+    }
+
+    /// The BFF rejected the token: force a refresh; if that fails too, back to Sign in with the inline error (I3).
+    func recoverFromUnauthenticated() async {
+        authState?.setNeedsTokenRefresh()
+        do { _ = try await freshAccessToken() } catch { signOut(message: Self.expiredCopy) }
+    }
+
+    /// Erases the session; the cache goes with it in `RootView` (PRD §7 "on device only", I4).
+    func signOut(message: String? = nil) {
+        signInMessage = message
+        authState = nil
+        Keychain.delete()
+    }
+
+    private func persist() {
+        guard let authState, let data = try? NSKeyedArchiver.archivedData(withRootObject: authState, requiringSecureCoding: true) else { return }
+        Keychain.write(data)
     }
 
     private func discover() async throws -> OIDServiceConfiguration {
