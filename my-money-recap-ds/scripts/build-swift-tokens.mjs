@@ -1,5 +1,5 @@
 // Generates apps/ios/DesignSystem/Tokens.swift from src/tokens/tokens.json (docs/IOS.md I5).
-// Colours, radii, the type ramp and motion. Aliases like "{palette.violet.500}" become Palette.violet500.
+// Colours, radii, spacing, sizes, the type ramp and motion. Aliases like "{palette.violet.500}" become Palette.violet500.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { here, tokens, walk } from './lib.mjs';
@@ -33,6 +33,7 @@ function colorEnum(node) {
   const lines = [];
   walk(node, (p, { $value: raw }) => {
     if (typeof raw === 'number') lines.push(`        public static let ${ident(p)}: Double = ${num(raw)}`);
+    else if (typeof raw === 'string' && /^-?[\d.]+%$/.test(raw)) lines.push(`        public static let ${ident(p)}: Double = ${num(parseFloat(raw) / 100)}`); // "-8%" -> -0.08
     else if (typeof raw === 'string' && color(raw)) lines.push(`        public static let ${ident(p)} = ${color(raw)}`);
   });
   return lines;
@@ -86,12 +87,9 @@ ${Object.entries(tokens.font.family)
 
 ${block('TypeRamp', typeRamp)}
 
-    public enum Radius {
-${Object.entries(tokens.radius)
+${['radius', 'space', 'size'].map((g) => block(pascal(g), Object.entries(tokens[g])
   .filter(([k]) => !k.startsWith('$'))
-  .map(([k, { $value: r }]) => `        public static let ${ident([k])}: CGFloat = ${px(r)}`)
-  .join('\n')}
-    }
+  .map(([k, { $value: r }]) => `        public static let ${ident([k])}: CGFloat = ${px(r)}`))).join('\n\n')}
 
     public enum Motion {
         public enum Easing {

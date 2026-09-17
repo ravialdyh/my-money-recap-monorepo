@@ -86,26 +86,16 @@ jobs:
         run: |
           go vet ./...
           go test -v -p 1 ./...
+      - name: Login Token issued and redeemed on the pinned Keycloak image (A10)
+        working-directory: infra/compose
+        run: ./a10-smoke.sh
       - name: Stack logs and teardown
         if: always()
         working-directory: infra/compose
         run: |
           docker compose ps
-          docker compose logs members-migrate members bff
+          docker compose logs keycloak members-migrate members bff
           docker compose down -v
-
-  a10-smoke:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Throwaway .env (development credentials only, never committed)
-        run: sed 's/=$/=ci-throwaway/' infra/compose/.env.example > infra/compose/.env
-      - name: Keycloak only (Postgres follows via depends_on); members is the backend job's concern
-        run: docker compose -f infra/compose/compose.yaml up -d --wait --wait-timeout 300 keycloak
-      - name: Login Token issued and redeemed on the pinned image (A10)
-        run: infra/compose/a10-smoke.sh
-      - if: failure()
-        run: docker compose -f infra/compose/compose.yaml logs keycloak
 
   ios:
     runs-on: macos-latest

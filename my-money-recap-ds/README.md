@@ -75,7 +75,7 @@ Draw the glyph in `src/icons/glyphs.tsx` and add it to the `GLYPHS` map in `src/
 ```
 npm run build:tokens   # tokens.json → tokens.css, styles/css.generated.ts, dist/mmr.css
 npm run build:assets   # ../my-money-recap/assets/illustrations/ill-*.webp → src/assets/illustrations.ts
-npm run build:swift-tokens   # tokens.json → ../apps/ios/DesignSystem/Tokens.swift (colours, radii, type ramp, motion; IOS.md I5)
+npm run build:swift-tokens   # tokens.json → ../apps/ios/DesignSystem/Tokens.swift (colours, radii, spacing, sizes, type ramp, motion; IOS.md I5)
 npm run typecheck
 ```
 

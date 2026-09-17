@@ -29,7 +29,7 @@ struct SignInView: View {
                 .foregroundStyle(Tokens.Text.onGroundMuted)
                 .frame(maxWidth: .infinity)
                 .multilineTextAlignment(.center)
-                .padding(.top, 14)
+                .padding(.top, Tokens.Space._5)
         }
         .animation(.easeOut(duration: Tokens.Motion.Duration.reduced), value: model.errorMessage)
     }

@@ -22,7 +22,7 @@ struct HomeView: View {
     var body: some View {
         Screen {
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: Tokens.Space._5) {
                     HStack(spacing: 8) {
                         if let month = model.monthLabel { Chip(text: month, tappable: true) }
                         Spacer()
@@ -51,7 +51,7 @@ struct HomeView: View {
                 Avatar(key: home.avatarKey)
             }
         }
-        Card(minHeight: 191) {
+        Card(minHeight: Tokens.Size.homeHeroCard) {
             StatHero(eyebrow: model.heroEyebrow, value: Money.format(home.spent.amount, currency: home.currencyCode))
             HStack(spacing: 8) {
                 StatChip(tone: .earned, text: "Money in \(Money.format(home.moneyIn.amount, currency: home.currencyCode))")
@@ -61,11 +61,11 @@ struct HomeView: View {
             }
         }
         if !home.hasSalary {
-            PromptCard(title: "Set your monthly salary", height: 191)
+            PromptCard(title: "Set your monthly salary", height: Tokens.Size.homeHeroCard)
         }
         if home.hasSavingTarget {
             // The ProgressBar arrives with the Saving Target slice; until then the card carries the server's sentence.
-            Card(minHeight: 136) {
+            Card(minHeight: Tokens.Size.homeTargetCard) {
                 HStack {
                     CardTitle(text: "Saving target")
                     Spacer()
@@ -74,7 +74,7 @@ struct HomeView: View {
                 HelperText(text: home.savingTarget.progressSentence)
             }
         } else {
-            PromptCard(title: "Set a saving target", height: 136)
+            PromptCard(title: "Set a saving target", height: Tokens.Size.homeTargetCard)
         }
         MMRButton(title: "Log a spend", icon: "plus") {}
         MMRButton(title: "See last month", variant: .secondary) {}
@@ -95,12 +95,12 @@ struct HomeView: View {
     /// PRD §6.19 first load: both cards at their filled heights with `ink.100` blocks in place of numbers. No spinner.
     private var skeleton: some View {
         Group {
-            Card(minHeight: 191) {
+            Card(minHeight: Tokens.Size.homeHeroCard) {
                 block(width: 96, height: 16)
                 block(width: 180, height: 64)
                 block(width: 120, height: 34)
             }
-            Card(minHeight: 136) {
+            Card(minHeight: Tokens.Size.homeTargetCard) {
                 block(width: 140, height: 22)
                 block(width: 220, height: 16)
             }
