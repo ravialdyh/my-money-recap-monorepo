@@ -56,13 +56,25 @@ against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer ch
 `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
 Volumes and the `members` and `bff` images are named after the project, so stacks do not share data either.
 
+## A phone on the LAN
+
+A physical iPhone cannot reach the Mac as `localhost`, and the token issuer must match the address the
+phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives: `KC_HOSTNAME`, the
+`members` issuer check and the BFF issuer check all derive from it. To sign in from a device:
+
+1. Set `MMR_HOST=<the Mac's LAN IP>` in `.env` and recreate the stack (`up -d --wait`); Keycloak, `members`
+   and `bff` restart with the new issuer `http://<ip>:8080/realms/mmr`. The realm import is unaffected.
+2. Run the app on the phone with the Run environment `MMR_ISSUER=http://<ip>:8080/realms/mmr` and
+   `MMR_BFF_URL=http://<ip>:8082` (`apps/ios/README.md`, "Run on a physical iPhone").
+3. Set it back to `localhost` and recreate again before the simulator or the UI test next run.
+
 ## The `mmr` realm
 
 `keycloak/mmr-realm.json` is imported by `--import-realm` on first boot. Keycloak skips the import
 once the realm exists in its database, so a change to the JSON needs `down -v` to take effect. Slice 3
 replaces this bootstrap with OpenTofu (A13).
 
-- Realm `mmr`. Hostname is fixed to `http://localhost:${KEYCLOAK_HOST_PORT}`, so the issuer
+- Realm `mmr`. Hostname is fixed to `http://${MMR_HOST}:${KEYCLOAK_HOST_PORT}`, so the issuer
   `http://localhost:8080/realms/mmr` (with the default port) is the same whether the caller is the
   simulator or a container reaching `keycloak:8080`.
 - `ios`: public client, PKCE S256 required, direct access grants enabled for the test seams, redirect

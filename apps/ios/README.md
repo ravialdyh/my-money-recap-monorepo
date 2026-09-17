@@ -36,10 +36,25 @@ fails with `errSecMissingEntitlement`, so a relaunch shows Sign in again.
    Compose and it still draws the last snapshot. Cancel the sheet to see the `InlineError` inside the
    card. Sign in with Apple and Continue with Google are drawn only until slice 3.
 
-Test seams, all read at launch: argument `--reset-session` erases the stored session, `--reset-snapshot`
-empties the SwiftData store, and environment `MMR_BFF_URL` replaces `http://localhost:8082` (a physical
-device reaching the Mac over the LAN, or the UI test pointing at an unreachable port to prove Home
-still renders offline). Set them in the scheme's Run action for a device build.
+Seams, all read at launch: argument `--reset-session` erases the stored session, `--reset-snapshot`
+empties the SwiftData store, and the environment variables `MMR_ISSUER` (default
+`http://localhost:8080/realms/mmr`) and `MMR_BFF_URL` (default `http://localhost:8082`) point the app at
+another Keycloak and BFF. The UI test uses the last one with an unreachable port to prove Home still
+renders offline.
+
+## Run on a physical iPhone
+
+The phone reaches the Mac by its LAN address, and the token issuer must be that same address
+(`infra/compose/README.md`, "A phone on the LAN"):
+
+1. In `infra/compose/.env` set `MMR_HOST=<the Mac's LAN IP>` and recreate the stack.
+2. In Xcode, edit the scheme's Run action and add the environment variables
+   `MMR_ISSUER=http://<ip>:8080/realms/mmr` and `MMR_BFF_URL=http://<ip>:8082`. Select your team for
+   signing, pick the phone, Run.
+3. Sign in as the test user; Home at zero appears, and a relaunch draws it from the snapshot.
+
+App Transport Security in `App/Info.plist` permits local-network HTTP for this development stack only,
+until slice 3 terminates TLS in Nginx; nothing needs to be edited for a device build.
 
 ## Build and test from the command line
 

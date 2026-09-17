@@ -13,10 +13,13 @@ final class HomeViewModel {
     private(set) var isRefreshing = false
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
     private let context: ModelContext
+    /// Dates print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot change the copy.
+    private let dates: Date.FormatStyle
 
-    init(fetch: @escaping () async throws -> MoneyRecap_V1_HomeView, context: ModelContext) {
+    init(fetch: @escaping () async throws -> MoneyRecap_V1_HomeView, context: ModelContext, locale: Locale = .autoupdatingCurrent) {
         self.fetch = fetch
         self.context = context
+        self.dates = ISODate.style(locale: locale)
         if let snapshot = HomeSnapshot.load(from: context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
             updatedAt = snapshot.updatedAt
@@ -61,23 +64,23 @@ final class HomeViewModel {
 
     /// The month chip: the Recap Month's name.
     var monthLabel: String? {
-        home.flatMap { ISODate.month($0.month) }.map { $0.formatted(ISODate.style.month(.wide)) }
+        home.flatMap { ISODate.month($0.month) }.map { $0.formatted(dates.month(.wide)) }
     }
 
     /// "Your first recap arrives on 1 October." (PRD D47).
     var previewCopy: String? {
-        home.flatMap { ISODate.day($0.firstRecapOn) }.map { "Your first recap arrives on \($0.formatted(ISODate.style.day().month(.wide)))." }
+        home.flatMap { ISODate.day($0.firstRecapOn) }.map { "Your first recap arrives on \($0.formatted(dates.day().month(.wide)))." }
     }
 
     func recapLabel(_ month: MoneyRecap_V1_RecapMonth) -> String {
-        ISODate.month(month.month).map { $0.formatted(ISODate.style.month(.wide).year()) } ?? month.month
+        ISODate.month(month.month).map { $0.formatted(dates.month(.wide).year()) } ?? month.month
     }
 }
 
 /// The server's "YYYY-MM-DD" and "YYYY-MM" strings are calendar dates, not instants, so they are read and printed
 /// in one fixed zone; otherwise a phone west of Greenwich would show 30 September for `2026-10-01` (IOS I7).
 enum ISODate {
-    static let style = Date.FormatStyle(timeZone: .gmt)
+    static func style(locale: Locale) -> Date.FormatStyle { Date.FormatStyle(locale: locale, timeZone: .gmt) }
 
     static func day(_ string: String) -> Date? {
         try? Date(string, strategy: .iso8601.year().month().day())
