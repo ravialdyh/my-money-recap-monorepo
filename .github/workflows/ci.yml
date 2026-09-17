@@ -105,3 +105,20 @@ jobs:
         run: infra/compose/a10-smoke.sh
       - if: failure()
         run: docker compose -f infra/compose/compose.yaml logs keycloak
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: apps/ios
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the app and its tests for the generic iOS Simulator destination
+        run: |
+          xcodebuild build-for-testing -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build -quiet
+      - name: Unit tests on an iPhone simulator picked by simctl at runtime (issue #16, no device names)
+        run: |
+          xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
+            -destination "id=$(scripts/simulator-udid.sh)" -derivedDataPath build \
+            -only-testing:MyMoneyRecapTests
