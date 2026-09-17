@@ -1,8 +1,3 @@
-/**
- * An exact decimal plus an ISO 4217 code, printed by `Intl.NumberFormat` (PRD §7, §11, D71). Nothing
- * here knows a currency's decimals, symbol or separators. README "Design rules" has the reasoning.
- */
-
 /** A formatter bound to one currency, for components that take one as a prop. */
 export type MoneyFormat = (amount: number | string) => string;
 

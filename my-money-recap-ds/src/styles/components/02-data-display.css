@@ -1,4 +1,3 @@
-/* ---- Stat chip ---- */
 .mmr-stat-chip {
   display: inline-flex;
   align-items: center;
@@ -22,7 +21,6 @@
 .mmr-stat-chip[data-tone="spent"] .mmr-stat-chip-dot { background: var(--mmr-color-data-spent); }
 .mmr-stat-chip-row { display: flex; flex-wrap: wrap; gap: var(--mmr-space-3); }
 
-/* ---- Data row + icon well ---- */
 .mmr-row-list { display: flex; flex-direction: column; }
 .mmr-row {
   display: flex;
@@ -66,7 +64,6 @@
 .mmr-well[data-tone="ink"] { background: var(--mmr-color-surface-well-ink); }
 .mmr-well svg { width: var(--mmr-well-glyph-size, var(--mmr-size-icon-glyph)); height: var(--mmr-well-glyph-size, var(--mmr-size-icon-glyph)); }
 
-/* ---- Streak badge + dots ---- */
 .mmr-badge {
   width: var(--mmr-size-streak-badge);
   height: var(--mmr-size-streak-badge);
@@ -85,7 +82,6 @@
 .mmr-dot { height: var(--mmr-size-streak-dot); border-radius: var(--mmr-radius-pill); background: var(--mmr-color-data-streak-inactive); }
 .mmr-dot[data-active="true"] { background: var(--mmr-color-data-streak-active); }
 
-/* ---- Bars ---- */
 .mmr-track { position: relative; border-radius: var(--mmr-radius-pill); overflow: visible; }
 .mmr-fill { height: 100%; border-radius: var(--mmr-radius-pill); transform-origin: left center; }
 .mmr-fill[data-animate="true"] { animation: mmr-grow var(--mmr-motion-duration-reveal-bar) var(--mmr-motion-easing-standard) both; }
@@ -109,7 +105,6 @@
 .mmr-compare-value { font-family: var(--mmr-font-family-text); width: 34px; text-align: right; font-size: var(--mmr-type-label-m-font-size); font-weight: 800; color: var(--mmr-color-text-primary); font-variant-numeric: tabular-nums; }
 .mmr-compare-row .mmr-track { flex-grow: 1; }
 
-/* ---- Button ---- */
 .mmr-button {
   display: inline-flex;
   align-items: center;
@@ -128,7 +123,6 @@
 }
 .mmr-button svg { width: var(--mmr-size-icon-button); height: var(--mmr-size-icon-button); }
 
-/* ---- Archetype pill ---- */
 .mmr-archetype {
   display: inline-flex;
   align-items: center;
@@ -150,20 +144,15 @@
 .mmr-archetype[data-selected="true"], .mmr-archetype[data-state="selected"] { opacity: 1; box-shadow: var(--mmr-border-selected-ring); }
 .mmr-archetype-row { display: flex; gap: var(--mmr-space-2); align-items: center; }
 
-/* ---- Page dots ---- */
 .mmr-pagedots { display: flex; justify-content: center; gap: var(--mmr-space-2); }
 .mmr-pagedot { width: var(--mmr-size-page-dot); height: var(--mmr-size-page-dot); border-radius: var(--mmr-radius-pill); background: var(--mmr-color-indicator-page-inactive-on-ground); transition: width var(--mmr-motion-duration-press) var(--mmr-motion-easing-standard); }
 .mmr-pagedot[data-active="true"] { width: var(--mmr-size-page-dot-active-width); background: var(--mmr-color-indicator-page-active-on-ground); }
 .mmr-pagedots[data-on-light="true"] .mmr-pagedot { background: var(--mmr-color-indicator-page-inactive-on-light); }
 .mmr-pagedots[data-on-light="true"] .mmr-pagedot[data-active="true"] { background: var(--mmr-color-indicator-page-active-on-light); }
-/* Tappable dots (D46): a button that keeps the dot's drawn size. Its hit area is its own slice of the
-   row — the dot plus half the gap on each side, 44pt tall — like Apple's page control; a 44pt-wide box
-   would overlap the neighbours and the last one would win every tap. */
 button.mmr-pagedot { padding: 0; border: 0; position: relative; flex-shrink: 0; }
 button.mmr-pagedot::before { content: ''; position: absolute; left: calc(-0.5 * var(--mmr-space-2)); right: calc(-0.5 * var(--mmr-space-2)); top: 50%; height: var(--mmr-size-touch-target-min); transform: translateY(-50%); }
 button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform: none; }
 
-/* ---- Motion ---- */
 @keyframes mmr-enter { from { opacity: 0; transform: translateY(var(--mmr-motion-enter-offset)); } to { opacity: 1; transform: none; } }
 @keyframes mmr-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (prefers-reduced-motion: reduce) {
@@ -172,8 +161,6 @@ button.mmr-pagedot:active, button.mmr-pagedot[data-state="pressed"] { transform:
 }
 @keyframes mmr-fade { from { opacity: 0; } to { opacity: 1; } }
 
-/* ---- Tappable variants (PRD §13). The drawn pill keeps its size; a centred pseudo-element
-   lifts the hit area to the 44pt minimum, so nothing in the recap screens changes shape. ---- */
 .mmr-chip[data-tappable="true"], .mmr-archetype[data-tappable="true"] { position: relative; }
 .mmr-chip[data-tappable="true"]::before, .mmr-archetype[data-tappable="true"]::before {
   content: '';

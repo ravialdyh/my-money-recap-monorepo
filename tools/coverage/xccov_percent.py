@@ -1,5 +1,3 @@
-"""Prints the app target's line coverage from `xcrun xccov view --report --only-targets --json`."""
-
 import json
 import sys
 

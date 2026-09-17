@@ -1,6 +1,3 @@
-/* My Money Recap component styles. Every value comes from tokens.css (--mmr-*). Class prefix: mmr-. */
-
-/* ---- Shared behaviours ---- */
 .mmr-pressable {
   transition: transform var(--mmr-motion-duration-press) var(--mmr-motion-easing-press),
               filter var(--mmr-motion-duration-press) var(--mmr-motion-easing-press);
@@ -11,7 +8,7 @@
 .mmr-pressable:active,
 .mmr-pressable[data-state="pressed"] {
   transform: scale(var(--mmr-motion-press-scale));
-  filter: brightness(calc(100% + var(--mmr-color-state-pressed-lightness-delta))); /* the "lightness minus 8%" rule */
+  filter: brightness(calc(100% + var(--mmr-color-state-pressed-lightness-delta)));
 }
 .mmr-pressable:disabled,
 .mmr-pressable[data-state="disabled"] {
@@ -23,7 +20,6 @@
   outline-offset: 2px;
 }
 
-/* ---- Screen ---- */
 .mmr-screen {
   box-sizing: border-box;
   width: var(--mmr-size-screen-width);
@@ -41,7 +37,6 @@
 .mmr-screen[data-ground="goal"] { background: var(--mmr-color-ground-goal); }
 .mmr-screen[data-ground="personality"] { background: var(--mmr-color-ground-personality); }
 
-/* ---- Chip (header label) ---- */
 .mmr-chip {
   display: inline-flex;
   align-items: center;
@@ -62,7 +57,6 @@
 .mmr-chip[data-variant="highlight"] { background: var(--mmr-color-surface-chip-highlight); color: var(--mmr-color-text-primary); }
 .mmr-chip-row { display: flex; flex-direction: row; gap: var(--mmr-space-3); align-items: center; }
 
-/* ---- Headline / copy ---- */
 .mmr-headline {
   margin: 0;
   font-family: var(--mmr-font-family-display);
@@ -106,7 +100,6 @@
   color: var(--mmr-color-text-accent-coral);
 }
 
-/* ---- Card ---- */
 .mmr-card {
   box-sizing: border-box;
   font-family: var(--mmr-font-family-text);
@@ -131,7 +124,6 @@
 }
 .mmr-card-enter { animation: mmr-enter var(--mmr-motion-duration-enter-screen) var(--mmr-motion-easing-standard) both; }
 
-/* ---- Illustration slot ---- */
 .mmr-illo {
   flex-grow: 1;
   display: flex;
@@ -145,7 +137,6 @@
 }
 .mmr-illo img { display: block; height: auto; }
 
-/* ---- Stat hero ---- */
 .mmr-stat-hero { display: flex; flex-direction: column; gap: 2px; }
 .mmr-stat-hero-value {
   font-family: var(--mmr-font-family-display);
@@ -156,7 +147,6 @@
   color: var(--mmr-color-text-primary);
   font-variant-numeric: tabular-nums;
 }
-/* Fit-to-width (PRD §11, D71): StatHero measures the value and sets data-step to the largest size that fits. */
 .mmr-stat-hero-value { white-space: nowrap; }
 .mmr-stat-hero-value[data-step="m"] { font-size: var(--mmr-size-stat-hero-m); }
 .mmr-stat-hero-value[data-step="s"] { font-size: var(--mmr-size-stat-hero-s); }

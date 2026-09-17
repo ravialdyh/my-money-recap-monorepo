@@ -1,5 +1,3 @@
-// Renders the four Recap screens and the component boards to static HTML for a visual check. Not part of the package API.
-
 import { writeFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ILLUSTRATIONS } from '../src/assets/illustrations';

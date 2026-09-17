@@ -1,6 +1,3 @@
-# SwiftLint owns Swift correctness only. SwiftFormat owns every formatting decision (.swiftformat)
-# and tools/policy owns file length and comments, so nothing here repeats either of them.
-# Both cover the same files: the app, plus the contract package's hand-written manifest.
 included:
   - apps/ios
   - packages/contract/swift/Package.swift
@@ -23,17 +20,11 @@ opt_in_rules:
   - toggle_bool
 
 disabled_rules:
-  # SwiftUI view bodies and one end-to-end UI test are long by nature, and a 300-line cap per file
-  # already exists in tools/policy. Two tools arguing about length is worse than one.
   - function_body_length
   - file_length
   - todo
-  # SwiftFormat's --commas always adds the trailing comma this rule deletes. Left on, the two tools
-  # undo each other on every run and `swiftformat --lint` fails in CI.
   - trailing_comma
 
 identifier_name:
-  # The design system's size steps are `l`, `m` and `s` in TypeScript and in Swift; short locals in a
-  # ten-line function are idiomatic. Long names stay capped.
   min_length:
     warning: 1

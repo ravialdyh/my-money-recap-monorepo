@@ -17,10 +17,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// Both tests need the Compose stack and skip without the MEMBERS_TEST_* variables that
-// infra/compose/README.md lists. MEMBERS_TEST_BFF_CLIENT_SECRET is optional and adds the
-// wrong-audience case.
-
+// testDB opens the Compose stack's Postgres, skipping unless the MEMBERS_TEST_* variables
+// infra/compose/README.md lists are set.
 func testDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("MEMBERS_TEST_DATABASE_URL")

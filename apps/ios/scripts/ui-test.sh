@@ -1,8 +1,4 @@
 #!/bin/sh
-# Runs the sign-in-to-Home UI test (IOS I9) against local Compose on two simulator runtimes chosen at run
-# time (issue #18, "Device and OS coverage"): the newest installed iOS runtime and the oldest. Nothing here
-# names a device or an OS version. The test user's password comes from MMR_TEST_USER_PASSWORD, else from the
-# running Keycloak container's environment (the stock `mmr` stack, infra/compose/README.md).
 set -eu
 cd "$(dirname "$0")/.."
 : "${MMR_TEST_USER_PASSWORD:=$(docker inspect mmr-keycloak-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^TEST_USER_PASSWORD=//p')}"

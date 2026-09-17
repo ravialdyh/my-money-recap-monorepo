@@ -1,13 +1,4 @@
 #!/bin/sh
-# Prints the UDID of an iPhone simulator to use as an xcodebuild destination. No device name or OS
-# version is written anywhere (issues #16 and #18, "Device and OS coverage"): everything is read from
-# `simctl` when the script runs, so a new Xcode that renames its default devices cannot break a test run.
-#
-#   simulator-udid.sh          a booted iPhone if any, else the first available one
-#   simulator-udid.sh newest   an iPhone on the newest installed iOS runtime
-#   simulator-udid.sh oldest   an iPhone on the oldest installed iOS runtime (the deployment target's floor)
-#
-# When the chosen runtime has no iPhone yet, one is created from the runtime's own supported device types.
 set -eu
 xcrun simctl list -j devices devicetypes runtimes | python3 -c '
 import json, subprocess, sys

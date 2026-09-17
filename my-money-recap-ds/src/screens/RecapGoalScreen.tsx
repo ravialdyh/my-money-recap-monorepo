@@ -10,9 +10,6 @@ import { CATEGORY_LABEL, CATEGORY_TONE, type Category } from '../components/type
 import { Icon } from '../icons';
 import { type MoneyProps, useMoney } from './shared';
 
-/* One of the four monthly-recap screens, composed from the system and revised per PRD §13.
-   Props carry the data; layout is fixed. These are the reference compositions for the rest of the app. */
-
 export interface RecapGoalScreenProps extends MoneyProps {
   /** Saved for the month. */
   saved?: number;

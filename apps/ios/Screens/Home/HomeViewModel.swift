@@ -43,8 +43,6 @@ final class HomeViewModel {
         }
     }
 
-    // MARK: - B1 display rules
-
     /// "Hi, {Display Name}", omitted while the name is empty (before onboarding).
     var greeting: String? {
         guard let home, !home.displayName.isEmpty else { return nil }

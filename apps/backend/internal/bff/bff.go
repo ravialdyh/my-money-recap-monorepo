@@ -19,7 +19,7 @@ import (
 // one month. Money fields with an empty currency code are stamped with the Member's currency.
 type MonthSummary struct {
 	Spent, MoneyIn *moneyrecapv1.Money
-	Saved          *moneyrecapv1.Money // nil while Money In is 0 (PRD D41)
+	Saved          *moneyrecapv1.Money
 	Salary         *moneyrecapv1.SalaryFacts
 	SavingTarget   *moneyrecapv1.SavingTargetFacts
 	StreakDay      int32

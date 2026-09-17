@@ -1,4 +1,3 @@
-/* ---- TextField / AmountField ---- */
 .mmr-field-wrap { display: flex; flex-direction: column; gap: var(--mmr-space-2); font-family: var(--mmr-font-family-text); width: 100%; }
 .mmr-field-label {
   font-size: var(--mmr-type-label-m-font-size);
@@ -39,8 +38,6 @@
   color: var(--mmr-color-text-secondary);
 }
 .mmr-field-helper[data-state="invalid"] { color: var(--mmr-color-text-accent-coral); }
-/* The amount is a number, so it takes the display face: 48px, stepping to 36 and 28 when the symbol plus
-   value does not fit the field (PRD §11, D71). AmountField measures a hidden mirror and sets data-step. */
 .mmr-amount .mmr-field-input, .mmr-amount .mmr-field-affix, .mmr-amount-mirror {
   font-family: var(--mmr-font-family-display);
   font-size: var(--mmr-size-amount-l);
@@ -54,7 +51,6 @@
 .mmr-amount [data-step="s"] .mmr-field-input, .mmr-amount [data-step="s"] .mmr-field-affix, .mmr-amount [data-step="s"] .mmr-amount-mirror { font-size: var(--mmr-size-amount-s); }
 .mmr-amount .mmr-field { position: relative; }
 
-/* ---- Slider ---- */
 .mmr-slider { position: relative; display: flex; flex-direction: column; gap: var(--mmr-space-4); }
 .mmr-slider-knob {
   position: absolute;
@@ -77,8 +73,6 @@
 }
 .mmr-slider[data-disabled="true"] { opacity: var(--mmr-color-state-disabled-opacity); pointer-events: none; }
 
-/* ---- Toggle ---- */
-/* A native checkbox; the switch and its knob are drawn here. */
 .mmr-toggle {
   appearance: none;
   -webkit-appearance: none;
@@ -107,7 +101,6 @@
 }
 .mmr-toggle:checked::before { left: calc(100% - var(--mmr-size-toggle-knob) - 2px); }
 
-/* ---- Banner ---- */
 .mmr-banner {
   display: flex;
   align-items: flex-start;

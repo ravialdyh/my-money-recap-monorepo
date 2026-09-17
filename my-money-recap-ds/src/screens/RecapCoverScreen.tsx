@@ -9,9 +9,6 @@ import { StatChip, StatChipRow } from '../components/StatChip';
 import { StatHero } from '../components/StatHero';
 import { type MoneyProps, useMoney } from './shared';
 
-/* One of the four monthly-recap screens, composed from the system and revised per PRD §13.
-   Props carry the data; layout is fixed. These are the reference compositions for the rest of the app. */
-
 export interface RecapCoverScreenProps extends MoneyProps {
   month?: string;
   childName?: string;

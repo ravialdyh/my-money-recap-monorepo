@@ -13,7 +13,6 @@ export interface IconWellProps {
 /** Tinted circle holding a glyph. 30px around 16px by default. */
 export function IconWell({ tone, size, glyphSize, children }: IconWellProps) {
   ensureStyles();
-  // React drops undefined values, so the defaults fall through to the CSS tokens.
   const style = {
     width: size,
     height: size,

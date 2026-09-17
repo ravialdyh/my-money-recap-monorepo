@@ -17,8 +17,8 @@ const alias = (v) => {
   return `${pascal(segs[0])}.${ident(segs.slice(1))}`;
 };
 const num = (n) => String(n);
-const px = (s) => num(parseFloat(s)); // "28px" -> 28
-const ms = (s) => num(parseFloat(s) / 1000); // "120ms" -> 0.12
+const px = (s) => num(parseFloat(s));
+const ms = (s) => num(parseFloat(s) / 1000);
 
 function color(v) {
   if (v.startsWith('{')) return alias(v);

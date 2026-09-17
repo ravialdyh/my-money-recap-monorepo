@@ -1,4 +1,3 @@
--- ARCHITECTURE §7.1: the full column set; slice 1 writes only id, keycloak_subject, email, created_at.
 CREATE TABLE member (
     id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     keycloak_subject      text NOT NULL UNIQUE,
@@ -8,7 +7,6 @@ CREATE TABLE member (
     currency_code         char(3),
     timezone              text,
     created_at            timestamptz NOT NULL DEFAULT now(),
-    -- The local date of created_at in `timezone`, stamped when the zone is first known (A3).
     signed_up_on          date,
     deletion_requested_at timestamptz,
     deleted_at            timestamptz,

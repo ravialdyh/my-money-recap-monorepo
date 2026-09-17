@@ -57,9 +57,6 @@ export function SparkleIcon({ fill = 'var(--mmr-palette-white)', ...rest }: Icon
   );
 }
 
-/* ---- Spend Category glyphs (PRD D20). 16px filled, one per Category, each defaulting to its
-   own category colour so <IconWell tone={CATEGORY_TONE[c]}><Icon name={c} /></IconWell> agrees. ---- */
-
 export function SnacksIcon({ fill = 'var(--mmr-color-data-category-snacks)', ...rest }: IconProps) {
   return (
     <svg viewBox="0 0 16 16" fill={fill} aria-hidden="true" {...rest}>
@@ -131,8 +128,6 @@ export function OtherIcon({ fill = 'var(--mmr-color-data-category-other)', ...re
     </svg>
   );
 }
-
-/* ---- 20px stroked UI glyphs, same construction as ShareIcon. ---- */
 
 export function SettingsIcon(props: IconProps) {
   return (

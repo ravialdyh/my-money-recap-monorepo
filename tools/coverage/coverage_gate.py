@@ -1,5 +1,3 @@
-"""Coverage ratchet: a language's coverage may never fall, and must reach the target to stop rising."""
-
 import argparse
 import json
 import pathlib
@@ -50,7 +48,7 @@ def gate(language, measured, update):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description="Coverage ratchet: a language's coverage may never fall.")
     parser.add_argument("language")
     parser.add_argument("measured", type=float)
     parser.add_argument("--update", action="store_true")

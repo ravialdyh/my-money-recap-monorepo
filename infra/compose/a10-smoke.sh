@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-# A10 smoke test (issue #14): on the pinned Phase Two image, the bff service account issues a Login Token
-# for the test user, the ios client redeems it at the token endpoint without a browser, and a second
-# redemption is refused with invalid_grant. Also checks the username-password grant still works on ios.
-# Needs the Compose stack up (see README.md) and the same .env; prints the token's subject and the image tag.
 set -euo pipefail
 cd "$(dirname "$0")"
 set -a

@@ -11,9 +11,6 @@ import type { Archetype } from '../components/types';
 import { Icon } from '../icons';
 import { ARCHETYPE_BLURB, type MoneyProps, useMoney } from './shared';
 
-/* One of the four monthly-recap screens, composed from the system and revised per PRD §13.
-   Props carry the data; layout is fixed. These are the reference compositions for the rest of the app. */
-
 /** The mascot poster for each Archetype. Prompts: my-money-recap/illustration-prompts.md. */
 const ARCHETYPE_ILLUSTRATION: Record<Archetype, string> = {
   squirrel: ILLUSTRATIONS.squirrel,

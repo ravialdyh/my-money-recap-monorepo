@@ -1,7 +1,4 @@
 #!/bin/sh
-# Pre-push gate: every generated file must match the source it is generated from. CI does the same
-# with a git diff --exit-code after regenerating (.github/workflows/ci.yml), so this only moves the
-# failure earlier. Needs node; buf is optional and the contract check is skipped without it.
 set -eu
 cd "$(git rev-parse --show-toplevel)"
 

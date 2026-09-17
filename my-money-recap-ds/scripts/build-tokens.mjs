@@ -4,7 +4,7 @@ import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { here, tokens, walk } from './lib.mjs';
 
-const vars = []; // [name, cssValue]
+const vars = [];
 
 const aliasToVar = (v) => v.replace(/\{([^}]+)\}/g, (_, p) => `var(--mmr-${p.replace(/\./g, '-')})`);
 const flatRaw = {};
@@ -23,7 +23,6 @@ for (const [p, raw] of Object.entries(flatRaw)) {
       : `cubic-bezier(${raw.join(', ')})`;
   else if (raw && typeof raw === 'object') {
     if (p.startsWith('type.')) {
-      // composite typography: emit one var per part
       for (const [k2, v2] of Object.entries(raw)) {
         const part = k2.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
         vars.push([`${name}-${part}`, typeof v2 === 'string' ? aliasToVar(v2) : String(v2)]);

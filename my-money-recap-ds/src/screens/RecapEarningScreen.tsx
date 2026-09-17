@@ -10,9 +10,6 @@ import { Screen } from '../components/Screen';
 import { StreakBadge, StreakDots } from '../components/Streak';
 import { type MoneyProps, useMoney } from './shared';
 
-/* One of the four monthly-recap screens, composed from the system and revised per PRD §13.
-   Props carry the data; layout is fixed. These are the reference compositions for the rest of the app. */
-
 export interface RecapEarningScreenProps extends MoneyProps {
   month?: string;
   /** Money In for the month. */

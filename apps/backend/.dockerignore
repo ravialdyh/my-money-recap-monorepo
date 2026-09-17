@@ -1,5 +1,3 @@
-# The build only needs the module. Everything else is context the daemon copies for nothing, and
-# .env or a stray key would otherwise land in a layer.
 .env
 .env.*
 *.pem

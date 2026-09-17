@@ -1,25 +1,14 @@
-# macOS
 .DS_Store
 
-# Node
 node_modules/
 npm-debug.log*
 
-# 4K illustration originals (~58 MB). The shipped WebP cut-outs in
-# my-money-recap/assets/ are committed; these are the raw generator output,
-# kept locally and backed up outside git.
 my-money-recap/renders/
 
-# Scratch harnesses. Anything named .tmp-* is a throwaway built to measure or
-# render something once; none of it belongs in a commit.
 .tmp-*
 
-# Screen renders (PNG). Nothing links to an individual one and git would keep them
-# forever; export them on demand from the two live canvases linked in
-# docs/design/design_handoff_my_money_recap/README.md.
 docs/design/**/screens/
 
-# Secrets and keys. Real values live in infra/secrets/ encrypted with SOPS (A13); nothing plain-text is ever committed.
 .env
 .env.*
 !.env.example
@@ -28,24 +17,17 @@ docs/design/**/screens/
 *.pem
 *.key
 
-# SwiftPM build output and resolution for the generated contract package; the
-# app's Xcode project owns dependency resolution.
 packages/contract/swift/.build/
 packages/contract/swift/Package.resolved
 
-# Xcode per-user state and the CI derived-data folder for the iOS app.
 xcuserdata/
 apps/ios/build/
 
-# Local agent and editor state. .claude/launch.json holds absolute paths from whichever machine
-# wrote it, so it is meaningless anywhere else.
 .claude/
 
-# Python bytecode from tools/.
 __pycache__/
 *.pyc
 
-# Coverage output. The numbers that matter are the floors in tools/coverage/baseline.json.
 my-money-recap-ds/coverage/
 apps/backend/cover.out
 apps/backend/cover.filtered
