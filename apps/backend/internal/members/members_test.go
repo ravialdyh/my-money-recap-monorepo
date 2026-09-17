@@ -17,13 +17,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// Both tests need the Compose stack (infra/compose) and skip without it:
-//   MEMBERS_TEST_DATABASE_URL   postgres://members:<pw>@localhost:5432/members
-//   MEMBERS_TEST_URL            http://localhost:8081
-//   MEMBERS_TEST_KEYCLOAK       http://localhost:8080
-//   MEMBERS_TEST_USER_PASSWORD  the realm's test user password
-//   MEMBERS_TEST_BFF_CLIENT_SECRET  optional; enables the wrong-audience case
-
+// testDB opens the Compose stack's Postgres, skipping unless the MEMBERS_TEST_* variables
+// infra/compose/README.md lists are set.
 func testDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("MEMBERS_TEST_DATABASE_URL")
@@ -45,7 +40,11 @@ func TestConcurrentFirstCallsCreateOneRow(t *testing.T) {
 	db := testDB(t)
 	ctx := context.Background()
 	subject := "concurrent-" + t.Name() + "-" + strings.ReplaceAll(t.TempDir(), "/", "")
-	t.Cleanup(func() { db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, subject) })
+	t.Cleanup(func() {
+		if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, subject); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
 
 	const n = 16
 	ids := make([]string, n)
@@ -112,7 +111,9 @@ func TestConnectBoundary(t *testing.T) {
 		t.Fatalf("first call: %v", first)
 	}
 	var rows int
-	db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, sub).Scan(&rows)
+	if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, sub).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
 	if rows != 1 {
 		t.Fatalf("%d rows after first call, want 1", rows)
 	}
@@ -130,7 +131,9 @@ func TestConnectBoundary(t *testing.T) {
 		t.Fatal(err)
 	}
 	var stored string
-	db.QueryRow(ctx, `SELECT email FROM member WHERE id = $1`, first.MemberId).Scan(&stored)
+	if err := db.QueryRow(ctx, `SELECT email FROM member WHERE id = $1`, first.MemberId).Scan(&stored); err != nil {
+		t.Fatal(err)
+	}
 	if third.MemberId != first.MemberId || third.Email != "renamed@example.com" || stored != "renamed@example.com" {
 		t.Fatalf("email refresh: response %v, stored %q", third, stored)
 	}
@@ -153,7 +156,6 @@ func TestConnectBoundary(t *testing.T) {
 		"garbage token": moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, testauth.Bearer("not.a.jwt")),
 	}
 	if secret := os.Getenv("MEMBERS_TEST_BFF_CLIENT_SECRET"); secret != "" {
-		// The bff service account's token carries no `bff` audience.
 		bffTok := testauth.Token(t, kc, url.Values{"grant_type": {"client_credentials"}, "client_id": {"bff"}, "client_secret": {secret}})
 		unauth["wrong audience"] = moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, base, testauth.Bearer(bffTok))
 	}

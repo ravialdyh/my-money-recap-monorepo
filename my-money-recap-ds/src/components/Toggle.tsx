@@ -11,8 +11,14 @@ export function Toggle({ checked, disabled = false, onChange, ...rest }: ToggleP
   ensureStyles();
   return (
     <input
-      type="checkbox" role="switch" className="mmr-toggle mmr-pressable"
-      checked={checked} disabled={disabled} onChange={(e) => onChange?.(e.currentTarget.checked)} {...rest}
+      type="checkbox"
+      // biome-ignore lint/a11y/useAriaPropsForRole: the native checkbox's checked state is authoritative; ARIA in HTML prohibits aria-checked here.
+      role="switch"
+      className="mmr-toggle mmr-pressable"
+      checked={checked}
+      disabled={disabled}
+      onChange={(e) => onChange?.(e.currentTarget.checked)}
+      {...rest}
     />
   );
 }

@@ -12,13 +12,15 @@ final class HomeViewModelTests: XCTestCase {
     }
 
     private func freshContext() throws -> ModelContext {
-        ModelContext(try ModelContainer(for: HomeSnapshot.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)))
+        try ModelContext(ModelContainer(
+            for: HomeSnapshot.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        ))
     }
 
     func testZeroHomeOmitsGreetingAndSavedChip() async throws {
         let home = try recordedHome()
-        // A fixed locale: the copy below is what a British phone prints, whatever the CI runner's locale is.
-        let model = HomeViewModel(fetch: { home }, context: try freshContext(), locale: Locale(identifier: "en_GB"))
+        let model = try HomeViewModel(fetch: { home }, context: freshContext(), locale: Locale(identifier: "en_GB"))
         XCTAssertNil(model.home, "no snapshot yet: the skeleton")
         await model.refresh()
         XCTAssertNotNil(model.home)
@@ -35,7 +37,7 @@ final class HomeViewModelTests: XCTestCase {
         home.displayName = "Maya"
         home.moneyIn.amount = "2400"
         home.saved = .with { $0.amount = "640"; $0.currencyCode = "GBP" }
-        let model = HomeViewModel(fetch: { home }, context: try freshContext())
+        let model = try HomeViewModel(fetch: { home }, context: freshContext())
         await model.refresh()
         XCTAssertEqual(model.greeting, "Hi, Maya")
         XCTAssertTrue(model.showsSavedChip)
@@ -43,7 +45,7 @@ final class HomeViewModelTests: XCTestCase {
 
     func testStoredSnapshotRendersBeforeNetworkAndSurvivesAFailedRefresh() async throws {
         let context = try freshContext()
-        try HomeSnapshot.replace(with: try recordedHome(), in: context)
+        try HomeSnapshot.replace(with: recordedHome(), in: context)
         let model = HomeViewModel(fetch: { throw URLError(.cannotConnectToHost) }, context: context)
         XCTAssertEqual(model.home?.month, "2026-09", "the snapshot is on screen before any call completes (I4)")
         await model.refresh()
@@ -52,7 +54,7 @@ final class HomeViewModelTests: XCTestCase {
 
     func testSuccessfulRefreshReplacesTheSnapshotWhole() async throws {
         let context = try freshContext()
-        try HomeSnapshot.replace(with: try recordedHome(), in: context)
+        try HomeSnapshot.replace(with: recordedHome(), in: context)
         var updated = try recordedHome()
         updated.month = "2026-10"
         await HomeViewModel(fetch: { updated }, context: context).refresh()

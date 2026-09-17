@@ -15,7 +15,17 @@ export interface SliderProps {
   'aria-label'?: string;
 }
 /** The ProgressBar track with a draggable knob. Used for the Saving Target percentage. */
-export function Slider({ value, min = 0, max = 100, step = 5, tone = 'violet', helper, disabled = false, onChange, ...rest }: SliderProps) {
+export function Slider({
+  value,
+  min = 0,
+  max = 100,
+  step = 5,
+  tone = 'violet',
+  helper,
+  disabled = false,
+  onChange,
+  ...rest
+}: SliderProps) {
   ensureStyles();
   const pct = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
   return (
@@ -25,8 +35,15 @@ export function Slider({ value, min = 0, max = 100, step = 5, tone = 'violet', h
         <span className="mmr-slider-knob" style={{ left: `${pct}%` }} />
       </div>
       <input
-        className="mmr-slider-input" type="range" min={min} max={max} step={step} value={value} disabled={disabled}
-        onChange={(e) => onChange?.(Number(e.currentTarget.value))} {...rest}
+        className="mmr-slider-input"
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange?.(Number(e.currentTarget.value))}
+        {...rest}
       />
       {helper ? <span className="mmr-field-helper">{helper}</span> : null}
     </div>

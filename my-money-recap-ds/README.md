@@ -11,7 +11,7 @@ scripts/         build-tokens, build-styles, build-swift-tokens, build-assets (s
 dist/            mmr.css, the static stylesheet build:tokens writes for design-sync and plain-CSS consumers
 src/
   tokens/        tokens.json (source of truth) → tokens.css and apps/ios/DesignSystem/Tokens.swift (generated)
-  styles/        components.css → css.generated.ts (generated); ensureStyles() injects it once
+  styles/        components/*.css concatenated in filename order → css.generated.ts (generated); ensureStyles() injects it once
   components/    one component per file, states via data-state / :active / :disabled
   icons/         one <Icon name=…> component; glyph drawings live in glyphs.tsx
   screens/       the four recap screens as components (RecapCoverScreen, RecapEarningScreen, RecapGoalScreen, RecapPersonalityScreen)
@@ -33,7 +33,7 @@ import { Screen, Headline, Card, StatHero } from '@my-money-recap/ui';
 ```
 
 Styles are injected by the components themselves (`ensureStyles`), so no CSS import is required.
-If you prefer a stylesheet, import `@my-money-recap/ui/tokens.css` and `src/styles/components.css`.
+If you prefer a stylesheet, import `@my-money-recap/ui/tokens.css` and the `src/styles/components/` sheets in filename order.
 Fonts: Fredoka and Nunito from Google Fonts, loaded by the injected stylesheet.
 
 Every illustration ships as a data URI in `src/assets/illustrations.ts` (`ILLUSTRATIONS.cover`, `.lemonade`,

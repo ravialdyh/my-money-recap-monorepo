@@ -10,9 +10,8 @@ export interface InlineErrorProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
 }
 /**
- * The app's only error surface (PRD D67 removed `Toast`): sign-in, email entry, a failed spend
- * write, a failed rate fetch, a failed export. It is a block in the flow — it pushes what follows
- * down and never overlays it, which is the whole reason it beat the toast (PRD §6.1, §6.19).
+ * The app's only error surface (PRD D67 removed `Toast`). It is a block in the flow: it pushes what
+ * follows down and never overlays it, which is why it beat the toast (PRD §6.1, §6.19).
  */
 export function InlineError({ action = null, children, className = '', ...rest }: InlineErrorProps) {
   ensureStyles();

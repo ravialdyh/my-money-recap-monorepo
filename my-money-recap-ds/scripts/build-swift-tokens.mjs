@@ -1,7 +1,7 @@
 // Generates apps/ios/DesignSystem/Tokens.swift from src/tokens/tokens.json (docs/IOS.md I5).
 // Colours, radii, spacing, sizes, the type ramp and motion. Aliases like "{palette.violet.500}" become Palette.violet500.
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { here, tokens, walk } from './lib.mjs';
 
 const out = resolve(here, '../../apps/ios/DesignSystem/Tokens.swift');
@@ -10,14 +10,15 @@ const camel = (s) => s.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 const pascal = (s) => camel(s).replace(/^[a-z]/, (c) => c.toUpperCase());
 // ["violet", "500"] -> violet500; ["card-accent"] -> cardAccent
 const ident = (segs) => camel(segs.map((s, i) => (i === 0 ? s : pascal(s))).join('')).replace(/^(\d)/, '_$1');
+// "{palette.violet.500}" -> Palette.violet500; "{font.family.display}" -> FontFamily.display
 const alias = (v) => {
-  const segs = v.slice(1, -1).split('.'); // "{palette.violet.500}" -> Palette.violet500; "{font.family.display}" -> FontFamily.display
+  const segs = v.slice(1, -1).split('.');
   if (segs[0] === 'font') return `${pascal(segs[0])}${pascal(segs[1])}.${ident(segs.slice(2))}`;
   return `${pascal(segs[0])}.${ident(segs.slice(1))}`;
 };
 const num = (n) => String(n);
-const px = (s) => num(parseFloat(s)); // "28px" -> 28
-const ms = (s) => num(parseFloat(s) / 1000); // "120ms" -> 0.12
+const px = (s) => num(parseFloat(s));
+const ms = (s) => num(parseFloat(s) / 1000);
 
 function color(v) {
   if (v.startsWith('{')) return alias(v);
@@ -33,7 +34,8 @@ function colorEnum(node) {
   const lines = [];
   walk(node, (p, { $value: raw }) => {
     if (typeof raw === 'number') lines.push(`        public static let ${ident(p)}: Double = ${num(raw)}`);
-    else if (typeof raw === 'string' && /^-?[\d.]+%$/.test(raw)) lines.push(`        public static let ${ident(p)}: Double = ${num(parseFloat(raw) / 100)}`); // "-8%" -> -0.08
+    else if (typeof raw === 'string' && /^-?[\d.]+%$/.test(raw))
+      lines.push(`        public static let ${ident(p)}: Double = ${num(parseFloat(raw) / 100)}`);
     else if (typeof raw === 'string' && color(raw)) lines.push(`        public static let ${ident(p)} = ${color(raw)}`);
   });
   return lines;
@@ -51,7 +53,15 @@ const typeRamp = Object.entries(tokens.type)
 
 const easing = Object.entries(tokens.motion.easing)
   .filter(([k]) => !k.startsWith('$'))
-  .map(([k, { $value: [x1, y1, x2, y2] }]) => `            public static let ${ident([k])} = UnitCurve.bezier(startControlPoint: UnitPoint(x: ${num(x1)}, y: ${num(y1)}), endControlPoint: UnitPoint(x: ${num(x2)}, y: ${num(y2)}))`);
+  .map(
+    ([
+      k,
+      {
+        $value: [x1, y1, x2, y2],
+      },
+    ]) =>
+      `            public static let ${ident([k])} = UnitCurve.bezier(startControlPoint: UnitPoint(x: ${num(x1)}, y: ${num(y1)}), endControlPoint: UnitPoint(x: ${num(x2)}, y: ${num(y2)}))`,
+  );
 const duration = Object.entries(tokens.motion.duration)
   .filter(([k]) => !k.startsWith('$'))
   .map(([k, { $value: d }]) => `            public static let ${ident([k])}: TimeInterval = ${ms(d)}`);
@@ -87,9 +97,16 @@ ${Object.entries(tokens.font.family)
 
 ${block('TypeRamp', typeRamp)}
 
-${['radius', 'space', 'size'].map((g) => block(pascal(g), Object.entries(tokens[g])
-  .filter(([k]) => !k.startsWith('$'))
-  .map(([k, { $value: r }]) => `        public static let ${ident([k])}: CGFloat = ${px(r)}`))).join('\n\n')}
+${['radius', 'space', 'size']
+  .map((g) =>
+    block(
+      pascal(g),
+      Object.entries(tokens[g])
+        .filter(([k]) => !k.startsWith('$'))
+        .map(([k, { $value: r }]) => `        public static let ${ident([k])}: CGFloat = ${px(r)}`),
+    ),
+  )
+  .join('\n\n')}
 
     public enum Motion {
         public enum Easing {

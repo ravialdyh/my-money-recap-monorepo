@@ -22,17 +22,37 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   children: ReactNode;
 }
 /** Uppercase caption pill used in screen headers. ~30px tall, so set `tappable` when it is a control. */
-export function Chip({ variant = 'onGround', tone, selected = false, state = 'default', asLabel = false, tappable = false, children, className = '', ...rest }: ChipProps) {
+export function Chip({
+  variant = 'onGround',
+  tone,
+  selected = false,
+  state = 'default',
+  asLabel = false,
+  tappable = false,
+  children,
+  className = '',
+  ...rest
+}: ChipProps) {
   ensureStyles();
   const cls = `mmr-chip ${asLabel ? '' : 'mmr-pressable'} ${className}`;
-  if (asLabel) return <span className={cls} data-variant={variant} data-tone={tone}>{children}</span>;
+  if (asLabel)
+    return (
+      <span className={cls} data-variant={variant} data-tone={tone}>
+        {children}
+      </span>
+    );
   return (
     <button
-      type="button" className={cls} data-variant={variant} data-tone={tone}
+      type="button"
+      className={cls}
+      data-variant={variant}
+      data-tone={tone}
       data-selected={tone ? (selected ? 'true' : 'false') : undefined}
-      data-state={state} data-tappable={tappable ? 'true' : undefined}
+      data-state={state}
+      data-tappable={tappable ? 'true' : undefined}
       aria-pressed={tone ? selected : undefined}
-      disabled={state === 'disabled' || rest.disabled} {...rest}
+      disabled={state === 'disabled' || rest.disabled}
+      {...rest}
     >
       {children}
     </button>

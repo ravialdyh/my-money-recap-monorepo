@@ -16,15 +16,20 @@ final class AuthSession {
     private var flow: OIDExternalUserAgentSession?
 
     init() {
-        // Test seam: the UI test starts from a clean Sign in on a simulator that may hold a session.
-        if CommandLine.arguments.contains("--reset-session") { Keychain.delete() }
+        if CommandLine.arguments.contains("--reset-session") {
+            Keychain.delete()
+        }
         if let data = Keychain.read() {
             authState = try? NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: data)
         }
     }
 
-    var isSignedIn: Bool { authState?.isAuthorized ?? false }
+    var isSignedIn: Bool {
+        authState?.isAuthorized ?? false
+    }
 
+    /// `prompt=login` makes a Sign in tap show the login page even with a Keycloak SSO cookie in the
+    /// web sheet; `OIDAuthorizationRequest` generates the PKCE verifier and S256 challenge (IOS I1).
     func signIn() async throws {
         let configuration = try await discover()
         let request = OIDAuthorizationRequest(
@@ -34,11 +39,15 @@ final class AuthSession {
             scopes: AuthConfig.scopes,
             redirectURL: AuthConfig.redirectURL,
             responseType: OIDResponseTypeCode,
-            additionalParameters: ["prompt": "login"] // a Sign in tap always shows the login page, even with a Keycloak SSO cookie in the web sheet
-        ) // this initializer generates the PKCE verifier and S256 challenge
+            additionalParameters: ["prompt": "login"]
+        )
         let state: OIDAuthState = try await withCheckedThrowingContinuation { continuation in
             flow = OIDAuthState.authState(byPresenting: request, presenting: Self.presenter) { state, error in
-                if let state { continuation.resume(returning: state) } else { continuation.resume(throwing: error ?? CancellationError()) }
+                if let state {
+                    continuation.resume(returning: state)
+                } else {
+                    continuation.resume(throwing: error ?? CancellationError())
+                }
             }
         }
         flow = nil
@@ -52,10 +61,14 @@ final class AuthSession {
         guard let authState else { throw CancellationError() }
         let token: String = try await withCheckedThrowingContinuation { continuation in
             authState.performAction { accessToken, _, error in
-                if let accessToken { continuation.resume(returning: accessToken) } else { continuation.resume(throwing: error ?? CancellationError()) }
+                if let accessToken {
+                    continuation.resume(returning: accessToken)
+                } else {
+                    continuation.resume(throwing: error ?? CancellationError())
+                }
             }
         }
-        persist() // a refresh rotated the tokens inside the state
+        persist()
         return token
     }
 
@@ -73,14 +86,21 @@ final class AuthSession {
     }
 
     private func persist() {
-        guard let authState, let data = try? NSKeyedArchiver.archivedData(withRootObject: authState, requiringSecureCoding: true) else { return }
+        guard let authState, let data = try? NSKeyedArchiver.archivedData(
+            withRootObject: authState,
+            requiringSecureCoding: true
+        ) else { return }
         Keychain.write(data)
     }
 
     private func discover() async throws -> OIDServiceConfiguration {
         try await withCheckedThrowingContinuation { continuation in
             OIDAuthorizationService.discoverConfiguration(forIssuer: AuthConfig.issuer) { configuration, error in
-                if let configuration { continuation.resume(returning: configuration) } else { continuation.resume(throwing: error ?? CancellationError()) }
+                if let configuration {
+                    continuation.resume(returning: configuration)
+                } else {
+                    continuation.resume(throwing: error ?? CancellationError())
+                }
             }
         }
     }

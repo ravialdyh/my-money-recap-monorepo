@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
-import { ensureStyles } from '../styles/ensureStyles';
 import { Icon } from '../icons';
+import { ensureStyles } from '../styles/ensureStyles';
 
 export interface BannerProps extends HTMLAttributes<HTMLDivElement> {
   /** `warning` coral (Target Warning). `info` violet, for a neutral notice. `offline` grey, for
@@ -17,8 +17,6 @@ export function Banner({ tone = 'warning', onDismiss, children, className = '', 
     <div className={`mmr-banner ${className}`} data-tone={tone} role="status" {...rest}>
       <div className="mmr-banner-body">{children}</div>
       {onDismiss ? (
-        // The dismiss glyph is `plus` rotated 45 degrees: a stroked plus and a stroked cross are the
-        // same shape, so the icon set stays at the twelve glyphs the PRD asks for.
         <button type="button" className="mmr-banner-dismiss mmr-pressable" aria-label="Dismiss" onClick={onDismiss}>
           <Icon name="plus" size={18} />
         </button>

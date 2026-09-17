@@ -11,10 +11,22 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children?: ReactNode;
 }
 /** 28px-radius card. Depth comes from colour and overlap, never from shadow. */
-export function Card({ variant = 'surface', underIllustration = false, animateIn = false, children, className = '', ...rest }: CardProps) {
+export function Card({
+  variant = 'surface',
+  underIllustration = false,
+  animateIn = false,
+  children,
+  className = '',
+  ...rest
+}: CardProps) {
   ensureStyles();
   return (
-    <div className={`mmr-card ${animateIn ? 'mmr-card-enter' : ''} ${className}`} data-variant={variant} data-under-illustration={underIllustration ? 'true' : undefined} {...rest}>
+    <div
+      className={`mmr-card ${animateIn ? 'mmr-card-enter' : ''} ${className}`}
+      data-variant={variant}
+      data-under-illustration={underIllustration ? 'true' : undefined}
+      {...rest}
+    >
       {children}
     </div>
   );
@@ -25,5 +37,9 @@ export interface CardTitleProps extends HTMLAttributes<HTMLElement> {
 }
 export function CardTitle({ as: Tag = 'h2', children, className = '', ...rest }: CardTitleProps) {
   ensureStyles();
-  return <Tag className={`mmr-card-title ${className}`} {...rest}>{children}</Tag>;
+  return (
+    <Tag className={`mmr-card-title ${className}`} {...rest}>
+      {children}
+    </Tag>
+  );
 }

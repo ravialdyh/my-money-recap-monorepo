@@ -59,6 +59,102 @@ npm run build:swift-tokens
 The `design-system` CI job runs all three and fails if any output is stale, so generated files can never
 drift from source. The other CI jobs (`contract`, `backend`, `ios`) are listed under Delivery in `docs/ARCHITECTURE.md` §10.
 
+## Checks
+
+Every check runs on every commit through `pre-commit`, and again in CI. Install it once:
+
+```bash
+pipx install pre-commit   # or: pip install pre-commit
+pre-commit install --install-hooks
+```
+
+`pre-commit` is Python; nothing else in this repo is. It is here because it pins every hook to a
+version, keeps them in their own environments, and Dependabot raises those versions.
+
+```bash
+pre-commit run --all-files              # what CI's pre-commit job runs
+pre-commit run --hook-stage pre-push    # also regenerates and diffs the generated files
+```
+
+| Check | Tool | Config |
+| --- | --- | --- |
+| Whitespace, JSON and YAML, large files, private keys, case conflicts, commits to `main` | `pre-commit-hooks` | `.pre-commit-config.yaml` |
+| Secrets | gitleaks | `.pre-commit-config.yaml` |
+| File size and comment policy | `tools/policy/check_policy.py` | `tools/policy/README.md` |
+| TypeScript lint and format | Biome | `biome.json` |
+| Go lint and format | golangci-lint, gofmt | `.golangci.yml` |
+| Swift lint and format | SwiftLint, SwiftFormat | `.swiftlint.yml`, `.swiftformat` |
+| Shell, Dockerfile, workflows | shellcheck, hadolint, actionlint | `.pre-commit-config.yaml` |
+| Protobuf | buf lint | `packages/contract/buf.yaml` |
+
+golangci-lint, SwiftLint, SwiftFormat, hadolint and buf are per-language toolchains. The hooks skip
+with a note where the binary is missing, so a contributor touching only the design system does not
+have to install all of them; CI installs every one and runs the same commands as hard gates.
+
+SwiftFormat and SwiftLint only exist on macOS, so run them on a Mac before pushing Swift:
+
+```bash
+swiftformat . && swiftlint --fix && swiftlint lint --strict
+```
+
+CI installs SwiftLint with `brew` before running it. That step looks redundant against
+`actions/runner-images`, because `images/macos/macos-15-Readme.md` lists SwiftLint 0.65.1 — but that
+is the **Intel** image. `macos-latest` resolves to arm64 here (the job log shows Homebrew at
+`/opt/homebrew`, not `/usr/local`), and `macos-15-arm64-Readme.md` lists SwiftFormat and no
+SwiftLint. Without the install the job dies with exit 127, which is exactly how it failed earlier in
+this repo's history. SwiftFormat needs no install on either image.
+
+Coverage does not gate at a fixed number yet. `tools/coverage/` holds a floor per language that can
+only go up — `tools/coverage/README.md` has today's floors and why. The `Security` workflow runs
+govulncheck, OSV-Scanner (Go, npm and Swift together), Semgrep, Trivy and a full-tree gitleaks scan
+on every pull request and every Monday. OSV reads the same GHSA advisories `npm audit` would, so the
+npm tree is covered once, without a second `npm ci`.
+
+### Why these settings are what they are
+
+The configs carry no comments, so the reasoning lives here.
+
+- **golangci-lint.** `staticcheck.checks: all` turns on the `ST` group, which already covers package
+  comments, naming, error strings and receiver names; `revive` would repeat all of it, so it is off.
+  The `comments` exclusion preset drops every "should have a comment" finding, because comment style
+  is `tools/policy`'s job and two tools with different opinions is how the old `revive` block ended
+  up enabled but silently suppressed. `gosec` G115 is excluded: it fires on every `int` → `int32` at
+  the generated protobuf boundary.
+- **SwiftLint.** It owns Swift correctness only; SwiftFormat owns every formatting decision and
+  `tools/policy` owns file length and comments. `trailing_comma` is **off on purpose**: SwiftFormat's
+  `--commas always` adds the comma that rule deletes, so with both on, the two tools undo each other
+  every run and `swiftformat --lint` fails in CI. `function_body_length`, `file_length` and `todo`
+  are off because `tools/policy` already caps length and bans tracker tags. `identifier_name`
+  allows one-character names: the design system's size steps are `l`, `m` and `s` in both languages.
+- **Dependabot.** Every ecosystem waits seven days before proposing a newly published version — a
+  release hours old can be a compromised one. Security updates ignore the cooldown, so a real
+  advisory still arrives at once.
+- **Actions are pinned to a commit, never a tag.** A tag is mutable, and whoever owns the action can
+  repoint it at code that runs with this job's token. The trailing `# vN` is Dependabot's, and
+  `tools/policy` exempts it for that reason.
+- **The Compose stack** is documented in `infra/compose/README.md`, including the Keycloak pin, the
+  `/dev/tcp` health check and the parallel-worktree ports.
+
+### What CI costs, and why jobs are skipped
+
+This repository is private, so Actions minutes are billed, and macOS bills at **ten times** the
+Linux rate. A run where every job fires costs about 41 billable minutes, of which 30 are the `ios`
+job alone — even though the whole run finishes in under four minutes of wall clock.
+
+So each job is gated on whether its inputs changed, using `dorny/paths-filter` at the **job** level
+rather than a workflow-level `paths:` filter. That distinction matters: a workflow skipped by
+`paths:` never reports a status at all, so a required check would wait for it forever, while a job
+skipped by `if:` reports success. The `all green` job gathers the results and is the one worth
+requiring. Over the last twenty merges this drops the average run from 41 to about 18 billable
+minutes; a docs-only change costs 5.
+
+To move the iOS job onto your own Mac and stop paying for it entirely, register a self-hosted runner
+(repository → Settings → Actions → Runners → New self-hosted runner, macOS), then set a repository
+**variable** `IOS_RUNNER` to `self-hosted`. The workflow reads
+`runs-on: ${{ vars.IOS_RUNNER || 'macos-latest' }}`, so nothing else changes, and unsetting the
+variable moves it straight back. Self-hosted runners are only safe on a private repository like this
+one — on a public repo a fork's pull request could run its own code on your machine.
+
 ## Docs
 
 - [`docs/PRD.md`](docs/PRD.md) — product requirements and the numbered decision log
@@ -85,4 +181,4 @@ drift from source. The other CI jobs (`contract`, `backend`, `ios`) are listed u
 | Visual rules | `my-money-recap-ds/README.md` § Design rules | — |
 | Screens | `docs/design/design_handoff_my_money_recap/` | renders (not in git) |
 | Domain vocabulary | `docs/CONTEXT.md` | — |
-| Sample ledger | the defaults in `my-money-recap-ds/src/screens/RecapScreens.tsx` | stories and design-sync previews |
+| Sample ledger | the prop defaults in `my-money-recap-ds/src/screens/` (one file per Recap screen) | stories and design-sync previews |

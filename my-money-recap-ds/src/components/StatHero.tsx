@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { ensureStyles } from '../styles/ensureStyles';
-import { Eyebrow } from './Headline';
-import { useFitStep } from './fitStep';
-import tokens from '../tokens/tokens.json';
 import { formatMoney, type MoneyFormat } from '../money';
+import { ensureStyles } from '../styles/ensureStyles';
+import tokens from '../tokens/tokens.json';
+import { useFitStep } from './fitStep';
+import { Eyebrow } from './Headline';
 
 interface StatHeroBase {
   eyebrow: string;
@@ -16,10 +16,21 @@ interface StatHeroBase {
  * Money needs its currency: there is no default, so a screen that forgets it fails to type-check
  * instead of silently drawing pounds. Values that are not money pass `format` instead ("9 days").
  */
-export type StatHeroProps = StatHeroBase & (
-  | { /** ISO 4217 code the value is formatted in. */ currency: string; /** Viewer's language tag; omit for the device language. */ locale?: string; format?: undefined }
-  | { /** Custom formatter for values that are not money. */ format: MoneyFormat; currency?: undefined; locale?: undefined }
-);
+export type StatHeroProps = StatHeroBase &
+  (
+    | {
+        /** ISO 4217 code the value is formatted in. */
+        currency: string;
+        /** Viewer's language tag; omit for the device language. */
+        locale?: string;
+        format?: undefined;
+      }
+    | {
+        /** Custom formatter for values that are not money. */ format: MoneyFormat;
+        currency?: undefined;
+        locale?: undefined;
+      }
+  );
 
 /**
  * The one big number on a screen: eyebrow + Fredoka value at 80px, or 56 / 40px when the full
@@ -33,12 +44,13 @@ export function StatHero({ eyebrow, value, currency, locale, format, animate = f
   const ref = useRef<HTMLDivElement>(null);
   const final = fmt(value);
   const step = useFitStep(ref, null, final);
-  // Count-up frames are whole units so an intermediate frame never grows a fraction the final value lacks.
   const text = shown === value ? final : fmt(Math.round(shown));
   return (
     <div className="mmr-stat-hero">
       <Eyebrow>{eyebrow}</Eyebrow>
-      <div ref={ref} className="mmr-stat-hero-value" data-step={step}>{text}</div>
+      <div ref={ref} className="mmr-stat-hero-value" data-step={step}>
+        {text}
+      </div>
     </div>
   );
 }
@@ -49,11 +61,18 @@ const REVEAL_DELAY_MS = parseFloat(tokens.motion.duration['reveal-number-delay']
 function useCountUp(target: number, enabled: boolean, durationMs = REVEAL_MS, delayMs = REVEAL_DELAY_MS): number {
   const [v, setV] = useState(enabled ? 0 : target);
   useEffect(() => {
-    if (!enabled) { setV(target); return; }
+    if (!enabled) {
+      setV(target);
+      return;
+    }
     const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) { setV(target); return; }
-    let raf = 0; let start = 0;
-    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    if (reduced) {
+      setV(target);
+      return;
+    }
+    let raf = 0;
+    let start = 0;
+    const ease = (t: number) => 1 - (1 - t) ** 3;
     const tick = (now: number) => {
       if (!start) start = now + delayMs;
       const t = Math.min(1, Math.max(0, (now - start) / durationMs));

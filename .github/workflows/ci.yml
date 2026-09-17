@@ -5,17 +5,87 @@ on:
     branches: [main]
   pull_request:
 
-# A new push to the same branch cancels the run still going for the old one.
+permissions:
+  contents: read
+  pull-requests: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  design-system:
+  changes:
+    name: what changed
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      contract: ${{ steps.filter.outputs.contract }}
+      design-system: ${{ steps.filter.outputs.design-system }}
+      ios: ${{ steps.filter.outputs.ios }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - '.github/workflows/ci.yml'
+              - '.golangci.yml'
+              - 'apps/backend/**'
+              - 'infra/**'
+              - 'packages/contract/**'
+              - 'tools/coverage/**'
+            contract:
+              - '.github/workflows/ci.yml'
+              - 'packages/contract/**'
+            design-system:
+              - '.github/workflows/ci.yml'
+              - 'biome.json'
+              - 'my-money-recap-ds/**'
+              - 'package-lock.json'
+              - 'package.json'
+              - 'tools/coverage/**'
+            ios:
+              - '.github/workflows/ci.yml'
+              - '.swiftformat'
+              - '.swiftlint.yml'
+              - 'apps/ios/**'
+              - 'packages/contract/**'
+              - 'tools/coverage/**'
+
+  quality:
+    name: pre-commit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Install hadolint, whose hook is a silent skip when the binary is absent
+        run: |
+          curl -sSfL -o hadolint \
+            https://github.com/hadolint/hadolint/releases/download/v2.15.1/hadolint-Linux-x86_64
+          echo "c7187db94eeeeca956519a6af171adc31453941a1e777961f6e680f697c8c507  hadolint" | sha256sum -c -
+          chmod +x hadolint && sudo mv hadolint /usr/local/bin/
+      - name: Every hook except the per-language toolchains, which are gates in their own jobs
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
+        env:
+          SKIP: no-commit-to-branch,golangci-lint,gofmt,swiftlint,swiftformat,buf-lint
+
+  design-system:
+    needs: changes
+    if: needs.changes.outputs.design-system == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -33,34 +103,44 @@ jobs:
           npm run build:assets
           git diff --exit-code -- my-money-recap-ds/src/assets
       - run: npm run typecheck
+      - name: Unit tests with coverage
+        working-directory: my-money-recap-ds
+        run: npm run test:coverage
+      - name: Coverage may not fall, see tools/coverage/README.md
+        run: |
+          pct=$(python3 -c "import json;print(json.load(open('my-money-recap-ds/coverage/coverage-summary.json'))['total']['statements']['pct'])")
+          python3 tools/coverage/coverage_gate.py typescript "$pct"
 
   contract:
+    needs: changes
+    if: needs.changes.outputs.contract == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: packages/contract
     steps:
-      - uses: actions/checkout@v4
-      - uses: bufbuild/buf-action@v1
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: bufbuild/buf-action@8c6a16e16f12ba20b6470afa9c2ba9b5ba8c97c3 # v1
         with:
           version: 1.73.0
           setup_only: true
       - run: buf lint
-      - name: No breaking change against main (A1)
+      - name: No breaking change against main, decision A1
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main
           buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
-      - name: Generated Go and Swift code is up to date with the .proto files (the backend job compiles the Go)
+      - name: Generated Go and Swift are up to date with the proto files
         run: |
           buf generate
           git diff --exit-code -- ../../apps/backend/gen swift/Sources
 
   backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: apps/backend
-    # The stock .env.example ports and the throwaway credentials the step below writes (never committed).
     env:
       MEMBERS_TEST_URL: http://localhost:8081
       MEMBERS_TEST_DATABASE_URL: postgres://members:ci-throwaway@localhost:5432/members
@@ -72,44 +152,94 @@ jobs:
       BFF_TEST_USER_PASSWORD: ci-throwaway
       BFF_TEST_DATABASE_URL: postgres://members:ci-throwaway@localhost:5432/members
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: apps/backend/go.mod
-      - name: Compose stack with the migration step, members and the BFF (#15, #17)
+          cache-dependency-path: apps/backend/go.sum
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9
+        with:
+          version: v2.13.2
+          working-directory: apps/backend
+          args: --config ../../.golangci.yml
+      - name: Compose stack with the migration step, members and the BFF
         working-directory: infra/compose
         run: |
           sed 's/=$/=ci-throwaway/' .env.example > .env
           docker compose up -d --build --wait
-      - name: Unit tests, the Connect-boundary tests and the end-to-end test at the BFF's HTTP boundary
-        # -p 1: the members and bff packages both sign in as the realm's one test user, so they must not run at once.
+      - name: Go tests; -p 1 because members and bff both sign in as the realm's one test user
         run: |
           go vet ./...
-          go test -v -p 1 ./...
-      - name: Login Token issued and redeemed on the pinned Keycloak image (A10)
+          go test -v -p 1 -covermode=atomic -coverprofile=cover.out ./...
+      - name: Coverage may not fall, see tools/coverage/README.md
+        run: |
+          set -o pipefail
+          grep -vE '/gen/|/internal/testauth/' cover.out > cover.filtered
+          pct=$(go tool cover -func=cover.filtered | awk '/^total:/ {print substr($3, 1, length($3) - 1)}')
+          test -n "$pct"
+          python3 ../../tools/coverage/coverage_gate.py go "$pct"
+      - name: Login Token issued and redeemed on the pinned Keycloak image, decision A10
         working-directory: infra/compose
         run: ./a10-smoke.sh
-      - name: Stack logs and teardown
+      - name: Stack logs, only on failure because a passing run buries every step before it
+        if: failure()
+        working-directory: infra/compose
+        run: |
+          test -f .env || { echo "the stack never started; the real failure is above"; exit 0; }
+          docker compose ps
+          docker compose logs keycloak members-migrate members bff
+      - name: Teardown
         if: always()
         working-directory: infra/compose
         run: |
-          docker compose ps
-          docker compose logs keycloak members-migrate members bff
+          test -f .env || exit 0
           docker compose down -v
 
   ios:
-    runs-on: macos-latest
+    needs: changes
+    if: needs.changes.outputs.ios == 'true'
+    runs-on: ${{ vars.IOS_RUNNER || 'macos-latest' }}
     defaults:
       run:
         working-directory: apps/ios
     steps:
-      - uses: actions/checkout@v4
-      - name: Build the app and its tests for the generic iOS Simulator destination
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Install SwiftLint, absent from the arm64 image macos-latest resolves to
+        run: brew install swiftlint
+      - name: SwiftFormat and SwiftLint
+        working-directory: .
+        run: |
+          swiftformat --lint .
+          swiftlint lint --strict
+      - name: Build app and tests, instrumented for coverage on both halves of the split
         run: |
           xcodebuild build-for-testing -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
-            -destination 'generic/platform=iOS Simulator' -derivedDataPath build -quiet
-      - name: Unit tests on an iPhone simulator picked by simctl at runtime (issue #16, no device names)
+            -destination 'generic/platform=iOS Simulator' -derivedDataPath build \
+            -enableCodeCoverage YES -quiet
+      - name: Unit tests on a simulator picked by simctl at runtime, never a device name
         run: |
           xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
             -destination "id=$(scripts/simulator-udid.sh)" -derivedDataPath build \
-            -only-testing:MyMoneyRecapTests
+            -only-testing:MyMoneyRecapTests -enableCodeCoverage YES \
+            -resultBundlePath build/MyMoneyRecap.xcresult
+      - name: Coverage may not fall, see tools/coverage/README.md
+        run: |
+          set -o pipefail
+          pct=$(xcrun xccov view --report --only-targets --json build/MyMoneyRecap.xcresult \
+            | python3 ../../tools/coverage/xccov_percent.py)
+          python3 ../../tools/coverage/coverage_gate.py ios "$pct"
+
+  ci:
+    name: all green
+    if: always()
+    needs: [changes, quality, design-system, contract, backend, ios]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every needed job passed or had nothing to do
+        run: |
+          for result in ${{ join(needs.*.result, ' ') }}; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "a needed job reported: $result" && exit 1 ;;
+            esac
+          done

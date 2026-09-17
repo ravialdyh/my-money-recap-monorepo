@@ -12,20 +12,27 @@ import (
 	"time"
 )
 
-// Env is the variable's value, or def; an empty def means the variable is required.
-func Env(key, def string) string {
+// Env reads a binary's environment, remembering the first required variable that was missing, so
+// start-up reads everything it needs and then fails once, through main, with its defers intact.
+type Env struct{ err error }
+
+// Get is the variable's value, or def; an empty def means the variable is required.
+func (e *Env) Get(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
-	if def == "" {
-		log.Fatalf("%s is required", key)
+	if def == "" && e.err == nil {
+		e.err = fmt.Errorf("%s is required", key)
 	}
 	return def
 }
 
+// Err is the first required variable that was missing, or nil.
+func (e *Env) Err() error { return e.err }
+
 // Run adds /healthz to mux (ready, when set, must succeed for "ok"; members pings its database) and
-// serves until ctx is done, then drains for five seconds. It returns only on a listen error.
-func Run(ctx context.Context, name, addr string, mux *http.ServeMux, ready func(context.Context) error) {
+// serves until ctx is done, then drains for five seconds. It returns the listen error, or nil.
+func Run(ctx context.Context, name, addr string, mux *http.ServeMux, ready func(context.Context) error) error {
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if ready != nil {
 			if err := ready(r.Context()); err != nil {
@@ -38,12 +45,13 @@ func Run(ctx context.Context, name, addr string, mux *http.ServeMux, ready func(
 	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 	go func() {
 		<-ctx.Done()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 		defer cancel()
 		_ = srv.Shutdown(shutdownCtx)
 	}()
 	log.Printf("%s listening on %s", name, addr)
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

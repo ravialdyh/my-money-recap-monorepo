@@ -2,9 +2,9 @@ import Foundation
 import MoneyRecapContract
 import SwiftData
 
-/// B1 Home (SCREEN-STATES), IOS I6: renders from the stored snapshot at once, refreshes from the BFF, keeps the
-/// last snapshot when the refresh fails, and shows the §6.19 skeleton only when no snapshot exists yet.
-/// It holds no arithmetic: every figure is the server's (ARCHITECTURE A2).
+/// B1 Home (SCREEN-STATES, IOS I6): renders the stored snapshot at once, refreshes from the BFF, and
+/// shows the §6.19 skeleton only while no snapshot exists. It holds no arithmetic: every figure is
+/// the server's (ARCHITECTURE A2).
 @Observable
 @MainActor
 final class HomeViewModel {
@@ -12,13 +12,18 @@ final class HomeViewModel {
     private(set) var updatedAt: Date?
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
     private let context: ModelContext
-    /// Dates print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot change the copy.
+    /// Dates print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot change the
+    /// copy.
     private let dates: Date.FormatStyle
 
-    init(fetch: @escaping () async throws -> MoneyRecap_V1_HomeView, context: ModelContext, locale: Locale = .autoupdatingCurrent) {
+    init(
+        fetch: @escaping () async throws -> MoneyRecap_V1_HomeView,
+        context: ModelContext,
+        locale: Locale = .autoupdatingCurrent
+    ) {
         self.fetch = fetch
         self.context = context
-        self.dates = ISODate.style(locale: locale)
+        dates = ISODate.style(locale: locale)
         if let snapshot = HomeSnapshot.load(from: context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
             updatedAt = snapshot.updatedAt
@@ -26,6 +31,7 @@ final class HomeViewModel {
     }
 
     /// While `home` is nil there is no snapshot yet: the skeleton, no spinner (PRD §6.19).
+    /// A failed refresh is silent: offline or unauthenticated, the last snapshot stays (PRD D58, D61).
     func refresh() async {
         do {
             let fresh = try await fetch()
@@ -33,11 +39,9 @@ final class HomeViewModel {
             home = fresh
             updatedAt = .now
         } catch {
-            // Offline or unauthenticated: the last snapshot stays on screen (PRD D58, D61).
+            return
         }
     }
-
-    // MARK: - B1 display rules
 
     /// "Hi, {Display Name}", omitted while the name is empty (before onboarding).
     var greeting: String? {
@@ -51,7 +55,8 @@ final class HomeViewModel {
         return "Spent so far · salary lands in \(home.salary.daysUntilPayday) days"
     }
 
-    /// The Saved chip exists only while Money In > 0 (PRD D41): the server omits `saved` then, and the phone checks the sign too.
+    /// The Saved chip exists only while Money In > 0 (PRD D41): the server omits `saved` then, and the phone checks the
+    /// sign too.
     var showsSavedChip: Bool {
         guard let home, home.hasSaved else { return false }
         return (Decimal(string: home.moneyIn.amount) ?? 0) > 0
@@ -64,7 +69,8 @@ final class HomeViewModel {
 
     /// "Your first recap arrives on 1 October." (PRD D47).
     var previewCopy: String? {
-        home.flatMap { ISODate.day($0.firstRecapOn) }.map { "Your first recap arrives on \($0.formatted(dates.day().month(.wide)))." }
+        home.flatMap { ISODate.day($0.firstRecapOn) }
+            .map { "Your first recap arrives on \($0.formatted(dates.day().month(.wide)))." }
     }
 
     func recapLabel(_ month: MoneyRecap_V1_RecapMonth) -> String {
@@ -75,7 +81,9 @@ final class HomeViewModel {
 /// The server's "YYYY-MM-DD" and "YYYY-MM" strings are calendar dates, not instants, so they are read and printed
 /// in one fixed zone; otherwise a phone west of Greenwich would show 30 September for `2026-10-01` (IOS I7).
 enum ISODate {
-    static func style(locale: Locale) -> Date.FormatStyle { Date.FormatStyle(locale: locale, timeZone: .gmt) }
+    static func style(locale: Locale) -> Date.FormatStyle {
+        Date.FormatStyle(locale: locale, timeZone: .gmt)
+    }
 
     static func day(_ string: String) -> Date? {
         try? Date(string, strategy: .iso8601.year().month().day())

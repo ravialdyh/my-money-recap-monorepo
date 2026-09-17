@@ -1,8 +1,6 @@
 version: v2
 modules:
   - path: .
-    # swift/ holds generated Swift output and, after a local `swift build`, dependency checkouts with
-    # their own .proto files; neither is a source .proto.
     excludes:
       - swift
 lint:

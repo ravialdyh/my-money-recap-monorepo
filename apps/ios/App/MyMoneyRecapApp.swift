@@ -27,7 +27,6 @@ struct RootView: View {
             }
         }
         .onChange(of: session.isSignedIn) { _, signedIn in
-            // Sign-out deletes the cache with the session (I2, I4).
             if !signedIn {
                 try? context.delete(model: HomeSnapshot.self)
                 try? context.save()

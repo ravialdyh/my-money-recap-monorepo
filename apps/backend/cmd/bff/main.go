@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -16,16 +17,30 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+// run holds main's body so every defer still runs when a start-up step fails.
+func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	verifier := auth.NewVerifier(ctx, serve.Env("BFF_OIDC_ISSUER", ""), serve.Env("BFF_OIDC_JWKS_URL", ""), serve.Env("BFF_OIDC_AUDIENCE", "bff"))
+	var env serve.Env
+	issuer, jwks := env.Get("BFF_OIDC_ISSUER", ""), env.Get("BFF_OIDC_JWKS_URL", "")
+	audience, membersURL := env.Get("BFF_OIDC_AUDIENCE", "bff"), env.Get("BFF_MEMBERS_URL", "")
+	listen := env.Get("BFF_LISTEN", ":8080")
+	if err := env.Err(); err != nil {
+		return err
+	}
+	verifier := auth.NewVerifier(ctx, issuer, jwks, audience)
 	svc := &bff.Service{
-		Members: moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, serve.Env("BFF_MEMBERS_URL", ""), connect.WithInterceptors(auth.Forward())),
+		Members: moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, membersURL, connect.WithInterceptors(auth.Forward())),
 		Ledger:  bff.StubLedger{},
 		Notify:  bff.StubNotify{},
 	}
 	mux := http.NewServeMux()
 	mux.Handle(moneyrecapv1connect.NewBffServiceHandler(svc, connect.WithInterceptors(verifier.Interceptor())))
-	serve.Run(ctx, "bff", serve.Env("BFF_LISTEN", ":8080"), mux, nil)
+	return serve.Run(ctx, "bff", listen, mux, nil)
 }

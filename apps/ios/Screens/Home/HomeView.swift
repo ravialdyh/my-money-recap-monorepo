@@ -7,11 +7,12 @@ import SwiftUI
 struct HomeView: View {
     @State private var model: HomeViewModel
 
+    /// The interceptor refreshes the token on `unauthenticated`, so `getHome` is retried once while
+    /// the session is still signed in (IOS I3).
     init(session: AuthSession, context: ModelContext) {
         let client = BffClient.make(session: session)
         _model = State(initialValue: HomeViewModel(fetch: {
             var response = await client.getHome(request: .init())
-            // The interceptor refreshed the token on `unauthenticated`; retry once while still signed in (I3).
             if response.code == .unauthenticated, session.isSignedIn {
                 response = await client.getHome(request: .init())
             }
@@ -24,7 +25,9 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Tokens.Space._5) {
                     HStack(spacing: 8) {
-                        if let month = model.monthLabel { Chip(text: month, tappable: true) }
+                        if let month = model.monthLabel {
+                            Chip(text: month, tappable: true)
+                        }
                         Spacer()
                         Chip(text: "Settings", tappable: true)
                     }
@@ -54,9 +57,15 @@ struct HomeView: View {
         Card(minHeight: Tokens.Size.homeHeroCard) {
             StatHero(eyebrow: model.heroEyebrow, value: Money.format(home.spent.amount, currency: home.currencyCode))
             HStack(spacing: 8) {
-                StatChip(tone: .earned, text: "Money in \(Money.format(home.moneyIn.amount, currency: home.currencyCode))")
+                StatChip(
+                    tone: .earned,
+                    text: "Money in \(Money.format(home.moneyIn.amount, currency: home.currencyCode))"
+                )
                 if model.showsSavedChip {
-                    StatChip(tone: .saved, text: "Saved \(Money.format(home.saved.amount, currency: home.currencyCode))")
+                    StatChip(
+                        tone: .saved,
+                        text: "Saved \(Money.format(home.saved.amount, currency: home.currencyCode))"
+                    )
                 }
             }
         }
@@ -64,12 +73,12 @@ struct HomeView: View {
             PromptCard(title: "Set your monthly salary", height: Tokens.Size.homeHeroCard)
         }
         if home.hasSavingTarget {
-            // The ProgressBar arrives with the Saving Target slice; until then the card carries the server's sentence.
             Card(minHeight: Tokens.Size.homeTargetCard) {
                 HStack {
                     CardTitle(text: "Saving target")
                     Spacer()
-                    Text(Money.format(home.savingTarget.amount.amount, currency: home.currencyCode)).textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)
+                    Text(Money.format(home.savingTarget.amount.amount, currency: home.currencyCode))
+                        .textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)
                 }
                 HelperText(text: home.savingTarget.progressSentence)
             }

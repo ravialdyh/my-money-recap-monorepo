@@ -1,0 +1,10 @@
+.env
+.env.*
+*.pem
+*.key
+*.p8
+*.p12
+cover.out
+cover.filtered
+Dockerfile
+.dockerignore
