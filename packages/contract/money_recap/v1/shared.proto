@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+// Idempotency (A14, ARCHITECTURE §6.2, I3): the phone sends every write with
+// an Idempotency-Key header; the BFF copies it into the service request's
+// idempotency_key field, always field 1, and the owning service enforces it.
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "google/protobuf/timestamp.proto";
+import "money_recap/v1/money.proto";
+
+// The eight fixed labels a Spend belongs to (PRD D20).
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;
+  CATEGORY_SNACKS = 1;
+  CATEGORY_GAMES = 2;
+  CATEGORY_TOYS = 3;
+  CATEGORY_RIDES = 4;
+  CATEGORY_CLOTHES = 5;
+  CATEGORY_BILLS = 6;
+  CATEGORY_GIFTS = 7;
+  CATEGORY_OTHER = 8;
+}
+
+// The four money personalities a month's numbers assign (PRD §8.6).
+enum Archetype {
+  ARCHETYPE_UNSPECIFIED = 0;
+  ARCHETYPE_SQUIRREL = 1;
+  ARCHETYPE_HUSTLER = 2;
+  ARCHETYPE_TREAT_YOURSELF = 3;
+  ARCHETYPE_SLOW_BURNER = 4;
+}
+
+// Which month a Salary saved after Payday applies from (PRD D56).
+enum SalaryAppliesFrom {
+  SALARY_APPLIES_FROM_UNSPECIFIED = 0;
+  SALARY_APPLIES_FROM_THIS_MONTH = 1;
+  SALARY_APPLIES_FROM_NEXT_MONTH = 2;
+}
+
+// Where a currency-change rate came from (PRD §7 CurrencyConversion, §8.9).
+enum RateSource {
+  RATE_SOURCE_UNSPECIFIED = 0;
+  RATE_SOURCE_PROVIDER = 1;
+  RATE_SOURCE_MANUAL = 2;
+}
+
+// One Spend the Member logs by hand (PRD §6.9, §7): a Money amount (D57), a
+// Category and the device's local calendar date at logging, stored plain (D34).
+// The Member is the caller's, or the event envelope's, so it is not repeated.
+message Spend {
+  // Assigned by ledger, which owns the row (ARCHITECTURE §7.2); EditSpend and
+  // DeleteSpend name it.
+  string id = 1;
+  // Always present, above zero (PRD §6.9), in the account's Currency;
+  // rewritten by a currency change (PRD §8.9).
+  Money amount = 2;
+  // Always present: the amount as typed, with its Currency, never touched by a
+  // currency change.
+  Money original_amount = 3;
+  Category category = 4;
+  // "YYYY-MM-DD" (PRD D34).
+  string date = 5;
+  // Optional, at most 80 characters (PRD §6.9).
+  string note = 6;
+  // Both always present, stamped by ledger; equal until the first edit.
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// What every event carries (ARCHITECTURE §4.3, A4): the outbox row id as the
+// message id, which processed_events dedupes on; when it occurred; the Member
+// it concerns; and the routing key, so a consumer can log it.
+message EventEnvelope {
+  string message_id = 1;
+  google.protobuf.Timestamp occurred_at = 2;
+  string member_id = 3;
+  // For example "ledger.spend.logged".
+  string routing_key = 4;
+}

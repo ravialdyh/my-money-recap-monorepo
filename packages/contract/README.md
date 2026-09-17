@@ -8,8 +8,9 @@ A Buf module, package `money_recap.v1`, under `money_recap/v1/*.proto`:
 | `money.proto` | `Money`: a decimal-string amount plus an ISO 4217 code, never a float or minor units (PRD §7, D71) |
 | `members.proto` | `MembersService`: `GetOrCreateBySubject`, `GetProfile`; the `Profile` message |
 | `bff.proto` | `BffService`: `GetHome`; the `HomeView` message with every field Home draws (PRD §6.8) |
+| `shared.proto` | What every slice 2 file reuses: the `Category`, `Archetype`, `SalaryAppliesFrom` and `RateSource` enums, `Spend`, `EventEnvelope` (A4); the idempotency convention is the doc comment on its `package` line (A14) |
 
-Slice 1 defines only what the walking skeleton calls (#10). Slice 2 adds the other RPCs and the event messages.
+Slice 1 defines only what the walking skeleton calls (#10). Slice 2 adds the other RPCs and the event messages (#42); `shared.proto` is its first piece (#50).
 
 ## Generated outputs, checked in
 
