@@ -17,7 +17,7 @@ public protocol MoneyRecap_V1_NotifyServiceClientInterface: Sendable {
     func `getWarningState`(request: MoneyRecap_V1_GetWarningStateRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_GetWarningStateResponse>
 
     /// Stamps month_flag when crossed_line and unstamped, then pushes if the
-    /// stamp is fresh (PRD §8.8). Idempotent by the stamp, so no key.
+    /// stamp is fresh (PRD §8.8).
     @available(iOS 13, *)
     func `evaluateWarning`(request: MoneyRecap_V1_EvaluateWarningRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_EvaluateWarningResponse>
 

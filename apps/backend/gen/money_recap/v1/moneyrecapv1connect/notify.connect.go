@@ -58,7 +58,7 @@ const (
 type NotifyServiceClient interface {
 	GetWarningState(context.Context, *connect.Request[v1.GetWarningStateRequest]) (*connect.Response[v1.GetWarningStateResponse], error)
 	// Stamps month_flag when crossed_line and unstamped, then pushes if the
-	// stamp is fresh (PRD §8.8). Idempotent by the stamp, so no key.
+	// stamp is fresh (PRD §8.8).
 	EvaluateWarning(context.Context, *connect.Request[v1.EvaluateWarningRequest]) (*connect.Response[v1.EvaluateWarningResponse], error)
 	GetPrefs(context.Context, *connect.Request[v1.GetPrefsRequest]) (*connect.Response[v1.GetPrefsResponse], error)
 	// Each toggle writes immediately (PRD §6.16); the key dedupes a retry (A14).
@@ -181,7 +181,7 @@ func (c *notifyServiceClient) EmailExport(ctx context.Context, req *connect.Requ
 type NotifyServiceHandler interface {
 	GetWarningState(context.Context, *connect.Request[v1.GetWarningStateRequest]) (*connect.Response[v1.GetWarningStateResponse], error)
 	// Stamps month_flag when crossed_line and unstamped, then pushes if the
-	// stamp is fresh (PRD §8.8). Idempotent by the stamp, so no key.
+	// stamp is fresh (PRD §8.8).
 	EvaluateWarning(context.Context, *connect.Request[v1.EvaluateWarningRequest]) (*connect.Response[v1.EvaluateWarningResponse], error)
 	GetPrefs(context.Context, *connect.Request[v1.GetPrefsRequest]) (*connect.Response[v1.GetPrefsResponse], error)
 	// Each toggle writes immediately (PRD §6.16); the key dedupes a retry (A14).

@@ -99,27 +99,18 @@ public nonisolated struct MoneyRecap_V1_GetWarningStateResponse: Sendable {
 
   public var fired: Bool = false
 
-  /// Present when fired: month_flag.target_warning_sent_at.
-  public var firedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_firedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_firedAt = newValue}
-  }
-  /// Returns true if `firedAt` has been explicitly set.
-  public var hasFiredAt: Bool {self._firedAt != nil}
-  /// Clears the value of `firedAt`. Subsequent reads from it will return its default value.
-  public mutating func clearFiredAt() {self._firedAt = nil}
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
-
-  fileprivate var _firedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
 }
 
 public nonisolated struct MoneyRecap_V1_EvaluateWarningRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  /// A14; see the package doc in shared.proto.
+  public var idempotencyKey: String = String()
 
   public var memberID: String = String()
 
@@ -134,10 +125,15 @@ public nonisolated struct MoneyRecap_V1_EvaluateWarningRequest: Sendable {
   public init() {}
 }
 
+/// The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
+/// builds the HomeView banner without a second round trip.
 public nonisolated struct MoneyRecap_V1_EvaluateWarningResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  /// True when the month is stamped, by this call or an earlier one.
+  public var fired: Bool = false
 
   /// True when this call stamped the month, so exactly one call per month
   /// sees it (PRD §8.8).
@@ -262,6 +258,9 @@ public nonisolated struct MoneyRecap_V1_EmailMagicLinkRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  /// A14; see the package doc in shared.proto. Dedupes a retried send.
+  public var idempotencyKey: String = String()
+
   /// The address as typed, because no Member row may exist yet
   /// (ARCHITECTURE §7.3).
   public var email: String = String()
@@ -289,10 +288,13 @@ public nonisolated struct MoneyRecap_V1_EmailExportRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  /// A14; see the package doc in shared.proto. Dedupes the sent_log write.
+  public var idempotencyKey: String = String()
+
   public var memberID: String = String()
 
   /// Every non-deleted Spend as CSV, straight from ledger.ExportCSV; never
-  /// stored server-side (ARCHITECTURE §7.3, PRD D39).
+  /// stored (ARCHITECTURE §7.3, PRD D39). The address comes from member_facts.
   public var csv: Data = Data()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -435,7 +437,7 @@ nonisolated extension MoneyRecap_V1_GetWarningStateRequest: SwiftProtobuf.Messag
 
 nonisolated extension MoneyRecap_V1_GetWarningStateResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".GetWarningStateResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}fired\0\u{3}fired_at\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}fired\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -444,29 +446,20 @@ nonisolated extension MoneyRecap_V1_GetWarningStateResponse: SwiftProtobuf.Messa
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBoolField(value: &self.fired) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._firedAt) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
     if self.fired != false {
       try visitor.visitSingularBoolField(value: self.fired, fieldNumber: 1)
     }
-    try { if let v = self._firedAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_GetWarningStateResponse, rhs: MoneyRecap_V1_GetWarningStateResponse) -> Bool {
     if lhs.fired != rhs.fired {return false}
-    if lhs._firedAt != rhs._firedAt {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -474,7 +467,7 @@ nonisolated extension MoneyRecap_V1_GetWarningStateResponse: SwiftProtobuf.Messa
 
 nonisolated extension MoneyRecap_V1_EvaluateWarningRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EvaluateWarningRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}member_id\0\u{1}month\0\u{3}crossed_line\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}idempotency_key\0\u{3}member_id\0\u{1}month\0\u{3}crossed_line\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -482,28 +475,33 @@ nonisolated extension MoneyRecap_V1_EvaluateWarningRequest: SwiftProtobuf.Messag
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.memberID) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.month) }()
-      case 3: try { try decoder.decodeSingularBoolField(value: &self.crossedLine) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.idempotencyKey) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.memberID) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.month) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.crossedLine) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.idempotencyKey.isEmpty {
+      try visitor.visitSingularStringField(value: self.idempotencyKey, fieldNumber: 1)
+    }
     if !self.memberID.isEmpty {
-      try visitor.visitSingularStringField(value: self.memberID, fieldNumber: 1)
+      try visitor.visitSingularStringField(value: self.memberID, fieldNumber: 2)
     }
     if !self.month.isEmpty {
-      try visitor.visitSingularStringField(value: self.month, fieldNumber: 2)
+      try visitor.visitSingularStringField(value: self.month, fieldNumber: 3)
     }
     if self.crossedLine != false {
-      try visitor.visitSingularBoolField(value: self.crossedLine, fieldNumber: 3)
+      try visitor.visitSingularBoolField(value: self.crossedLine, fieldNumber: 4)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_EvaluateWarningRequest, rhs: MoneyRecap_V1_EvaluateWarningRequest) -> Bool {
+    if lhs.idempotencyKey != rhs.idempotencyKey {return false}
     if lhs.memberID != rhs.memberID {return false}
     if lhs.month != rhs.month {return false}
     if lhs.crossedLine != rhs.crossedLine {return false}
@@ -514,7 +512,7 @@ nonisolated extension MoneyRecap_V1_EvaluateWarningRequest: SwiftProtobuf.Messag
 
 nonisolated extension MoneyRecap_V1_EvaluateWarningResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EvaluateWarningResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}fired_now\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}fired\0\u{3}fired_now\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -522,20 +520,25 @@ nonisolated extension MoneyRecap_V1_EvaluateWarningResponse: SwiftProtobuf.Messa
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularBoolField(value: &self.firedNow) }()
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.fired) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.firedNow) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.fired != false {
+      try visitor.visitSingularBoolField(value: self.fired, fieldNumber: 1)
+    }
     if self.firedNow != false {
-      try visitor.visitSingularBoolField(value: self.firedNow, fieldNumber: 1)
+      try visitor.visitSingularBoolField(value: self.firedNow, fieldNumber: 2)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_EvaluateWarningResponse, rhs: MoneyRecap_V1_EvaluateWarningResponse) -> Bool {
+    if lhs.fired != rhs.fired {return false}
     if lhs.firedNow != rhs.firedNow {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -745,7 +748,7 @@ nonisolated extension MoneyRecap_V1_RegisterDeviceResponse: SwiftProtobuf.Messag
 
 nonisolated extension MoneyRecap_V1_EmailMagicLinkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EmailMagicLinkRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}email\0\u{1}link\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}idempotency_key\0\u{1}email\0\u{1}link\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -753,24 +756,29 @@ nonisolated extension MoneyRecap_V1_EmailMagicLinkRequest: SwiftProtobuf.Message
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.email) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.link) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.idempotencyKey) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.email) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.link) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.idempotencyKey.isEmpty {
+      try visitor.visitSingularStringField(value: self.idempotencyKey, fieldNumber: 1)
+    }
     if !self.email.isEmpty {
-      try visitor.visitSingularStringField(value: self.email, fieldNumber: 1)
+      try visitor.visitSingularStringField(value: self.email, fieldNumber: 2)
     }
     if !self.link.isEmpty {
-      try visitor.visitSingularStringField(value: self.link, fieldNumber: 2)
+      try visitor.visitSingularStringField(value: self.link, fieldNumber: 3)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_EmailMagicLinkRequest, rhs: MoneyRecap_V1_EmailMagicLinkRequest) -> Bool {
+    if lhs.idempotencyKey != rhs.idempotencyKey {return false}
     if lhs.email != rhs.email {return false}
     if lhs.link != rhs.link {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -799,7 +807,7 @@ nonisolated extension MoneyRecap_V1_EmailMagicLinkResponse: SwiftProtobuf.Messag
 
 nonisolated extension MoneyRecap_V1_EmailExportRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EmailExportRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}member_id\0\u{1}csv\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}idempotency_key\0\u{3}member_id\0\u{1}csv\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -807,24 +815,29 @@ nonisolated extension MoneyRecap_V1_EmailExportRequest: SwiftProtobuf.Message, S
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.memberID) }()
-      case 2: try { try decoder.decodeSingularBytesField(value: &self.csv) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.idempotencyKey) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.memberID) }()
+      case 3: try { try decoder.decodeSingularBytesField(value: &self.csv) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.idempotencyKey.isEmpty {
+      try visitor.visitSingularStringField(value: self.idempotencyKey, fieldNumber: 1)
+    }
     if !self.memberID.isEmpty {
-      try visitor.visitSingularStringField(value: self.memberID, fieldNumber: 1)
+      try visitor.visitSingularStringField(value: self.memberID, fieldNumber: 2)
     }
     if !self.csv.isEmpty {
-      try visitor.visitSingularBytesField(value: self.csv, fieldNumber: 2)
+      try visitor.visitSingularBytesField(value: self.csv, fieldNumber: 3)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_EmailExportRequest, rhs: MoneyRecap_V1_EmailExportRequest) -> Bool {
+    if lhs.idempotencyKey != rhs.idempotencyKey {return false}
     if lhs.memberID != rhs.memberID {return false}
     if lhs.csv != rhs.csv {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}

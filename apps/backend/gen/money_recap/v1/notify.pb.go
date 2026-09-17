@@ -207,10 +207,8 @@ func (x *GetWarningStateRequest) GetMonth() string {
 // Whether the Target Warning has fired this month (PRD §8.8). Only the stamp
 // lives here; the banner copy is ledger's (ARCHITECTURE §7.3).
 type GetWarningStateResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Fired bool                   `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
-	// Present when fired: month_flag.target_warning_sent_at.
-	FiredAt       *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=fired_at,json=firedAt,proto3,oneof" json:"fired_at,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Fired         bool                   `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -252,20 +250,15 @@ func (x *GetWarningStateResponse) GetFired() bool {
 	return false
 }
 
-func (x *GetWarningStateResponse) GetFiredAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.FiredAt
-	}
-	return nil
-}
-
 type EvaluateWarningRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14; see the package doc in shared.proto.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// "YYYY-MM".
-	Month string `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
+	Month string `protobuf:"bytes,3,opt,name=month,proto3" json:"month,omitempty"`
 	// Computed by ledger (ARCHITECTURE §7.2); notify holds no PRD §8 rule.
-	CrossedLine   bool `protobuf:"varint,3,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
+	CrossedLine   bool `protobuf:"varint,4,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -300,6 +293,13 @@ func (*EvaluateWarningRequest) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{4}
 }
 
+func (x *EvaluateWarningRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
 func (x *EvaluateWarningRequest) GetMemberId() string {
 	if x != nil {
 		return x.MemberId
@@ -321,11 +321,15 @@ func (x *EvaluateWarningRequest) GetCrossedLine() bool {
 	return false
 }
 
+// The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
+// builds the HomeView banner without a second round trip.
 type EvaluateWarningResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// True when the month is stamped, by this call or an earlier one.
+	Fired bool `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
 	// True when this call stamped the month, so exactly one call per month
 	// sees it (PRD §8.8).
-	FiredNow      bool `protobuf:"varint,1,opt,name=fired_now,json=firedNow,proto3" json:"fired_now,omitempty"`
+	FiredNow      bool `protobuf:"varint,2,opt,name=fired_now,json=firedNow,proto3" json:"fired_now,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -358,6 +362,13 @@ func (x *EvaluateWarningResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use EvaluateWarningResponse.ProtoReflect.Descriptor instead.
 func (*EvaluateWarningResponse) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *EvaluateWarningResponse) GetFired() bool {
+	if x != nil {
+		return x.Fired
+	}
+	return false
 }
 
 func (x *EvaluateWarningResponse) GetFiredNow() bool {
@@ -661,11 +672,13 @@ func (*RegisterDeviceResponse) Descriptor() ([]byte, []int) {
 
 type EmailMagicLinkRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14; see the package doc in shared.proto. Dedupes a retried send.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	// The address as typed, because no Member row may exist yet
 	// (ARCHITECTURE §7.3).
-	Email string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// The full https://…/magic?lt=… link the BFF built (ARCHITECTURE §7.5).
-	Link          string `protobuf:"bytes,2,opt,name=link,proto3" json:"link,omitempty"`
+	Link          string `protobuf:"bytes,3,opt,name=link,proto3" json:"link,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -698,6 +711,13 @@ func (x *EmailMagicLinkRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use EmailMagicLinkRequest.ProtoReflect.Descriptor instead.
 func (*EmailMagicLinkRequest) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *EmailMagicLinkRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
 }
 
 func (x *EmailMagicLinkRequest) GetEmail() string {
@@ -751,11 +771,13 @@ func (*EmailMagicLinkResponse) Descriptor() ([]byte, []int) {
 }
 
 type EmailExportRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14; see the package doc in shared.proto. Dedupes the sent_log write.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// Every non-deleted Spend as CSV, straight from ledger.ExportCSV; never
-	// stored server-side (ARCHITECTURE §7.3, PRD D39).
-	Csv           []byte `protobuf:"bytes,2,opt,name=csv,proto3" json:"csv,omitempty"`
+	// stored (ARCHITECTURE §7.3, PRD D39). The address comes from member_facts.
+	Csv           []byte `protobuf:"bytes,3,opt,name=csv,proto3" json:"csv,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -788,6 +810,13 @@ func (x *EmailExportRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use EmailExportRequest.ProtoReflect.Descriptor instead.
 func (*EmailExportRequest) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *EmailExportRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
 }
 
 func (x *EmailExportRequest) GetMemberId() string {
@@ -857,17 +886,17 @@ const file_money_recap_v1_notify_proto_rawDesc = "" +
 	"bounced_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tbouncedAt\"K\n" +
 	"\x16GetWarningStateRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12\x14\n" +
-	"\x05month\x18\x02 \x01(\tR\x05month\"x\n" +
+	"\x05month\x18\x02 \x01(\tR\x05month\"/\n" +
 	"\x17GetWarningStateResponse\x12\x14\n" +
-	"\x05fired\x18\x01 \x01(\bR\x05fired\x12:\n" +
-	"\bfired_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\afiredAt\x88\x01\x01B\v\n" +
-	"\t_fired_at\"n\n" +
-	"\x16EvaluateWarningRequest\x12\x1b\n" +
-	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12\x14\n" +
-	"\x05month\x18\x02 \x01(\tR\x05month\x12!\n" +
-	"\fcrossed_line\x18\x03 \x01(\bR\vcrossedLine\"6\n" +
-	"\x17EvaluateWarningResponse\x12\x1b\n" +
-	"\tfired_now\x18\x01 \x01(\bR\bfiredNow\".\n" +
+	"\x05fired\x18\x01 \x01(\bR\x05fired\"\x97\x01\n" +
+	"\x16EvaluateWarningRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x14\n" +
+	"\x05month\x18\x03 \x01(\tR\x05month\x12!\n" +
+	"\fcrossed_line\x18\x04 \x01(\bR\vcrossedLine\"L\n" +
+	"\x17EvaluateWarningResponse\x12\x14\n" +
+	"\x05fired\x18\x01 \x01(\bR\x05fired\x12\x1b\n" +
+	"\tfired_now\x18\x02 \x01(\bR\bfiredNow\".\n" +
 	"\x0fGetPrefsRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\"K\n" +
 	"\x10GetPrefsResponse\x127\n" +
@@ -883,14 +912,16 @@ const file_money_recap_v1_notify_proto_rawDesc = "" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x1d\n" +
 	"\n" +
 	"apns_token\x18\x03 \x01(\tR\tapnsToken\"\x18\n" +
-	"\x16RegisterDeviceResponse\"A\n" +
-	"\x15EmailMagicLinkRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
-	"\x04link\x18\x02 \x01(\tR\x04link\"\x18\n" +
-	"\x16EmailMagicLinkResponse\"C\n" +
-	"\x12EmailExportRequest\x12\x1b\n" +
-	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12\x10\n" +
-	"\x03csv\x18\x02 \x01(\fR\x03csv\"\x15\n" +
+	"\x16RegisterDeviceResponse\"j\n" +
+	"\x15EmailMagicLinkRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
+	"\x04link\x18\x03 \x01(\tR\x04link\"\x18\n" +
+	"\x16EmailMagicLinkResponse\"l\n" +
+	"\x12EmailExportRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x10\n" +
+	"\x03csv\x18\x03 \x01(\fR\x03csv\"\x15\n" +
 	"\x13EmailExportResponse2\xa0\x05\n" +
 	"\rNotifyService\x12d\n" +
 	"\x0fGetWarningState\x12&.money_recap.v1.GetWarningStateRequest\x1a'.money_recap.v1.GetWarningStateResponse\"\x00\x12d\n" +
@@ -935,29 +966,28 @@ var file_money_recap_v1_notify_proto_goTypes = []any{
 }
 var file_money_recap_v1_notify_proto_depIdxs = []int32{
 	16, // 0: money_recap.v1.EmailBounced.bounced_at:type_name -> google.protobuf.Timestamp
-	16, // 1: money_recap.v1.GetWarningStateResponse.fired_at:type_name -> google.protobuf.Timestamp
-	0,  // 2: money_recap.v1.GetPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
-	0,  // 3: money_recap.v1.SavePrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
-	0,  // 4: money_recap.v1.SavePrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
-	2,  // 5: money_recap.v1.NotifyService.GetWarningState:input_type -> money_recap.v1.GetWarningStateRequest
-	4,  // 6: money_recap.v1.NotifyService.EvaluateWarning:input_type -> money_recap.v1.EvaluateWarningRequest
-	6,  // 7: money_recap.v1.NotifyService.GetPrefs:input_type -> money_recap.v1.GetPrefsRequest
-	8,  // 8: money_recap.v1.NotifyService.SavePrefs:input_type -> money_recap.v1.SavePrefsRequest
-	10, // 9: money_recap.v1.NotifyService.RegisterDevice:input_type -> money_recap.v1.RegisterDeviceRequest
-	12, // 10: money_recap.v1.NotifyService.EmailMagicLink:input_type -> money_recap.v1.EmailMagicLinkRequest
-	14, // 11: money_recap.v1.NotifyService.EmailExport:input_type -> money_recap.v1.EmailExportRequest
-	3,  // 12: money_recap.v1.NotifyService.GetWarningState:output_type -> money_recap.v1.GetWarningStateResponse
-	5,  // 13: money_recap.v1.NotifyService.EvaluateWarning:output_type -> money_recap.v1.EvaluateWarningResponse
-	7,  // 14: money_recap.v1.NotifyService.GetPrefs:output_type -> money_recap.v1.GetPrefsResponse
-	9,  // 15: money_recap.v1.NotifyService.SavePrefs:output_type -> money_recap.v1.SavePrefsResponse
-	11, // 16: money_recap.v1.NotifyService.RegisterDevice:output_type -> money_recap.v1.RegisterDeviceResponse
-	13, // 17: money_recap.v1.NotifyService.EmailMagicLink:output_type -> money_recap.v1.EmailMagicLinkResponse
-	15, // 18: money_recap.v1.NotifyService.EmailExport:output_type -> money_recap.v1.EmailExportResponse
-	12, // [12:19] is the sub-list for method output_type
-	5,  // [5:12] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	0,  // 1: money_recap.v1.GetPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
+	0,  // 2: money_recap.v1.SavePrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
+	0,  // 3: money_recap.v1.SavePrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
+	2,  // 4: money_recap.v1.NotifyService.GetWarningState:input_type -> money_recap.v1.GetWarningStateRequest
+	4,  // 5: money_recap.v1.NotifyService.EvaluateWarning:input_type -> money_recap.v1.EvaluateWarningRequest
+	6,  // 6: money_recap.v1.NotifyService.GetPrefs:input_type -> money_recap.v1.GetPrefsRequest
+	8,  // 7: money_recap.v1.NotifyService.SavePrefs:input_type -> money_recap.v1.SavePrefsRequest
+	10, // 8: money_recap.v1.NotifyService.RegisterDevice:input_type -> money_recap.v1.RegisterDeviceRequest
+	12, // 9: money_recap.v1.NotifyService.EmailMagicLink:input_type -> money_recap.v1.EmailMagicLinkRequest
+	14, // 10: money_recap.v1.NotifyService.EmailExport:input_type -> money_recap.v1.EmailExportRequest
+	3,  // 11: money_recap.v1.NotifyService.GetWarningState:output_type -> money_recap.v1.GetWarningStateResponse
+	5,  // 12: money_recap.v1.NotifyService.EvaluateWarning:output_type -> money_recap.v1.EvaluateWarningResponse
+	7,  // 13: money_recap.v1.NotifyService.GetPrefs:output_type -> money_recap.v1.GetPrefsResponse
+	9,  // 14: money_recap.v1.NotifyService.SavePrefs:output_type -> money_recap.v1.SavePrefsResponse
+	11, // 15: money_recap.v1.NotifyService.RegisterDevice:output_type -> money_recap.v1.RegisterDeviceResponse
+	13, // 16: money_recap.v1.NotifyService.EmailMagicLink:output_type -> money_recap.v1.EmailMagicLinkResponse
+	15, // 17: money_recap.v1.NotifyService.EmailExport:output_type -> money_recap.v1.EmailExportResponse
+	11, // [11:18] is the sub-list for method output_type
+	4,  // [4:11] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_notify_proto_init() }
@@ -965,7 +995,6 @@ func file_money_recap_v1_notify_proto_init() {
 	if File_money_recap_v1_notify_proto != nil {
 		return
 	}
-	file_money_recap_v1_notify_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
