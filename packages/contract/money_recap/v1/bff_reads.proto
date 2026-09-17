@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/bff_views.proto";
+import "money_recap/v1/shared.proto";
+
+message BffServiceGetRecapRequest {
+  // "YYYY-MM"; the current month answers the month-so-far preview (PRD D47).
+  string month = 1;
+}
+
+message BffServiceGetRecapResponse {
+  RecapView recap = 1;
+}
+
+message BffServiceListRecapMonthsRequest {}
+
+// The past-Recap list (PRD §6.8, SCREEN-STATES C7).
+message BffServiceListRecapMonthsResponse {
+  // Newest first, the current month never listed, labelled by Archetype or
+  // "Partial" (PRD §8.11).
+  repeated RecapMonth months = 1;
+  // "YYYY-MM-DD" for the empty list's line (D47).
+  string first_recap_on = 2;
+}
+
+message BffServiceListSpendsRequest {
+  // "YYYY-MM"; empty means the current month in the Member's zone (D59).
+  string month = 1;
+}
+
+message BffServiceListSpendsResponse {
+  SpendListView spends = 1;
+}
+
+message BffServiceGetOnboardingStateRequest {}
+
+message BffServiceGetOnboardingStateResponse {
+  OnboardingState state = 1;
+}
+
+message BffServiceGetSettingsRequest {}
+
+message BffServiceGetSettingsResponse {
+  SettingsView settings = 1;
+}
+
+// Nothing is written: the rate is quoted and ledger previews the rewrite
+// (PRD §8.9 steps 1 to 3).
+message BffServicePreviewCurrencyChangeRequest {
+  // ISO 4217 code the Member picked.
+  string to_currency_code = 1;
+  // Decimal string the Member typed after an unsupported-pair answer (D7);
+  // empty asks currency.Quote.
+  string manual_rate = 2;
+}
+
+message BffServicePreviewCurrencyChangeResponse {
+  CurrencyChangePreview preview = 1;
+}

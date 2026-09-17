@@ -393,7 +393,7 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 
 | # | Decision | Status |
 |---|---|---|
-| A1 | Contract: protobuf, Buf, Connect; `buf breaking` required in CI; event messages in the same package. | in use since slice 1 (#17: the phone-facing `GetHome` and the `members` RPCs are generated from `packages/contract`, and the end-to-end test calls the BFF through the generated client) |
+| A1 | Contract: protobuf, Buf, Connect; `buf breaking` required in CI; event messages in the same package. | in use since slice 1 (#17: the phone-facing `GetHome` and the `members` RPCs are generated from `packages/contract`, and the end-to-end test calls the BFF through the generated client); full contract and event messages since slice 2 (#42: every RPC of §6 and §7, the screen views and every event of §4.3, `buf breaking` at `PACKAGE` level) |
 | A2 | All of §8 lives in `ledger` and nowhere else, including the warning-line check and conversion rounding; the phone stores and formats; the §8 fixtures are the answer key. | proposed |
 | A3 | `member.timezone` as an IANA name; every "today" in §8 and §10 evaluated in it; the `notify` scheduler is the §4.5 query. | proposed |
 | A4 | Events: outbox relay, at-least-once, `processed_events` dedupe keyed by message id. | proposed |
