@@ -42,5 +42,6 @@ The SwiftUI components mirror the names in `my-money-recap-ds/src/components`, o
 
 ## 4. Open items
 
-- The exact `swift-snapshot-testing` and AppAuth-iOS versions are pinned when the Xcode project is created, not here.
+- Pinned in the Xcode project (2026-09-17): AppAuth-iOS 3.0.0, `connect-swift` 1.2.3 and `swift-protobuf` 1.38.1, the same exact versions `packages/contract/swift` pins. `swift-snapshot-testing` is pinned when the first snapshot proof lands (X3, the IDR Home).
+- Simulator runtimes for I9 are chosen when the tests run (`apps/ios/scripts/ui-test.sh`): the newest installed and the oldest installed. Xcode 27 on macOS 27 no longer offers the iOS 17 or 18 runtimes for download, so on such a Mac the floor is the oldest runtime Xcode still lists (iOS 26.0); the iOS 17 run needs an older Xcode.
 - Mac CI runner: GitHub-hosted macOS runners are the default; the cost is measured after the first month.

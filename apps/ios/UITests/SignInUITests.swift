@@ -8,7 +8,7 @@ final class SignInUITests: XCTestCase {
             throw XCTSkip("set MMR_TEST_USER_PASSWORD (infra/compose/.env TEST_USER_PASSWORD) to run against local Compose")
         }
         let app = XCUIApplication()
-        app.launchArguments = ["--reset-session"]
+        app.launchArguments = ["--reset-session", "--reset-snapshot"]
         app.launch()
         XCTAssert(app.staticTexts["Your month in money."].waitForExistence(timeout: 10))
         snapshot("01-sign-in")
@@ -36,16 +36,44 @@ final class SignInUITests: XCTestCase {
         sheet.webViews.secureTextFields.firstMatch.typeText(password)
         sheet.webViews.buttons["Sign In"].tap()
 
-        XCTAssert(app.staticTexts["You're signed in."].waitForExistence(timeout: 30))
-        snapshot("04-signed-in")
+        // Home at zero (issue #18, PRD §6.8 B1 "no salary set"): the same formatter as the app prints the zero amount.
+        let zero = Decimal(0).formatted(.currency(code: "GBP").precision(.fractionLength(0)))
+        XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 30))
+        XCTAssert(app.staticTexts[zero].exists, "the hero shows Spent at \(zero)")
+        XCTAssert(app.staticTexts["Money in \(zero)"].exists)
+        XCTAssertEqual(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Saved'")).count, 0, "no Saved chip while Money In is 0 (D41)")
+        XCTAssert(app.buttons["Set your monthly salary"].exists)
+        XCTAssert(app.buttons["Set a saving target"].exists)
+        XCTAssert(app.buttons["Log a spend"].exists)
+        XCTAssertFalse(app.buttons["See last month"].isEnabled)
+        XCTAssert(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on'")).firstMatch.exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Hi,'")).firstMatch.exists, "no greeting while display_name is empty")
+        snapshot("04-home-at-zero")
 
-        // Relaunch: the Keychain session skips Sign in.
+        // Relaunch: the Keychain session skips Sign in and Home renders from the stored snapshot.
         app.launchArguments = []
         app.terminate()
         app.launch()
-        XCTAssert(app.staticTexts["You're signed in."].waitForExistence(timeout: 10))
+        XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["Continue with email"].exists)
-        snapshot("05-relaunched-still-signed-in")
+        snapshot("05-relaunched-home-from-snapshot")
+
+        // With the BFF unreachable, Home still shows the last snapshot (PRD D61).
+        app.launchEnvironment["MMR_BFF_URL"] = "http://localhost:1"
+        app.terminate()
+        app.launch()
+        XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
+        XCTAssert(app.staticTexts["Money in \(zero)"].exists)
+        snapshot("06-bff-unreachable-snapshot-still-shown")
+
+        // No snapshot and no answer: the §6.19 skeleton, never a spinner.
+        app.launchArguments = ["--reset-snapshot"]
+        app.terminate()
+        app.launch()
+        XCTAssert(app.otherElements["home-skeleton"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.activityIndicators.count, 0)
+        XCTAssertFalse(app.staticTexts["Spent so far"].exists)
+        snapshot("07-first-load-skeleton")
     }
 
     /// The web sheet and its "wants to use localhost to sign in" alert are drawn by system processes

@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 @main
@@ -8,18 +9,29 @@ struct MyMoneyRecapApp: App {
         WindowGroup {
             RootView().environment(session)
         }
+        .modelContainer(HomeSnapshot.container)
     }
 }
 
 /// A saved session skips Sign in (PRD §9); the Face ID gate is a later slice.
 struct RootView: View {
     @Environment(AuthSession.self) private var session
+    @Environment(\.modelContext) private var context
 
     var body: some View {
-        if session.isSignedIn {
-            HomePlaceholderView()
-        } else {
-            SignInView(session: session)
+        Group {
+            if session.isSignedIn {
+                HomeView(session: session, context: context)
+            } else {
+                SignInView(session: session)
+            }
+        }
+        .onChange(of: session.isSignedIn) { _, signedIn in
+            // Sign-out deletes the cache with the session (I2, I4).
+            if !signedIn {
+                try? context.delete(model: HomeSnapshot.self)
+                try? context.save()
+            }
         }
     }
 }

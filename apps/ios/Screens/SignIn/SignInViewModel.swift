@@ -10,8 +10,10 @@ final class SignInViewModel {
     private(set) var errorMessage: String?
     private let signIn: () async throws -> Void
 
-    init(signIn: @escaping () async throws -> Void) {
+    /// `initialError` is the expired-session copy when a failed token refresh sent the Member back here (I3).
+    init(signIn: @escaping () async throws -> Void, initialError: String? = nil) {
         self.signIn = signIn
+        self.errorMessage = initialError
     }
 
     func continueWithEmail() async {
