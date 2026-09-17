@@ -185,12 +185,15 @@ jobs:
         if: failure()
         working-directory: infra/compose
         run: |
+          test -f .env || { echo "the stack never started; the real failure is above"; exit 0; }
           docker compose ps
           docker compose logs keycloak members-migrate members bff
       - name: Teardown
         if: always()
         working-directory: infra/compose
-        run: docker compose down -v
+        run: |
+          test -f .env || exit 0
+          docker compose down -v
 
   ios:
     needs: changes

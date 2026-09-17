@@ -117,7 +117,7 @@ func TestRunReturnsTheListenError(t *testing.T) {
 	}
 }
 
-func getHealthz(t *testing.T, addr string) (string, int) {
+func getHealthz(t *testing.T, addr string) (body string, status int) {
 	t.Helper()
 	deadline := time.Now().Add(10 * time.Second)
 	for {
@@ -129,11 +129,11 @@ func getHealthz(t *testing.T, addr string) (string, int) {
 			time.Sleep(10 * time.Millisecond)
 			continue
 		}
-		defer res.Body.Close()
-		body, err := io.ReadAll(res.Body)
+		read, err := io.ReadAll(res.Body)
+		res.Body.Close()
 		if err != nil {
 			t.Fatal(err)
 		}
-		return string(body), res.StatusCode
+		return string(read), res.StatusCode
 	}
 }
