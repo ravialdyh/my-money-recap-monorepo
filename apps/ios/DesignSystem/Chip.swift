@@ -12,11 +12,11 @@ struct Chip: View {
         Button(action: action) {
             Text(text)
                 .textStyle(Tokens.TypeRamp.captionUpper)
-                .padding(.horizontal, 14)
+                .padding(.horizontal, Tokens.Space._5)
                 .padding(.vertical, 8)
                 .background(Tokens.Surface.chipOnGround, in: Capsule())
                 .foregroundStyle(Tokens.Text.primary)
-                .frame(minHeight: tappable ? 44 : 0)
+                .frame(minHeight: tappable ? Tokens.Size.touchTargetMin : 0)
                 .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())

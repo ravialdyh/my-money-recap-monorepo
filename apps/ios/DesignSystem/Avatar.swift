@@ -3,7 +3,7 @@ import SwiftUI
 /// A single round Avatar badge for the Home greeting (`Avatar` in AvatarGrid.tsx); an unknown key shows the violet well alone.
 struct Avatar: View {
     let key: String
-    private let size: CGFloat = 56
+    private let size = Tokens.Size.avatarInline
 
     var body: some View {
         Circle()

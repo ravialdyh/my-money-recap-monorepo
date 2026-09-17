@@ -14,7 +14,7 @@ struct ListRow: View {
                 if let value { Text(value).textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary) }
                 Image(systemName: "chevron.right").font(.system(size: 14, weight: .heavy)).foregroundStyle(Tokens.Text.secondary)
             }
-            .padding(.vertical, 14)
+            .padding(.vertical, Tokens.Space._5)
             .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())

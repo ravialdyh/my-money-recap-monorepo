@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Hero artwork from the asset catalog; hangs `space.overlap` (44pt) into the card below it.
+/// Hero artwork from the asset catalog; hangs `space.overlap` into the card below it.
 struct Illustration: View {
     let name: String
     let width: CGFloat
@@ -11,7 +11,7 @@ struct Illustration: View {
             .scaledToFit()
             .frame(width: width)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            .padding(.bottom, -44)
+            .padding(.bottom, -Tokens.Space.overlap)
             .zIndex(1)
             .accessibilityHidden(true)
     }

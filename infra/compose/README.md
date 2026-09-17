@@ -120,8 +120,8 @@ curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorizatio
 
 ## A10 smoke test
 
-`a10-smoke.sh` proves A10 on the pinned image, and CI runs it on every pull request (`a10-smoke` job,
-throwaway `.env`, only the `keycloak` service and its `postgres` dependency started). Against the running stack, using the same `.env`, it:
+`a10-smoke.sh` proves A10 on the pinned image, and CI runs it on every pull request (the `backend` job,
+after the Go tests, with a throwaway `.env`). Against the running stack, using the same `.env`, it:
 
 1. gets a service-account token for `bff` and calls `POST /realms/mmr/login-token` for the test
    user's email with `expiration_seconds` 900, `reusable` false, `force_create` true and

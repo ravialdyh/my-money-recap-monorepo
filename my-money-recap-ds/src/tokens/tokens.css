@@ -93,10 +93,6 @@
   --mmr-color-state-row-pressed-wash: rgba(30, 27, 58, 0.04);
   --mmr-font-family-display: Fredoka, 'Arial Rounded MT Bold', Nunito, sans-serif;
   --mmr-font-family-text: Nunito, 'Trebuchet MS', 'Segoe UI', sans-serif;
-  --mmr-font-weight-display-bold: 700;
-  --mmr-font-weight-display-semibold: 600;
-  --mmr-font-weight-text-extrabold: 800;
-  --mmr-font-weight-text-bold: 700;
   --mmr-type-display-xl-font-family: var(--mmr-font-family-display);
   --mmr-type-display-xl-font-weight: 700;
   --mmr-type-display-xl-font-size: 80px;
@@ -211,21 +207,19 @@
   --mmr-size-slider-knob: 28px;
   --mmr-size-avatar-grid-cell: 68px;
   --mmr-size-avatar-inline: 56px;
+  --mmr-size-home-hero-card: 191px;
+  --mmr-size-home-target-card: 136px;
   --mmr-border-divider: 1px solid var(--mmr-palette-ink-100);
   --mmr-border-selected-ring: 0px 0px 0px 2px var(--mmr-palette-white);
-  --mmr-elevation-none: none;
   --mmr-motion-easing-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
   --mmr-motion-easing-press: cubic-bezier(0, 0, 0.2, 1);
   --mmr-motion-duration-press: 120ms;
   --mmr-motion-duration-enter-screen: 320ms;
   --mmr-motion-duration-reveal-bar: 600ms;
   --mmr-motion-duration-reveal-number: 800ms;
+  --mmr-motion-duration-reveal-number-delay: 150ms;
   --mmr-motion-duration-stagger: 80ms;
   --mmr-motion-duration-reduced: 150ms;
   --mmr-motion-press-scale: 0.97;
   --mmr-motion-enter-offset: 24px;
-  --mmr-asset-illustration-cover-display-width: 310px;
-  --mmr-asset-illustration-lemonade-display-width: 200px;
-  --mmr-asset-illustration-vending-display-width: 168px;
-  --mmr-asset-illustration-squirrel-display-width: 340px;
 }

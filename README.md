@@ -57,7 +57,7 @@ npm run build:swift-tokens
 `build:tokens` regenerates `tokens.css`, `css.generated.ts` and `dist/mmr.css` from `tokens.json`;
 `build:swift-tokens` regenerates `apps/ios/DesignSystem/Tokens.swift` from the same `tokens.json` (`docs/IOS.md` I5).
 The `design-system` CI job runs all three and fails if any output is stale, so generated files can never
-drift from source. The other CI jobs (`contract`, `backend`, `a10-smoke`, `ios`) are listed under Delivery in `docs/ARCHITECTURE.md` §10.
+drift from source. The other CI jobs (`contract`, `backend`, `ios`) are listed under Delivery in `docs/ARCHITECTURE.md` §10.
 
 ## Docs
 

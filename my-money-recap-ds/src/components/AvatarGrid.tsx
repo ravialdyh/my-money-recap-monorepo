@@ -1,4 +1,8 @@
 import { ensureStyles } from '../styles/ensureStyles';
+import tokens from '../tokens/tokens.json';
+
+const GRID_CELL = parseFloat(tokens.size['avatar-grid-cell'].$value);
+const INLINE = parseFloat(tokens.size['avatar-inline'].$value);
 
 /** The six onboarding Avatars (PRD D36). Keys match `ILLUSTRATIONS['avatar-*']`. */
 const AVATAR_LABEL = {
@@ -16,7 +20,7 @@ export interface AvatarGridProps {
   onSelect?: (key: AvatarKey) => void;
 }
 /** 3x2 grid of round Avatars. The selected one takes the ArchetypePill ring: 2px white on a violet halo. */
-export function AvatarGrid({ avatars, selected, size = 68, onSelect }: AvatarGridProps) {
+export function AvatarGrid({ avatars, selected, size = GRID_CELL, onSelect }: AvatarGridProps) {
   ensureStyles();
   return (
     <div className="mmr-avatar-grid" role="radiogroup" aria-label="Pick your avatar">
@@ -35,7 +39,7 @@ export function AvatarGrid({ avatars, selected, size = 68, onSelect }: AvatarGri
 
 export interface AvatarProps { src: string; label?: string; size?: number; }
 /** A single Avatar badge, for the Home greeting and the recap chip. */
-export function Avatar({ src, label = '', size = 56 }: AvatarProps) {
+export function Avatar({ src, label = '', size = INLINE }: AvatarProps) {
   ensureStyles();
   return <span className="mmr-avatar" data-static="true" style={{ width: size, height: size }}><img src={src} alt={label} /></span>;
 }

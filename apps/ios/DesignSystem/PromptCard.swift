@@ -23,10 +23,10 @@ struct PromptCard: View {
                 Spacer(minLength: 0)
                 Circle()
                     .fill(dashed ? Tokens.Surface.chipOnGround.opacity(0.2) : Tokens.Surface.wellViolet)
-                    .frame(width: 44, height: 44)
+                    .frame(width: Tokens.Size.touchTargetMin, height: Tokens.Size.touchTargetMin)
                     .overlay(Image(systemName: "chevron.right").font(.system(size: 16, weight: .heavy)).foregroundStyle(dashed ? Tokens.Text.onGround : Tokens.Palette.violet500))
             }
-            .padding(22)
+            .padding(Tokens.Space._7)
             .frame(maxWidth: .infinity, minHeight: height, alignment: .leading)
             .background(dashed ? Color.clear : Tokens.Surface.card, in: RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous)

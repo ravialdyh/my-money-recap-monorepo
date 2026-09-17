@@ -122,6 +122,7 @@ public enum Tokens {
         public static let selectedRing = Palette.white
         public static let focusRing = Palette.violet500
         public static let invalidRing = Palette.coral500
+        public static let pressedLightnessDelta: Double = -0.08
         public static let disabledOpacity: Double = 0.4
         public static let unselectedOpacity: Double = 0.6
         public static let rowPressedWash = Color(.sRGB, red: 30 / 255, green: 27 / 255, blue: 58 / 255, opacity: 0.04)
@@ -156,6 +157,55 @@ public enum Tokens {
         public static let pill: CGFloat = 999
     }
 
+    public enum Space {
+        public static let _1: CGFloat = 4
+        public static let _2: CGFloat = 6
+        public static let _3: CGFloat = 8
+        public static let _4: CGFloat = 12
+        public static let _5: CGFloat = 14
+        public static let _6: CGFloat = 16
+        public static let _7: CGFloat = 22
+        public static let _8: CGFloat = 24
+        public static let _9: CGFloat = 28
+        public static let _10: CGFloat = 56
+        public static let overlap: CGFloat = 44
+        public static let cardInsetUnderIllustration: CGFloat = 56
+    }
+
+    public enum Size {
+        public static let screenWidth: CGFloat = 390
+        public static let statHeroM: CGFloat = 56
+        public static let statHeroS: CGFloat = 40
+        public static let amountL: CGFloat = 48
+        public static let amountM: CGFloat = 36
+        public static let amountS: CGFloat = 28
+        public static let screenHeight: CGFloat = 844
+        public static let buttonHeight: CGFloat = 52
+        public static let streakBadge: CGFloat = 64
+        public static let iconWell: CGFloat = 30
+        public static let iconGlyph: CGFloat = 16
+        public static let iconButton: CGFloat = 20
+        public static let trackGoal: CGFloat = 22
+        public static let trackCompare: CGFloat = 18
+        public static let trackCategory: CGFloat = 16
+        public static let streakDot: CGFloat = 12
+        public static let pageDot: CGFloat = 6
+        public static let pageDotActiveWidth: CGFloat = 22
+        public static let statusDot: CGFloat = 8
+        public static let touchTargetMin: CGFloat = 44
+        public static let fieldHeight: CGFloat = 52
+        public static let sheetHandleWidth: CGFloat = 36
+        public static let sheetHandleHeight: CGFloat = 5
+        public static let toggleWidth: CGFloat = 51
+        public static let toggleHeight: CGFloat = 31
+        public static let toggleKnob: CGFloat = 27
+        public static let sliderKnob: CGFloat = 28
+        public static let avatarGridCell: CGFloat = 68
+        public static let avatarInline: CGFloat = 56
+        public static let homeHeroCard: CGFloat = 191
+        public static let homeTargetCard: CGFloat = 136
+    }
+
     public enum Motion {
         public enum Easing {
             public static let standard = UnitCurve.bezier(startControlPoint: UnitPoint(x: 0.2, y: 0.8), endControlPoint: UnitPoint(x: 0.2, y: 1))
@@ -166,6 +216,7 @@ public enum Tokens {
             public static let enterScreen: TimeInterval = 0.32
             public static let revealBar: TimeInterval = 0.6
             public static let revealNumber: TimeInterval = 0.8
+            public static let revealNumberDelay: TimeInterval = 0.15
             public static let stagger: TimeInterval = 0.08
             public static let reduced: TimeInterval = 0.15
         }

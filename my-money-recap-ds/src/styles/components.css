@@ -11,7 +11,7 @@
 .mmr-pressable:active,
 .mmr-pressable[data-state="pressed"] {
   transform: scale(var(--mmr-motion-press-scale));
-  filter: brightness(0.92); /* the "lightness minus 8%" rule */
+  filter: brightness(calc(100% + var(--mmr-color-state-pressed-lightness-delta))); /* the "lightness minus 8%" rule */
 }
 .mmr-pressable:disabled,
 .mmr-pressable[data-state="disabled"] {

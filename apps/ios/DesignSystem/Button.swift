@@ -40,7 +40,7 @@ struct PressableStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? Tokens.Motion.pressScale : 1)
-            .brightness(configuration.isPressed ? -0.08 : 0)
+            .brightness(configuration.isPressed ? Tokens.State.pressedLightnessDelta : 0)
             .opacity(isEnabled ? 1 : Tokens.State.disabledOpacity)
             .animation(.timingCurve(Tokens.Motion.Easing.press, duration: Tokens.Motion.Duration.press), value: configuration.isPressed)
     }

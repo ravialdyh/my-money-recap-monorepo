@@ -12,7 +12,7 @@ struct StatChip: View {
             Text(text).textStyle(Tokens.TypeRamp.labelS).lineLimit(1)
         }
         .padding(.vertical, 9)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, Tokens.Space._5)
         .background(background, in: Capsule())
         .foregroundStyle(Tokens.Text.primary)
     }

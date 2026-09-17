@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ensureStyles } from '../styles/ensureStyles';
 import { Eyebrow } from './Headline';
 import { useFitStep } from './fitStep';
+import tokens from '../tokens/tokens.json';
 import { formatMoney, type MoneyFormat } from '../money';
 
 interface StatHeroBase {
@@ -42,7 +43,10 @@ export function StatHero({ eyebrow, value, currency, locale, format, animate = f
   );
 }
 
-function useCountUp(target: number, enabled: boolean, durationMs = 800, delayMs = 150): number {
+const REVEAL_MS = parseFloat(tokens.motion.duration['reveal-number'].$value);
+const REVEAL_DELAY_MS = parseFloat(tokens.motion.duration['reveal-number-delay'].$value);
+
+function useCountUp(target: number, enabled: boolean, durationMs = REVEAL_MS, delayMs = REVEAL_DELAY_MS): number {
   const [v, setV] = useState(enabled ? 0 : target);
   useEffect(() => {
     if (!enabled) { setV(target); return; }
