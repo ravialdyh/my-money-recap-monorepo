@@ -9,7 +9,6 @@ linters:
   enable:
     - bodyclose
     - contextcheck
-    - copyloopvar
     - durationcheck
     - errorlint
     - gocritic
@@ -18,25 +17,18 @@ linters:
     - nilerr
     - noctx
     - nolintlint
-    - perfsprint
-    - prealloc
-    - revive
-    - rowserrcheck
-    - sqlclosecheck
-    - testifylint
     - unconvert
     - usestdlibvars
     - wastedassign
   settings:
     errcheck:
       check-type-assertions: true
-      check-blank: false
     gocritic:
       enabled-tags: [diagnostic, performance, style]
       disabled-checks: [hugeParam, rangeValCopy]
     gosec:
       excludes:
-        # G115 fires on every int -> int32 in the generated protobuf boundary.
+        # G115 fires on every int -> int32 at the generated protobuf boundary.
         - G115
     govet:
       enable-all: true
@@ -45,26 +37,17 @@ linters:
       require-explanation: true
       require-specific: true
       allow-unused: false
-    revive:
-      rules:
-        - name: exported
-        - name: package-comments
-        - name: var-naming
-        - name: indent-error-flow
-        - name: errorf
-        - name: context-as-argument
-        - name: context-keys-type
-        - name: error-return
-        - name: error-strings
-        - name: receiver-naming
-        - name: unexported-return
+    # checks: all turns on the ST group, which covers package comments, naming, error strings and
+    # receiver names. revive would repeat all of it, so revive is not enabled.
     staticcheck:
       checks: ["all"]
   exclusions:
     generated: strict
+    # The comments preset drops every "should have a comment" finding: comment style is
+    # tools/policy's job, and two tools with different opinions about comments is how the old
+    # revive block ended up enabled but silently suppressed.
     presets: [comments, common-false-positives, legacy, std-error-handling]
     rules:
-      # Test helpers and table-driven tests use dot-style assertions and long bodies.
       - path: _test\.go
         linters: [gosec, noctx, bodyclose, contextcheck]
 

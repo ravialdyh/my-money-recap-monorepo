@@ -91,20 +91,16 @@ golangci-lint, SwiftLint, SwiftFormat, hadolint and buf are per-language toolcha
 with a note where the binary is missing, so a contributor touching only the design system does not
 have to install all of them; CI installs every one and runs the same commands as hard gates.
 
-**Before the first CI run, format the Swift once on a Mac**: `.swiftformat` and `.swiftlint.yml`
-landed without ever being executed, because SwiftFormat and SwiftLint only exist on macOS. Run
+SwiftFormat and SwiftLint only exist on macOS, so run them on a Mac before pushing Swift:
 
 ```bash
 swiftformat . && swiftlint --fix && swiftlint lint --strict
 ```
 
-and commit the result. Every other check in the table above was run against this tree before it
-was committed; this is the one that was not.
-
 Coverage does not gate at a fixed number yet. `tools/coverage/` holds a floor per language that can
 only go up — `tools/coverage/README.md` has today's floors and why. The `Security` workflow runs
-govulncheck, `npm audit`, OSV-Scanner (Go, npm and Swift together), Semgrep, Trivy and SonarQube Cloud
-on every pull request and every Monday.
+govulncheck, `npm audit`, OSV-Scanner (Go, npm and Swift together), Semgrep and Trivy on every pull
+request and every Monday.
 
 ## Docs
 
@@ -132,4 +128,4 @@ on every pull request and every Monday.
 | Visual rules | `my-money-recap-ds/README.md` § Design rules | — |
 | Screens | `docs/design/design_handoff_my_money_recap/` | renders (not in git) |
 | Domain vocabulary | `docs/CONTEXT.md` | — |
-| Sample ledger | the defaults in `my-money-recap-ds/src/screens/RecapScreens.tsx` | stories and design-sync previews |
+| Sample ledger | the prop defaults in `my-money-recap-ds/src/screens/` (one file per Recap screen) | stories and design-sync previews |

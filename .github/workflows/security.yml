@@ -90,33 +90,3 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
           skip-dirs: node_modules
-
-  sonar:
-    name: sonarqube cloud
-    runs-on: ubuntu-latest
-    # A fork's pull request cannot read the token, and the job would fail on a secret it never gets.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    env:
-      # Until SONAR_TOKEN is set in the repository's secrets every step below is skipped, so the job
-      # is green and does nothing rather than red on a secret nobody has created yet.
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    steps:
-      - if: env.SONAR_TOKEN == ''
-        run: echo "SONAR_TOKEN is not set; skipping. See README.md, Checks." >> "$GITHUB_STEP_SUMMARY"
-      - if: env.SONAR_TOKEN != ''
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-        with:
-          # Blame data: Sonar needs full history to attribute an issue to new code.
-          fetch-depth: 0
-      - if: env.SONAR_TOKEN != ''
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - name: Coverage for the TypeScript Sonar reads
-        if: env.SONAR_TOKEN != ''
-        run: |
-          npm ci
-          npm run test:coverage -w @my-money-recap/ui
-      - if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6

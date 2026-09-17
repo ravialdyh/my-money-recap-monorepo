@@ -37,6 +37,14 @@ packages/contract/swift/Package.resolved
 xcuserdata/
 apps/ios/build/
 
+# Local agent and editor state. .claude/launch.json holds absolute paths from whichever machine
+# wrote it, so it is meaningless anywhere else.
+.claude/
+
+# Python bytecode from tools/.
+__pycache__/
+*.pyc
+
 # Coverage output. The numbers that matter are the floors in tools/coverage/baseline.json.
 my-money-recap-ds/coverage/
 apps/backend/cover.out

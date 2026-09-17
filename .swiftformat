@@ -1,3 +1,5 @@
+# SwiftFormat owns every formatting decision. SwiftLint (.swiftlint.yml) owns correctness and repeats
+# none of it. Both cover the same files: the app, plus the contract package's hand-written manifest.
 --swiftversion 5.9
 --exclude apps/ios/DesignSystem/Tokens.swift,packages/contract/swift/Sources,**/.build,**/build
 

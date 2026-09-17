@@ -2,10 +2,11 @@ minimum_pre_commit_version: "4.0.0"
 default_install_hook_types: [pre-commit, pre-push]
 fail_fast: false
 
-# Generated and tool-owned files. The same set tools/policy/policy.json and biome.json exclude:
-# buf output, the Swift token file, the design-system generators' output, Xcode's project files,
-# the Keycloak realm export and the design-sync folder. Rewriting any of them makes CI's
-# "generated code is up to date" diff fail for a reason nobody put in a commit.
+# Files the whitespace and end-of-file hooks must not rewrite: generated output, Xcode's own files
+# and the Keycloak realm export. Nine of these carry trailing whitespace exactly as their generator
+# emits it, so a "fix" here makes CI's "generated code is up to date" diff fail for a reason nobody
+# put in a commit. This list is longer than tools/policy/policy.json's on purpose: these hooks touch
+# JSON, CSS and Markdown, which the policy checker never looks at.
 exclude: |
   (?x)^(
     apps/backend/gen/.*
@@ -88,7 +89,7 @@ repos:
 
       - id: golangci-lint
         name: golangci-lint
-        entry: tools/hooks/golangci.sh
+        entry: tools/hooks/if-installed.sh -C apps/backend golangci-lint run --fix --config ../../.golangci.yml ./...
         language: script
         types: [go]
         pass_filenames: false
