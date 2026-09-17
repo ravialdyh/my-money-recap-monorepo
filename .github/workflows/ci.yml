@@ -147,7 +147,10 @@ jobs:
         working-directory: apps/ios
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - name: SwiftFormat and SwiftLint (both ship with the runner image)
+      # SwiftFormat ships with the macOS runner image; SwiftLint does not.
+      - name: Install SwiftLint
+        run: brew install swiftlint
+      - name: SwiftFormat and SwiftLint
         working-directory: .
         run: |
           swiftformat --lint .
