@@ -37,9 +37,10 @@ ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"15000000"`), 
 reports for the currency (§8.4). A sentence that embeds an amount is written as the PRD prints it
 (`£160`, `Rp 2.600.000`).
 
-`streakDay` on a month is the run of spend-free days ending on `asOf`, counting `asOf`, which
-Home prints as "Streak day {n}" (SCREEN-STATES B6: 23 on 26 September for a 4 September sign-up
-with no Spends). `streak.days` on a Recap is the longest run inside the window (§8.5). A scalar
+`streakDay` on a month is the month's Streak so far (§8.5, the glossary's Streak): the longest
+spend-free run in the window up to `asOf`. With no Spends it is the elapsed days, which Home prints
+as "Streak day {n}" (SCREEN-STATES B6: 23 on 26 September for a 4 September sign-up). `streak.days`
+on a Recap is the same rule over the whole window. A scalar
 left out of a file is its zero value to protobuf JSON, so `partial: false` and an absent `partial`
 are the same assertion; only a message or `optional` field can be "absent".
 
@@ -57,9 +58,9 @@ are the same assertion; only a message or `optional` field can be "absent".
 | File | Proves |
 | --- | --- |
 | `prd-8.3-maya-20-september` | Maya before Payday: Spent £900, Money In £0, no Saved (§8.2, §8.3); target £480 (§8.4); Streak day 9 (§8.5); the before-Payday sentence and 11 days remaining (§8.7); the line not crossed (§8.8). |
-| `prd-8.3-maya-30-september` | Maya after Payday: Spent £1,760, Money In £2,400, Saved £640 (§8.3); the £160-a-day sentence (§8.7); the D56 sheet flag set. |
+| `prd-8.3-maya-30-september` | Maya after Payday: Spent £1,760, Money In £2,400, Saved £640 (§8.3); Streak 9 still (§8.5); the £160-a-day sentence (§8.7); the D56 sheet flag set. |
 | `prd-8.6-maya-september-recap` | Maya's September Recap on 1 October: Squirrel (§8.6), kept 133% (§8.4), Streak 9 with its window and dots (§8.5), Splurge £420 (§8.3), the Category shares (§6.13), "£160 to spare" (§8.7). |
-| `prd-8.4-budi-idr` | Budi's IDR ledger: target Rp 3.000.000 (§8.4, D45), Saved Rp 5.600.000, the §8.7 a-day sentence in rupiah. |
+| `prd-8.4-budi-idr` | Budi's IDR ledger: target Rp 3.000.000 (§8.4, D45), Saved Rp 5.600.000, Streak 6 (§8.5), the §8.7 a-day sentence in rupiah. |
 
 The remaining examples of #42 (Payday 31 and `Last day`, the §8.7 sentences, the two §8.8 copies,
 the §8.9 rewrite, the §8.10 edits, the 4 September sign-up, the 27 September Partial Recap, and the

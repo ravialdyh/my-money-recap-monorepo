@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.4 and D45, Budi's IDR ledger on 30 September: target Rp 15.000.000 × 20 ÷ 100 = Rp 3.000.000; Spent Rp 9.400.000, Money In Rp 15.000.000 (§8.2), Saved Rp 5.600.000 (§8.3); Streak day 2 (§8.5); allowance floor((15.000.000 − 3.000.000 − 9.400.000) ÷ 1) (§8.7); under the line (§8.8).",
+  "doc": "PRD §8.4 and D45, Budi's IDR ledger on 30 September: target Rp 15.000.000 × 20 ÷ 100 = Rp 3.000.000; Spent Rp 9.400.000, Money In Rp 15.000.000 (§8.2), Saved Rp 5.600.000 (§8.3); Streak 6, the 9th to the 14th (§8.5); allowance floor((15.000.000 − 3.000.000 − 9.400.000) ÷ 1) (§8.7); under the line (§8.8).",
   "timezone": "Asia/Jakarta",
   "signedUpOn": "2026-08-01",
   "currencyCode": "IDR",
@@ -118,7 +118,7 @@
         },
         "progressSentence": "Keep spending under Rp 2.600.000 a day and you'll make it."
       },
-      "streakDay": 2,
+      "streakDay": 6,
       "daysRemaining": 1,
       "partial": false
     }

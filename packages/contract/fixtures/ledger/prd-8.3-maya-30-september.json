@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.3, Maya on 30 September: Spent £1,760, Money In £2,400 (§8.2), Saved £640; target £480 (§8.4); Streak day 1 after the 29th's Spend (§8.5); 1 day remaining, allowance floor((2,400 − 480 − 1,760) ÷ 1) = £160 (§8.7); under the line (§8.8).",
+  "doc": "PRD §8.3, Maya on 30 September: Spent £1,760, Money In £2,400 (§8.2), Saved £640; target £480 (§8.4); Streak 9, the 12th to the 20th (§8.5); 1 day remaining, allowance floor((2,400 − 480 − 1,760) ÷ 1) = £160 (§8.7); under the line (§8.8).",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",
@@ -157,7 +157,7 @@
         },
         "progressSentence": "Keep spending under £160 a day and you'll make it."
       },
-      "streakDay": 1,
+      "streakDay": 9,
       "daysRemaining": 1,
       "partial": false
     }
