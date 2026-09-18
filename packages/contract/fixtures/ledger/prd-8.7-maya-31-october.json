@@ -1,0 +1,74 @@
+{
+  "doc": "PRD §8.7, Maya on 31 October with one £500 Spend on the 5th: days remaining = 31 − 31 + 1 = 1, never 0; Money In £2,400 (Payday 25 passed, §8.2), Saved £1,900 (§8.3); on track since 500 ≤ 2,400 − 480, allowance floor((2,400 − 480 − 500) ÷ 1) = £1,420; Streak 26, the 6th to the 31st (§8.5).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [
+    {
+      "id": "maya-oct-01",
+      "amount": {
+        "amount": "500.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "500.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_BILLS",
+      "date": "2026-10-05"
+    }
+  ],
+  "asOf": "2026-10-31",
+  "months": [
+    {
+      "month": "2026-10",
+      "spent": {
+        "amount": "500.00",
+        "currencyCode": "GBP"
+      },
+      "moneyIn": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "saved": {
+        "amount": "1900.00",
+        "currencyCode": "GBP"
+      },
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "480.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Keep spending under £1,420 a day and you'll make it."
+      },
+      "streakDay": 26,
+      "daysRemaining": 1,
+      "partial": false
+    }
+  ]
+}

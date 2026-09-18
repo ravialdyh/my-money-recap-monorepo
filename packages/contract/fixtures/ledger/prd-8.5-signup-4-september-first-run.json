@@ -1,0 +1,56 @@
+{
+  "doc": "PRD §8.5 and D43, a Member who signs up on 4 September, read that day with no Spends: the window is max(1 September, 4 September) = 4 September to today, 1 elapsed day, so Home reads \"Streak day 1\", not \"Streak day 4\" (acceptance 11, SCREEN-STATES A8); Money In £0 with Payday 25 still 21 days ahead (§8.2), target £2,400 × 20 ÷ 100 = £480 (§8.4), days remaining 30 − 4 + 1 = 27 (§8.7); not partial, the 25th is still ahead (§8.11).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-09-04",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "spends": [],
+  "asOf": "2026-09-04",
+  "months": [
+    {
+      "month": "2026-09",
+      "spent": {
+        "amount": "0.00",
+        "currencyCode": "GBP"
+      },
+      "moneyIn": {
+        "amount": "0.00",
+        "currencyCode": "GBP"
+      },
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 21
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "480.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Nothing to keep yet. Your salary lands on the 25th."
+      },
+      "streakDay": 1,
+      "daysRemaining": 27,
+      "partial": false
+    }
+  ]
+}
