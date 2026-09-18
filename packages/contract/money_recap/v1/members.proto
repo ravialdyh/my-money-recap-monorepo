@@ -34,7 +34,8 @@ message Profile {
 message GetOrCreateBySubjectRequest {
   // The Keycloak subject claim.
   string subject = 1;
-  // The token's email claim.
+  // Must equal the token's email claim, or the call is permission_denied;
+  // members stores the claim itself (ARCHITECTURE §7.1).
   string email = 2;
 }
 

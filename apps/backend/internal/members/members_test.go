@@ -126,24 +126,38 @@ func TestConnectBoundary(t *testing.T) {
 	}
 	t.Logf("first and second call: member id %s", first.MemberId)
 
-	third, err := getOrCreate(authed, sub, "renamed@example.com")
+	storedEmail := func() string {
+		var stored string
+		if err := db.QueryRow(ctx, `SELECT email FROM member WHERE id = $1`, first.MemberId).Scan(&stored); err != nil {
+			t.Fatal(err)
+		}
+		return stored
+	}
+	if _, err := db.Exec(ctx, `UPDATE member SET email = 'stale@example.com' WHERE id = $1`, first.MemberId); err != nil {
+		t.Fatal(err)
+	}
+	third, err := getOrCreate(authed, sub, email)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var stored string
-	if err := db.QueryRow(ctx, `SELECT email FROM member WHERE id = $1`, first.MemberId).Scan(&stored); err != nil {
-		t.Fatal(err)
+	if stored := storedEmail(); third.MemberId != first.MemberId || third.Email != email || stored != email {
+		t.Fatalf("email refresh: response %v, stored %q, want the token's %q", third, stored, email)
 	}
-	if third.MemberId != first.MemberId || third.Email != "renamed@example.com" || stored != "renamed@example.com" {
-		t.Fatalf("email refresh: response %v, stored %q", third, stored)
+	t.Logf("stale email refreshed to the token's claim %q", email)
+
+	_, err = getOrCreate(authed, sub, "someone-else@example.com")
+	if connect.CodeOf(err) != connect.CodePermissionDenied || !strings.Contains(err.Error(), "email does not match the token") {
+		t.Errorf("email mismatch: %v, want permission_denied", err)
 	}
-	t.Logf("different email: stored email is now %q", stored)
+	if stored := storedEmail(); stored != email {
+		t.Errorf("email mismatch stored %q, want %q unchanged", stored, email)
+	}
 
 	prof, err := authed.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: first.MemberId}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if p := prof.Msg.Profile; p.MemberId != first.MemberId || p.Email != "renamed@example.com" || p.DisplayName != "" || p.Timezone != "" {
+	if p := prof.Msg.Profile; p.MemberId != first.MemberId || p.Email != email || p.DisplayName != "" || p.Timezone != "" {
 		t.Fatalf("GetProfile: %v", p)
 	}
 	t.Logf("GetProfile: %v", prof.Msg.Profile)

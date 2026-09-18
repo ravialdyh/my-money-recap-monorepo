@@ -78,7 +78,8 @@ public nonisolated struct MoneyRecap_V1_GetOrCreateBySubjectRequest: Sendable {
   /// The Keycloak subject claim.
   public var subject: String = String()
 
-  /// The token's email claim.
+  /// Must equal the token's email claim, or the call is permission_denied;
+  /// members stores the claim itself (ARCHITECTURE §7.1).
   public var email: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

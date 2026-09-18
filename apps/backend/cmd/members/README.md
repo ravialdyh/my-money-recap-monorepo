@@ -44,8 +44,9 @@ Call it with a token for the realm's test user (`infra/compose/README.md`, "Try 
 curl -s http://localhost:8081/money_recap.v1.MembersService/GetOrCreateBySubject -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"subject":"<the token sub>","email":"test@example.com"}'
 ```
 
-The subject in the request must be the token's own `sub`; anything else is `permission_denied`, and
-`GetProfile` answers `not_found` for a Member the token does not name.
+The subject and email in the request must be the token's own `sub` and `email` claim; anything else
+is `permission_denied`, and the claim is what gets stored. `GetProfile` answers `not_found` for a
+Member the token does not name.
 
 ## Migrations
 

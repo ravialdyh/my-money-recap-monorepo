@@ -98,10 +98,14 @@ type Service struct {
 }
 
 func (s *Service) GetOrCreateBySubject(ctx context.Context, req *connect.Request[moneyrecapv1.GetOrCreateBySubjectRequest]) (*connect.Response[moneyrecapv1.GetOrCreateBySubjectResponse], error) {
-	if req.Msg.Subject != auth.From(ctx).Subject {
+	claims := auth.From(ctx)
+	if req.Msg.Subject != claims.Subject {
 		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("subject does not match the token"))
 	}
-	m, err := Upsert(ctx, s.DB, req.Msg.Subject, req.Msg.Email)
+	if req.Msg.Email != claims.Email {
+		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("email does not match the token"))
+	}
+	m, err := Upsert(ctx, s.DB, claims.Subject, claims.Email)
 	if err != nil {
 		return nil, err
 	}

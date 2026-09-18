@@ -147,7 +147,8 @@ type GetOrCreateBySubjectRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The Keycloak subject claim.
 	Subject string `protobuf:"bytes,1,opt,name=subject,proto3" json:"subject,omitempty"`
-	// The token's email claim.
+	// Must equal the token's email claim, or the call is permission_denied;
+	// members stores the claim itself (ARCHITECTURE §7.1).
 	Email         string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
