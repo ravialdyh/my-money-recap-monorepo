@@ -1,7 +1,9 @@
 package members
 
 import (
+	"bytes"
 	"context"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -133,6 +135,10 @@ func TestTheCallersDeadlineOrCancelIsNotAStoreFailure(t *testing.T) {
 	defer stop()
 	cancelled, cancel := context.WithCancel(claims)
 	cancel()
+	var logged bytes.Buffer
+	prev := log.Writer()
+	log.SetOutput(&logged)
+	t.Cleanup(func() { log.SetOutput(prev) })
 	for want, ctx := range map[connect.Code]context.Context{connect.CodeDeadlineExceeded: expired, connect.CodeCanceled: cancelled} {
 		_, createErr := s.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: "sub-1", Email: "test@example.com"}))
 		_, profileErr := s.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: "00000000-0000-0000-0000-000000000001"}))
@@ -141,6 +147,9 @@ func TestTheCallersDeadlineOrCancelIsNotAStoreFailure(t *testing.T) {
 				t.Errorf("%s: %v, want %v", name, err, want)
 			}
 		}
+	}
+	if strings.Contains(logged.String(), "members store:") {
+		t.Errorf("logged the caller's own deadline or cancel as a store failure: %q", logged.String())
 	}
 }
 
