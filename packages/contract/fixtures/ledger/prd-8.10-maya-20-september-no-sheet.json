@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.10 and D56, Maya edits £2,400 → £2,800 on 20 September, before Payday 25: no sheet (payday_passed_this_month is false), so applies_from is left UNSPECIFIED, which before the effective Payday means THIS_MONTH, and the row is effective from September. Money In is still £0 until the 25th (§8.2), the target becomes £2,800 × 20 ÷ 100 = £560 (§8.4) and the before-Payday sentence holds (§8.7); Spent £900, Streak 9 (§8.5), days remaining 11.",
+  "doc": "PRD §8.10 and D56, Maya edits £2,400 → £2,800 on 20 September, before Payday 25: no sheet (paydayPassedThisMonth is false), so appliesFrom is left UNSPECIFIED, which before the effective Payday means THIS_MONTH, and the row is effective from September. Money In is still £0 until the 25th (§8.2), the target becomes £2,800 × 20 ÷ 100 = £560 (§8.4) and the before-Payday sentence holds (§8.7); Spent £900, Streak 9 (§8.5), days remaining 11.",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",
