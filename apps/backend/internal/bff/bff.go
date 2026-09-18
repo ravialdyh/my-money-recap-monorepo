@@ -15,39 +15,32 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// MonthSummary is what ledger.GetMonthSummary will answer (§7.2): every figure Home shows for
-// one month. Money fields with an empty currency code are stamped with the Member's currency.
-type MonthSummary struct {
-	Spent, MoneyIn *moneyrecapv1.Money
-	Saved          *moneyrecapv1.Money
-	Salary         *moneyrecapv1.SalaryFacts
-	SavingTarget   *moneyrecapv1.SavingTargetFacts
-	StreakDay      int32
-	RecapMonths    []*moneyrecapv1.RecapMonth
-}
-
-// Ledger is the slice of §7.2 that GetHome needs; a Connect client replaces the stub in slice 5.
+// Ledger is the slice of moneyrecapv1connect.LedgerServiceClient that GetHome needs (§7.2); the
+// generated client replaces the stub in slice 5. Money with an empty currency code is stamped by GetHome.
 type Ledger interface {
-	GetMonthSummary(ctx context.Context, memberID, month string) (MonthSummary, error)
+	GetMonthSummary(ctx context.Context, req *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error)
 }
 
-// Notify is the slice of §7.3 that GetHome needs; a Connect client replaces the stub in slice 7.
+// Notify is the slice of moneyrecapv1connect.NotifyServiceClient that GetHome needs (§7.3); the
+// generated client replaces the stub in slice 7.
 type Notify interface {
-	GetWarningState(ctx context.Context, memberID, month string) (*moneyrecapv1.TargetWarning, error)
+	GetWarningState(ctx context.Context, req *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error)
 }
 
 // StubLedger answers zeros: nothing spent, nothing in, no Saved, no Salary, no target, streak day 1.
 type StubLedger struct{}
 
-func (StubLedger) GetMonthSummary(context.Context, string, string) (MonthSummary, error) {
-	return MonthSummary{Spent: &moneyrecapv1.Money{Amount: "0"}, MoneyIn: &moneyrecapv1.Money{Amount: "0"}, StreakDay: 1}, nil
+func (StubLedger) GetMonthSummary(context.Context, *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error) {
+	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: &moneyrecapv1.MonthSummary{
+		Spent: &moneyrecapv1.Money{Amount: "0"}, MoneyIn: &moneyrecapv1.Money{Amount: "0"}, StreakDay: 1,
+	}}), nil
 }
 
-// StubNotify answers "no warning".
+// StubNotify answers "not fired".
 type StubNotify struct{}
 
-func (StubNotify) GetWarningState(context.Context, string, string) (*moneyrecapv1.TargetWarning, error) {
-	return nil, nil
+func (StubNotify) GetWarningState(context.Context, *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error) {
+	return connect.NewResponse(&moneyrecapv1.GetWarningStateResponse{}), nil
 }
 
 // Service implements BffService. Every RPC runs behind auth.Interceptor; Members must carry
@@ -88,11 +81,11 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	month := now.Format(monthLayout)
 
 	var (
-		wg                       sync.WaitGroup
-		profile                  *moneyrecapv1.Profile
-		summary                  MonthSummary
-		warning                  *moneyrecapv1.TargetWarning
-		profErr, sumErr, warnErr error
+		wg                            sync.WaitGroup
+		profile                       *moneyrecapv1.Profile
+		ledgerRes                     *connect.Response[moneyrecapv1.GetMonthSummaryResponse]
+		notifyRes                     *connect.Response[moneyrecapv1.GetWarningStateResponse]
+		profErr, ledgerErr, notifyErr error
 	)
 	call := func(f func(ctx context.Context)) {
 		wg.Add(1)
@@ -109,18 +102,25 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 			profile = res.Msg.Profile
 		}
 	})
-	call(func(ctx context.Context) { summary, sumErr = s.Ledger.GetMonthSummary(ctx, memberID, month) })
-	call(func(ctx context.Context) { warning, warnErr = s.Notify.GetWarningState(ctx, memberID, month) })
+	call(func(ctx context.Context) {
+		ledgerRes, ledgerErr = s.Ledger.GetMonthSummary(ctx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: memberID, Month: month}))
+	})
+	call(func(ctx context.Context) {
+		notifyRes, notifyErr = s.Notify.GetWarningState(ctx, connect.NewRequest(&moneyrecapv1.GetWarningStateRequest{MemberId: memberID, Month: month}))
+	})
 	wg.Wait()
 	if profErr != nil {
 		return nil, profErr
 	}
-	if sumErr != nil {
-		return nil, connect.NewError(connect.CodeUnavailable, sumErr)
+	if ledgerErr != nil {
+		return nil, connect.NewError(connect.CodeUnavailable, ledgerErr)
 	}
-	if warnErr != nil {
-		logOptionalCallDegraded("notify.GetWarningState", "HomeView returned without a banner", warnErr)
-		warning = nil
+	summary := ledgerRes.Msg.GetSummary()
+	var warning *moneyrecapv1.TargetWarning
+	if notifyErr != nil {
+		logOptionalCallDegraded("notify.GetWarningState", "HomeView returned without a banner", notifyErr)
+	} else if notifyRes.Msg.GetFired() {
+		warning = summary.GetTargetWarning()
 	}
 
 	currency := profile.CurrencyCode
@@ -139,15 +139,15 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		AvatarKey:     profile.AvatarKey,
 		CurrencyCode:  currency,
 		Month:         month,
-		Spent:         stamp(summary.Spent),
-		MoneyIn:       stamp(summary.MoneyIn),
-		Saved:         stamp(summary.Saved),
-		Salary:        summary.Salary,
-		SavingTarget:  summary.SavingTarget,
-		StreakDay:     summary.StreakDay,
+		Spent:         stamp(summary.GetSpent()),
+		MoneyIn:       stamp(summary.GetMoneyIn()),
+		Saved:         stamp(summary.GetSaved()),
+		Salary:        summary.GetSalary(),
+		SavingTarget:  summary.GetSavingTarget(),
+		StreakDay:     summary.GetStreakDay(),
 		DaysRemaining: daysRemainingInclusive(now, firstOfNext),
 		TargetWarning: warning,
-		RecapMonths:   summary.RecapMonths,
+		RecapMonths:   ledgerRes.Msg.GetRecapMonths(),
 		FirstRecapOn:  firstOfNext.Format(dateLayout),
 	}}), nil
 }
@@ -159,6 +159,7 @@ func logOptionalCallDegraded(call, consequence string, err error) {
 }
 
 // daysRemainingInclusive counts today as one, so the last day of the month answers 1 (PRD §8.7).
+// Slice 5 reads MonthSummary.days_remaining, computed by ledger in the Member's zone (A2, A3), instead.
 func daysRemainingInclusive(now, firstOfNext time.Time) int32 {
 	return int32(firstOfNext.AddDate(0, 0, -1).Day() - now.Day() + 1)
 }
