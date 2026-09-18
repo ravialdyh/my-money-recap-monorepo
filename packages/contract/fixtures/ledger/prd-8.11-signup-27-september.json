@@ -1,0 +1,161 @@
+{
+  "doc": "PRD §8.11 and D52, a Member who signs up on 27 September with Payday 25 and no Saving Target, read on 1 October: September's effective payday, the 25th, fell before sign-up, so September is partial: Money In £0, no Saved, no Archetype, the §6.17 screens with \"Your first 4 days\" over £200 and 4 spends (acceptance 12); the closing line names the first full Recap, October's on 1 November. Window 27 to 30 September with a Spend every day, Streak 0 (§8.5, D43); Splurge £70 on the 27th (§8.3); shares 35, 30, 20, 15 (§6.13); screen 3 names the Payday, so the Salary is carried (D55).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-09-27",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "savingTargets": [],
+  "spends": [
+    {
+      "id": "sept27-01",
+      "amount": {
+        "amount": "70.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "70.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-27"
+    },
+    {
+      "id": "sept27-02",
+      "amount": {
+        "amount": "60.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "60.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_RIDES",
+      "date": "2026-09-28"
+    },
+    {
+      "id": "sept27-03",
+      "amount": {
+        "amount": "40.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "40.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GAMES",
+      "date": "2026-09-29"
+    },
+    {
+      "id": "sept27-04",
+      "amount": {
+        "amount": "30.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "30.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GIFTS",
+      "date": "2026-09-30"
+    }
+  ],
+  "asOf": "2026-10-01",
+  "recaps": [
+    {
+      "month": "2026-09",
+      "situation": "PARTIAL_SITUATION_SIGN_UP_MONTH",
+      "moneyIn": {
+        "amount": "0.00",
+        "currencyCode": "GBP"
+      },
+      "spent": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "spendCount": 4,
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "streak": {
+        "days": 0,
+        "windowStart": "2026-09-27",
+        "windowEnd": "2026-09-30",
+        "spendFreeDays": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "badgeUnlocked": false
+      },
+      "categories": [
+        {
+          "category": "CATEGORY_SNACKS",
+          "amount": {
+            "amount": "70.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 35,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_RIDES",
+          "amount": {
+            "amount": "60.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 30,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_GAMES",
+          "amount": {
+            "amount": "40.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 20,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_GIFTS",
+          "amount": {
+            "amount": "30.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 15,
+          "spendCount": 1
+        }
+      ],
+      "splurge": {
+        "id": "sept27-01",
+        "amount": {
+          "amount": "70.00",
+          "currencyCode": "GBP"
+        },
+        "originalAmount": {
+          "amount": "70.00",
+          "currencyCode": "GBP"
+        },
+        "category": "CATEGORY_SNACKS",
+        "date": "2026-09-27"
+      },
+      "archetypeName": "",
+      "archetypeDescription": "",
+      "closingLine": "Your first full recap arrives on 1 November."
+    }
+  ]
+}

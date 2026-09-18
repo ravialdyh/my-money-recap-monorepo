@@ -21,10 +21,29 @@ const fixtureDir = "../../../../packages/contract/fixtures/ledger"
 // manifest names every fixture the folder must hold, alphabetically, one line per PRD example; a
 // file without a line, or a line without a file, fails TestFixturesMatchManifest.
 var manifest = []string{
+	"prd-12.4-idr-salary-10th",
+	"prd-12.4-idr-salary-25th",
+	"prd-12.5-idr-warning-fires",
+	"prd-12.5-idr-warning-fires-once",
+	"prd-12.6-squirrel-kept-116",
+	"prd-8.10-maya-20-september-no-sheet",
+	"prd-8.10-maya-27-september-next-month",
+	"prd-8.10-maya-27-september-this-month",
+	"prd-8.11-signup-27-september",
+	"prd-8.2-payday-31-across-months",
+	"prd-8.2-payday-last-across-months",
 	"prd-8.3-maya-20-september",
 	"prd-8.3-maya-30-september",
 	"prd-8.4-budi-idr",
+	"prd-8.5-signup-4-september-first-run",
+	"prd-8.5-signup-4-september-recap",
 	"prd-8.6-maya-september-recap",
+	"prd-8.7-maya-1-october",
+	"prd-8.7-maya-300-over",
+	"prd-8.7-maya-31-october",
+	"prd-8.8-maya-20-september-before-payday",
+	"prd-8.8-maya-27-october-after-payday",
+	"prd-8.9-maya-gbp-to-idr",
 }
 
 // amountPattern is PRD D57: a decimal string with at most 11 digits before the separator.

@@ -1,0 +1,151 @@
+{
+  "doc": "PRD §8.10 and D56, Maya edits £2,400 → £2,800 on 20 September, before Payday 25: no sheet (paydayPassedThisMonth is false), so appliesFrom is left UNSPECIFIED, which before the effective Payday means THIS_MONTH, and the row is effective from September. Money In is still £0 until the 25th (§8.2), the target becomes £2,800 × 20 ÷ 100 = £560 (§8.4) and the before-Payday sentence holds (§8.7); Spent £900, Streak 9 (§8.5), days remaining 11.",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [
+    {
+      "id": "maya-01",
+      "amount": {
+        "amount": "300.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "300.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_BILLS",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "maya-02",
+      "amount": {
+        "amount": "150.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "150.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-06"
+    },
+    {
+      "id": "maya-03",
+      "amount": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_RIDES",
+      "date": "2026-09-09"
+    },
+    {
+      "id": "maya-04",
+      "amount": {
+        "amount": "250.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "250.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GAMES",
+      "date": "2026-09-11"
+    }
+  ],
+  "asOf": "2026-09-20",
+  "saveSalary": {
+    "amount": {
+      "amount": "2800.00",
+      "currencyCode": "GBP"
+    },
+    "payday": "25"
+  },
+  "months": [
+    {
+      "month": "2026-09",
+      "spent": {
+        "amount": "900.00",
+        "currencyCode": "GBP"
+      },
+      "moneyIn": {
+        "amount": "0.00",
+        "currencyCode": "GBP"
+      },
+      "salary": {
+        "amount": {
+          "amount": "2800.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 5
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "560.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Nothing to keep yet. Your salary lands on the 25th."
+      },
+      "streakDay": 9,
+      "daysRemaining": 11,
+      "partial": false
+    }
+  ],
+  "settings": {
+    "salary": {
+      "amount": {
+        "amount": "2800.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-09"
+    },
+    "savingTarget": {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    },
+    "paydayPassedThisMonth": false,
+    "currencyCode": "GBP",
+    "hasAmountsToConvert": true
+  },
+  "salariesAfter": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    },
+    {
+      "amount": {
+        "amount": "2800.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-09"
+    }
+  ]
+}

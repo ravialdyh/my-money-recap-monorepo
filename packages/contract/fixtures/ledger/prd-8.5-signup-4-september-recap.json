@@ -1,0 +1,224 @@
+{
+  "doc": "PRD §8.5 and D43, the 4 September sign-up's September Recap read on 1 October: window 4 to 30 September, first Spend on the 10th, so the Streak is the 4th to the 9th, 6 days, not 9 (acceptance 11); later Spends every fifth day keep every other run at 4. Spent £1,000, Money In £2,400 (Payday 25 passed, §8.2), Saved £1,400 (§8.3); target £480 (§8.4), kept round(1,400 ÷ 480 × 100) = 292 (§8.4); Saved ≥ target and Streak 6 < 7 → Hustler (§8.6); past month met, £1,400 − £480 = £920 to spare (§8.7); Splurge £300 on the 10th (§8.3); shares 30, 25, 20, 15, 10 (§6.13).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-09-04",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "spends": [
+    {
+      "id": "sept4-01",
+      "amount": {
+        "amount": "300.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "300.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_BILLS",
+      "date": "2026-09-10"
+    },
+    {
+      "id": "sept4-02",
+      "amount": {
+        "amount": "150.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "150.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-15"
+    },
+    {
+      "id": "sept4-03",
+      "amount": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_RIDES",
+      "date": "2026-09-20"
+    },
+    {
+      "id": "sept4-04",
+      "amount": {
+        "amount": "250.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "250.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GAMES",
+      "date": "2026-09-25"
+    },
+    {
+      "id": "sept4-05",
+      "amount": {
+        "amount": "100.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "100.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_CLOTHES",
+      "date": "2026-09-30"
+    }
+  ],
+  "asOf": "2026-10-01",
+  "recaps": [
+    {
+      "month": "2026-09",
+      "moneyIn": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "spent": {
+        "amount": "1000.00",
+        "currencyCode": "GBP"
+      },
+      "saved": {
+        "amount": "1400.00",
+        "currencyCode": "GBP"
+      },
+      "spendCount": 5,
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "480.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Target met. £920 to spare."
+      },
+      "keptPercent": 292,
+      "streak": {
+        "days": 6,
+        "windowStart": "2026-09-04",
+        "windowEnd": "2026-09-30",
+        "spendFreeDays": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          false
+        ],
+        "badgeUnlocked": false
+      },
+      "categories": [
+        {
+          "category": "CATEGORY_BILLS",
+          "amount": {
+            "amount": "300.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 30,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_GAMES",
+          "amount": {
+            "amount": "250.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 25,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_RIDES",
+          "amount": {
+            "amount": "200.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 20,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_SNACKS",
+          "amount": {
+            "amount": "150.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 15,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_CLOTHES",
+          "amount": {
+            "amount": "100.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 10,
+          "spendCount": 1
+        }
+      ],
+      "splurge": {
+        "id": "sept4-01",
+        "amount": {
+          "amount": "300.00",
+          "currencyCode": "GBP"
+        },
+        "originalAmount": {
+          "amount": "300.00",
+          "currencyCode": "GBP"
+        },
+        "category": "CATEGORY_BILLS",
+        "date": "2026-09-10"
+      },
+      "archetype": "ARCHETYPE_HUSTLER",
+      "archetypeName": "Hustler",
+      "archetypeDescription": "You hit your number while still living a little.",
+      "closingLine": ""
+    }
+  ]
+}

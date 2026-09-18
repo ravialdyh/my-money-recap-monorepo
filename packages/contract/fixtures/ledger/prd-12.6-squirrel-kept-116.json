@@ -1,0 +1,196 @@
+{
+  "doc": "PRD §12 criterion 6, read on 1 October: Money In £36, Spent £11 across Snacks 5 (two Spends, £3 and £2, both on the 3rd), Games 4, Toys 2, target 60% → £36 × 60 ÷ 100 = £21.60 (§8.4); Saved £25 (§8.3); kept round(25 ÷ 21.60 × 100) = round(115.7) = 116 (§8.4); Streak 9, the 12th to the 20th and the 22nd to the 30th (§8.5); Saved ≥ target and Streak ≥ 7 → Squirrel (§8.6); Splurge £4 on Games, the largest single Spend now that Snacks is two rows (§8.3); shares round(5 ÷ 11 × 100) = 45, 36, 18 (§6.13); past month met, £25 − £21.60 = £3.40 to spare (§8.7).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "36.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 60,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [
+    {
+      "id": "sq-01",
+      "amount": {
+        "amount": "3.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "3.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "sq-04",
+      "amount": {
+        "amount": "2.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "2.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "sq-02",
+      "amount": {
+        "amount": "4.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "4.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GAMES",
+      "date": "2026-09-11"
+    },
+    {
+      "id": "sq-03",
+      "amount": {
+        "amount": "2.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "2.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_TOYS",
+      "date": "2026-09-21"
+    }
+  ],
+  "asOf": "2026-10-01",
+  "recaps": [
+    {
+      "month": "2026-09",
+      "moneyIn": {
+        "amount": "36.00",
+        "currencyCode": "GBP"
+      },
+      "spent": {
+        "amount": "11.00",
+        "currencyCode": "GBP"
+      },
+      "saved": {
+        "amount": "25.00",
+        "currencyCode": "GBP"
+      },
+      "spendCount": 4,
+      "salary": {
+        "amount": {
+          "amount": "36.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "savingTarget": {
+        "percent": 60,
+        "amount": {
+          "amount": "21.60",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Target met. £3.40 to spare."
+      },
+      "keptPercent": 116,
+      "streak": {
+        "days": 9,
+        "windowStart": "2026-09-01",
+        "windowEnd": "2026-09-30",
+        "spendFreeDays": [
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "badgeUnlocked": true
+      },
+      "categories": [
+        {
+          "category": "CATEGORY_SNACKS",
+          "amount": {
+            "amount": "5.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 45,
+          "spendCount": 2
+        },
+        {
+          "category": "CATEGORY_GAMES",
+          "amount": {
+            "amount": "4.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 36,
+          "spendCount": 1
+        },
+        {
+          "category": "CATEGORY_TOYS",
+          "amount": {
+            "amount": "2.00",
+            "currencyCode": "GBP"
+          },
+          "percent": 18,
+          "spendCount": 1
+        }
+      ],
+      "splurge": {
+        "id": "sq-02",
+        "amount": {
+          "amount": "4.00",
+          "currencyCode": "GBP"
+        },
+        "originalAmount": {
+          "amount": "4.00",
+          "currencyCode": "GBP"
+        },
+        "category": "CATEGORY_GAMES",
+        "date": "2026-09-11"
+      },
+      "archetype": "ARCHETYPE_SQUIRREL",
+      "archetypeName": "Squirrel",
+      "archetypeDescription": "You stashed more than you meant to, and you didn't crack once.",
+      "closingLine": ""
+    }
+  ]
+}

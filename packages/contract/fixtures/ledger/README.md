@@ -61,7 +61,26 @@ are the same assertion; only a message or `optional` field can be "absent".
 | `prd-8.3-maya-30-september` | Maya after Payday: Spent £1,760, Money In £2,400, Saved £640 (§8.3); Streak 9 still (§8.5); the £160-a-day sentence (§8.7); the D56 sheet flag set. |
 | `prd-8.6-maya-september-recap` | Maya's September Recap on 1 October: Squirrel (§8.6), kept 133% (§8.4), Streak 9 with its window and dots (§8.5), Splurge £420 (§8.3), the Category shares (§6.13), "£160 to spare" (§8.7). |
 | `prd-8.4-budi-idr` | Budi's IDR ledger: target Rp 3.000.000 (§8.4, D45), Saved Rp 5.600.000, Streak 6 (§8.5), the §8.7 a-day sentence in rupiah. |
+| `prd-8.2-payday-31-across-months` | Payday 31 read on 29 February 2028: Money In lands on 30 September, 31 October, 28 February 2027 and 29 February 2028 (§8.2, acceptance 13); no Saving Target. |
+| `prd-8.2-payday-last-across-months` | `Last day` read on 28 February 2027: 30 September, 31 October, 28 February 2027 (§8.2, D51). |
+| `prd-8.5-signup-4-september-first-run` | Sign-up on 4 September, read that day: "Streak day 1", not 4 (§8.5, D43, acceptance 11); Payday 25 still ahead, so not partial (§8.11). |
+| `prd-8.5-signup-4-september-recap` | The same Member's September Recap: window from the 4th, Streak 6 not 9 (§8.5, acceptance 11); kept 292, Hustler (§8.6), £920 to spare (§8.7). |
+| `prd-8.7-maya-1-october` | 1 October, nothing spent: the before-Payday sentence per the rule; the paragraph's £61 a day contradicts it and is left in `doc` for the owner. |
+| `prd-8.7-maya-31-october` | 31 October: days remaining 31 − 31 + 1 = 1, never 0; £1,420 a day (§8.7); Streak 26 (§8.5). |
+| `prd-8.7-maya-300-over` | £300 over the line on 30 September: allowance max(0, −300) = £0, so the over-the-line sentence; the after-Payday warning copy and the line crossed (§8.7, §8.8). |
+| `prd-8.8-maya-20-september-before-payday` | Passing the £1,920 line on 20 September: "You've spent £2,000 of the £1,920 you meant to spend this month." (§8.8, D53). |
+| `prd-8.8-maya-27-october-after-payday` | Passing it on 27 October: "You've passed your saving line. £170 over." (§8.8, D53). |
+| `prd-8.9-maya-gbp-to-idr` | GBP → IDR at 20,150: £2,400 → Rp 48.360.000, £1,760 → Rp 35.464.000 row by row, originals untouched, 20% untouched, the preview (§8.9, acceptance 8). |
+| `prd-8.10-maya-27-september-this-month` | £2,400 → £2,800 on 27 September, "The £2,800 I was paid on 25 September": September's Money In £2,800, target £560 (§8.10, D56). |
+| `prd-8.10-maya-27-september-next-month` | The other answer, "My new salary, from 25 October": September stays at £2,400, the October row is `nextSalary` (§8.10, D56, acceptance 14). |
+| `prd-8.10-maya-20-september-no-sheet` | The edit on 20 September: `paydayPassedThisMonth` false, no sheet, so `appliesFrom` is left unspecified and the row is effective from September (§8.10, D56). |
+| `prd-8.11-signup-27-september` | Sign-up on 27 September with Payday 25: September is partial, "Your first 4 days" over £200, no Saved, no Archetype, the 1 November closing line (§8.11, D52, acceptance 12). |
+| `prd-12.4-idr-salary-10th` | Salary Rp 3.000.000, Payday 25, target 20% set on the 10th: Money In Rp 0, no Saved, target Rp 600.000, 15 days to Payday (acceptance 4). |
+| `prd-12.4-idr-salary-25th` | The same on the 25th: Money In and Saved Rp 3.000.000, Rp 400.000 a day (acceptance 4). |
+| `prd-12.5-idr-warning-fires` | Spends reaching Rp 2.400.001 on the 20th cross the Rp 2.400.000 line with the before-Payday copy (acceptance 5, §8.8). |
+| `prd-12.5-idr-warning-fires-once` | A further Spend on the 22nd does not cross again; the banner still names Spent (acceptance 5). |
+| `prd-12.6-squirrel-kept-116` | Money In £36, Spent £11 across Snacks 5, Games 4, Toys 2, target 60%, Streak 9: Squirrel, Splurge £4 on Games, kept 116 (acceptance 6). |
 
-The remaining examples of #42 (Payday 31 and `Last day`, the §8.7 sentences, the two §8.8 copies,
-the §8.9 rewrite, the §8.10 edits, the 4 September sign-up, the 27 September Partial Recap, and the
-numeric §12 criteria) arrive with #49, one file and one manifest line each.
+Two files carry an assumption slice 5 may revisit: the past months of the Payday 31 and `Last day`
+files assert `daysRemaining` 1, the §8.7 clamp applied literally to a month already over, and
+`streakDay` equal to the month's length, the no-Spends rule over a full window.

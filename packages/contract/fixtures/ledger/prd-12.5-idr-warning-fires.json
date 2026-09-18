@@ -1,0 +1,100 @@
+{
+  "doc": "PRD §12 criterion 5 and §8.8, D53: the line is Rp 3.000.000 − Rp 600.000 = Rp 2.400.000; the third Spend on 20 September takes Spent from Rp 2.000.000 to Rp 2.400.001, first past the line, so it crossed and, before the 25th, the copy is the before-Payday one. Money In Rp 0, no Saved (§8.2, D41); Streak 3, the 13th to the 15th and the 17th to the 19th (§8.5); days remaining 30 − 20 + 1 = 11 (§8.7).",
+  "timezone": "Asia/Jakarta",
+  "signedUpOn": "2026-09-10",
+  "currencyCode": "IDR",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "3000000",
+        "currencyCode": "IDR"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "spends": [
+    {
+      "id": "idr-01",
+      "amount": {
+        "amount": "1200000",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
+        "amount": "1200000",
+        "currencyCode": "IDR"
+      },
+      "category": "CATEGORY_BILLS",
+      "date": "2026-09-12"
+    },
+    {
+      "id": "idr-02",
+      "amount": {
+        "amount": "800000",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
+        "amount": "800000",
+        "currencyCode": "IDR"
+      },
+      "category": "CATEGORY_CLOTHES",
+      "date": "2026-09-16"
+    },
+    {
+      "id": "idr-03",
+      "amount": {
+        "amount": "400001",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
+        "amount": "400001",
+        "currencyCode": "IDR"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-20"
+    }
+  ],
+  "asOf": "2026-09-20",
+  "months": [
+    {
+      "month": "2026-09",
+      "spent": {
+        "amount": "2400001",
+        "currencyCode": "IDR"
+      },
+      "moneyIn": {
+        "amount": "0",
+        "currencyCode": "IDR"
+      },
+      "salary": {
+        "amount": {
+          "amount": "3000000",
+          "currencyCode": "IDR"
+        },
+        "payday": "25",
+        "daysUntilPayday": 5
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "600000",
+          "currencyCode": "IDR"
+        },
+        "progressSentence": "Nothing to keep yet. Your salary lands on the 25th."
+      },
+      "streakDay": 3,
+      "daysRemaining": 11,
+      "partial": false,
+      "targetWarning": {
+        "message": "You've spent Rp 2.400.001 of the Rp 2.400.000 you meant to spend this month."
+      }
+    }
+  ],
+  "crossedLine": true
+}

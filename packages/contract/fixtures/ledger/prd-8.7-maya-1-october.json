@@ -1,0 +1,56 @@
+{
+  "doc": "PRD §8.7, Maya on 1 October, nothing spent. The paragraph's worked figure is (2,400 − 480 − 0) ÷ 31 = £61 a day, but its first rule says before Payday the sentence is \"Nothing to keep yet. Your salary lands on the {payday}.\", and on 1 October Payday 25 is 24 days ahead (§8.2); the rule is asserted here and the £61 is left for the owner to rule on. Days remaining 31 − 1 + 1 = 31 (§8.7); Streak day 1, the elapsed days with no Spends (§8.5); target £480 (§8.4).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [],
+  "asOf": "2026-10-01",
+  "months": [
+    {
+      "month": "2026-10",
+      "spent": {
+        "amount": "0.00",
+        "currencyCode": "GBP"
+      },
+      "moneyIn": {
+        "amount": "0.00",
+        "currencyCode": "GBP"
+      },
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 24
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "480.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Nothing to keep yet. Your salary lands on the 25th."
+      },
+      "streakDay": 1,
+      "daysRemaining": 31,
+      "partial": false
+    }
+  ]
+}

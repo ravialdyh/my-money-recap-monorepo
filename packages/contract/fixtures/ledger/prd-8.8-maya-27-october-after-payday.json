@@ -1,0 +1,117 @@
+{
+  "doc": "PRD §8.8 and D53, on or after Payday: Maya's line is £1,920; a £490 Spend on 27 October takes Spent from £1,600 to £2,090, first past the line, so it crossed and the copy is \"You've passed your saving line. {over} over.\" with £2,090 − £1,920 = £170. Money In £2,400 (Payday 25 passed, §8.2), Saved £310 (§8.3); over the line, so the §8.7 sentence names the same £170; Streak 11, the 16th to the 26th (§8.5); days remaining 31 − 27 + 1 = 5.",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [
+    {
+      "id": "maya-oct-01",
+      "amount": {
+        "amount": "700.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "700.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_BILLS",
+      "date": "2026-10-02"
+    },
+    {
+      "id": "maya-oct-02",
+      "amount": {
+        "amount": "400.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "400.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_CLOTHES",
+      "date": "2026-10-09"
+    },
+    {
+      "id": "maya-oct-03",
+      "amount": {
+        "amount": "500.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "500.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GAMES",
+      "date": "2026-10-15"
+    },
+    {
+      "id": "maya-oct-04",
+      "amount": {
+        "amount": "490.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "490.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_TOYS",
+      "date": "2026-10-27"
+    }
+  ],
+  "asOf": "2026-10-27",
+  "months": [
+    {
+      "month": "2026-10",
+      "spent": {
+        "amount": "2090.00",
+        "currencyCode": "GBP"
+      },
+      "moneyIn": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "saved": {
+        "amount": "310.00",
+        "currencyCode": "GBP"
+      },
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "480.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "You're £170 past your line. Next month is a fresh start."
+      },
+      "streakDay": 11,
+      "daysRemaining": 5,
+      "partial": false,
+      "targetWarning": {
+        "message": "You've passed your saving line. £170 over."
+      }
+    }
+  ],
+  "crossedLine": true
+}

@@ -1,0 +1,73 @@
+{
+  "doc": "PRD §12 criterion 4, a Member who signs up on 10 September and sets Salary Rp 3.000.000, Payday 25, target 20%, read on the 10th: target Rp 3.000.000 × 20 ÷ 100 = Rp 600.000 (§8.4, D45); Money In Rp 0 with the Salary landing in 25 − 10 = 15 days, so no Saved (§8.2, D41) and the before-Payday sentence (§8.7); Streak day 1, the window starts at sign-up (§8.5, D43); days remaining 30 − 10 + 1 = 21.",
+  "timezone": "Asia/Jakarta",
+  "signedUpOn": "2026-09-10",
+  "currencyCode": "IDR",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "3000000",
+        "currencyCode": "IDR"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-09"
+    }
+  ],
+  "spends": [],
+  "asOf": "2026-09-10",
+  "months": [
+    {
+      "month": "2026-09",
+      "spent": {
+        "amount": "0",
+        "currencyCode": "IDR"
+      },
+      "moneyIn": {
+        "amount": "0",
+        "currencyCode": "IDR"
+      },
+      "salary": {
+        "amount": {
+          "amount": "3000000",
+          "currencyCode": "IDR"
+        },
+        "payday": "25",
+        "daysUntilPayday": 15
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "600000",
+          "currencyCode": "IDR"
+        },
+        "progressSentence": "Nothing to keep yet. Your salary lands on the 25th."
+      },
+      "streakDay": 1,
+      "daysRemaining": 21,
+      "partial": false
+    }
+  ],
+  "settings": {
+    "salary": {
+      "amount": {
+        "amount": "3000000",
+        "currencyCode": "IDR"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-09"
+    },
+    "savingTarget": {
+      "percent": 20,
+      "effectiveFrom": "2026-09"
+    },
+    "paydayPassedThisMonth": false,
+    "currencyCode": "IDR",
+    "hasAmountsToConvert": true
+  }
+}
