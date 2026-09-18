@@ -1,8 +1,8 @@
 import Connect
 import Foundation
 
-/// IOS I3's one interceptor: adds the bearer token and forces a refresh on `unauthenticated`; a refresh the realm
-/// refuses signs the Member out. A call with no fresh token fails: `unavailable` while the session holds (PRD
+/// IOS I3's one interceptor: adds the bearer token and forces a refresh on `unauthenticated`; only a refresh the
+/// realm refuses signs the Member out. A call with no fresh token fails: `unavailable` while the session holds (PRD
 /// D61), else `unauthenticated`.
 final class BearerInterceptor: UnaryInterceptor {
     private let session: AuthSession
