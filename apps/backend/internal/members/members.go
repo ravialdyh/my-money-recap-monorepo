@@ -74,12 +74,13 @@ func scanRow(r pgx.Row) (Row, error) {
 	return m, err
 }
 
-// Upsert is the one statement behind GetOrCreateBySubject: creates on first sight, refreshes the
-// email on every call, and under two concurrent first calls the unique index makes the loser update.
+// Upsert is the one statement behind GetOrCreateBySubject: creates on first sight, refreshes the email
+// on every call that carries one (an empty one keeps the stored address), and under two concurrent
+// first calls the unique index makes the loser update.
 func Upsert(ctx context.Context, db *pgxpool.Pool, subject, email string) (Row, error) {
 	return scanRow(db.QueryRow(ctx, `
 		INSERT INTO member (keycloak_subject, email) VALUES ($1, $2)
-		ON CONFLICT (keycloak_subject) DO UPDATE SET email = EXCLUDED.email
+		ON CONFLICT (keycloak_subject) DO UPDATE SET email = coalesce(nullif(EXCLUDED.email, ''), member.email)
 		RETURNING `+rowColumns, subject, email))
 }
 

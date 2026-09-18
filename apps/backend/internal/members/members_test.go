@@ -79,6 +79,26 @@ func TestConcurrentFirstCallsCreateOneRow(t *testing.T) {
 	t.Logf("%d concurrent first calls → 1 row, every call returned member id %s", n, ids[0])
 }
 
+// A Member whose email an admin cleared still refreshes a token, one without the claim; the stored
+// address must survive it (PRD §7: it addresses the magic link and the CSV export).
+func TestAnEmptyEmailClaimKeepsTheStoredAddress(t *testing.T) {
+	db := testDB(t)
+	subject := "empty-claim-" + t.Name()
+	ctx := auth.NewContext(context.Background(), auth.Claims{Subject: subject})
+	t.Cleanup(func() {
+		if _, err := db.Exec(context.Background(), `DELETE FROM member WHERE keycloak_subject = $1`, subject); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
+	if _, err := Upsert(ctx, db, subject, "kept@example.com"); err != nil {
+		t.Fatal(err)
+	}
+	res, err := (&Service{DB: db}).GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: subject}))
+	if err != nil || res.Msg.Profile.Email != "kept@example.com" {
+		t.Fatalf("empty email claim: %v, %v, want the stored kept@example.com", res, err)
+	}
+}
+
 func TestStoreFailureIsUnavailableWithoutTheDriverText(t *testing.T) {
 	ctx := auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com"})
 	db, err := pgxpool.New(ctx, "postgres://x:y@127.0.0.1:1/x?connect_timeout=1")
@@ -185,8 +205,8 @@ func TestConnectBoundary(t *testing.T) {
 	t.Logf("GetProfile: %v", prof.Msg.Profile)
 
 	other := "other-" + t.Name()
-	var otherID string
-	if err := db.QueryRow(ctx, `INSERT INTO member (keycloak_subject, email) VALUES ($1, 'other@example.com') RETURNING id`, other).Scan(&otherID); err != nil {
+	otherRow, err := Upsert(ctx, db, other, "other@example.com")
+	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
@@ -194,7 +214,7 @@ func TestConnectBoundary(t *testing.T) {
 			t.Logf("cleanup: %v", err)
 		}
 	})
-	for name, id := range map[string]string{"another Member's id": otherID, "unknown id": "00000000-0000-0000-0000-000000000001", "malformed id": "not-a-uuid"} {
+	for name, id := range map[string]string{"another Member's id": otherRow.ID, "unknown id": "00000000-0000-0000-0000-000000000001", "malformed id": "not-a-uuid"} {
 		if _, err := authed.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: id})); connect.CodeOf(err) != connect.CodeNotFound {
 			t.Errorf("GetProfile of %s: %v, want not_found", name, err)
 		}

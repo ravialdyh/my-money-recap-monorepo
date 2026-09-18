@@ -123,14 +123,14 @@ curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorizatio
 
 ## Running the Go tests against this stack
 
-The `internal/members` suite and `internal/bff`'s `TestEndToEnd` skip unless their variables are set
-(`internal/bff`'s other tests need nothing); with the stack up and the stock `.env` they are the
-values below. A non-default `.env` substitutes its own `*_HOST_PORT`s, and
+The `internal/members` tests and `internal/bff`'s `TestEndToEnd` skip unless their variables are set
+(`internal/members`' store-failure test and `internal/bff`'s other tests need nothing); with the stack
+up and the stock `.env` they are the values below. A non-default `.env` substitutes its own `*_HOST_PORT`s, and
 the passwords are whatever that `.env` holds.
 
 | Variable | Stock value | What it is |
 | --- | --- | --- |
-| `MEMBERS_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The `members` database on `POSTGRES_HOST_PORT`. Alone it enables the migration and concurrency tests. |
+| `MEMBERS_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The `members` database on `POSTGRES_HOST_PORT`. Alone it enables the migration, concurrency and empty-email-claim tests. |
 | `MEMBERS_TEST_URL` | `http://localhost:8081` | `members` on `MEMBERS_HOST_PORT`, for the Connect-boundary tests. |
 | `MEMBERS_TEST_KEYCLOAK` | `http://localhost:8080` | Keycloak on `KEYCLOAK_HOST_PORT`, where the suite mints the test user's token. |
 | `MEMBERS_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | The `test` user's password, for the password grant on the `ios` client. |
