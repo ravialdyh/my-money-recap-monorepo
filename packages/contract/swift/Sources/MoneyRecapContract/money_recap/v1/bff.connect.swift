@@ -9,12 +9,95 @@ import Connect
 import Foundation
 import SwiftProtobuf
 
-/// The only service the phone talks to (ARCHITECTURE §6).
+/// The only service the phone talks to (ARCHITECTURE §6); answers are stored
+/// whole (I4). No request carries a key: every write sends an Idempotency-Key
+/// header (I3, §6.2 step 1), which the BFF copies into the service field (A14).
 public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
+
+    /// Sent without a bearer token; 5 per email per hour, then resource_exhausted
+    /// (PRD §11, §6.3); unavailable when the email cannot be sent (§7.5).
+    @available(iOS 13, *)
+    func `requestMagicLink`(request: MoneyRecap_V1_BffServiceRequestMagicLinkRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestMagicLinkResponse>
 
     /// Home always shows the current month (PRD §6.8, D59), so no month argument.
     @available(iOS 13, *)
     func `getHome`(request: MoneyRecap_V1_GetHomeRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_GetHomeResponse>
+
+    /// One month's full or Partial Recap, or the current month's preview (D47).
+    @available(iOS 13, *)
+    func `getRecap`(request: MoneyRecap_V1_BffServiceGetRecapRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetRecapResponse>
+
+    @available(iOS 13, *)
+    func `listRecapMonths`(request: MoneyRecap_V1_BffServiceListRecapMonthsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceListRecapMonthsResponse>
+
+    @available(iOS 13, *)
+    func `listSpends`(request: MoneyRecap_V1_BffServiceListSpendsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceListSpendsResponse>
+
+    /// The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
+    /// HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
+    @available(iOS 13, *)
+    func `logSpend`(request: MoneyRecap_V1_BffServiceLogSpendRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceLogSpendResponse>
+
+    @available(iOS 13, *)
+    func `editSpend`(request: MoneyRecap_V1_BffServiceEditSpendRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceEditSpendResponse>
+
+    @available(iOS 13, *)
+    func `deleteSpend`(request: MoneyRecap_V1_BffServiceDeleteSpendRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceDeleteSpendResponse>
+
+    /// Where onboarding resumes after a force-quit (PRD §6.4).
+    @available(iOS 13, *)
+    func `getOnboardingState`(request: MoneyRecap_V1_BffServiceGetOnboardingStateRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetOnboardingStateResponse>
+
+    /// One members.SaveProfile carrying the answers and the step: one write under
+    /// the one Idempotency-Key (A14).
+    @available(iOS 13, *)
+    func `saveProfile`(request: MoneyRecap_V1_BffServiceSaveProfileRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveProfileResponse>
+
+    /// Called on every launch (A3); the answer drives the restore sheet (D60).
+    @available(iOS 13, *)
+    func `setTimezone`(request: MoneyRecap_V1_BffServiceSetTimezoneRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSetTimezoneResponse>
+
+    @available(iOS 13, *)
+    func `getSettings`(request: MoneyRecap_V1_BffServiceGetSettingsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetSettingsResponse>
+
+    /// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
+    /// failed_precondition when the sheet should have opened.
+    @available(iOS 13, *)
+    func `saveSalary`(request: MoneyRecap_V1_BffServiceSaveSalaryRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveSalaryResponse>
+
+    /// ledger.SaveTarget; effective from next month (D65). failed_precondition
+    /// without a Salary (D44).
+    @available(iOS 13, *)
+    func `saveTarget`(request: MoneyRecap_V1_BffServiceSaveTargetRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveTargetResponse>
+
+    /// currency.Quote then ledger.PreviewConversion; unavailable when the rate
+    /// fetch fails, the Retry InlineError (PRD §8.9 step 1).
+    @available(iOS 13, *)
+    func `previewCurrencyChange`(request: MoneyRecap_V1_BffServicePreviewCurrencyChangeRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServicePreviewCurrencyChangeResponse>
+
+    /// ledger.ApplyCurrencyConversion, or members.SaveProfile when there is
+    /// nothing to convert (PRD §8.9 steps 2 and 4).
+    @available(iOS 13, *)
+    func `changeCurrency`(request: MoneyRecap_V1_BffServiceChangeCurrencyRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceChangeCurrencyResponse>
+
+    @available(iOS 13, *)
+    func `saveNotificationPrefs`(request: MoneyRecap_V1_BffServiceSaveNotificationPrefsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveNotificationPrefsResponse>
+
+    @available(iOS 13, *)
+    func `registerDevice`(request: MoneyRecap_V1_BffServiceRegisterDeviceRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRegisterDeviceResponse>
+
+    /// ledger.ExportCSV then notify.EmailExport (§7.3). failed_precondition with
+    /// EmailBounced is the §6.16 InlineError offering Profile.
+    @available(iOS 13, *)
+    func `requestExport`(request: MoneyRecap_V1_BffServiceRequestExportRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestExportResponse>
+
+    /// Stamps the request; the phone signs out on the answer (§7.1 step 1).
+    @available(iOS 13, *)
+    func `requestDeletion`(request: MoneyRecap_V1_BffServiceRequestDeletionRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestDeletionResponse>
+
+    /// Clears the stamp inside the 24-hour window (§7.1 step 2, D60).
+    @available(iOS 13, *)
+    func `cancelDeletion`(request: MoneyRecap_V1_BffServiceCancelDeletionRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceCancelDeletionResponse>
 }
 
 /// Concrete implementation of `MoneyRecap_V1_BffServiceClientInterface`.
@@ -26,13 +109,133 @@ public final class MoneyRecap_V1_BffServiceClient: MoneyRecap_V1_BffServiceClien
     }
 
     @available(iOS 13, *)
+    public func `requestMagicLink`(request: MoneyRecap_V1_BffServiceRequestMagicLinkRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestMagicLinkResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/RequestMagicLink", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
     public func `getHome`(request: MoneyRecap_V1_GetHomeRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_GetHomeResponse> {
         return await self.client.unary(path: "/money_recap.v1.BffService/GetHome", idempotencyLevel: .unknown, request: request, headers: headers)
     }
 
+    @available(iOS 13, *)
+    public func `getRecap`(request: MoneyRecap_V1_BffServiceGetRecapRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetRecapResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/GetRecap", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `listRecapMonths`(request: MoneyRecap_V1_BffServiceListRecapMonthsRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceListRecapMonthsResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/ListRecapMonths", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `listSpends`(request: MoneyRecap_V1_BffServiceListSpendsRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceListSpendsResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/ListSpends", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `logSpend`(request: MoneyRecap_V1_BffServiceLogSpendRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceLogSpendResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/LogSpend", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `editSpend`(request: MoneyRecap_V1_BffServiceEditSpendRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceEditSpendResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/EditSpend", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `deleteSpend`(request: MoneyRecap_V1_BffServiceDeleteSpendRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceDeleteSpendResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/DeleteSpend", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `getOnboardingState`(request: MoneyRecap_V1_BffServiceGetOnboardingStateRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetOnboardingStateResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/GetOnboardingState", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `saveProfile`(request: MoneyRecap_V1_BffServiceSaveProfileRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveProfileResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/SaveProfile", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `setTimezone`(request: MoneyRecap_V1_BffServiceSetTimezoneRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceSetTimezoneResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/SetTimezone", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `getSettings`(request: MoneyRecap_V1_BffServiceGetSettingsRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetSettingsResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/GetSettings", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `saveSalary`(request: MoneyRecap_V1_BffServiceSaveSalaryRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveSalaryResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/SaveSalary", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `saveTarget`(request: MoneyRecap_V1_BffServiceSaveTargetRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveTargetResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/SaveTarget", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `previewCurrencyChange`(request: MoneyRecap_V1_BffServicePreviewCurrencyChangeRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServicePreviewCurrencyChangeResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/PreviewCurrencyChange", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `changeCurrency`(request: MoneyRecap_V1_BffServiceChangeCurrencyRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceChangeCurrencyResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/ChangeCurrency", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `saveNotificationPrefs`(request: MoneyRecap_V1_BffServiceSaveNotificationPrefsRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveNotificationPrefsResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/SaveNotificationPrefs", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `registerDevice`(request: MoneyRecap_V1_BffServiceRegisterDeviceRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceRegisterDeviceResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/RegisterDevice", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `requestExport`(request: MoneyRecap_V1_BffServiceRequestExportRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestExportResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/RequestExport", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `requestDeletion`(request: MoneyRecap_V1_BffServiceRequestDeletionRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestDeletionResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/RequestDeletion", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
+    public func `cancelDeletion`(request: MoneyRecap_V1_BffServiceCancelDeletionRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceCancelDeletionResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/CancelDeletion", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
     public enum Metadata {
         public enum Methods {
+            public static let requestMagicLink = Connect.MethodSpec(name: "RequestMagicLink", service: "money_recap.v1.BffService", type: .unary)
             public static let getHome = Connect.MethodSpec(name: "GetHome", service: "money_recap.v1.BffService", type: .unary)
+            public static let getRecap = Connect.MethodSpec(name: "GetRecap", service: "money_recap.v1.BffService", type: .unary)
+            public static let listRecapMonths = Connect.MethodSpec(name: "ListRecapMonths", service: "money_recap.v1.BffService", type: .unary)
+            public static let listSpends = Connect.MethodSpec(name: "ListSpends", service: "money_recap.v1.BffService", type: .unary)
+            public static let logSpend = Connect.MethodSpec(name: "LogSpend", service: "money_recap.v1.BffService", type: .unary)
+            public static let editSpend = Connect.MethodSpec(name: "EditSpend", service: "money_recap.v1.BffService", type: .unary)
+            public static let deleteSpend = Connect.MethodSpec(name: "DeleteSpend", service: "money_recap.v1.BffService", type: .unary)
+            public static let getOnboardingState = Connect.MethodSpec(name: "GetOnboardingState", service: "money_recap.v1.BffService", type: .unary)
+            public static let saveProfile = Connect.MethodSpec(name: "SaveProfile", service: "money_recap.v1.BffService", type: .unary)
+            public static let setTimezone = Connect.MethodSpec(name: "SetTimezone", service: "money_recap.v1.BffService", type: .unary)
+            public static let getSettings = Connect.MethodSpec(name: "GetSettings", service: "money_recap.v1.BffService", type: .unary)
+            public static let saveSalary = Connect.MethodSpec(name: "SaveSalary", service: "money_recap.v1.BffService", type: .unary)
+            public static let saveTarget = Connect.MethodSpec(name: "SaveTarget", service: "money_recap.v1.BffService", type: .unary)
+            public static let previewCurrencyChange = Connect.MethodSpec(name: "PreviewCurrencyChange", service: "money_recap.v1.BffService", type: .unary)
+            public static let changeCurrency = Connect.MethodSpec(name: "ChangeCurrency", service: "money_recap.v1.BffService", type: .unary)
+            public static let saveNotificationPrefs = Connect.MethodSpec(name: "SaveNotificationPrefs", service: "money_recap.v1.BffService", type: .unary)
+            public static let registerDevice = Connect.MethodSpec(name: "RegisterDevice", service: "money_recap.v1.BffService", type: .unary)
+            public static let requestExport = Connect.MethodSpec(name: "RequestExport", service: "money_recap.v1.BffService", type: .unary)
+            public static let requestDeletion = Connect.MethodSpec(name: "RequestDeletion", service: "money_recap.v1.BffService", type: .unary)
+            public static let cancelDeletion = Connect.MethodSpec(name: "CancelDeletion", service: "money_recap.v1.BffService", type: .unary)
         }
     }
 }

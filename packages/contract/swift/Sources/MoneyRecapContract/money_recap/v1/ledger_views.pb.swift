@@ -150,9 +150,9 @@ public nonisolated struct MoneyRecap_V1_MonthSummary: @unchecked Sendable {
     set {_uniqueStorage()._partial = newValue}
   }
 
-  /// The §8.8 banner with its before-or-after-Payday copy (PRD D53), chosen
-  /// here because only ledger holds Spent, the line and Payday (§7.3). Absent
-  /// until Spent exceeds the line; the BFF shows it only once notify says fired.
+  /// The §8.8 banner copy (PRD D53), chosen here because only ledger holds
+  /// Spent, the line and Payday (§7.3). Absent until Spent exceeds the line;
+  /// notify keeps it from the moment it fires and Home shows notify's copy.
   public var targetWarning: MoneyRecap_V1_TargetWarning {
     get {_storage._targetWarning ?? MoneyRecap_V1_TargetWarning()}
     set {_uniqueStorage()._targetWarning = newValue}

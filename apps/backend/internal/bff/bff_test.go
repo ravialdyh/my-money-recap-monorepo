@@ -43,20 +43,11 @@ func (hangingNotify) GetWarningState(ctx context.Context, _ *connect.Request[mon
 	return nil, ctx.Err()
 }
 
-// firedNotify says the Target Warning fired; warningLedger carries the §8.8 copy on its month.
+// firedNotify says the Target Warning fired and carries the §8.8 copy it kept (PRD §6.8).
 type firedNotify struct{}
 
 func (firedNotify) GetWarningState(context.Context, *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error) {
-	return connect.NewResponse(&moneyrecapv1.GetWarningStateResponse{Fired: true}), nil
-}
-
-type warningLedger struct{ StubLedger }
-
-func (warningLedger) GetMonthSummary(context.Context, *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error) {
-	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: &moneyrecapv1.MonthSummary{
-		Spent: &moneyrecapv1.Money{Amount: "0"}, MoneyIn: &moneyrecapv1.Money{Amount: "0"}, StreakDay: 1,
-		TargetWarning: &moneyrecapv1.TargetWarning{Message: "You've passed your saving line."},
-	}}), nil
+	return connect.NewResponse(&moneyrecapv1.GetWarningStateResponse{Fired: true, Warning: &moneyrecapv1.TargetWarning{Message: "You've passed your saving line."}}), nil
 }
 
 func newService(t *testing.T, members *fakeMembers, notify Notify) *Service {
@@ -115,7 +106,6 @@ func TestGetHomeNotifyTimeoutStillAnswers(t *testing.T) {
 
 func TestGetHomeBannerOnlyWhenNotifySaysFired(t *testing.T) {
 	s := newService(t, &fakeMembers{}, StubNotify{})
-	s.Ledger = warningLedger{}
 	res, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
 		t.Fatal(err)

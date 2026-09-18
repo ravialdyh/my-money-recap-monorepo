@@ -21,169 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Everything Home draws (PRD §6.8), joined by the BFF (ARCHITECTURE §6.1).
-// The phone stores this message whole and never recomputes a figure (A2, I4).
-type HomeView struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Empty until onboarding; Home omits the greeting when empty.
-	DisplayName string `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	AvatarKey   string `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3" json:"avatar_key,omitempty"`
-	// ISO 4217 code every amount below is held in.
-	CurrencyCode string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	// The current Recap Month as "YYYY-MM" in the Member's local dates.
-	Month string `protobuf:"bytes,4,opt,name=month,proto3" json:"month,omitempty"`
-	// Spent so far this month (PRD §8.3).
-	Spent *Money `protobuf:"bytes,5,opt,name=spent,proto3" json:"spent,omitempty"`
-	// Money In this month (PRD §8.2).
-	MoneyIn *Money `protobuf:"bytes,6,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
-	// Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
-	Saved *Money `protobuf:"bytes,7,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
-	// Absent until a Salary is set (PRD D54).
-	Salary *SalaryFacts `protobuf:"bytes,8,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Absent until a Saving Target is set.
-	SavingTarget *SavingTargetFacts `protobuf:"bytes,9,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
-	// Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
-	StreakDay int32 `protobuf:"varint,10,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
-	// Days left in the month counting today, never below 1 (PRD §8.7).
-	DaysRemaining int32 `protobuf:"varint,11,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
-	// Absent unless the Target Warning has fired this month (PRD §8.8).
-	TargetWarning *TargetWarning `protobuf:"bytes,12,opt,name=target_warning,json=targetWarning,proto3,oneof" json:"target_warning,omitempty"`
-	// Past months with a Recap, newest first (PRD §6.8 "Recap list").
-	RecapMonths []*RecapMonth `protobuf:"bytes,13,rep,name=recap_months,json=recapMonths,proto3" json:"recap_months,omitempty"`
-	// ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
-	FirstRecapOn  string `protobuf:"bytes,14,opt,name=first_recap_on,json=firstRecapOn,proto3" json:"first_recap_on,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *HomeView) Reset() {
-	*x = HomeView{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *HomeView) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*HomeView) ProtoMessage() {}
-
-func (x *HomeView) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use HomeView.ProtoReflect.Descriptor instead.
-func (*HomeView) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *HomeView) GetDisplayName() string {
-	if x != nil {
-		return x.DisplayName
-	}
-	return ""
-}
-
-func (x *HomeView) GetAvatarKey() string {
-	if x != nil {
-		return x.AvatarKey
-	}
-	return ""
-}
-
-func (x *HomeView) GetCurrencyCode() string {
-	if x != nil {
-		return x.CurrencyCode
-	}
-	return ""
-}
-
-func (x *HomeView) GetMonth() string {
-	if x != nil {
-		return x.Month
-	}
-	return ""
-}
-
-func (x *HomeView) GetSpent() *Money {
-	if x != nil {
-		return x.Spent
-	}
-	return nil
-}
-
-func (x *HomeView) GetMoneyIn() *Money {
-	if x != nil {
-		return x.MoneyIn
-	}
-	return nil
-}
-
-func (x *HomeView) GetSaved() *Money {
-	if x != nil {
-		return x.Saved
-	}
-	return nil
-}
-
-func (x *HomeView) GetSalary() *SalaryFacts {
-	if x != nil {
-		return x.Salary
-	}
-	return nil
-}
-
-func (x *HomeView) GetSavingTarget() *SavingTargetFacts {
-	if x != nil {
-		return x.SavingTarget
-	}
-	return nil
-}
-
-func (x *HomeView) GetStreakDay() int32 {
-	if x != nil {
-		return x.StreakDay
-	}
-	return 0
-}
-
-func (x *HomeView) GetDaysRemaining() int32 {
-	if x != nil {
-		return x.DaysRemaining
-	}
-	return 0
-}
-
-func (x *HomeView) GetTargetWarning() *TargetWarning {
-	if x != nil {
-		return x.TargetWarning
-	}
-	return nil
-}
-
-func (x *HomeView) GetRecapMonths() []*RecapMonth {
-	if x != nil {
-		return x.RecapMonths
-	}
-	return nil
-}
-
-func (x *HomeView) GetFirstRecapOn() string {
-	if x != nil {
-		return x.FirstRecapOn
-	}
-	return ""
-}
-
 type GetHomeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -192,7 +29,7 @@ type GetHomeRequest struct {
 
 func (x *GetHomeRequest) Reset() {
 	*x = GetHomeRequest{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[1]
+	mi := &file_money_recap_v1_bff_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -204,7 +41,7 @@ func (x *GetHomeRequest) String() string {
 func (*GetHomeRequest) ProtoMessage() {}
 
 func (x *GetHomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[1]
+	mi := &file_money_recap_v1_bff_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -217,7 +54,7 @@ func (x *GetHomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHomeRequest.ProtoReflect.Descriptor instead.
 func (*GetHomeRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{1}
+	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{0}
 }
 
 type GetHomeResponse struct {
@@ -229,7 +66,7 @@ type GetHomeResponse struct {
 
 func (x *GetHomeResponse) Reset() {
 	*x = GetHomeResponse{}
-	mi := &file_money_recap_v1_bff_proto_msgTypes[2]
+	mi := &file_money_recap_v1_bff_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -241,7 +78,7 @@ func (x *GetHomeResponse) String() string {
 func (*GetHomeResponse) ProtoMessage() {}
 
 func (x *GetHomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_proto_msgTypes[2]
+	mi := &file_money_recap_v1_bff_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -254,7 +91,7 @@ func (x *GetHomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHomeResponse.ProtoReflect.Descriptor instead.
 func (*GetHomeResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{2}
+	return file_money_recap_v1_bff_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetHomeResponse) GetHome() *HomeView {
@@ -268,35 +105,36 @@ var File_money_recap_v1_bff_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_bff_proto_rawDesc = "" +
 	"\n" +
-	"\x18money_recap/v1/bff.proto\x12\x0emoney_recap.v1\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"\xcf\x05\n" +
-	"\bHomeView\x12!\n" +
-	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x1d\n" +
-	"\n" +
-	"avatar_key\x18\x02 \x01(\tR\tavatarKey\x12#\n" +
-	"\rcurrency_code\x18\x03 \x01(\tR\fcurrencyCode\x12\x14\n" +
-	"\x05month\x18\x04 \x01(\tR\x05month\x12+\n" +
-	"\x05spent\x18\x05 \x01(\v2\x15.money_recap.v1.MoneyR\x05spent\x120\n" +
-	"\bmoney_in\x18\x06 \x01(\v2\x15.money_recap.v1.MoneyR\amoneyIn\x120\n" +
-	"\x05saved\x18\a \x01(\v2\x15.money_recap.v1.MoneyH\x00R\x05saved\x88\x01\x01\x128\n" +
-	"\x06salary\x18\b \x01(\v2\x1b.money_recap.v1.SalaryFactsH\x01R\x06salary\x88\x01\x01\x12K\n" +
-	"\rsaving_target\x18\t \x01(\v2!.money_recap.v1.SavingTargetFactsH\x02R\fsavingTarget\x88\x01\x01\x12\x1d\n" +
-	"\n" +
-	"streak_day\x18\n" +
-	" \x01(\x05R\tstreakDay\x12%\n" +
-	"\x0edays_remaining\x18\v \x01(\x05R\rdaysRemaining\x12I\n" +
-	"\x0etarget_warning\x18\f \x01(\v2\x1d.money_recap.v1.TargetWarningH\x03R\rtargetWarning\x88\x01\x01\x12=\n" +
-	"\frecap_months\x18\r \x03(\v2\x1a.money_recap.v1.RecapMonthR\vrecapMonths\x12$\n" +
-	"\x0efirst_recap_on\x18\x0e \x01(\tR\ffirstRecapOnB\b\n" +
-	"\x06_savedB\t\n" +
-	"\a_salaryB\x10\n" +
-	"\x0e_saving_targetB\x11\n" +
-	"\x0f_target_warning\"\x10\n" +
+	"\x18money_recap/v1/bff.proto\x12\x0emoney_recap.v1\x1a money_recap/v1/bff_account.proto\x1a\x1emoney_recap/v1/bff_reads.proto\x1a\x1emoney_recap/v1/bff_views.proto\x1a\x1fmoney_recap/v1/bff_writes.proto\"\x10\n" +
 	"\x0eGetHomeRequest\"?\n" +
 	"\x0fGetHomeResponse\x12,\n" +
-	"\x04home\x18\x01 \x01(\v2\x18.money_recap.v1.HomeViewR\x04home2Z\n" +
+	"\x04home\x18\x01 \x01(\v2\x18.money_recap.v1.HomeViewR\x04home2\xed\x12\n" +
 	"\n" +
-	"BffService\x12L\n" +
-	"\aGetHome\x12\x1e.money_recap.v1.GetHomeRequest\x1a\x1f.money_recap.v1.GetHomeResponse\"\x00B[ZYgithub.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1b\x06proto3"
+	"BffService\x12{\n" +
+	"\x10RequestMagicLink\x121.money_recap.v1.BffServiceRequestMagicLinkRequest\x1a2.money_recap.v1.BffServiceRequestMagicLinkResponse\"\x00\x12L\n" +
+	"\aGetHome\x12\x1e.money_recap.v1.GetHomeRequest\x1a\x1f.money_recap.v1.GetHomeResponse\"\x00\x12c\n" +
+	"\bGetRecap\x12).money_recap.v1.BffServiceGetRecapRequest\x1a*.money_recap.v1.BffServiceGetRecapResponse\"\x00\x12x\n" +
+	"\x0fListRecapMonths\x120.money_recap.v1.BffServiceListRecapMonthsRequest\x1a1.money_recap.v1.BffServiceListRecapMonthsResponse\"\x00\x12i\n" +
+	"\n" +
+	"ListSpends\x12+.money_recap.v1.BffServiceListSpendsRequest\x1a,.money_recap.v1.BffServiceListSpendsResponse\"\x00\x12c\n" +
+	"\bLogSpend\x12).money_recap.v1.BffServiceLogSpendRequest\x1a*.money_recap.v1.BffServiceLogSpendResponse\"\x00\x12f\n" +
+	"\tEditSpend\x12*.money_recap.v1.BffServiceEditSpendRequest\x1a+.money_recap.v1.BffServiceEditSpendResponse\"\x00\x12l\n" +
+	"\vDeleteSpend\x12,.money_recap.v1.BffServiceDeleteSpendRequest\x1a-.money_recap.v1.BffServiceDeleteSpendResponse\"\x00\x12\x81\x01\n" +
+	"\x12GetOnboardingState\x123.money_recap.v1.BffServiceGetOnboardingStateRequest\x1a4.money_recap.v1.BffServiceGetOnboardingStateResponse\"\x00\x12l\n" +
+	"\vSaveProfile\x12,.money_recap.v1.BffServiceSaveProfileRequest\x1a-.money_recap.v1.BffServiceSaveProfileResponse\"\x00\x12l\n" +
+	"\vSetTimezone\x12,.money_recap.v1.BffServiceSetTimezoneRequest\x1a-.money_recap.v1.BffServiceSetTimezoneResponse\"\x00\x12l\n" +
+	"\vGetSettings\x12,.money_recap.v1.BffServiceGetSettingsRequest\x1a-.money_recap.v1.BffServiceGetSettingsResponse\"\x00\x12i\n" +
+	"\n" +
+	"SaveSalary\x12+.money_recap.v1.BffServiceSaveSalaryRequest\x1a,.money_recap.v1.BffServiceSaveSalaryResponse\"\x00\x12i\n" +
+	"\n" +
+	"SaveTarget\x12+.money_recap.v1.BffServiceSaveTargetRequest\x1a,.money_recap.v1.BffServiceSaveTargetResponse\"\x00\x12\x8a\x01\n" +
+	"\x15PreviewCurrencyChange\x126.money_recap.v1.BffServicePreviewCurrencyChangeRequest\x1a7.money_recap.v1.BffServicePreviewCurrencyChangeResponse\"\x00\x12u\n" +
+	"\x0eChangeCurrency\x12/.money_recap.v1.BffServiceChangeCurrencyRequest\x1a0.money_recap.v1.BffServiceChangeCurrencyResponse\"\x00\x12\x8a\x01\n" +
+	"\x15SaveNotificationPrefs\x126.money_recap.v1.BffServiceSaveNotificationPrefsRequest\x1a7.money_recap.v1.BffServiceSaveNotificationPrefsResponse\"\x00\x12u\n" +
+	"\x0eRegisterDevice\x12/.money_recap.v1.BffServiceRegisterDeviceRequest\x1a0.money_recap.v1.BffServiceRegisterDeviceResponse\"\x00\x12r\n" +
+	"\rRequestExport\x12..money_recap.v1.BffServiceRequestExportRequest\x1a/.money_recap.v1.BffServiceRequestExportResponse\"\x00\x12x\n" +
+	"\x0fRequestDeletion\x120.money_recap.v1.BffServiceRequestDeletionRequest\x1a1.money_recap.v1.BffServiceRequestDeletionResponse\"\x00\x12u\n" +
+	"\x0eCancelDeletion\x12/.money_recap.v1.BffServiceCancelDeletionRequest\x1a0.money_recap.v1.BffServiceCancelDeletionResponse\"\x00B[ZYgithub.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1b\x06proto3"
 
 var (
 	file_money_recap_v1_bff_proto_rawDescOnce sync.Once
@@ -310,33 +148,101 @@ func file_money_recap_v1_bff_proto_rawDescGZIP() []byte {
 	return file_money_recap_v1_bff_proto_rawDescData
 }
 
-var file_money_recap_v1_bff_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_money_recap_v1_bff_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_money_recap_v1_bff_proto_goTypes = []any{
-	(*HomeView)(nil),          // 0: money_recap.v1.HomeView
-	(*GetHomeRequest)(nil),    // 1: money_recap.v1.GetHomeRequest
-	(*GetHomeResponse)(nil),   // 2: money_recap.v1.GetHomeResponse
-	(*Money)(nil),             // 3: money_recap.v1.Money
-	(*SalaryFacts)(nil),       // 4: money_recap.v1.SalaryFacts
-	(*SavingTargetFacts)(nil), // 5: money_recap.v1.SavingTargetFacts
-	(*TargetWarning)(nil),     // 6: money_recap.v1.TargetWarning
-	(*RecapMonth)(nil),        // 7: money_recap.v1.RecapMonth
+	(*GetHomeRequest)(nil),                          // 0: money_recap.v1.GetHomeRequest
+	(*GetHomeResponse)(nil),                         // 1: money_recap.v1.GetHomeResponse
+	(*HomeView)(nil),                                // 2: money_recap.v1.HomeView
+	(*BffServiceRequestMagicLinkRequest)(nil),       // 3: money_recap.v1.BffServiceRequestMagicLinkRequest
+	(*BffServiceGetRecapRequest)(nil),               // 4: money_recap.v1.BffServiceGetRecapRequest
+	(*BffServiceListRecapMonthsRequest)(nil),        // 5: money_recap.v1.BffServiceListRecapMonthsRequest
+	(*BffServiceListSpendsRequest)(nil),             // 6: money_recap.v1.BffServiceListSpendsRequest
+	(*BffServiceLogSpendRequest)(nil),               // 7: money_recap.v1.BffServiceLogSpendRequest
+	(*BffServiceEditSpendRequest)(nil),              // 8: money_recap.v1.BffServiceEditSpendRequest
+	(*BffServiceDeleteSpendRequest)(nil),            // 9: money_recap.v1.BffServiceDeleteSpendRequest
+	(*BffServiceGetOnboardingStateRequest)(nil),     // 10: money_recap.v1.BffServiceGetOnboardingStateRequest
+	(*BffServiceSaveProfileRequest)(nil),            // 11: money_recap.v1.BffServiceSaveProfileRequest
+	(*BffServiceSetTimezoneRequest)(nil),            // 12: money_recap.v1.BffServiceSetTimezoneRequest
+	(*BffServiceGetSettingsRequest)(nil),            // 13: money_recap.v1.BffServiceGetSettingsRequest
+	(*BffServiceSaveSalaryRequest)(nil),             // 14: money_recap.v1.BffServiceSaveSalaryRequest
+	(*BffServiceSaveTargetRequest)(nil),             // 15: money_recap.v1.BffServiceSaveTargetRequest
+	(*BffServicePreviewCurrencyChangeRequest)(nil),  // 16: money_recap.v1.BffServicePreviewCurrencyChangeRequest
+	(*BffServiceChangeCurrencyRequest)(nil),         // 17: money_recap.v1.BffServiceChangeCurrencyRequest
+	(*BffServiceSaveNotificationPrefsRequest)(nil),  // 18: money_recap.v1.BffServiceSaveNotificationPrefsRequest
+	(*BffServiceRegisterDeviceRequest)(nil),         // 19: money_recap.v1.BffServiceRegisterDeviceRequest
+	(*BffServiceRequestExportRequest)(nil),          // 20: money_recap.v1.BffServiceRequestExportRequest
+	(*BffServiceRequestDeletionRequest)(nil),        // 21: money_recap.v1.BffServiceRequestDeletionRequest
+	(*BffServiceCancelDeletionRequest)(nil),         // 22: money_recap.v1.BffServiceCancelDeletionRequest
+	(*BffServiceRequestMagicLinkResponse)(nil),      // 23: money_recap.v1.BffServiceRequestMagicLinkResponse
+	(*BffServiceGetRecapResponse)(nil),              // 24: money_recap.v1.BffServiceGetRecapResponse
+	(*BffServiceListRecapMonthsResponse)(nil),       // 25: money_recap.v1.BffServiceListRecapMonthsResponse
+	(*BffServiceListSpendsResponse)(nil),            // 26: money_recap.v1.BffServiceListSpendsResponse
+	(*BffServiceLogSpendResponse)(nil),              // 27: money_recap.v1.BffServiceLogSpendResponse
+	(*BffServiceEditSpendResponse)(nil),             // 28: money_recap.v1.BffServiceEditSpendResponse
+	(*BffServiceDeleteSpendResponse)(nil),           // 29: money_recap.v1.BffServiceDeleteSpendResponse
+	(*BffServiceGetOnboardingStateResponse)(nil),    // 30: money_recap.v1.BffServiceGetOnboardingStateResponse
+	(*BffServiceSaveProfileResponse)(nil),           // 31: money_recap.v1.BffServiceSaveProfileResponse
+	(*BffServiceSetTimezoneResponse)(nil),           // 32: money_recap.v1.BffServiceSetTimezoneResponse
+	(*BffServiceGetSettingsResponse)(nil),           // 33: money_recap.v1.BffServiceGetSettingsResponse
+	(*BffServiceSaveSalaryResponse)(nil),            // 34: money_recap.v1.BffServiceSaveSalaryResponse
+	(*BffServiceSaveTargetResponse)(nil),            // 35: money_recap.v1.BffServiceSaveTargetResponse
+	(*BffServicePreviewCurrencyChangeResponse)(nil), // 36: money_recap.v1.BffServicePreviewCurrencyChangeResponse
+	(*BffServiceChangeCurrencyResponse)(nil),        // 37: money_recap.v1.BffServiceChangeCurrencyResponse
+	(*BffServiceSaveNotificationPrefsResponse)(nil), // 38: money_recap.v1.BffServiceSaveNotificationPrefsResponse
+	(*BffServiceRegisterDeviceResponse)(nil),        // 39: money_recap.v1.BffServiceRegisterDeviceResponse
+	(*BffServiceRequestExportResponse)(nil),         // 40: money_recap.v1.BffServiceRequestExportResponse
+	(*BffServiceRequestDeletionResponse)(nil),       // 41: money_recap.v1.BffServiceRequestDeletionResponse
+	(*BffServiceCancelDeletionResponse)(nil),        // 42: money_recap.v1.BffServiceCancelDeletionResponse
 }
 var file_money_recap_v1_bff_proto_depIdxs = []int32{
-	3, // 0: money_recap.v1.HomeView.spent:type_name -> money_recap.v1.Money
-	3, // 1: money_recap.v1.HomeView.money_in:type_name -> money_recap.v1.Money
-	3, // 2: money_recap.v1.HomeView.saved:type_name -> money_recap.v1.Money
-	4, // 3: money_recap.v1.HomeView.salary:type_name -> money_recap.v1.SalaryFacts
-	5, // 4: money_recap.v1.HomeView.saving_target:type_name -> money_recap.v1.SavingTargetFacts
-	6, // 5: money_recap.v1.HomeView.target_warning:type_name -> money_recap.v1.TargetWarning
-	7, // 6: money_recap.v1.HomeView.recap_months:type_name -> money_recap.v1.RecapMonth
-	0, // 7: money_recap.v1.GetHomeResponse.home:type_name -> money_recap.v1.HomeView
-	1, // 8: money_recap.v1.BffService.GetHome:input_type -> money_recap.v1.GetHomeRequest
-	2, // 9: money_recap.v1.BffService.GetHome:output_type -> money_recap.v1.GetHomeResponse
-	9, // [9:10] is the sub-list for method output_type
-	8, // [8:9] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	2,  // 0: money_recap.v1.GetHomeResponse.home:type_name -> money_recap.v1.HomeView
+	3,  // 1: money_recap.v1.BffService.RequestMagicLink:input_type -> money_recap.v1.BffServiceRequestMagicLinkRequest
+	0,  // 2: money_recap.v1.BffService.GetHome:input_type -> money_recap.v1.GetHomeRequest
+	4,  // 3: money_recap.v1.BffService.GetRecap:input_type -> money_recap.v1.BffServiceGetRecapRequest
+	5,  // 4: money_recap.v1.BffService.ListRecapMonths:input_type -> money_recap.v1.BffServiceListRecapMonthsRequest
+	6,  // 5: money_recap.v1.BffService.ListSpends:input_type -> money_recap.v1.BffServiceListSpendsRequest
+	7,  // 6: money_recap.v1.BffService.LogSpend:input_type -> money_recap.v1.BffServiceLogSpendRequest
+	8,  // 7: money_recap.v1.BffService.EditSpend:input_type -> money_recap.v1.BffServiceEditSpendRequest
+	9,  // 8: money_recap.v1.BffService.DeleteSpend:input_type -> money_recap.v1.BffServiceDeleteSpendRequest
+	10, // 9: money_recap.v1.BffService.GetOnboardingState:input_type -> money_recap.v1.BffServiceGetOnboardingStateRequest
+	11, // 10: money_recap.v1.BffService.SaveProfile:input_type -> money_recap.v1.BffServiceSaveProfileRequest
+	12, // 11: money_recap.v1.BffService.SetTimezone:input_type -> money_recap.v1.BffServiceSetTimezoneRequest
+	13, // 12: money_recap.v1.BffService.GetSettings:input_type -> money_recap.v1.BffServiceGetSettingsRequest
+	14, // 13: money_recap.v1.BffService.SaveSalary:input_type -> money_recap.v1.BffServiceSaveSalaryRequest
+	15, // 14: money_recap.v1.BffService.SaveTarget:input_type -> money_recap.v1.BffServiceSaveTargetRequest
+	16, // 15: money_recap.v1.BffService.PreviewCurrencyChange:input_type -> money_recap.v1.BffServicePreviewCurrencyChangeRequest
+	17, // 16: money_recap.v1.BffService.ChangeCurrency:input_type -> money_recap.v1.BffServiceChangeCurrencyRequest
+	18, // 17: money_recap.v1.BffService.SaveNotificationPrefs:input_type -> money_recap.v1.BffServiceSaveNotificationPrefsRequest
+	19, // 18: money_recap.v1.BffService.RegisterDevice:input_type -> money_recap.v1.BffServiceRegisterDeviceRequest
+	20, // 19: money_recap.v1.BffService.RequestExport:input_type -> money_recap.v1.BffServiceRequestExportRequest
+	21, // 20: money_recap.v1.BffService.RequestDeletion:input_type -> money_recap.v1.BffServiceRequestDeletionRequest
+	22, // 21: money_recap.v1.BffService.CancelDeletion:input_type -> money_recap.v1.BffServiceCancelDeletionRequest
+	23, // 22: money_recap.v1.BffService.RequestMagicLink:output_type -> money_recap.v1.BffServiceRequestMagicLinkResponse
+	1,  // 23: money_recap.v1.BffService.GetHome:output_type -> money_recap.v1.GetHomeResponse
+	24, // 24: money_recap.v1.BffService.GetRecap:output_type -> money_recap.v1.BffServiceGetRecapResponse
+	25, // 25: money_recap.v1.BffService.ListRecapMonths:output_type -> money_recap.v1.BffServiceListRecapMonthsResponse
+	26, // 26: money_recap.v1.BffService.ListSpends:output_type -> money_recap.v1.BffServiceListSpendsResponse
+	27, // 27: money_recap.v1.BffService.LogSpend:output_type -> money_recap.v1.BffServiceLogSpendResponse
+	28, // 28: money_recap.v1.BffService.EditSpend:output_type -> money_recap.v1.BffServiceEditSpendResponse
+	29, // 29: money_recap.v1.BffService.DeleteSpend:output_type -> money_recap.v1.BffServiceDeleteSpendResponse
+	30, // 30: money_recap.v1.BffService.GetOnboardingState:output_type -> money_recap.v1.BffServiceGetOnboardingStateResponse
+	31, // 31: money_recap.v1.BffService.SaveProfile:output_type -> money_recap.v1.BffServiceSaveProfileResponse
+	32, // 32: money_recap.v1.BffService.SetTimezone:output_type -> money_recap.v1.BffServiceSetTimezoneResponse
+	33, // 33: money_recap.v1.BffService.GetSettings:output_type -> money_recap.v1.BffServiceGetSettingsResponse
+	34, // 34: money_recap.v1.BffService.SaveSalary:output_type -> money_recap.v1.BffServiceSaveSalaryResponse
+	35, // 35: money_recap.v1.BffService.SaveTarget:output_type -> money_recap.v1.BffServiceSaveTargetResponse
+	36, // 36: money_recap.v1.BffService.PreviewCurrencyChange:output_type -> money_recap.v1.BffServicePreviewCurrencyChangeResponse
+	37, // 37: money_recap.v1.BffService.ChangeCurrency:output_type -> money_recap.v1.BffServiceChangeCurrencyResponse
+	38, // 38: money_recap.v1.BffService.SaveNotificationPrefs:output_type -> money_recap.v1.BffServiceSaveNotificationPrefsResponse
+	39, // 39: money_recap.v1.BffService.RegisterDevice:output_type -> money_recap.v1.BffServiceRegisterDeviceResponse
+	40, // 40: money_recap.v1.BffService.RequestExport:output_type -> money_recap.v1.BffServiceRequestExportResponse
+	41, // 41: money_recap.v1.BffService.RequestDeletion:output_type -> money_recap.v1.BffServiceRequestDeletionResponse
+	42, // 42: money_recap.v1.BffService.CancelDeletion:output_type -> money_recap.v1.BffServiceCancelDeletionResponse
+	22, // [22:43] is the sub-list for method output_type
+	1,  // [1:22] is the sub-list for method input_type
+	1,  // [1:1] is the sub-list for extension type_name
+	1,  // [1:1] is the sub-list for extension extendee
+	0,  // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_bff_proto_init() }
@@ -344,16 +250,17 @@ func file_money_recap_v1_bff_proto_init() {
 	if File_money_recap_v1_bff_proto != nil {
 		return
 	}
-	file_money_recap_v1_money_proto_init()
-	file_money_recap_v1_shared_proto_init()
-	file_money_recap_v1_bff_proto_msgTypes[0].OneofWrappers = []any{}
+	file_money_recap_v1_bff_account_proto_init()
+	file_money_recap_v1_bff_reads_proto_init()
+	file_money_recap_v1_bff_views_proto_init()
+	file_money_recap_v1_bff_writes_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_money_recap_v1_bff_proto_rawDesc), len(file_money_recap_v1_bff_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

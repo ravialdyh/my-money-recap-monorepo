@@ -120,7 +120,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	if notifyErr != nil {
 		logOptionalCallDegraded("notify.GetWarningState", "HomeView returned without a banner", notifyErr)
 	} else if notifyRes.Msg.GetFired() {
-		warning = summary.GetTargetWarning()
+		warning = notifyRes.Msg.GetWarning()
 	}
 
 	currency := profile.CurrencyCode

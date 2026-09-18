@@ -33,14 +33,105 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// BffServiceRequestMagicLinkProcedure is the fully-qualified name of the BffService's
+	// RequestMagicLink RPC.
+	BffServiceRequestMagicLinkProcedure = "/money_recap.v1.BffService/RequestMagicLink"
 	// BffServiceGetHomeProcedure is the fully-qualified name of the BffService's GetHome RPC.
 	BffServiceGetHomeProcedure = "/money_recap.v1.BffService/GetHome"
+	// BffServiceGetRecapProcedure is the fully-qualified name of the BffService's GetRecap RPC.
+	BffServiceGetRecapProcedure = "/money_recap.v1.BffService/GetRecap"
+	// BffServiceListRecapMonthsProcedure is the fully-qualified name of the BffService's
+	// ListRecapMonths RPC.
+	BffServiceListRecapMonthsProcedure = "/money_recap.v1.BffService/ListRecapMonths"
+	// BffServiceListSpendsProcedure is the fully-qualified name of the BffService's ListSpends RPC.
+	BffServiceListSpendsProcedure = "/money_recap.v1.BffService/ListSpends"
+	// BffServiceLogSpendProcedure is the fully-qualified name of the BffService's LogSpend RPC.
+	BffServiceLogSpendProcedure = "/money_recap.v1.BffService/LogSpend"
+	// BffServiceEditSpendProcedure is the fully-qualified name of the BffService's EditSpend RPC.
+	BffServiceEditSpendProcedure = "/money_recap.v1.BffService/EditSpend"
+	// BffServiceDeleteSpendProcedure is the fully-qualified name of the BffService's DeleteSpend RPC.
+	BffServiceDeleteSpendProcedure = "/money_recap.v1.BffService/DeleteSpend"
+	// BffServiceGetOnboardingStateProcedure is the fully-qualified name of the BffService's
+	// GetOnboardingState RPC.
+	BffServiceGetOnboardingStateProcedure = "/money_recap.v1.BffService/GetOnboardingState"
+	// BffServiceSaveProfileProcedure is the fully-qualified name of the BffService's SaveProfile RPC.
+	BffServiceSaveProfileProcedure = "/money_recap.v1.BffService/SaveProfile"
+	// BffServiceSetTimezoneProcedure is the fully-qualified name of the BffService's SetTimezone RPC.
+	BffServiceSetTimezoneProcedure = "/money_recap.v1.BffService/SetTimezone"
+	// BffServiceGetSettingsProcedure is the fully-qualified name of the BffService's GetSettings RPC.
+	BffServiceGetSettingsProcedure = "/money_recap.v1.BffService/GetSettings"
+	// BffServiceSaveSalaryProcedure is the fully-qualified name of the BffService's SaveSalary RPC.
+	BffServiceSaveSalaryProcedure = "/money_recap.v1.BffService/SaveSalary"
+	// BffServiceSaveTargetProcedure is the fully-qualified name of the BffService's SaveTarget RPC.
+	BffServiceSaveTargetProcedure = "/money_recap.v1.BffService/SaveTarget"
+	// BffServicePreviewCurrencyChangeProcedure is the fully-qualified name of the BffService's
+	// PreviewCurrencyChange RPC.
+	BffServicePreviewCurrencyChangeProcedure = "/money_recap.v1.BffService/PreviewCurrencyChange"
+	// BffServiceChangeCurrencyProcedure is the fully-qualified name of the BffService's ChangeCurrency
+	// RPC.
+	BffServiceChangeCurrencyProcedure = "/money_recap.v1.BffService/ChangeCurrency"
+	// BffServiceSaveNotificationPrefsProcedure is the fully-qualified name of the BffService's
+	// SaveNotificationPrefs RPC.
+	BffServiceSaveNotificationPrefsProcedure = "/money_recap.v1.BffService/SaveNotificationPrefs"
+	// BffServiceRegisterDeviceProcedure is the fully-qualified name of the BffService's RegisterDevice
+	// RPC.
+	BffServiceRegisterDeviceProcedure = "/money_recap.v1.BffService/RegisterDevice"
+	// BffServiceRequestExportProcedure is the fully-qualified name of the BffService's RequestExport
+	// RPC.
+	BffServiceRequestExportProcedure = "/money_recap.v1.BffService/RequestExport"
+	// BffServiceRequestDeletionProcedure is the fully-qualified name of the BffService's
+	// RequestDeletion RPC.
+	BffServiceRequestDeletionProcedure = "/money_recap.v1.BffService/RequestDeletion"
+	// BffServiceCancelDeletionProcedure is the fully-qualified name of the BffService's CancelDeletion
+	// RPC.
+	BffServiceCancelDeletionProcedure = "/money_recap.v1.BffService/CancelDeletion"
 )
 
 // BffServiceClient is a client for the money_recap.v1.BffService service.
 type BffServiceClient interface {
+	// Sent without a bearer token; 5 per email per hour, then resource_exhausted
+	// (PRD §11, §6.3); unavailable when the email cannot be sent (§7.5).
+	RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error)
 	// Home always shows the current month (PRD §6.8, D59), so no month argument.
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
+	// One month's full or Partial Recap, or the current month's preview (D47).
+	GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error)
+	ListRecapMonths(context.Context, *connect.Request[v1.BffServiceListRecapMonthsRequest]) (*connect.Response[v1.BffServiceListRecapMonthsResponse], error)
+	ListSpends(context.Context, *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error)
+	// The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
+	// HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
+	LogSpend(context.Context, *connect.Request[v1.BffServiceLogSpendRequest]) (*connect.Response[v1.BffServiceLogSpendResponse], error)
+	EditSpend(context.Context, *connect.Request[v1.BffServiceEditSpendRequest]) (*connect.Response[v1.BffServiceEditSpendResponse], error)
+	DeleteSpend(context.Context, *connect.Request[v1.BffServiceDeleteSpendRequest]) (*connect.Response[v1.BffServiceDeleteSpendResponse], error)
+	// Where onboarding resumes after a force-quit (PRD §6.4).
+	GetOnboardingState(context.Context, *connect.Request[v1.BffServiceGetOnboardingStateRequest]) (*connect.Response[v1.BffServiceGetOnboardingStateResponse], error)
+	// One members.SaveProfile carrying the answers and the step: one write under
+	// the one Idempotency-Key (A14).
+	SaveProfile(context.Context, *connect.Request[v1.BffServiceSaveProfileRequest]) (*connect.Response[v1.BffServiceSaveProfileResponse], error)
+	// Called on every launch (A3); the answer drives the restore sheet (D60).
+	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
+	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
+	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
+	// failed_precondition when the sheet should have opened.
+	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
+	// ledger.SaveTarget; effective from next month (D65). failed_precondition
+	// without a Salary (D44).
+	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
+	// currency.Quote then ledger.PreviewConversion; unavailable when the rate
+	// fetch fails, the Retry InlineError (PRD §8.9 step 1).
+	PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error)
+	// ledger.ApplyCurrencyConversion, or members.SaveProfile when there is
+	// nothing to convert (PRD §8.9 steps 2 and 4).
+	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
+	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
+	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
+	// ledger.ExportCSV then notify.EmailExport (§7.3). failed_precondition with
+	// EmailBounced is the §6.16 InlineError offering Profile.
+	RequestExport(context.Context, *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error)
+	// Stamps the request; the phone signs out on the answer (§7.1 step 1).
+	RequestDeletion(context.Context, *connect.Request[v1.BffServiceRequestDeletionRequest]) (*connect.Response[v1.BffServiceRequestDeletionResponse], error)
+	// Clears the stamp inside the 24-hour window (§7.1 step 2, D60).
+	CancelDeletion(context.Context, *connect.Request[v1.BffServiceCancelDeletionRequest]) (*connect.Response[v1.BffServiceCancelDeletionResponse], error)
 }
 
 // NewBffServiceClient constructs a client for the money_recap.v1.BffService service. By default, it
@@ -54,10 +145,130 @@ func NewBffServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 	baseURL = strings.TrimRight(baseURL, "/")
 	bffServiceMethods := v1.File_money_recap_v1_bff_proto.Services().ByName("BffService").Methods()
 	return &bffServiceClient{
+		requestMagicLink: connect.NewClient[v1.BffServiceRequestMagicLinkRequest, v1.BffServiceRequestMagicLinkResponse](
+			httpClient,
+			baseURL+BffServiceRequestMagicLinkProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("RequestMagicLink")),
+			connect.WithClientOptions(opts...),
+		),
 		getHome: connect.NewClient[v1.GetHomeRequest, v1.GetHomeResponse](
 			httpClient,
 			baseURL+BffServiceGetHomeProcedure,
 			connect.WithSchema(bffServiceMethods.ByName("GetHome")),
+			connect.WithClientOptions(opts...),
+		),
+		getRecap: connect.NewClient[v1.BffServiceGetRecapRequest, v1.BffServiceGetRecapResponse](
+			httpClient,
+			baseURL+BffServiceGetRecapProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("GetRecap")),
+			connect.WithClientOptions(opts...),
+		),
+		listRecapMonths: connect.NewClient[v1.BffServiceListRecapMonthsRequest, v1.BffServiceListRecapMonthsResponse](
+			httpClient,
+			baseURL+BffServiceListRecapMonthsProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("ListRecapMonths")),
+			connect.WithClientOptions(opts...),
+		),
+		listSpends: connect.NewClient[v1.BffServiceListSpendsRequest, v1.BffServiceListSpendsResponse](
+			httpClient,
+			baseURL+BffServiceListSpendsProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("ListSpends")),
+			connect.WithClientOptions(opts...),
+		),
+		logSpend: connect.NewClient[v1.BffServiceLogSpendRequest, v1.BffServiceLogSpendResponse](
+			httpClient,
+			baseURL+BffServiceLogSpendProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("LogSpend")),
+			connect.WithClientOptions(opts...),
+		),
+		editSpend: connect.NewClient[v1.BffServiceEditSpendRequest, v1.BffServiceEditSpendResponse](
+			httpClient,
+			baseURL+BffServiceEditSpendProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("EditSpend")),
+			connect.WithClientOptions(opts...),
+		),
+		deleteSpend: connect.NewClient[v1.BffServiceDeleteSpendRequest, v1.BffServiceDeleteSpendResponse](
+			httpClient,
+			baseURL+BffServiceDeleteSpendProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("DeleteSpend")),
+			connect.WithClientOptions(opts...),
+		),
+		getOnboardingState: connect.NewClient[v1.BffServiceGetOnboardingStateRequest, v1.BffServiceGetOnboardingStateResponse](
+			httpClient,
+			baseURL+BffServiceGetOnboardingStateProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("GetOnboardingState")),
+			connect.WithClientOptions(opts...),
+		),
+		saveProfile: connect.NewClient[v1.BffServiceSaveProfileRequest, v1.BffServiceSaveProfileResponse](
+			httpClient,
+			baseURL+BffServiceSaveProfileProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("SaveProfile")),
+			connect.WithClientOptions(opts...),
+		),
+		setTimezone: connect.NewClient[v1.BffServiceSetTimezoneRequest, v1.BffServiceSetTimezoneResponse](
+			httpClient,
+			baseURL+BffServiceSetTimezoneProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("SetTimezone")),
+			connect.WithClientOptions(opts...),
+		),
+		getSettings: connect.NewClient[v1.BffServiceGetSettingsRequest, v1.BffServiceGetSettingsResponse](
+			httpClient,
+			baseURL+BffServiceGetSettingsProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("GetSettings")),
+			connect.WithClientOptions(opts...),
+		),
+		saveSalary: connect.NewClient[v1.BffServiceSaveSalaryRequest, v1.BffServiceSaveSalaryResponse](
+			httpClient,
+			baseURL+BffServiceSaveSalaryProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("SaveSalary")),
+			connect.WithClientOptions(opts...),
+		),
+		saveTarget: connect.NewClient[v1.BffServiceSaveTargetRequest, v1.BffServiceSaveTargetResponse](
+			httpClient,
+			baseURL+BffServiceSaveTargetProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("SaveTarget")),
+			connect.WithClientOptions(opts...),
+		),
+		previewCurrencyChange: connect.NewClient[v1.BffServicePreviewCurrencyChangeRequest, v1.BffServicePreviewCurrencyChangeResponse](
+			httpClient,
+			baseURL+BffServicePreviewCurrencyChangeProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("PreviewCurrencyChange")),
+			connect.WithClientOptions(opts...),
+		),
+		changeCurrency: connect.NewClient[v1.BffServiceChangeCurrencyRequest, v1.BffServiceChangeCurrencyResponse](
+			httpClient,
+			baseURL+BffServiceChangeCurrencyProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("ChangeCurrency")),
+			connect.WithClientOptions(opts...),
+		),
+		saveNotificationPrefs: connect.NewClient[v1.BffServiceSaveNotificationPrefsRequest, v1.BffServiceSaveNotificationPrefsResponse](
+			httpClient,
+			baseURL+BffServiceSaveNotificationPrefsProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("SaveNotificationPrefs")),
+			connect.WithClientOptions(opts...),
+		),
+		registerDevice: connect.NewClient[v1.BffServiceRegisterDeviceRequest, v1.BffServiceRegisterDeviceResponse](
+			httpClient,
+			baseURL+BffServiceRegisterDeviceProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("RegisterDevice")),
+			connect.WithClientOptions(opts...),
+		),
+		requestExport: connect.NewClient[v1.BffServiceRequestExportRequest, v1.BffServiceRequestExportResponse](
+			httpClient,
+			baseURL+BffServiceRequestExportProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("RequestExport")),
+			connect.WithClientOptions(opts...),
+		),
+		requestDeletion: connect.NewClient[v1.BffServiceRequestDeletionRequest, v1.BffServiceRequestDeletionResponse](
+			httpClient,
+			baseURL+BffServiceRequestDeletionProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("RequestDeletion")),
+			connect.WithClientOptions(opts...),
+		),
+		cancelDeletion: connect.NewClient[v1.BffServiceCancelDeletionRequest, v1.BffServiceCancelDeletionResponse](
+			httpClient,
+			baseURL+BffServiceCancelDeletionProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("CancelDeletion")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -65,7 +276,32 @@ func NewBffServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 
 // bffServiceClient implements BffServiceClient.
 type bffServiceClient struct {
-	getHome *connect.Client[v1.GetHomeRequest, v1.GetHomeResponse]
+	requestMagicLink      *connect.Client[v1.BffServiceRequestMagicLinkRequest, v1.BffServiceRequestMagicLinkResponse]
+	getHome               *connect.Client[v1.GetHomeRequest, v1.GetHomeResponse]
+	getRecap              *connect.Client[v1.BffServiceGetRecapRequest, v1.BffServiceGetRecapResponse]
+	listRecapMonths       *connect.Client[v1.BffServiceListRecapMonthsRequest, v1.BffServiceListRecapMonthsResponse]
+	listSpends            *connect.Client[v1.BffServiceListSpendsRequest, v1.BffServiceListSpendsResponse]
+	logSpend              *connect.Client[v1.BffServiceLogSpendRequest, v1.BffServiceLogSpendResponse]
+	editSpend             *connect.Client[v1.BffServiceEditSpendRequest, v1.BffServiceEditSpendResponse]
+	deleteSpend           *connect.Client[v1.BffServiceDeleteSpendRequest, v1.BffServiceDeleteSpendResponse]
+	getOnboardingState    *connect.Client[v1.BffServiceGetOnboardingStateRequest, v1.BffServiceGetOnboardingStateResponse]
+	saveProfile           *connect.Client[v1.BffServiceSaveProfileRequest, v1.BffServiceSaveProfileResponse]
+	setTimezone           *connect.Client[v1.BffServiceSetTimezoneRequest, v1.BffServiceSetTimezoneResponse]
+	getSettings           *connect.Client[v1.BffServiceGetSettingsRequest, v1.BffServiceGetSettingsResponse]
+	saveSalary            *connect.Client[v1.BffServiceSaveSalaryRequest, v1.BffServiceSaveSalaryResponse]
+	saveTarget            *connect.Client[v1.BffServiceSaveTargetRequest, v1.BffServiceSaveTargetResponse]
+	previewCurrencyChange *connect.Client[v1.BffServicePreviewCurrencyChangeRequest, v1.BffServicePreviewCurrencyChangeResponse]
+	changeCurrency        *connect.Client[v1.BffServiceChangeCurrencyRequest, v1.BffServiceChangeCurrencyResponse]
+	saveNotificationPrefs *connect.Client[v1.BffServiceSaveNotificationPrefsRequest, v1.BffServiceSaveNotificationPrefsResponse]
+	registerDevice        *connect.Client[v1.BffServiceRegisterDeviceRequest, v1.BffServiceRegisterDeviceResponse]
+	requestExport         *connect.Client[v1.BffServiceRequestExportRequest, v1.BffServiceRequestExportResponse]
+	requestDeletion       *connect.Client[v1.BffServiceRequestDeletionRequest, v1.BffServiceRequestDeletionResponse]
+	cancelDeletion        *connect.Client[v1.BffServiceCancelDeletionRequest, v1.BffServiceCancelDeletionResponse]
+}
+
+// RequestMagicLink calls money_recap.v1.BffService.RequestMagicLink.
+func (c *bffServiceClient) RequestMagicLink(ctx context.Context, req *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error) {
+	return c.requestMagicLink.CallUnary(ctx, req)
 }
 
 // GetHome calls money_recap.v1.BffService.GetHome.
@@ -73,10 +309,146 @@ func (c *bffServiceClient) GetHome(ctx context.Context, req *connect.Request[v1.
 	return c.getHome.CallUnary(ctx, req)
 }
 
+// GetRecap calls money_recap.v1.BffService.GetRecap.
+func (c *bffServiceClient) GetRecap(ctx context.Context, req *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error) {
+	return c.getRecap.CallUnary(ctx, req)
+}
+
+// ListRecapMonths calls money_recap.v1.BffService.ListRecapMonths.
+func (c *bffServiceClient) ListRecapMonths(ctx context.Context, req *connect.Request[v1.BffServiceListRecapMonthsRequest]) (*connect.Response[v1.BffServiceListRecapMonthsResponse], error) {
+	return c.listRecapMonths.CallUnary(ctx, req)
+}
+
+// ListSpends calls money_recap.v1.BffService.ListSpends.
+func (c *bffServiceClient) ListSpends(ctx context.Context, req *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error) {
+	return c.listSpends.CallUnary(ctx, req)
+}
+
+// LogSpend calls money_recap.v1.BffService.LogSpend.
+func (c *bffServiceClient) LogSpend(ctx context.Context, req *connect.Request[v1.BffServiceLogSpendRequest]) (*connect.Response[v1.BffServiceLogSpendResponse], error) {
+	return c.logSpend.CallUnary(ctx, req)
+}
+
+// EditSpend calls money_recap.v1.BffService.EditSpend.
+func (c *bffServiceClient) EditSpend(ctx context.Context, req *connect.Request[v1.BffServiceEditSpendRequest]) (*connect.Response[v1.BffServiceEditSpendResponse], error) {
+	return c.editSpend.CallUnary(ctx, req)
+}
+
+// DeleteSpend calls money_recap.v1.BffService.DeleteSpend.
+func (c *bffServiceClient) DeleteSpend(ctx context.Context, req *connect.Request[v1.BffServiceDeleteSpendRequest]) (*connect.Response[v1.BffServiceDeleteSpendResponse], error) {
+	return c.deleteSpend.CallUnary(ctx, req)
+}
+
+// GetOnboardingState calls money_recap.v1.BffService.GetOnboardingState.
+func (c *bffServiceClient) GetOnboardingState(ctx context.Context, req *connect.Request[v1.BffServiceGetOnboardingStateRequest]) (*connect.Response[v1.BffServiceGetOnboardingStateResponse], error) {
+	return c.getOnboardingState.CallUnary(ctx, req)
+}
+
+// SaveProfile calls money_recap.v1.BffService.SaveProfile.
+func (c *bffServiceClient) SaveProfile(ctx context.Context, req *connect.Request[v1.BffServiceSaveProfileRequest]) (*connect.Response[v1.BffServiceSaveProfileResponse], error) {
+	return c.saveProfile.CallUnary(ctx, req)
+}
+
+// SetTimezone calls money_recap.v1.BffService.SetTimezone.
+func (c *bffServiceClient) SetTimezone(ctx context.Context, req *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error) {
+	return c.setTimezone.CallUnary(ctx, req)
+}
+
+// GetSettings calls money_recap.v1.BffService.GetSettings.
+func (c *bffServiceClient) GetSettings(ctx context.Context, req *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error) {
+	return c.getSettings.CallUnary(ctx, req)
+}
+
+// SaveSalary calls money_recap.v1.BffService.SaveSalary.
+func (c *bffServiceClient) SaveSalary(ctx context.Context, req *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error) {
+	return c.saveSalary.CallUnary(ctx, req)
+}
+
+// SaveTarget calls money_recap.v1.BffService.SaveTarget.
+func (c *bffServiceClient) SaveTarget(ctx context.Context, req *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error) {
+	return c.saveTarget.CallUnary(ctx, req)
+}
+
+// PreviewCurrencyChange calls money_recap.v1.BffService.PreviewCurrencyChange.
+func (c *bffServiceClient) PreviewCurrencyChange(ctx context.Context, req *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error) {
+	return c.previewCurrencyChange.CallUnary(ctx, req)
+}
+
+// ChangeCurrency calls money_recap.v1.BffService.ChangeCurrency.
+func (c *bffServiceClient) ChangeCurrency(ctx context.Context, req *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error) {
+	return c.changeCurrency.CallUnary(ctx, req)
+}
+
+// SaveNotificationPrefs calls money_recap.v1.BffService.SaveNotificationPrefs.
+func (c *bffServiceClient) SaveNotificationPrefs(ctx context.Context, req *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error) {
+	return c.saveNotificationPrefs.CallUnary(ctx, req)
+}
+
+// RegisterDevice calls money_recap.v1.BffService.RegisterDevice.
+func (c *bffServiceClient) RegisterDevice(ctx context.Context, req *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error) {
+	return c.registerDevice.CallUnary(ctx, req)
+}
+
+// RequestExport calls money_recap.v1.BffService.RequestExport.
+func (c *bffServiceClient) RequestExport(ctx context.Context, req *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error) {
+	return c.requestExport.CallUnary(ctx, req)
+}
+
+// RequestDeletion calls money_recap.v1.BffService.RequestDeletion.
+func (c *bffServiceClient) RequestDeletion(ctx context.Context, req *connect.Request[v1.BffServiceRequestDeletionRequest]) (*connect.Response[v1.BffServiceRequestDeletionResponse], error) {
+	return c.requestDeletion.CallUnary(ctx, req)
+}
+
+// CancelDeletion calls money_recap.v1.BffService.CancelDeletion.
+func (c *bffServiceClient) CancelDeletion(ctx context.Context, req *connect.Request[v1.BffServiceCancelDeletionRequest]) (*connect.Response[v1.BffServiceCancelDeletionResponse], error) {
+	return c.cancelDeletion.CallUnary(ctx, req)
+}
+
 // BffServiceHandler is an implementation of the money_recap.v1.BffService service.
 type BffServiceHandler interface {
+	// Sent without a bearer token; 5 per email per hour, then resource_exhausted
+	// (PRD §11, §6.3); unavailable when the email cannot be sent (§7.5).
+	RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error)
 	// Home always shows the current month (PRD §6.8, D59), so no month argument.
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
+	// One month's full or Partial Recap, or the current month's preview (D47).
+	GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error)
+	ListRecapMonths(context.Context, *connect.Request[v1.BffServiceListRecapMonthsRequest]) (*connect.Response[v1.BffServiceListRecapMonthsResponse], error)
+	ListSpends(context.Context, *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error)
+	// The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
+	// HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
+	LogSpend(context.Context, *connect.Request[v1.BffServiceLogSpendRequest]) (*connect.Response[v1.BffServiceLogSpendResponse], error)
+	EditSpend(context.Context, *connect.Request[v1.BffServiceEditSpendRequest]) (*connect.Response[v1.BffServiceEditSpendResponse], error)
+	DeleteSpend(context.Context, *connect.Request[v1.BffServiceDeleteSpendRequest]) (*connect.Response[v1.BffServiceDeleteSpendResponse], error)
+	// Where onboarding resumes after a force-quit (PRD §6.4).
+	GetOnboardingState(context.Context, *connect.Request[v1.BffServiceGetOnboardingStateRequest]) (*connect.Response[v1.BffServiceGetOnboardingStateResponse], error)
+	// One members.SaveProfile carrying the answers and the step: one write under
+	// the one Idempotency-Key (A14).
+	SaveProfile(context.Context, *connect.Request[v1.BffServiceSaveProfileRequest]) (*connect.Response[v1.BffServiceSaveProfileResponse], error)
+	// Called on every launch (A3); the answer drives the restore sheet (D60).
+	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
+	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
+	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
+	// failed_precondition when the sheet should have opened.
+	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
+	// ledger.SaveTarget; effective from next month (D65). failed_precondition
+	// without a Salary (D44).
+	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
+	// currency.Quote then ledger.PreviewConversion; unavailable when the rate
+	// fetch fails, the Retry InlineError (PRD §8.9 step 1).
+	PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error)
+	// ledger.ApplyCurrencyConversion, or members.SaveProfile when there is
+	// nothing to convert (PRD §8.9 steps 2 and 4).
+	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
+	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
+	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
+	// ledger.ExportCSV then notify.EmailExport (§7.3). failed_precondition with
+	// EmailBounced is the §6.16 InlineError offering Profile.
+	RequestExport(context.Context, *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error)
+	// Stamps the request; the phone signs out on the answer (§7.1 step 1).
+	RequestDeletion(context.Context, *connect.Request[v1.BffServiceRequestDeletionRequest]) (*connect.Response[v1.BffServiceRequestDeletionResponse], error)
+	// Clears the stamp inside the 24-hour window (§7.1 step 2, D60).
+	CancelDeletion(context.Context, *connect.Request[v1.BffServiceCancelDeletionRequest]) (*connect.Response[v1.BffServiceCancelDeletionResponse], error)
 }
 
 // NewBffServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -86,16 +458,176 @@ type BffServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewBffServiceHandler(svc BffServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	bffServiceMethods := v1.File_money_recap_v1_bff_proto.Services().ByName("BffService").Methods()
+	bffServiceRequestMagicLinkHandler := connect.NewUnaryHandler(
+		BffServiceRequestMagicLinkProcedure,
+		svc.RequestMagicLink,
+		connect.WithSchema(bffServiceMethods.ByName("RequestMagicLink")),
+		connect.WithHandlerOptions(opts...),
+	)
 	bffServiceGetHomeHandler := connect.NewUnaryHandler(
 		BffServiceGetHomeProcedure,
 		svc.GetHome,
 		connect.WithSchema(bffServiceMethods.ByName("GetHome")),
 		connect.WithHandlerOptions(opts...),
 	)
+	bffServiceGetRecapHandler := connect.NewUnaryHandler(
+		BffServiceGetRecapProcedure,
+		svc.GetRecap,
+		connect.WithSchema(bffServiceMethods.ByName("GetRecap")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceListRecapMonthsHandler := connect.NewUnaryHandler(
+		BffServiceListRecapMonthsProcedure,
+		svc.ListRecapMonths,
+		connect.WithSchema(bffServiceMethods.ByName("ListRecapMonths")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceListSpendsHandler := connect.NewUnaryHandler(
+		BffServiceListSpendsProcedure,
+		svc.ListSpends,
+		connect.WithSchema(bffServiceMethods.ByName("ListSpends")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceLogSpendHandler := connect.NewUnaryHandler(
+		BffServiceLogSpendProcedure,
+		svc.LogSpend,
+		connect.WithSchema(bffServiceMethods.ByName("LogSpend")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceEditSpendHandler := connect.NewUnaryHandler(
+		BffServiceEditSpendProcedure,
+		svc.EditSpend,
+		connect.WithSchema(bffServiceMethods.ByName("EditSpend")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceDeleteSpendHandler := connect.NewUnaryHandler(
+		BffServiceDeleteSpendProcedure,
+		svc.DeleteSpend,
+		connect.WithSchema(bffServiceMethods.ByName("DeleteSpend")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceGetOnboardingStateHandler := connect.NewUnaryHandler(
+		BffServiceGetOnboardingStateProcedure,
+		svc.GetOnboardingState,
+		connect.WithSchema(bffServiceMethods.ByName("GetOnboardingState")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceSaveProfileHandler := connect.NewUnaryHandler(
+		BffServiceSaveProfileProcedure,
+		svc.SaveProfile,
+		connect.WithSchema(bffServiceMethods.ByName("SaveProfile")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceSetTimezoneHandler := connect.NewUnaryHandler(
+		BffServiceSetTimezoneProcedure,
+		svc.SetTimezone,
+		connect.WithSchema(bffServiceMethods.ByName("SetTimezone")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceGetSettingsHandler := connect.NewUnaryHandler(
+		BffServiceGetSettingsProcedure,
+		svc.GetSettings,
+		connect.WithSchema(bffServiceMethods.ByName("GetSettings")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceSaveSalaryHandler := connect.NewUnaryHandler(
+		BffServiceSaveSalaryProcedure,
+		svc.SaveSalary,
+		connect.WithSchema(bffServiceMethods.ByName("SaveSalary")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceSaveTargetHandler := connect.NewUnaryHandler(
+		BffServiceSaveTargetProcedure,
+		svc.SaveTarget,
+		connect.WithSchema(bffServiceMethods.ByName("SaveTarget")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServicePreviewCurrencyChangeHandler := connect.NewUnaryHandler(
+		BffServicePreviewCurrencyChangeProcedure,
+		svc.PreviewCurrencyChange,
+		connect.WithSchema(bffServiceMethods.ByName("PreviewCurrencyChange")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceChangeCurrencyHandler := connect.NewUnaryHandler(
+		BffServiceChangeCurrencyProcedure,
+		svc.ChangeCurrency,
+		connect.WithSchema(bffServiceMethods.ByName("ChangeCurrency")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceSaveNotificationPrefsHandler := connect.NewUnaryHandler(
+		BffServiceSaveNotificationPrefsProcedure,
+		svc.SaveNotificationPrefs,
+		connect.WithSchema(bffServiceMethods.ByName("SaveNotificationPrefs")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceRegisterDeviceHandler := connect.NewUnaryHandler(
+		BffServiceRegisterDeviceProcedure,
+		svc.RegisterDevice,
+		connect.WithSchema(bffServiceMethods.ByName("RegisterDevice")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceRequestExportHandler := connect.NewUnaryHandler(
+		BffServiceRequestExportProcedure,
+		svc.RequestExport,
+		connect.WithSchema(bffServiceMethods.ByName("RequestExport")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceRequestDeletionHandler := connect.NewUnaryHandler(
+		BffServiceRequestDeletionProcedure,
+		svc.RequestDeletion,
+		connect.WithSchema(bffServiceMethods.ByName("RequestDeletion")),
+		connect.WithHandlerOptions(opts...),
+	)
+	bffServiceCancelDeletionHandler := connect.NewUnaryHandler(
+		BffServiceCancelDeletionProcedure,
+		svc.CancelDeletion,
+		connect.WithSchema(bffServiceMethods.ByName("CancelDeletion")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/money_recap.v1.BffService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case BffServiceRequestMagicLinkProcedure:
+			bffServiceRequestMagicLinkHandler.ServeHTTP(w, r)
 		case BffServiceGetHomeProcedure:
 			bffServiceGetHomeHandler.ServeHTTP(w, r)
+		case BffServiceGetRecapProcedure:
+			bffServiceGetRecapHandler.ServeHTTP(w, r)
+		case BffServiceListRecapMonthsProcedure:
+			bffServiceListRecapMonthsHandler.ServeHTTP(w, r)
+		case BffServiceListSpendsProcedure:
+			bffServiceListSpendsHandler.ServeHTTP(w, r)
+		case BffServiceLogSpendProcedure:
+			bffServiceLogSpendHandler.ServeHTTP(w, r)
+		case BffServiceEditSpendProcedure:
+			bffServiceEditSpendHandler.ServeHTTP(w, r)
+		case BffServiceDeleteSpendProcedure:
+			bffServiceDeleteSpendHandler.ServeHTTP(w, r)
+		case BffServiceGetOnboardingStateProcedure:
+			bffServiceGetOnboardingStateHandler.ServeHTTP(w, r)
+		case BffServiceSaveProfileProcedure:
+			bffServiceSaveProfileHandler.ServeHTTP(w, r)
+		case BffServiceSetTimezoneProcedure:
+			bffServiceSetTimezoneHandler.ServeHTTP(w, r)
+		case BffServiceGetSettingsProcedure:
+			bffServiceGetSettingsHandler.ServeHTTP(w, r)
+		case BffServiceSaveSalaryProcedure:
+			bffServiceSaveSalaryHandler.ServeHTTP(w, r)
+		case BffServiceSaveTargetProcedure:
+			bffServiceSaveTargetHandler.ServeHTTP(w, r)
+		case BffServicePreviewCurrencyChangeProcedure:
+			bffServicePreviewCurrencyChangeHandler.ServeHTTP(w, r)
+		case BffServiceChangeCurrencyProcedure:
+			bffServiceChangeCurrencyHandler.ServeHTTP(w, r)
+		case BffServiceSaveNotificationPrefsProcedure:
+			bffServiceSaveNotificationPrefsHandler.ServeHTTP(w, r)
+		case BffServiceRegisterDeviceProcedure:
+			bffServiceRegisterDeviceHandler.ServeHTTP(w, r)
+		case BffServiceRequestExportProcedure:
+			bffServiceRequestExportHandler.ServeHTTP(w, r)
+		case BffServiceRequestDeletionProcedure:
+			bffServiceRequestDeletionHandler.ServeHTTP(w, r)
+		case BffServiceCancelDeletionProcedure:
+			bffServiceCancelDeletionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -105,6 +637,86 @@ func NewBffServiceHandler(svc BffServiceHandler, opts ...connect.HandlerOption) 
 // UnimplementedBffServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedBffServiceHandler struct{}
 
+func (UnimplementedBffServiceHandler) RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.RequestMagicLink is not implemented"))
+}
+
 func (UnimplementedBffServiceHandler) GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.GetHome is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.GetRecap is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) ListRecapMonths(context.Context, *connect.Request[v1.BffServiceListRecapMonthsRequest]) (*connect.Response[v1.BffServiceListRecapMonthsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.ListRecapMonths is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) ListSpends(context.Context, *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.ListSpends is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) LogSpend(context.Context, *connect.Request[v1.BffServiceLogSpendRequest]) (*connect.Response[v1.BffServiceLogSpendResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.LogSpend is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) EditSpend(context.Context, *connect.Request[v1.BffServiceEditSpendRequest]) (*connect.Response[v1.BffServiceEditSpendResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.EditSpend is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) DeleteSpend(context.Context, *connect.Request[v1.BffServiceDeleteSpendRequest]) (*connect.Response[v1.BffServiceDeleteSpendResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.DeleteSpend is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) GetOnboardingState(context.Context, *connect.Request[v1.BffServiceGetOnboardingStateRequest]) (*connect.Response[v1.BffServiceGetOnboardingStateResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.GetOnboardingState is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) SaveProfile(context.Context, *connect.Request[v1.BffServiceSaveProfileRequest]) (*connect.Response[v1.BffServiceSaveProfileResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.SaveProfile is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.SetTimezone is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.GetSettings is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.SaveSalary is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.SaveTarget is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.PreviewCurrencyChange is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.ChangeCurrency is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.SaveNotificationPrefs is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.RegisterDevice is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) RequestExport(context.Context, *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.RequestExport is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) RequestDeletion(context.Context, *connect.Request[v1.BffServiceRequestDeletionRequest]) (*connect.Response[v1.BffServiceRequestDeletionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.RequestDeletion is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) CancelDeletion(context.Context, *connect.Request[v1.BffServiceCancelDeletionRequest]) (*connect.Response[v1.BffServiceCancelDeletionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.CancelDeletion is not implemented"))
 }

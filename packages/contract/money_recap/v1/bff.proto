@@ -4,40 +4,10 @@ package money_recap.v1;
 
 option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
 
-import "money_recap/v1/money.proto";
-import "money_recap/v1/shared.proto";
-
-// Everything Home draws (PRD §6.8), joined by the BFF (ARCHITECTURE §6.1).
-// The phone stores this message whole and never recomputes a figure (A2, I4).
-message HomeView {
-  // Empty until onboarding; Home omits the greeting when empty.
-  string display_name = 1;
-  string avatar_key = 2;
-  // ISO 4217 code every amount below is held in.
-  string currency_code = 3;
-  // The current Recap Month as "YYYY-MM" in the Member's local dates.
-  string month = 4;
-  // Spent so far this month (PRD §8.3).
-  Money spent = 5;
-  // Money In this month (PRD §8.2).
-  Money money_in = 6;
-  // Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
-  optional Money saved = 7;
-  // Absent until a Salary is set (PRD D54).
-  optional SalaryFacts salary = 8;
-  // Absent until a Saving Target is set.
-  optional SavingTargetFacts saving_target = 9;
-  // Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
-  int32 streak_day = 10;
-  // Days left in the month counting today, never below 1 (PRD §8.7).
-  int32 days_remaining = 11;
-  // Absent unless the Target Warning has fired this month (PRD §8.8).
-  optional TargetWarning target_warning = 12;
-  // Past months with a Recap, newest first (PRD §6.8 "Recap list").
-  repeated RecapMonth recap_months = 13;
-  // ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
-  string first_recap_on = 14;
-}
+import "money_recap/v1/bff_account.proto";
+import "money_recap/v1/bff_reads.proto";
+import "money_recap/v1/bff_views.proto";
+import "money_recap/v1/bff_writes.proto";
 
 message GetHomeRequest {}
 
@@ -45,8 +15,51 @@ message GetHomeResponse {
   HomeView home = 1;
 }
 
-// The only service the phone talks to (ARCHITECTURE §6).
+// The only service the phone talks to (ARCHITECTURE §6); answers are stored
+// whole (I4). No request carries a key: every write sends an Idempotency-Key
+// header (I3, §6.2 step 1), which the BFF copies into the service field (A14).
 service BffService {
+  // Sent without a bearer token; 5 per email per hour, then resource_exhausted
+  // (PRD §11, §6.3); unavailable when the email cannot be sent (§7.5).
+  rpc RequestMagicLink(BffServiceRequestMagicLinkRequest) returns (BffServiceRequestMagicLinkResponse) {}
   // Home always shows the current month (PRD §6.8, D59), so no month argument.
   rpc GetHome(GetHomeRequest) returns (GetHomeResponse) {}
+  // One month's full or Partial Recap, or the current month's preview (D47).
+  rpc GetRecap(BffServiceGetRecapRequest) returns (BffServiceGetRecapResponse) {}
+  rpc ListRecapMonths(BffServiceListRecapMonthsRequest) returns (BffServiceListRecapMonthsResponse) {}
+  rpc ListSpends(BffServiceListSpendsRequest) returns (BffServiceListSpendsResponse) {}
+  // The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
+  // HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
+  rpc LogSpend(BffServiceLogSpendRequest) returns (BffServiceLogSpendResponse) {}
+  rpc EditSpend(BffServiceEditSpendRequest) returns (BffServiceEditSpendResponse) {}
+  rpc DeleteSpend(BffServiceDeleteSpendRequest) returns (BffServiceDeleteSpendResponse) {}
+  // Where onboarding resumes after a force-quit (PRD §6.4).
+  rpc GetOnboardingState(BffServiceGetOnboardingStateRequest) returns (BffServiceGetOnboardingStateResponse) {}
+  // One members.SaveProfile carrying the answers and the step: one write under
+  // the one Idempotency-Key (A14).
+  rpc SaveProfile(BffServiceSaveProfileRequest) returns (BffServiceSaveProfileResponse) {}
+  // Called on every launch (A3); the answer drives the restore sheet (D60).
+  rpc SetTimezone(BffServiceSetTimezoneRequest) returns (BffServiceSetTimezoneResponse) {}
+  rpc GetSettings(BffServiceGetSettingsRequest) returns (BffServiceGetSettingsResponse) {}
+  // ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
+  // failed_precondition when the sheet should have opened.
+  rpc SaveSalary(BffServiceSaveSalaryRequest) returns (BffServiceSaveSalaryResponse) {}
+  // ledger.SaveTarget; effective from next month (D65). failed_precondition
+  // without a Salary (D44).
+  rpc SaveTarget(BffServiceSaveTargetRequest) returns (BffServiceSaveTargetResponse) {}
+  // currency.Quote then ledger.PreviewConversion; unavailable when the rate
+  // fetch fails, the Retry InlineError (PRD §8.9 step 1).
+  rpc PreviewCurrencyChange(BffServicePreviewCurrencyChangeRequest) returns (BffServicePreviewCurrencyChangeResponse) {}
+  // ledger.ApplyCurrencyConversion, or members.SaveProfile when there is
+  // nothing to convert (PRD §8.9 steps 2 and 4).
+  rpc ChangeCurrency(BffServiceChangeCurrencyRequest) returns (BffServiceChangeCurrencyResponse) {}
+  rpc SaveNotificationPrefs(BffServiceSaveNotificationPrefsRequest) returns (BffServiceSaveNotificationPrefsResponse) {}
+  rpc RegisterDevice(BffServiceRegisterDeviceRequest) returns (BffServiceRegisterDeviceResponse) {}
+  // ledger.ExportCSV then notify.EmailExport (§7.3). failed_precondition with
+  // EmailBounced is the §6.16 InlineError offering Profile.
+  rpc RequestExport(BffServiceRequestExportRequest) returns (BffServiceRequestExportResponse) {}
+  // Stamps the request; the phone signs out on the answer (§7.1 step 1).
+  rpc RequestDeletion(BffServiceRequestDeletionRequest) returns (BffServiceRequestDeletionResponse) {}
+  // Clears the stamp inside the 24-hour window (§7.1 step 2, D60).
+  rpc CancelDeletion(BffServiceCancelDeletionRequest) returns (BffServiceCancelDeletionResponse) {}
 }

@@ -102,9 +102,9 @@ type MonthSummary struct {
 	DaysRemaining int32 `protobuf:"varint,8,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
 	// True for a partial month (PRD §8.11): the Recap is the §6.17 screens.
 	Partial bool `protobuf:"varint,9,opt,name=partial,proto3" json:"partial,omitempty"`
-	// The §8.8 banner with its before-or-after-Payday copy (PRD D53), chosen
-	// here because only ledger holds Spent, the line and Payday (§7.3). Absent
-	// until Spent exceeds the line; the BFF shows it only once notify says fired.
+	// The §8.8 banner copy (PRD D53), chosen here because only ledger holds
+	// Spent, the line and Payday (§7.3). Absent until Spent exceeds the line;
+	// notify keeps it from the moment it fires and Home shows notify's copy.
 	TargetWarning *TargetWarning `protobuf:"bytes,10,opt,name=target_warning,json=targetWarning,proto3,oneof" json:"target_warning,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

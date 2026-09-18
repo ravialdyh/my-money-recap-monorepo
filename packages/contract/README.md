@@ -8,19 +8,23 @@ A Buf module, package `money_recap.v1`, under `money_recap/v1/*.proto`:
 | `money.proto` | `Money`: a decimal-string amount plus an ISO 4217 code, never a float or minor units (PRD §7, D71) |
 | `members.proto` | `MembersService`: `GetOrCreateBySubject`, `GetProfile`, `SaveProfile`, `SaveOnboardingStep`, `SetTimezone`, `RequestDeletion`, `CancelDeletion` (ARCHITECTURE §7.1); the `Profile` message with onboarding step, `signed_up_on` and `deletion_requested_at` (D60) |
 | `members_events.proto` | `MemberFacts` (the replica ledger and notify keep) and the five `members.*` events, each embedding `EventEnvelope`: `MembersCreated`, `MembersUpdated`, `MembersDeletionRequested`, `MembersDeletionCancelled`, `MembersDeleted` |
-| `bff.proto` | `BffService`: `GetHome`; the `HomeView` message with every field Home draws (PRD §6.8) |
+| `bff.proto` | `BffService`, the one service the phone talks to (ARCHITECTURE §6): all twenty-one RPCs, `RequestMagicLink` to `CancelDeletion`, with `GetHomeRequest`/`GetHomeResponse`. Its doc comment names the `Idempotency-Key` header as the phone's transport (I3, §6.2); no phone-facing request has a key field |
+| `bff_views.proto` | The screen answers the phone stores whole (I4): `HomeView` (PRD §6.8, moved here from `bff.proto`, fields and numbers unchanged), `RecapView` (ledger's `Recap` plus the current Display Name and Avatar), `SpendListView` (the switcher's months, the Category rows, the Spends), `SettingsView` (`Profile`, `LedgerSettings`, `NotificationPrefs`), `OnboardingState` (the first unanswered step and every saved answer, §6.4), `CurrencyChangePreview` (rate, source, before-and-after values, or `unsupported_pair`, §8.9) |
+| `bff_reads.proto` | The `BffService<Rpc>Request`/`Response` pairs of the reads: `GetRecap`, `ListRecapMonths`, `ListSpends`, `GetOnboardingState`, `GetSettings`, `PreviewCurrencyChange` |
+| `bff_writes.proto` | The pairs of the Home-changing writes, each answering a fresh `HomeView` (§6.2 step 5): `LogSpend`, `EditSpend`, `DeleteSpend`, `SaveSalary`, `SaveTarget`, `ChangeCurrency` |
+| `bff_account.proto` | The pairs of the account writes: `RequestMagicLink`, `SaveProfile` (with the onboarding step), `SetTimezone`, `SaveNotificationPrefs`, `RegisterDevice`, `RequestExport`, `RequestDeletion` (the phone signs out on its answer), `CancelDeletion` |
 | `ledger.proto` | `LedgerService`: the fourteen RPCs of ARCHITECTURE §7.2 with their read requests and responses (`GetSpentToday` over a batch of Member ids, `ExportCSV` as bytes) |
 | `ledger_views.proto` | What ledger computes and the BFF stores whole (A2): `MonthSummary` (every Home figure plus days remaining and the partial flag), `Recap` for the full and the Partial Recap (PRD §6.11 to §6.14, §6.17), `LedgerSettings`, `ConversionPreview` |
 | `ledger_writes.proto` | The six ledger write requests and responses; each request opens with `idempotency_key` (A14), each response carries the recomputed month, spend writes carry `crossed_line` (PRD §8.8) |
 | `ledger_fixture.proto` | `LedgerFixture`, test-only (A2): one PRD §8 scenario with its expected figures, the shape of every file in `fixtures/ledger/` (see its README) |
 | `ledger_events.proto` | The seven `ledger.*` events, each embedding `EventEnvelope`; spend events carry the Spend, the month and `crossed_line` (§7.2 "Publishes") |
 | `shared.proto` | What every file reuses: the `Category`, `Archetype`, `SalaryAppliesFrom` and `RateSource` enums, `Spend`, `EventEnvelope` (A4), and the view pieces both the BFF and ledger carry: `SalaryFacts`, `SavingTargetFacts`, `TargetWarning`, `RecapMonth`; the idempotency convention is the doc comment on its `package` line (A14) |
-| `notify.proto` | `NotifyService` (§7.3): `GetWarningState`, `EvaluateWarning`, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailMagicLink`, `EmailExport`; `NotificationPrefs`; the `EmailBounced` error detail behind the PRD §6.16 inline error |
+| `notify.proto` | `NotifyService` (§7.3): `GetWarningState` (fired plus the kept §8.8 copy), `EvaluateWarning` (crossed_line plus ledger's copy to keep), `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailMagicLink`, `EmailExport`; `NotificationPrefs`; the `EmailBounced` error detail behind the PRD §6.16 inline error |
 | `notify_events.proto` | `NotifyMemberPurged`, routing key `notify.member.purged`, embedding `EventEnvelope` |
 | `currency.proto` | `CurrencyService` (§7.4): `Quote` returning rate, `RateSource` and as-of date; the `UnsupportedPair` error detail (D35, PRD §8.9 step 1) |
 | `currency_events.proto` | `CurrencyMemberPurged`, routing key `currency.member.purged`, embedding `EventEnvelope` |
 
-Slice 1 defines only what the walking skeleton calls (#10). Slice 2 adds the other RPCs and the event messages (#42); `shared.proto` is its first piece (#50).
+Slice 1 defined what the walking skeleton calls (#10); slice 2 (#42) added every other RPC, the screen views and the event messages, so this table is the whole contract. The phone-facing request and response messages carry the `BffService` prefix the `STANDARD` lint rules require, because the service RPCs of ARCHITECTURE §7 already own the bare names in the same package.
 
 ## Generated outputs, checked in
 

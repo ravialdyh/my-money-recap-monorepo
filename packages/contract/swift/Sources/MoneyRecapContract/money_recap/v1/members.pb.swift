@@ -183,6 +183,17 @@ public nonisolated struct MoneyRecap_V1_SaveProfileRequest: Sendable {
   /// Clears the value of `currencyCode`. Subsequent reads from it will return its default value.
   public mutating func clearCurrencyCode() {self._currencyCode = nil}
 
+  /// The step just completed or skipped, 1 to 4 (PRD §5 step 6), saved in the
+  /// same write as the answers so one Idempotency-Key covers both (A14).
+  public var onboardingStep: Int32 {
+    get {_onboardingStep ?? 0}
+    set {_onboardingStep = newValue}
+  }
+  /// Returns true if `onboardingStep` has been explicitly set.
+  public var hasOnboardingStep: Bool {self._onboardingStep != nil}
+  /// Clears the value of `onboardingStep`. Subsequent reads from it will return its default value.
+  public mutating func clearOnboardingStep() {self._onboardingStep = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -190,6 +201,7 @@ public nonisolated struct MoneyRecap_V1_SaveProfileRequest: Sendable {
   fileprivate var _displayName: String? = nil
   fileprivate var _avatarKey: String? = nil
   fileprivate var _currencyCode: String? = nil
+  fileprivate var _onboardingStep: Int32? = nil
 }
 
 public nonisolated struct MoneyRecap_V1_SaveProfileResponse: Sendable {
@@ -223,9 +235,9 @@ public nonisolated struct MoneyRecap_V1_SaveOnboardingStepRequest: Sendable {
 
   public var memberID: String = String()
 
-  /// The step just completed or skipped, 1 to 4 (PRD §5 step 6). The BFF sends
-  /// it after the step's SaveProfile succeeded, so progress never runs ahead
-  /// of the answers.
+  /// The step just completed or skipped, 1 to 4 (PRD §5 step 6), for a step
+  /// with no answers to save; a step with answers rides on
+  /// SaveProfileRequest.onboarding_step in the same write.
   public var step: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -578,7 +590,7 @@ nonisolated extension MoneyRecap_V1_GetProfileResponse: SwiftProtobuf.Message, S
 
 nonisolated extension MoneyRecap_V1_SaveProfileRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".SaveProfileRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}idempotency_key\0\u{3}member_id\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}idempotency_key\0\u{3}member_id\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0\u{3}onboarding_step\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -591,6 +603,7 @@ nonisolated extension MoneyRecap_V1_SaveProfileRequest: SwiftProtobuf.Message, S
       case 3: try { try decoder.decodeSingularStringField(value: &self._displayName) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self._avatarKey) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self._currencyCode) }()
+      case 6: try { try decoder.decodeSingularInt32Field(value: &self._onboardingStep) }()
       default: break
       }
     }
@@ -616,6 +629,9 @@ nonisolated extension MoneyRecap_V1_SaveProfileRequest: SwiftProtobuf.Message, S
     try { if let v = self._currencyCode {
       try visitor.visitSingularStringField(value: v, fieldNumber: 5)
     } }()
+    try { if let v = self._onboardingStep {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 6)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -625,6 +641,7 @@ nonisolated extension MoneyRecap_V1_SaveProfileRequest: SwiftProtobuf.Message, S
     if lhs._displayName != rhs._displayName {return false}
     if lhs._avatarKey != rhs._avatarKey {return false}
     if lhs._currencyCode != rhs._currencyCode {return false}
+    if lhs._onboardingStep != rhs._onboardingStep {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
