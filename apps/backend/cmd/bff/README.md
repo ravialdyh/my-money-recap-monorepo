@@ -7,7 +7,8 @@ unknown key id) and returns `unauthenticated` before any service is called (§4.
 
 `GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim
 (PRD §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members`
-verifies it again. Then the §6.1 fan-out runs in parallel with a one-second timeout each:
+verifies it again, with the same one-second timeout. Then the §6.1 fan-out runs in parallel with a
+one-second timeout each:
 `members.GetProfile` (required), `ledger.GetMonthSummary` and `notify.GetWarningState` (optional).
 `ledger` and `notify` are Go interfaces with in-process stubs (`internal/bff`) returning zeros and
 "no warning"; slices 5 and 7 swap in Connect clients. The join fills `currency_code` with `GBP` and
@@ -49,7 +50,7 @@ A token for the realm's test user and the `GetHome` call are in `infra/compose/R
 ## Tests
 
 `go test ./internal/bff/` runs the unit tests: the zero HomeView, the caller's token forwarded to
-`members`, a `notify` timeout still answering, a `members` timeout failing, `days_remaining` on the
-last day of a month. The end-to-end test `TestEndToEnd` needs the stack and the `BFF_TEST_*`
-variables listed at the top of `internal/bff/e2e_test.go` (`apps/README.md`); CI runs it in the
-`backend` job.
+`members`, a `notify` timeout still answering, a `members` timeout failing (on `GetProfile` and on
+`GetOrCreateBySubject`), `days_remaining` on the last day of a month. The end-to-end test
+`TestEndToEnd` needs the stack and the `BFF_TEST_*` variables listed at the top of
+`internal/bff/e2e_test.go` (`apps/README.md`); CI runs it in the `backend` job.

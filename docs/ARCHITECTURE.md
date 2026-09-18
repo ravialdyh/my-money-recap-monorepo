@@ -176,6 +176,7 @@ sequenceDiagram
     participant N as notify
     P->>B: GetHome (bearer token)
     B->>B: verify JWT, per-Member limit
+    B->>M: GetOrCreateBySubject, 1 s timeout
     par in parallel, 1 s timeout each
         B->>M: GetProfile
         B->>L: GetMonthSummary(current)

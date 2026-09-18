@@ -14,15 +14,21 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// fakeMembers is a MembersService that answers one fixed Member; profileDelay slows GetProfile.
+// fakeMembers is a MembersService that answers one fixed Member; createDelay and profileDelay slow
+// GetOrCreateBySubject and GetProfile.
 type fakeMembers struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
-	profileDelay time.Duration
-	gotToken     string
+	createDelay, profileDelay time.Duration
+	gotToken                  string
 }
 
-func (f *fakeMembers) GetOrCreateBySubject(_ context.Context, req *connect.Request[moneyrecapv1.GetOrCreateBySubjectRequest]) (*connect.Response[moneyrecapv1.GetOrCreateBySubjectResponse], error) {
+func (f *fakeMembers) GetOrCreateBySubject(ctx context.Context, req *connect.Request[moneyrecapv1.GetOrCreateBySubjectRequest]) (*connect.Response[moneyrecapv1.GetOrCreateBySubjectResponse], error) {
 	f.gotToken = req.Header().Get("Authorization")
+	select {
+	case <-time.After(f.createDelay):
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 	return connect.NewResponse(&moneyrecapv1.GetOrCreateBySubjectResponse{Profile: &moneyrecapv1.Profile{MemberId: "m-1", Email: req.Msg.Email}}), nil
 }
 
@@ -128,6 +134,14 @@ func TestGetHomeMembersTimeoutIsAnError(t *testing.T) {
 		t.Fatalf("members timeout: %v, want deadline_exceeded", err)
 	}
 	t.Logf("members timeout: %v", err)
+}
+
+func TestGetHomeGetOrCreateTimeoutIsAnError(t *testing.T) {
+	start := time.Now()
+	_, err := newService(t, &fakeMembers{createDelay: 2 * time.Second}, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	if elapsed := time.Since(start); connect.CodeOf(err) != connect.CodeDeadlineExceeded || elapsed > time.Second {
+		t.Fatalf("GetOrCreateBySubject timeout: %v after %v, want deadline_exceeded within the 100ms bound", err, elapsed)
+	}
 }
 
 func TestDaysRemainingOnTheLastDay(t *testing.T) {

@@ -50,7 +50,7 @@ type Service struct {
 	Members moneyrecapv1connect.MembersServiceClient
 	Ledger  Ledger
 	Notify  Notify
-	// Timeout bounds each fan-out call; zero means the §6.1 one second.
+	// Timeout bounds GetOrCreateBySubject and each fan-out call; zero means the §6.1 one second.
 	Timeout time.Duration
 	// Now is the server clock; nil means time.Now. UTC until SetTimezone lands (#10, A3).
 	Now func() time.Time
@@ -64,12 +64,6 @@ const fallbackCurrency = "GBP"
 const monthLayout, dateLayout = "2006-01", "2006-01-02"
 
 func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
-	claims := auth.From(ctx)
-	created, err := s.Members.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: claims.Subject, Email: claims.Email}))
-	if err != nil {
-		return nil, err
-	}
-	memberID := created.Msg.Profile.MemberId
 	nowFn, timeout := s.Now, s.Timeout
 	if nowFn == nil {
 		nowFn = time.Now
@@ -77,6 +71,14 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	if timeout == 0 {
 		timeout = time.Second
 	}
+	claims := auth.From(ctx)
+	createCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	created, err := s.Members.GetOrCreateBySubject(createCtx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: claims.Subject, Email: claims.Email}))
+	if err != nil {
+		return nil, err
+	}
+	memberID := created.Msg.Profile.MemberId
 	now := nowFn().UTC()
 	month := now.Format(monthLayout)
 
