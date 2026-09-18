@@ -31,7 +31,8 @@ func (e *Env) Get(key, def string) string {
 func (e *Env) Err() error { return e.err }
 
 // Run adds /healthz to mux (ready, when set, must succeed for "ok"; members pings its database) and
-// serves until ctx is done, then drains for five seconds. It returns the listen error, or nil.
+// serves until ctx is done, then drains in-flight requests for up to five seconds before it returns
+// nil. A listen error returns at once.
 func Run(ctx context.Context, name, addr string, mux *http.ServeMux, ready func(context.Context) error) error {
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if ready != nil {
@@ -43,7 +44,9 @@ func Run(ctx context.Context, name, addr string, mux *http.ServeMux, ready func(
 		fmt.Fprintln(w, "ok")
 	})
 	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	drained := make(chan struct{})
 	go func() {
+		defer close(drained)
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 5*time.Second)
 		defer cancel()
@@ -53,5 +56,6 @@ func Run(ctx context.Context, name, addr string, mux *http.ServeMux, ready func(
 	if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
+	<-drained
 	return nil
 }

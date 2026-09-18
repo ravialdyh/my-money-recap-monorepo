@@ -3,6 +3,7 @@ package serve
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -87,6 +88,58 @@ func TestRunAnswersHealthzAndReturnsNilOnShutdown(t *testing.T) {
 		}
 	case <-time.After(10 * time.Second):
 		t.Fatal("Run did not return after the context was cancelled")
+	}
+}
+
+func TestRunDrainsAnInFlightRequestBeforeReturning(t *testing.T) {
+	addr := freeAddr(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	started, release := make(chan struct{}), make(chan struct{})
+	mux := http.NewServeMux()
+	mux.HandleFunc("/slow", func(w http.ResponseWriter, _ *http.Request) {
+		close(started)
+		<-release
+		fmt.Fprint(w, "done")
+	})
+	done := make(chan error, 1)
+	go func() { done <- Run(ctx, "test", addr, mux, nil) }()
+	getHealthz(t, addr)
+
+	answered := make(chan string, 1)
+	go func() {
+		res, err := http.Get("http://" + addr + "/slow")
+		if err != nil {
+			answered <- err.Error()
+			return
+		}
+		defer res.Body.Close()
+		body, _ := io.ReadAll(res.Body)
+		answered <- string(body)
+	}()
+	<-started
+	cancel()
+	select {
+	case err := <-done:
+		t.Fatalf("Run returned %v while a request was still in flight", err)
+	case <-time.After(300 * time.Millisecond):
+	}
+	close(release)
+	select {
+	case body := <-answered:
+		if body != "done" {
+			t.Errorf("in-flight request got %q, want its response", body)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("the in-flight request never got its response")
+	}
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Errorf("Run = %v, want nil after draining", err)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("Run did not return after the in-flight request finished")
 	}
 }
 
