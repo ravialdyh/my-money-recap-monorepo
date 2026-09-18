@@ -79,6 +79,11 @@ func TestInterceptorKeyFetchFailureIsUnavailable(t *testing.T) {
 	if _, got, _ := call(bg, cached, valid); got != 0 {
 		t.Fatalf("valid token: %v", got)
 	}
+	moved := httptest.NewServer(http.RedirectHandler(realm.URL, http.StatusFound))
+	defer moved.Close()
+	if _, got, _ := call(bg, NewVerifier(bg, issuer, moved.URL, "bff"), valid); got != connect.CodeUnavailable {
+		t.Errorf("key URL redirecting to the realm: %v, want unavailable", got)
+	}
 	realm.Close()
 	if _, got, _ := call(bg, cached, valid); got != 0 {
 		t.Errorf("cached key while the realm is refused: %v, want accepted", got)

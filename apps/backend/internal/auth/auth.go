@@ -37,8 +37,8 @@ func NewVerifier(ctx context.Context, issuer, jwksURL, audience string) *Verifie
 }
 
 // jwksClient gives a key fetch five seconds and fails, in its transport, any answer but a whole 200 of
-// JSON, so every failed fetch (refused, DNS, timeout, TLS, 5xx, truncated body, a body that is not
-// JSON) surfaces as a *url.Error.
+// JSON, a redirect included, so every failed fetch (refused, DNS, timeout, TLS, 5xx, truncated body,
+// a body that is not JSON) surfaces as a *url.Error.
 var jwksClient = &http.Client{Timeout: 5 * time.Second, Transport: okOnly{http.DefaultTransport}}
 
 // okOnly turns any answer but a whole 200 of JSON into a transport error; go-oidc would report it as
