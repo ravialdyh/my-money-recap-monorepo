@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
@@ -119,6 +120,9 @@ func TestFixturesDecode(t *testing.T) {
 			if bad := badAmounts(f.ProtoReflect(), ""); len(bad) != 0 {
 				t.Fatalf("amounts breaking D57: %v", bad)
 			}
+			if bad := badOriginals(&f); len(bad) != 0 {
+				t.Fatalf("original amounts breaking the README rule: %v", bad)
+			}
 		})
 	}
 }
@@ -132,8 +136,37 @@ func TestFixtureRejectsUnknownField(t *testing.T) {
 
 func TestBadAmountsReachesANestedMoney(t *testing.T) {
 	f := &moneyrecapv1.LedgerFixture{Spends: []*moneyrecapv1.Spend{{Amount: &moneyrecapv1.Money{Amount: "1,760"}}}}
-	if bad := badAmounts(f.ProtoReflect(), ""); len(bad) != 1 || bad[0] != `.spends.amount "1,760"` {
+	if bad := badAmounts(f.ProtoReflect(), ""); len(bad) != 1 || bad[0] != `.spends[0].amount "1,760"` {
 		t.Fatalf("badAmounts: %v", bad)
+	}
+}
+
+func TestBadOriginalsSeesEachDrift(t *testing.T) {
+	gbp := &moneyrecapv1.Money{Amount: "2400.00", CurrencyCode: "GBP"}
+	idr := &moneyrecapv1.Money{Amount: "48360000", CurrencyCode: "IDR"}
+	convert := &moneyrecapv1.ApplyCurrencyConversionRequest{Rate: "20150", ToCurrencyCode: "IDR"}
+	for want, f := range map[string]*moneyrecapv1.LedgerFixture{
+		".settings.next_salary has no original_amount": {
+			Settings: &moneyrecapv1.LedgerSettings{NextSalary: &moneyrecapv1.SalarySetting{Amount: gbp}},
+		},
+		".recaps[0].splurge original_amount 2400.00 GBP, want 420.00 GBP": {
+			Recaps: []*moneyrecapv1.Recap{{Splurge: &moneyrecapv1.Spend{
+				Amount: &moneyrecapv1.Money{Amount: "420.00", CurrencyCode: "GBP"}, OriginalAmount: gbp,
+			}}},
+		},
+		".spends[0] original_amount 48360000 IDR, want 2400.00 GBP": {
+			Convert: convert,
+			Spends:  []*moneyrecapv1.Spend{{Id: "maya-01", Amount: gbp, OriginalAmount: idr}},
+		},
+		".salaries_after[0] original_amount 48360000 IDR, want 2400.00 GBP": {
+			Convert:       convert,
+			Salaries:      []*moneyrecapv1.SalarySetting{{Amount: gbp, EffectiveFrom: "2026-08", OriginalAmount: gbp}},
+			SalariesAfter: []*moneyrecapv1.SalarySetting{{Amount: idr, EffectiveFrom: "2026-08", OriginalAmount: idr}},
+		},
+	} {
+		if bad := badOriginals(f); !slices.Equal(bad, []string{want}) {
+			t.Errorf("want [%s], got %v", want, bad)
+		}
 	}
 }
 
@@ -150,26 +183,70 @@ func hasExpectation(f *moneyrecapv1.LedgerFixture) bool {
 		f.Settings != nil || f.ConversionPreview != nil || f.CrossedLine != nil
 }
 
-// badAmounts walks every populated field and returns each Money whose amount breaks D57, by path.
-func badAmounts(m protoreflect.Message, path string) []string {
-	if money, ok := m.Interface().(*moneyrecapv1.Money); ok {
-		if amountPattern.MatchString(money.Amount) {
-			return nil
-		}
-		return []string{fmt.Sprintf("%s %q", path, money.Amount)}
-	}
-	var bad []string
+// eachMessage calls visit with m and every message populated under it, each by its path; a list
+// element's path carries its index.
+func eachMessage(m protoreflect.Message, path string, visit func(protoreflect.Message, string)) {
+	visit(m, path)
 	m.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
 		child := path + "." + string(fd.Name())
 		switch {
 		case fd.IsList() && fd.Kind() == protoreflect.MessageKind:
 			for i := range v.List().Len() {
-				bad = append(bad, badAmounts(v.List().Get(i).Message(), child)...)
+				eachMessage(v.List().Get(i).Message(), fmt.Sprintf("%s[%d]", child, i), visit)
 			}
 		case fd.Kind() == protoreflect.MessageKind:
-			bad = append(bad, badAmounts(v.Message(), child)...)
+			eachMessage(v.Message(), child, visit)
 		}
 		return true
+	})
+}
+
+// badAmounts walks every populated field and returns each Money whose amount breaks D57, by path.
+func badAmounts(m protoreflect.Message, path string) []string {
+	var bad []string
+	eachMessage(m, path, func(msg protoreflect.Message, at string) {
+		if money, ok := msg.Interface().(*moneyrecapv1.Money); ok && !amountPattern.MatchString(money.Amount) {
+			bad = append(bad, fmt.Sprintf("%s %q", at, money.Amount))
+		}
+	})
+	return bad
+}
+
+// badOriginals returns, by path, each Spend and SalarySetting breaking the README's original_amount
+// rule: always present, equal to amount until convert, then equal to the input row's (a Spend by id,
+// a SalarySetting by effective_from).
+func badOriginals(f *moneyrecapv1.LedgerFixture) []string {
+	typed := map[string]*moneyrecapv1.Money{}
+	for _, s := range f.Salaries {
+		typed["salary "+s.EffectiveFrom] = s.OriginalAmount
+	}
+	for _, s := range f.Spends {
+		typed["spend "+s.Id] = s.OriginalAmount
+	}
+	var bad []string
+	eachMessage(f.ProtoReflect(), "", func(msg protoreflect.Message, at string) {
+		var key string
+		var amount, original *moneyrecapv1.Money
+		var input bool
+		switch row := msg.Interface().(type) {
+		case *moneyrecapv1.SalarySetting:
+			key, amount, original, input = "salary "+row.EffectiveFrom, row.Amount, row.OriginalAmount, slices.Contains(f.Salaries, row)
+		case *moneyrecapv1.Spend:
+			key, amount, original, input = "spend "+row.Id, row.Amount, row.OriginalAmount, slices.Contains(f.Spends, row)
+		default:
+			return
+		}
+		want := amount
+		if f.Convert != nil && !input {
+			want = typed[key]
+		}
+		switch {
+		case original == nil:
+			bad = append(bad, at+" has no original_amount")
+		case !proto.Equal(original, want):
+			bad = append(bad, fmt.Sprintf("%s original_amount %s %s, want %s %s",
+				at, original.Amount, original.CurrencyCode, want.GetAmount(), want.GetCurrencyCode()))
+		}
 	})
 	return bad
 }

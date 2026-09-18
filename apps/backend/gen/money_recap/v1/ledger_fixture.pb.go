@@ -63,8 +63,8 @@ type LedgerFixture struct {
 	// Whether logging the last entry of spends, on its date, answered
 	// crossed_line (PRD §8.8).
 	CrossedLine *bool `protobuf:"varint,15,opt,name=crossed_line,json=crossedLine,proto3,oneof" json:"crossed_line,omitempty"`
-	// The salary_setting rows after convert or save_salary (PRD §8.9 step 4,
-	// §8.10).
+	// The salary_setting rows after convert or save_salary, original amounts
+	// untouched (PRD §8.9 step 4, §8.10).
 	SalariesAfter []*SalarySetting `protobuf:"bytes,16,rep,name=salaries_after,json=salariesAfter,proto3" json:"salaries_after,omitempty"`
 	// The Spend rows after convert, original amounts untouched (PRD §8.9 step 4).
 	SpendsAfter   []*Spend `protobuf:"bytes,17,rep,name=spends_after,json=spendsAfter,proto3" json:"spends_after,omitempty"`

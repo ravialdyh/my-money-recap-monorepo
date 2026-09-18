@@ -560,8 +560,11 @@ type SalarySetting struct {
 	Payday string `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
 	// "YYYY-MM" the row takes effect from (PRD D56).
 	EffectiveFrom string `protobuf:"bytes,3,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// Always present: the amount as typed, with its Currency, never touched by a
+	// currency change (PRD §8.9).
+	OriginalAmount *Money `protobuf:"bytes,4,opt,name=original_amount,json=originalAmount,proto3" json:"original_amount,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SalarySetting) Reset() {
@@ -613,6 +616,13 @@ func (x *SalarySetting) GetEffectiveFrom() string {
 		return x.EffectiveFrom
 	}
 	return ""
+}
+
+func (x *SalarySetting) GetOriginalAmount() *Money {
+	if x != nil {
+		return x.OriginalAmount
+	}
+	return nil
 }
 
 // One append-only saving_target_setting row (PRD §7, D65).
@@ -936,11 +946,12 @@ const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\n" +
 	"\b_splurgeB\f\n" +
 	"\n" +
-	"_archetype\"}\n" +
+	"_archetype\"\xbd\x01\n" +
 	"\rSalarySetting\x12-\n" +
 	"\x06amount\x18\x01 \x01(\v2\x15.money_recap.v1.MoneyR\x06amount\x12\x16\n" +
 	"\x06payday\x18\x02 \x01(\tR\x06payday\x12%\n" +
-	"\x0eeffective_from\x18\x03 \x01(\tR\reffectiveFrom\"V\n" +
+	"\x0eeffective_from\x18\x03 \x01(\tR\reffectiveFrom\x12>\n" +
+	"\x0foriginal_amount\x18\x04 \x01(\v2\x15.money_recap.v1.MoneyR\x0eoriginalAmount\"V\n" +
 	"\x13SavingTargetSetting\x12\x18\n" +
 	"\apercent\x18\x01 \x01(\x05R\apercent\x12%\n" +
 	"\x0eeffective_from\x18\x02 \x01(\tR\reffectiveFrom\"\x8f\x04\n" +
@@ -1025,19 +1036,20 @@ var file_money_recap_v1_ledger_views_proto_depIdxs = []int32{
 	14, // 16: money_recap.v1.Recap.splurge:type_name -> money_recap.v1.Spend
 	15, // 17: money_recap.v1.Recap.archetype:type_name -> money_recap.v1.Archetype
 	9,  // 18: money_recap.v1.SalarySetting.amount:type_name -> money_recap.v1.Money
-	5,  // 19: money_recap.v1.LedgerSettings.salary:type_name -> money_recap.v1.SalarySetting
-	5,  // 20: money_recap.v1.LedgerSettings.next_salary:type_name -> money_recap.v1.SalarySetting
-	6,  // 21: money_recap.v1.LedgerSettings.saving_target:type_name -> money_recap.v1.SavingTargetSetting
-	6,  // 22: money_recap.v1.LedgerSettings.next_saving_target:type_name -> money_recap.v1.SavingTargetSetting
-	9,  // 23: money_recap.v1.ConversionPreview.salary_before:type_name -> money_recap.v1.Money
-	9,  // 24: money_recap.v1.ConversionPreview.salary_after:type_name -> money_recap.v1.Money
-	9,  // 25: money_recap.v1.ConversionPreview.spends_before:type_name -> money_recap.v1.Money
-	9,  // 26: money_recap.v1.ConversionPreview.spends_after:type_name -> money_recap.v1.Money
-	27, // [27:27] is the sub-list for method output_type
-	27, // [27:27] is the sub-list for method input_type
-	27, // [27:27] is the sub-list for extension type_name
-	27, // [27:27] is the sub-list for extension extendee
-	0,  // [0:27] is the sub-list for field type_name
+	9,  // 19: money_recap.v1.SalarySetting.original_amount:type_name -> money_recap.v1.Money
+	5,  // 20: money_recap.v1.LedgerSettings.salary:type_name -> money_recap.v1.SalarySetting
+	5,  // 21: money_recap.v1.LedgerSettings.next_salary:type_name -> money_recap.v1.SalarySetting
+	6,  // 22: money_recap.v1.LedgerSettings.saving_target:type_name -> money_recap.v1.SavingTargetSetting
+	6,  // 23: money_recap.v1.LedgerSettings.next_saving_target:type_name -> money_recap.v1.SavingTargetSetting
+	9,  // 24: money_recap.v1.ConversionPreview.salary_before:type_name -> money_recap.v1.Money
+	9,  // 25: money_recap.v1.ConversionPreview.salary_after:type_name -> money_recap.v1.Money
+	9,  // 26: money_recap.v1.ConversionPreview.spends_before:type_name -> money_recap.v1.Money
+	9,  // 27: money_recap.v1.ConversionPreview.spends_after:type_name -> money_recap.v1.Money
+	28, // [28:28] is the sub-list for method output_type
+	28, // [28:28] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_ledger_views_proto_init() }

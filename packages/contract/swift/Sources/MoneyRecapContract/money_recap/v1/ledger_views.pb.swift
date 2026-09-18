@@ -399,11 +399,23 @@ public nonisolated struct MoneyRecap_V1_SalarySetting: Sendable {
   /// "YYYY-MM" the row takes effect from (PRD D56).
   public var effectiveFrom: String = String()
 
+  /// Always present: the amount as typed, with its Currency, never touched by a
+  /// currency change (PRD §8.9).
+  public var originalAmount: MoneyRecap_V1_Money {
+    get {_originalAmount ?? MoneyRecap_V1_Money()}
+    set {_originalAmount = newValue}
+  }
+  /// Returns true if `originalAmount` has been explicitly set.
+  public var hasOriginalAmount: Bool {self._originalAmount != nil}
+  /// Clears the value of `originalAmount`. Subsequent reads from it will return its default value.
+  public mutating func clearOriginalAmount() {self._originalAmount = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
+  fileprivate var _originalAmount: MoneyRecap_V1_Money? = nil
 }
 
 /// One append-only saving_target_setting row (PRD §7, D65).
@@ -426,70 +438,76 @@ public nonisolated struct MoneyRecap_V1_SavingTargetSetting: Sendable {
 /// What Settings draws from ledger (PRD §6.16): the rows in force this month,
 /// any row already saved for a later month, and the facts the D56 sheet and
 /// the §8.9 confirm sheet decide on.
-public nonisolated struct MoneyRecap_V1_LedgerSettings: Sendable {
+public nonisolated struct MoneyRecap_V1_LedgerSettings: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   /// The Salary in force this month; absent when the row reads "Not set".
   public var salary: MoneyRecap_V1_SalarySetting {
-    get {_salary ?? MoneyRecap_V1_SalarySetting()}
-    set {_salary = newValue}
+    get {_storage._salary ?? MoneyRecap_V1_SalarySetting()}
+    set {_uniqueStorage()._salary = newValue}
   }
   /// Returns true if `salary` has been explicitly set.
-  public var hasSalary: Bool {self._salary != nil}
+  public var hasSalary: Bool {_storage._salary != nil}
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
-  public mutating func clearSalary() {self._salary = nil}
+  public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
   /// A Salary effective from a later month (D56 "from your next payday").
   public var nextSalary: MoneyRecap_V1_SalarySetting {
-    get {_nextSalary ?? MoneyRecap_V1_SalarySetting()}
-    set {_nextSalary = newValue}
+    get {_storage._nextSalary ?? MoneyRecap_V1_SalarySetting()}
+    set {_uniqueStorage()._nextSalary = newValue}
   }
   /// Returns true if `nextSalary` has been explicitly set.
-  public var hasNextSalary: Bool {self._nextSalary != nil}
+  public var hasNextSalary: Bool {_storage._nextSalary != nil}
   /// Clears the value of `nextSalary`. Subsequent reads from it will return its default value.
-  public mutating func clearNextSalary() {self._nextSalary = nil}
+  public mutating func clearNextSalary() {_uniqueStorage()._nextSalary = nil}
 
   /// The Saving Target in force this month; absent when "Not set", which is
   /// no row or a 0 percent row (PRD §8.4).
   public var savingTarget: MoneyRecap_V1_SavingTargetSetting {
-    get {_savingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
-    set {_savingTarget = newValue}
+    get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
+    set {_uniqueStorage()._savingTarget = newValue}
   }
   /// Returns true if `savingTarget` has been explicitly set.
-  public var hasSavingTarget: Bool {self._savingTarget != nil}
+  public var hasSavingTarget: Bool {_storage._savingTarget != nil}
   /// Clears the value of `savingTarget`. Subsequent reads from it will return its default value.
-  public mutating func clearSavingTarget() {self._savingTarget = nil}
+  public mutating func clearSavingTarget() {_uniqueStorage()._savingTarget = nil}
 
   /// A Saving Target effective from next month (D65).
   public var nextSavingTarget: MoneyRecap_V1_SavingTargetSetting {
-    get {_nextSavingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
-    set {_nextSavingTarget = newValue}
+    get {_storage._nextSavingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
+    set {_uniqueStorage()._nextSavingTarget = newValue}
   }
   /// Returns true if `nextSavingTarget` has been explicitly set.
-  public var hasNextSavingTarget: Bool {self._nextSavingTarget != nil}
+  public var hasNextSavingTarget: Bool {_storage._nextSavingTarget != nil}
   /// Clears the value of `nextSavingTarget`. Subsequent reads from it will return its default value.
-  public mutating func clearNextSavingTarget() {self._nextSavingTarget = nil}
+  public mutating func clearNextSavingTarget() {_uniqueStorage()._nextSavingTarget = nil}
 
   /// Computed by ledger in the Member's zone; true opens the D56 sheet.
-  public var paydayPassedThisMonth: Bool = false
+  public var paydayPassedThisMonth: Bool {
+    get {_storage._paydayPassedThisMonth}
+    set {_uniqueStorage()._paydayPassedThisMonth = newValue}
+  }
 
   /// ISO 4217 code every amount is held in.
-  public var currencyCode: String = String()
+  public var currencyCode: String {
+    get {_storage._currencyCode}
+    set {_uniqueStorage()._currencyCode = newValue}
+  }
 
   /// False with no Salary and no Spends: a currency change then skips the
   /// confirm sheet (PRD §8.9 step 2).
-  public var hasAmountsToConvert_p: Bool = false
+  public var hasAmountsToConvert_p: Bool {
+    get {_storage._hasAmountsToConvert_p}
+    set {_uniqueStorage()._hasAmountsToConvert_p = newValue}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
-  fileprivate var _salary: MoneyRecap_V1_SalarySetting? = nil
-  fileprivate var _nextSalary: MoneyRecap_V1_SalarySetting? = nil
-  fileprivate var _savingTarget: MoneyRecap_V1_SavingTargetSetting? = nil
-  fileprivate var _nextSavingTarget: MoneyRecap_V1_SavingTargetSetting? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 /// The before-and-after values for the currency confirm sheet (PRD §8.9 step
@@ -973,7 +991,7 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
 
 nonisolated extension MoneyRecap_V1_SalarySetting: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".SalarySetting"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}amount\0\u{1}payday\0\u{3}effective_from\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}amount\0\u{1}payday\0\u{3}effective_from\0\u{3}original_amount\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -984,6 +1002,7 @@ nonisolated extension MoneyRecap_V1_SalarySetting: SwiftProtobuf.Message, SwiftP
       case 1: try { try decoder.decodeSingularMessageField(value: &self._amount) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.payday) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.effectiveFrom) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._originalAmount) }()
       default: break
       }
     }
@@ -1003,6 +1022,9 @@ nonisolated extension MoneyRecap_V1_SalarySetting: SwiftProtobuf.Message, SwiftP
     if !self.effectiveFrom.isEmpty {
       try visitor.visitSingularStringField(value: self.effectiveFrom, fieldNumber: 3)
     }
+    try { if let v = self._originalAmount {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1010,6 +1032,7 @@ nonisolated extension MoneyRecap_V1_SalarySetting: SwiftProtobuf.Message, SwiftP
     if lhs._amount != rhs._amount {return false}
     if lhs.payday != rhs.payday {return false}
     if lhs.effectiveFrom != rhs.effectiveFrom {return false}
+    if lhs._originalAmount != rhs._originalAmount {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1054,61 +1077,109 @@ nonisolated extension MoneyRecap_V1_LedgerSettings: SwiftProtobuf.Message, Swift
   public static let protoMessageName: String = _protobuf_package + ".LedgerSettings"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}salary\0\u{3}next_salary\0\u{3}saving_target\0\u{3}next_saving_target\0\u{3}payday_passed_this_month\0\u{3}currency_code\0\u{3}has_amounts_to_convert\0")
 
+  fileprivate class _StorageClass {
+    var _salary: MoneyRecap_V1_SalarySetting? = nil
+    var _nextSalary: MoneyRecap_V1_SalarySetting? = nil
+    var _savingTarget: MoneyRecap_V1_SavingTargetSetting? = nil
+    var _nextSavingTarget: MoneyRecap_V1_SavingTargetSetting? = nil
+    var _paydayPassedThisMonth: Bool = false
+    var _currencyCode: String = String()
+    var _hasAmountsToConvert_p: Bool = false
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _salary = source._salary
+      _nextSalary = source._nextSalary
+      _savingTarget = source._savingTarget
+      _nextSavingTarget = source._nextSavingTarget
+      _paydayPassedThisMonth = source._paydayPassedThisMonth
+      _currencyCode = source._currencyCode
+      _hasAmountsToConvert_p = source._hasAmountsToConvert_p
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._salary) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._nextSalary) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._savingTarget) }()
-      case 4: try { try decoder.decodeSingularMessageField(value: &self._nextSavingTarget) }()
-      case 5: try { try decoder.decodeSingularBoolField(value: &self.paydayPassedThisMonth) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self.currencyCode) }()
-      case 7: try { try decoder.decodeSingularBoolField(value: &self.hasAmountsToConvert_p) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._salary) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._nextSalary) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._savingTarget) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._nextSavingTarget) }()
+        case 5: try { try decoder.decodeSingularBoolField(value: &_storage._paydayPassedThisMonth) }()
+        case 6: try { try decoder.decodeSingularStringField(value: &_storage._currencyCode) }()
+        case 7: try { try decoder.decodeSingularBoolField(value: &_storage._hasAmountsToConvert_p) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._salary {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
-    try { if let v = self._nextSalary {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try { if let v = self._savingTarget {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    } }()
-    try { if let v = self._nextSavingTarget {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    } }()
-    if self.paydayPassedThisMonth != false {
-      try visitor.visitSingularBoolField(value: self.paydayPassedThisMonth, fieldNumber: 5)
-    }
-    if !self.currencyCode.isEmpty {
-      try visitor.visitSingularStringField(value: self.currencyCode, fieldNumber: 6)
-    }
-    if self.hasAmountsToConvert_p != false {
-      try visitor.visitSingularBoolField(value: self.hasAmountsToConvert_p, fieldNumber: 7)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._salary {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      } }()
+      try { if let v = _storage._nextSalary {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      } }()
+      try { if let v = _storage._savingTarget {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      } }()
+      try { if let v = _storage._nextSavingTarget {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      } }()
+      if _storage._paydayPassedThisMonth != false {
+        try visitor.visitSingularBoolField(value: _storage._paydayPassedThisMonth, fieldNumber: 5)
+      }
+      if !_storage._currencyCode.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._currencyCode, fieldNumber: 6)
+      }
+      if _storage._hasAmountsToConvert_p != false {
+        try visitor.visitSingularBoolField(value: _storage._hasAmountsToConvert_p, fieldNumber: 7)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_LedgerSettings, rhs: MoneyRecap_V1_LedgerSettings) -> Bool {
-    if lhs._salary != rhs._salary {return false}
-    if lhs._nextSalary != rhs._nextSalary {return false}
-    if lhs._savingTarget != rhs._savingTarget {return false}
-    if lhs._nextSavingTarget != rhs._nextSavingTarget {return false}
-    if lhs.paydayPassedThisMonth != rhs.paydayPassedThisMonth {return false}
-    if lhs.currencyCode != rhs.currencyCode {return false}
-    if lhs.hasAmountsToConvert_p != rhs.hasAmountsToConvert_p {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._salary != rhs_storage._salary {return false}
+        if _storage._nextSalary != rhs_storage._nextSalary {return false}
+        if _storage._savingTarget != rhs_storage._savingTarget {return false}
+        if _storage._nextSavingTarget != rhs_storage._nextSavingTarget {return false}
+        if _storage._paydayPassedThisMonth != rhs_storage._paydayPassedThisMonth {return false}
+        if _storage._currencyCode != rhs_storage._currencyCode {return false}
+        if _storage._hasAmountsToConvert_p != rhs_storage._hasAmountsToConvert_p {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
