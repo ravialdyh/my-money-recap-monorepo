@@ -3,7 +3,9 @@
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
 subject. Slice 1 (#15) answers `GetOrCreateBySubject` and `GetProfile` over Connect; every RPC
 verifies the bearer JWT against the realm JWKS (issuer, audience `bff`, expiry, signature) and
-returns `unauthenticated` otherwise, or `unavailable` when the keys it needs cannot be fetched (§4.2).
+returns `unauthenticated` otherwise, or `unavailable` when the keys it needs cannot be fetched or
+arrive as a 200 that is not JSON (§4.2). Either answer carries a generic message; the verifier's
+reason, which can quote the realm's answer, goes to the log.
 
 | Path | Holds |
 | --- | --- |

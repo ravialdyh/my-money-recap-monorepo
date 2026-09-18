@@ -4,6 +4,7 @@ package auth
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -35,11 +36,13 @@ func NewVerifier(ctx context.Context, issuer, jwksURL, audience string) *Verifie
 	return &Verifier{oidc.NewVerifier(issuer, keySet{keys}, &oidc.Config{ClientID: audience})}
 }
 
-// jwksClient gives a key fetch five seconds and fails a non-200 or cut-short answer in its transport,
-// so every failed fetch (refused, DNS, timeout, TLS, 5xx, truncated body) surfaces as a *url.Error.
+// jwksClient gives a key fetch five seconds and fails, in its transport, any answer but a whole 200 of
+// JSON, so every failed fetch (refused, DNS, timeout, TLS, 5xx, truncated body, a body that is not
+// JSON) surfaces as a *url.Error.
 var jwksClient = &http.Client{Timeout: 5 * time.Second, Transport: okOnly{http.DefaultTransport}}
 
-// okOnly turns any answer but a whole 200 into a transport error; go-oidc would report it as plain text.
+// okOnly turns any answer but a whole 200 of JSON into a transport error; go-oidc would report it as
+// plain text.
 type okOnly struct{ next http.RoundTripper }
 
 func (t okOnly) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -54,6 +57,9 @@ func (t okOnly) RoundTrip(req *http.Request) (*http.Response, error) {
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
+	}
+	if !json.Valid(body) {
+		return nil, errors.New("realm keys answered 200 with a body that is not JSON")
 	}
 	res.Body = io.NopCloser(bytes.NewReader(body))
 	return res, nil
@@ -90,17 +96,24 @@ func (v *Verifier) Interceptor() connect.UnaryInterceptorFunc {
 				return nil, connect.NewError(connect.CodeUnavailable, errors.New("the realm's signing keys are out of reach"))
 			}
 			if err != nil {
-				return nil, connect.NewError(connect.CodeUnauthenticated, err)
+				return nil, notValid(err)
 			}
 			var extra struct {
 				Email string `json:"email"`
 			}
 			if err := tok.Claims(&extra); err != nil {
-				return nil, connect.NewError(connect.CodeUnauthenticated, err)
+				return nil, notValid(err)
 			}
 			return next(NewContext(ctx, Claims{Subject: tok.Subject, Email: extra.Email, Raw: raw}), req)
 		}
 	}
+}
+
+// notValid logs why a token failed and answers a generic unauthenticated: go-oidc's text can quote the
+// realm's key answer, which the phone has no use for.
+func notValid(err error) error {
+	log.Printf("auth: %v", err)
+	return connect.NewError(connect.CodeUnauthenticated, errors.New("the bearer token is not valid"))
 }
 
 // NewContext stores verified Claims; the interceptor calls it, tests may too.

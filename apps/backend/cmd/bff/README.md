@@ -4,7 +4,9 @@ The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning 
 (#17) answers `GetHome` with a HomeView of zeros. Every RPC verifies the bearer JWT against the
 realm JWKS (issuer, audience `bff`, expiry, signature; keys cached in memory and refetched on an
 unknown key id) and returns `unauthenticated` before any service is called (§4.2, A6), or
-`unavailable` when the keys it needs cannot be fetched, so the phone keeps its session (PRD D61).
+`unavailable` when the keys it needs cannot be fetched or arrive as a 200 that is not JSON, so the
+phone keeps its session (PRD D61). Either answer carries a generic message; the verifier's reason,
+which can quote the realm's answer, goes to the log.
 
 `GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim (PRD
 §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
