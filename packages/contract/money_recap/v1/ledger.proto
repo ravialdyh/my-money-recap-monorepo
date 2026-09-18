@@ -103,7 +103,7 @@ message ExportCSVRequest {
 
 // Every non-deleted Spend of the Member as one CSV document (PRD §6.16, D39):
 // a Member's Spends fit in one message, and the BFF hands the bytes straight
-// to notify.EmailExport. Nothing is stored server-side.
+// to notify.EmailExport. Nothing is stored.
 message ExportCSVResponse {
   bytes csv = 1;
 }

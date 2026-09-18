@@ -41,8 +41,8 @@ service BffService {
   // Called on every launch (A3); the answer drives the restore sheet (D60).
   rpc SetTimezone(BffServiceSetTimezoneRequest) returns (BffServiceSetTimezoneResponse) {}
   rpc GetSettings(BffServiceGetSettingsRequest) returns (BffServiceGetSettingsResponse) {}
-  // ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
-  // failed_precondition when the sheet should have opened.
+  // ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
+  // included; failed_precondition when the D56 sheet should have opened.
   rpc SaveSalary(BffServiceSaveSalaryRequest) returns (BffServiceSaveSalaryResponse) {}
   // ledger.SaveTarget; effective from next month (D65). failed_precondition
   // without a Salary (D44).

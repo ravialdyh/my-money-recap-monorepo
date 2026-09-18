@@ -148,7 +148,7 @@ public nonisolated struct MoneyRecap_V1_SaveProfileRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -184,7 +184,8 @@ public nonisolated struct MoneyRecap_V1_SaveProfileRequest: Sendable {
   public mutating func clearCurrencyCode() {self._currencyCode = nil}
 
   /// The step just completed or skipped, 1 to 4 (PRD §5 step 6), saved in the
-  /// same write as the answers so one Idempotency-Key covers both (A14).
+  /// same write as the answers so one Idempotency-Key covers both (A14); a
+  /// skip sends only this field. A force-quit resumes at the next step (§6.4).
   public var onboardingStep: Int32 {
     get {_onboardingStep ?? 0}
     set {_onboardingStep = newValue}
@@ -225,53 +226,12 @@ public nonisolated struct MoneyRecap_V1_SaveProfileResponse: Sendable {
   fileprivate var _profile: MoneyRecap_V1_Profile? = nil
 }
 
-public nonisolated struct MoneyRecap_V1_SaveOnboardingStepRequest: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  /// A14.
-  public var idempotencyKey: String = String()
-
-  public var memberID: String = String()
-
-  /// The step just completed or skipped, 1 to 4 (PRD §5 step 6), for a step
-  /// with no answers to save; a step with answers rides on
-  /// SaveProfileRequest.onboarding_step in the same write.
-  public var step: Int32 = 0
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
-public nonisolated struct MoneyRecap_V1_SaveOnboardingStepResponse: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var profile: MoneyRecap_V1_Profile {
-    get {_profile ?? MoneyRecap_V1_Profile()}
-    set {_profile = newValue}
-  }
-  /// Returns true if `profile` has been explicitly set.
-  public var hasProfile: Bool {self._profile != nil}
-  /// Clears the value of `profile`. Subsequent reads from it will return its default value.
-  public mutating func clearProfile() {self._profile = nil}
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-
-  fileprivate var _profile: MoneyRecap_V1_Profile? = nil
-}
-
 public nonisolated struct MoneyRecap_V1_SetTimezoneRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -310,7 +270,7 @@ public nonisolated struct MoneyRecap_V1_RequestDeletionRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -346,7 +306,7 @@ public nonisolated struct MoneyRecap_V1_CancelDeletionRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -675,80 +635,6 @@ nonisolated extension MoneyRecap_V1_SaveProfileResponse: SwiftProtobuf.Message, 
   }
 
   public static func ==(lhs: MoneyRecap_V1_SaveProfileResponse, rhs: MoneyRecap_V1_SaveProfileResponse) -> Bool {
-    if lhs._profile != rhs._profile {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension MoneyRecap_V1_SaveOnboardingStepRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".SaveOnboardingStepRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}idempotency_key\0\u{3}member_id\0\u{1}step\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.idempotencyKey) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.memberID) }()
-      case 3: try { try decoder.decodeSingularInt32Field(value: &self.step) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.idempotencyKey.isEmpty {
-      try visitor.visitSingularStringField(value: self.idempotencyKey, fieldNumber: 1)
-    }
-    if !self.memberID.isEmpty {
-      try visitor.visitSingularStringField(value: self.memberID, fieldNumber: 2)
-    }
-    if self.step != 0 {
-      try visitor.visitSingularInt32Field(value: self.step, fieldNumber: 3)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: MoneyRecap_V1_SaveOnboardingStepRequest, rhs: MoneyRecap_V1_SaveOnboardingStepRequest) -> Bool {
-    if lhs.idempotencyKey != rhs.idempotencyKey {return false}
-    if lhs.memberID != rhs.memberID {return false}
-    if lhs.step != rhs.step {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension MoneyRecap_V1_SaveOnboardingStepResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".SaveOnboardingStepResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}profile\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._profile) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._profile {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: MoneyRecap_V1_SaveOnboardingStepResponse, rhs: MoneyRecap_V1_SaveOnboardingStepResponse) -> Bool {
     if lhs._profile != rhs._profile {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

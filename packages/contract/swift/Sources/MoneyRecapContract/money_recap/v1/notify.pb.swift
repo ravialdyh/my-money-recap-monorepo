@@ -91,8 +91,8 @@ public nonisolated struct MoneyRecap_V1_GetWarningStateRequest: Sendable {
   public init() {}
 }
 
-/// Whether the Target Warning has fired this month (PRD §8.8). Only the stamp
-/// lives here; the banner copy is ledger's (ARCHITECTURE §7.3).
+/// Whether the Target Warning has fired this month and the copy kept when it
+/// did (PRD §8.8, ARCHITECTURE §7.3).
 public nonisolated struct MoneyRecap_V1_GetWarningStateResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

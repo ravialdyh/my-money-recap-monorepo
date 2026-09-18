@@ -451,7 +451,7 @@ Used on Home and Recap screen 3. `days remaining` counts today and is never less
 - Past month, met: "Target met. {Saved − Target amount} to spare."
 - Past month, missed: "{Target amount − Saved} short of your target."
 
-*Worked:* 1 October, nothing spent: (2,400 − 480 − 0) ÷ 31 = £61 a day. On 31 October, days remaining = 31 − 31 + 1 = 1, never 0. A Member £300 over the line gets `max(0, −300)` = £0, never a negative allowance.
+*Worked:* 1 October is before Payday, so Maya reads "Nothing to keep yet. Your salary lands on the 25th." On 26 October with nothing spent all month: (2,400 − 480 − 0) ÷ 6 = £320 a day. On 31 October, days remaining = 31 − 31 + 1 = 1, never 0. A Member £300 over the line gets `max(0, −300)` = £0, never a negative allowance.
 
 ### 8.8 Target Warning
 
@@ -490,7 +490,7 @@ Copy depends on whether Payday has passed (D53):
 A month M is **partial** when either:
 
 - M is the Member's sign-up month and M's effective Payday fell strictly before `Member.created_at`; or
-- Money In for M is 0 and M has at least one Spend.
+- M is a past month, Money In for M is 0 and M has at least one Spend.
 
 For a partial month: Money In is 0, Saved is not computed or displayed, there is no Archetype, and the Recap is the four screens in §6.17 rather than §6.11–6.14. The Home and past-Recap list rows read "Partial". Sharing is unavailable.
 

@@ -42,9 +42,6 @@ const (
 	// MembersServiceSaveProfileProcedure is the fully-qualified name of the MembersService's
 	// SaveProfile RPC.
 	MembersServiceSaveProfileProcedure = "/money_recap.v1.MembersService/SaveProfile"
-	// MembersServiceSaveOnboardingStepProcedure is the fully-qualified name of the MembersService's
-	// SaveOnboardingStep RPC.
-	MembersServiceSaveOnboardingStepProcedure = "/money_recap.v1.MembersService/SaveOnboardingStep"
 	// MembersServiceSetTimezoneProcedure is the fully-qualified name of the MembersService's
 	// SetTimezone RPC.
 	MembersServiceSetTimezoneProcedure = "/money_recap.v1.MembersService/SetTimezone"
@@ -66,9 +63,6 @@ type MembersServiceClient interface {
 	// Display Name, Avatar key and Currency (PRD §6.4, §6.5); publishes
 	// members.updated.
 	SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error)
-	// Records onboarding progress so a force-quit resumes at the next
-	// unanswered step (PRD §6.4).
-	SaveOnboardingStep(context.Context, *connect.Request[v1.SaveOnboardingStepRequest]) (*connect.Response[v1.SaveOnboardingStepResponse], error)
 	// Called on every launch (A3); publishes members.updated on change.
 	SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error)
 	// Stamps deletion_requested_at and publishes members.deletion.requested
@@ -107,12 +101,6 @@ func NewMembersServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(membersServiceMethods.ByName("SaveProfile")),
 			connect.WithClientOptions(opts...),
 		),
-		saveOnboardingStep: connect.NewClient[v1.SaveOnboardingStepRequest, v1.SaveOnboardingStepResponse](
-			httpClient,
-			baseURL+MembersServiceSaveOnboardingStepProcedure,
-			connect.WithSchema(membersServiceMethods.ByName("SaveOnboardingStep")),
-			connect.WithClientOptions(opts...),
-		),
 		setTimezone: connect.NewClient[v1.SetTimezoneRequest, v1.SetTimezoneResponse](
 			httpClient,
 			baseURL+MembersServiceSetTimezoneProcedure,
@@ -139,7 +127,6 @@ type membersServiceClient struct {
 	getOrCreateBySubject *connect.Client[v1.GetOrCreateBySubjectRequest, v1.GetOrCreateBySubjectResponse]
 	getProfile           *connect.Client[v1.GetProfileRequest, v1.GetProfileResponse]
 	saveProfile          *connect.Client[v1.SaveProfileRequest, v1.SaveProfileResponse]
-	saveOnboardingStep   *connect.Client[v1.SaveOnboardingStepRequest, v1.SaveOnboardingStepResponse]
 	setTimezone          *connect.Client[v1.SetTimezoneRequest, v1.SetTimezoneResponse]
 	requestDeletion      *connect.Client[v1.RequestDeletionRequest, v1.RequestDeletionResponse]
 	cancelDeletion       *connect.Client[v1.CancelDeletionRequest, v1.CancelDeletionResponse]
@@ -158,11 +145,6 @@ func (c *membersServiceClient) GetProfile(ctx context.Context, req *connect.Requ
 // SaveProfile calls money_recap.v1.MembersService.SaveProfile.
 func (c *membersServiceClient) SaveProfile(ctx context.Context, req *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error) {
 	return c.saveProfile.CallUnary(ctx, req)
-}
-
-// SaveOnboardingStep calls money_recap.v1.MembersService.SaveOnboardingStep.
-func (c *membersServiceClient) SaveOnboardingStep(ctx context.Context, req *connect.Request[v1.SaveOnboardingStepRequest]) (*connect.Response[v1.SaveOnboardingStepResponse], error) {
-	return c.saveOnboardingStep.CallUnary(ctx, req)
 }
 
 // SetTimezone calls money_recap.v1.MembersService.SetTimezone.
@@ -190,9 +172,6 @@ type MembersServiceHandler interface {
 	// Display Name, Avatar key and Currency (PRD §6.4, §6.5); publishes
 	// members.updated.
 	SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error)
-	// Records onboarding progress so a force-quit resumes at the next
-	// unanswered step (PRD §6.4).
-	SaveOnboardingStep(context.Context, *connect.Request[v1.SaveOnboardingStepRequest]) (*connect.Response[v1.SaveOnboardingStepResponse], error)
 	// Called on every launch (A3); publishes members.updated on change.
 	SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error)
 	// Stamps deletion_requested_at and publishes members.deletion.requested
@@ -227,12 +206,6 @@ func NewMembersServiceHandler(svc MembersServiceHandler, opts ...connect.Handler
 		connect.WithSchema(membersServiceMethods.ByName("SaveProfile")),
 		connect.WithHandlerOptions(opts...),
 	)
-	membersServiceSaveOnboardingStepHandler := connect.NewUnaryHandler(
-		MembersServiceSaveOnboardingStepProcedure,
-		svc.SaveOnboardingStep,
-		connect.WithSchema(membersServiceMethods.ByName("SaveOnboardingStep")),
-		connect.WithHandlerOptions(opts...),
-	)
 	membersServiceSetTimezoneHandler := connect.NewUnaryHandler(
 		MembersServiceSetTimezoneProcedure,
 		svc.SetTimezone,
@@ -259,8 +232,6 @@ func NewMembersServiceHandler(svc MembersServiceHandler, opts ...connect.Handler
 			membersServiceGetProfileHandler.ServeHTTP(w, r)
 		case MembersServiceSaveProfileProcedure:
 			membersServiceSaveProfileHandler.ServeHTTP(w, r)
-		case MembersServiceSaveOnboardingStepProcedure:
-			membersServiceSaveOnboardingStepHandler.ServeHTTP(w, r)
 		case MembersServiceSetTimezoneProcedure:
 			membersServiceSetTimezoneHandler.ServeHTTP(w, r)
 		case MembersServiceRequestDeletionProcedure:
@@ -286,10 +257,6 @@ func (UnimplementedMembersServiceHandler) GetProfile(context.Context, *connect.R
 
 func (UnimplementedMembersServiceHandler) SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.MembersService.SaveProfile is not implemented"))
-}
-
-func (UnimplementedMembersServiceHandler) SaveOnboardingStep(context.Context, *connect.Request[v1.SaveOnboardingStepRequest]) (*connect.Response[v1.SaveOnboardingStepResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.MembersService.SaveOnboardingStep is not implemented"))
 }
 
 func (UnimplementedMembersServiceHandler) SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error) {

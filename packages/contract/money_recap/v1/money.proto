@@ -6,7 +6,7 @@ option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/g
 
 // An exact amount in one Currency (PRD §7, D71). The amount is a decimal
 // string such as "2400.00" or "15000000", never a float and never an integer
-// count of minor units, so the phone prints exactly what the server holds.
+// count of minor units, so the phone prints exactly what is stored.
 message Money {
   // Decimal string, at most 11 digits before the separator (PRD D57).
   string amount = 1;

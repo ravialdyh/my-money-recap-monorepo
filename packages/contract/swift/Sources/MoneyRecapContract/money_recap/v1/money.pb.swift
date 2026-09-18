@@ -22,7 +22,7 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
 
 /// An exact amount in one Currency (PRD §7, D71). The amount is a decimal
 /// string such as "2400.00" or "15000000", never a float and never an integer
-/// count of minor units, so the phone prints exactly what the server holds.
+/// count of minor units, so the phone prints exactly what is stored.
 public nonisolated struct MoneyRecap_V1_Money: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

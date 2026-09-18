@@ -25,11 +25,6 @@ public protocol MoneyRecap_V1_MembersServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `saveProfile`(request: MoneyRecap_V1_SaveProfileRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_SaveProfileResponse>
 
-    /// Records onboarding progress so a force-quit resumes at the next
-    /// unanswered step (PRD §6.4).
-    @available(iOS 13, *)
-    func `saveOnboardingStep`(request: MoneyRecap_V1_SaveOnboardingStepRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_SaveOnboardingStepResponse>
-
     /// Called on every launch (A3); publishes members.updated on change.
     @available(iOS 13, *)
     func `setTimezone`(request: MoneyRecap_V1_SetTimezoneRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_SetTimezoneResponse>
@@ -68,11 +63,6 @@ public final class MoneyRecap_V1_MembersServiceClient: MoneyRecap_V1_MembersServ
     }
 
     @available(iOS 13, *)
-    public func `saveOnboardingStep`(request: MoneyRecap_V1_SaveOnboardingStepRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_SaveOnboardingStepResponse> {
-        return await self.client.unary(path: "/money_recap.v1.MembersService/SaveOnboardingStep", idempotencyLevel: .unknown, request: request, headers: headers)
-    }
-
-    @available(iOS 13, *)
     public func `setTimezone`(request: MoneyRecap_V1_SetTimezoneRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_SetTimezoneResponse> {
         return await self.client.unary(path: "/money_recap.v1.MembersService/SetTimezone", idempotencyLevel: .unknown, request: request, headers: headers)
     }
@@ -92,7 +82,6 @@ public final class MoneyRecap_V1_MembersServiceClient: MoneyRecap_V1_MembersServ
             public static let getOrCreateBySubject = Connect.MethodSpec(name: "GetOrCreateBySubject", service: "money_recap.v1.MembersService", type: .unary)
             public static let getProfile = Connect.MethodSpec(name: "GetProfile", service: "money_recap.v1.MembersService", type: .unary)
             public static let saveProfile = Connect.MethodSpec(name: "SaveProfile", service: "money_recap.v1.MembersService", type: .unary)
-            public static let saveOnboardingStep = Connect.MethodSpec(name: "SaveOnboardingStep", service: "money_recap.v1.MembersService", type: .unary)
             public static let setTimezone = Connect.MethodSpec(name: "SetTimezone", service: "money_recap.v1.MembersService", type: .unary)
             public static let requestDeletion = Connect.MethodSpec(name: "RequestDeletion", service: "money_recap.v1.MembersService", type: .unary)
             public static let cancelDeletion = Connect.MethodSpec(name: "CancelDeletion", service: "money_recap.v1.MembersService", type: .unary)

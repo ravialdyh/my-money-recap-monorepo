@@ -81,8 +81,8 @@ The longest run of consecutive days with no Spend logged, inside the month. In t
 _Avoid_: No-spend run
 
 **Partial Recap**:
-The four-screen Recap shown for a month with no Money In — the sign-up month when Payday fell before sign-up, or any month with Spends but no Salary recorded. Built around Spent, with no Saved figure, no Archetype and no sharing. The same four screens serve the current month's live preview (PRD §8.11).
-_Avoid_: Mini recap, partial month, preview recap
+The four-screen Recap shown for a partial month (PRD §8.11): the sign-up month when Payday fell before sign-up, or a past month with Spends but no Money In. Built around Spent, with no Saved figure, no Archetype and no sharing. The same four screens serve the current month's live preview. "Partial month" is the month's state; "Partial Recap" is its Recap.
+_Avoid_: Mini recap, preview recap
 
 **Archetype**:
 The single money personality (Squirrel, Hustler, Treat-Yourself, Slow Burner) assigned to a Member for one month by rules over that month's numbers.
