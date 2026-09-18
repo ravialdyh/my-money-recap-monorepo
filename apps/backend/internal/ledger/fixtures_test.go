@@ -158,6 +158,10 @@ func TestBadOriginalsSeesEachDrift(t *testing.T) {
 			Convert: convert,
 			Spends:  []*moneyrecapv1.Spend{{Id: "maya-01", Amount: gbp, OriginalAmount: idr}},
 		},
+		".salaries[0] original_amount 48360000 IDR, want 2400.00 GBP": {
+			Convert:  convert,
+			Salaries: []*moneyrecapv1.SalarySetting{{Amount: gbp, EffectiveFrom: "2026-08", OriginalAmount: idr}},
+		},
 		".salaries_after[0] original_amount 48360000 IDR, want 2400.00 GBP": {
 			Convert:       convert,
 			Salaries:      []*moneyrecapv1.SalarySetting{{Amount: gbp, EffectiveFrom: "2026-08", OriginalAmount: gbp}},
