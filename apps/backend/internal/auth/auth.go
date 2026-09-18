@@ -2,9 +2,11 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -33,11 +35,11 @@ func NewVerifier(ctx context.Context, issuer, jwksURL, audience string) *Verifie
 	return &Verifier{oidc.NewVerifier(issuer, keySet{keys}, &oidc.Config{ClientID: audience})}
 }
 
-// jwksClient gives a key fetch five seconds and fails a non-200 answer in its transport, so every
-// failed fetch (refused, DNS, timeout, TLS, 5xx) surfaces as a *url.Error.
+// jwksClient gives a key fetch five seconds and fails a non-200 or cut-short answer in its transport,
+// so every failed fetch (refused, DNS, timeout, TLS, 5xx, truncated body) surfaces as a *url.Error.
 var jwksClient = &http.Client{Timeout: 5 * time.Second, Transport: okOnly{http.DefaultTransport}}
 
-// okOnly turns any answer but 200 into a transport error; go-oidc would report it as plain text.
+// okOnly turns any answer but a whole 200 into a transport error; go-oidc would report it as plain text.
 type okOnly struct{ next http.RoundTripper }
 
 func (t okOnly) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -45,21 +47,27 @@ func (t okOnly) RoundTrip(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		res.Body.Close()
 		return nil, fmt.Errorf("realm keys answered %s", res.Status)
 	}
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	res.Body = io.NopCloser(bytes.NewReader(body))
 	return res, nil
 }
 
-// keySet is the realm's RemoteKeySet. A failed fetch sets the *bool the interceptor put in the
-// context, because go-oidc's Verify flattens that error into text.
+// keySet is the realm's RemoteKeySet. A fetch that fails, or that the caller's deadline cuts short, sets
+// the *bool the interceptor put in the context, because go-oidc's Verify flattens that error into text.
 type keySet struct{ *oidc.RemoteKeySet }
 
 func (k keySet) VerifySignature(ctx context.Context, jwt string) ([]byte, error) {
 	payload, err := k.RemoteKeySet.VerifySignature(ctx, jwt)
 	var fetch *url.Error
-	if failed, ok := ctx.Value(fetchFailedKey{}).(*bool); ok && errors.As(err, &fetch) {
+	failed, ok := ctx.Value(fetchFailedKey{}).(*bool)
+	if ok && err != nil && (errors.As(err, &fetch) || errors.Is(err, ctx.Err())) {
 		*failed = true
 	}
 	return payload, err

@@ -86,34 +86,54 @@ func TestInterceptorKeyFetchFailureIsUnavailable(t *testing.T) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 	defer down.Close()
+	cut := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Length", "1000")
+		if _, err := w.Write([]byte(`{"keys":[`)); err != nil {
+			t.Error(err)
+		}
+	}))
+	defer cut.Close()
+	hung := make(chan struct{})
+	hanging := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { <-hung }))
+	defer hanging.Close()
+	defer close(hung)
 	claims := jwt.Claims{Issuer: issuer, Subject: "sub-1", Audience: jwt.Audience{"bff"}, Expiry: jwt.NewNumericDate(time.Now().Add(time.Minute))}
 	valid, foreign := testauth.Mint(t, key, "k1", claims), testauth.Mint(t, stranger, "k2", claims)
-	code := func(v *Verifier, tok string) connect.Code {
+	code := func(ctx context.Context, v *Verifier, tok string) connect.Code {
 		req := connect.NewRequest(&struct{}{})
 		req.Header().Set("Authorization", "Bearer "+tok)
-		_, err := v.Interceptor()(func(context.Context, connect.AnyRequest) (connect.AnyResponse, error) { return nil, nil })(context.Background(), req)
+		_, err := v.Interceptor()(func(context.Context, connect.AnyRequest) (connect.AnyResponse, error) { return nil, nil })(ctx, req)
 		if err == nil {
 			return 0
 		}
 		return connect.CodeOf(err)
 	}
+	bg := context.Background()
 
-	cached := NewVerifier(context.Background(), issuer, realm.URL, "bff")
-	if got := code(cached, foreign); got != connect.CodeUnauthenticated {
+	cached := NewVerifier(bg, issuer, realm.URL, "bff")
+	if got := code(bg, cached, foreign); got != connect.CodeUnauthenticated {
 		t.Errorf("key the reachable realm does not hold: %v, want unauthenticated", got)
 	}
-	if got := code(cached, valid); got != 0 {
+	if got := code(bg, cached, valid); got != 0 {
 		t.Fatalf("valid token: %v", got)
 	}
 	realm.Close()
-	if got := code(cached, valid); got != 0 {
+	if got := code(bg, cached, valid); got != 0 {
 		t.Errorf("cached key while the realm is refused: %v, want accepted", got)
 	}
-	if got := code(cached, foreign); got != connect.CodeUnavailable {
+	if got := code(bg, cached, foreign); got != connect.CodeUnavailable {
 		t.Errorf("uncached key while the realm is refused: %v, want unavailable", got)
 	}
-	if got := code(NewVerifier(context.Background(), issuer, down.URL, "bff"), valid); got != connect.CodeUnavailable {
+	if got := code(bg, NewVerifier(bg, issuer, down.URL, "bff"), valid); got != connect.CodeUnavailable {
 		t.Errorf("realm answering 503: %v, want unavailable", got)
+	}
+	if got := code(bg, NewVerifier(bg, issuer, cut.URL, "bff"), valid); got != connect.CodeUnavailable {
+		t.Errorf("realm cutting its 200 answer short: %v, want unavailable", got)
+	}
+	deadline, cancel := context.WithTimeout(bg, 100*time.Millisecond)
+	defer cancel()
+	if got := code(deadline, NewVerifier(bg, issuer, hanging.URL, "bff"), valid); got != connect.CodeUnavailable {
+		t.Errorf("realm hanging past the caller's deadline: %v, want unavailable", got)
 	}
 }
 
