@@ -272,13 +272,8 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// True once step 4 is saved or skipped: the app opens on Home.
-  public var complete: Bool {
-    get {_storage._complete}
-    set {_uniqueStorage()._complete = newValue}
-  }
-
-  /// The first unanswered step, 1 to 4; 0 when complete.
+  /// The first unanswered step, 1 to 4; 0 once step 4 is saved or skipped,
+  /// when the app opens on Home.
   public var nextStep: Int32 {
     get {_storage._nextStep}
     set {_uniqueStorage()._nextStep = newValue}
@@ -357,15 +352,8 @@ public nonisolated struct MoneyRecap_V1_CurrencyChangePreview: @unchecked Sendab
     set {_uniqueStorage()._nothingToConvert = newValue}
   }
 
-  /// Decimal string: units of to_currency_code per unit of from_currency_code.
-  /// Empty when unsupported_pair.
-  public var rate: String {
-    get {_storage._rate}
-    set {_uniqueStorage()._rate = newValue}
-  }
-
   /// PROVIDER for a fetched rate, MANUAL for one the Member typed; what
-  /// ChangeCurrency sends back.
+  /// ChangeCurrency sends back with preview.rate.
   public var source: MoneyRecap_V1_RateSource {
     get {_storage._source}
     set {_uniqueStorage()._source = newValue}
@@ -377,8 +365,8 @@ public nonisolated struct MoneyRecap_V1_CurrencyChangePreview: @unchecked Sendab
     set {_uniqueStorage()._asOf = newValue}
   }
 
-  /// The before-and-after rows, rounded by ledger; absent when unsupported_pair
-  /// or nothing_to_convert.
+  /// The before-and-after rows and the rate, rounded by ledger; absent when
+  /// unsupported_pair or nothing_to_convert.
   public var preview: MoneyRecap_V1_ConversionPreview {
     get {_storage._preview ?? MoneyRecap_V1_ConversionPreview()}
     set {_uniqueStorage()._preview = newValue}
@@ -759,10 +747,9 @@ nonisolated extension MoneyRecap_V1_SettingsView: SwiftProtobuf.Message, SwiftPr
 
 nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".OnboardingState"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}complete\0\u{3}next_step\0\u{1}profile\0\u{1}salary\0\u{3}saving_target\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}next_step\0\u{1}profile\0\u{1}salary\0\u{3}saving_target\0")
 
   fileprivate class _StorageClass {
-    var _complete: Bool = false
     var _nextStep: Int32 = 0
     var _profile: MoneyRecap_V1_Profile? = nil
     var _salary: MoneyRecap_V1_SalarySetting? = nil
@@ -777,7 +764,6 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
     private init() {}
 
     init(copying source: _StorageClass) {
-      _complete = source._complete
       _nextStep = source._nextStep
       _profile = source._profile
       _salary = source._salary
@@ -800,11 +786,10 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
         // allocates stack space for every case branch when no optimizations are
         // enabled. https://github.com/apple/swift-protobuf/issues/1034
         switch fieldNumber {
-        case 1: try { try decoder.decodeSingularBoolField(value: &_storage._complete) }()
-        case 2: try { try decoder.decodeSingularInt32Field(value: &_storage._nextStep) }()
-        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._profile) }()
-        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._salary) }()
-        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._savingTarget) }()
+        case 1: try { try decoder.decodeSingularInt32Field(value: &_storage._nextStep) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._profile) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._salary) }()
+        case 4: try { try decoder.decodeSingularMessageField(value: &_storage._savingTarget) }()
         default: break
         }
       }
@@ -817,20 +802,17 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
       // allocates stack space for every if/case branch local when no optimizations
       // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
       // https://github.com/apple/swift-protobuf/issues/1182
-      if _storage._complete != false {
-        try visitor.visitSingularBoolField(value: _storage._complete, fieldNumber: 1)
-      }
       if _storage._nextStep != 0 {
-        try visitor.visitSingularInt32Field(value: _storage._nextStep, fieldNumber: 2)
+        try visitor.visitSingularInt32Field(value: _storage._nextStep, fieldNumber: 1)
       }
       try { if let v = _storage._profile {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
       } }()
       try { if let v = _storage._salary {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
       } }()
       try { if let v = _storage._savingTarget {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
       } }()
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -841,7 +823,6 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
       let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
         let _storage = _args.0
         let rhs_storage = _args.1
-        if _storage._complete != rhs_storage._complete {return false}
         if _storage._nextStep != rhs_storage._nextStep {return false}
         if _storage._profile != rhs_storage._profile {return false}
         if _storage._salary != rhs_storage._salary {return false}
@@ -857,14 +838,13 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
 
 nonisolated extension MoneyRecap_V1_CurrencyChangePreview: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CurrencyChangePreview"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}from_currency_code\0\u{3}to_currency_code\0\u{3}unsupported_pair\0\u{3}nothing_to_convert\0\u{1}rate\0\u{1}source\0\u{3}as_of\0\u{1}preview\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}from_currency_code\0\u{3}to_currency_code\0\u{3}unsupported_pair\0\u{3}nothing_to_convert\0\u{1}source\0\u{3}as_of\0\u{1}preview\0")
 
   fileprivate class _StorageClass {
     var _fromCurrencyCode: String = String()
     var _toCurrencyCode: String = String()
     var _unsupportedPair: Bool = false
     var _nothingToConvert: Bool = false
-    var _rate: String = String()
     var _source: MoneyRecap_V1_RateSource = .unspecified
     var _asOf: String = String()
     var _preview: MoneyRecap_V1_ConversionPreview? = nil
@@ -882,7 +862,6 @@ nonisolated extension MoneyRecap_V1_CurrencyChangePreview: SwiftProtobuf.Message
       _toCurrencyCode = source._toCurrencyCode
       _unsupportedPair = source._unsupportedPair
       _nothingToConvert = source._nothingToConvert
-      _rate = source._rate
       _source = source._source
       _asOf = source._asOf
       _preview = source._preview
@@ -908,10 +887,9 @@ nonisolated extension MoneyRecap_V1_CurrencyChangePreview: SwiftProtobuf.Message
         case 2: try { try decoder.decodeSingularStringField(value: &_storage._toCurrencyCode) }()
         case 3: try { try decoder.decodeSingularBoolField(value: &_storage._unsupportedPair) }()
         case 4: try { try decoder.decodeSingularBoolField(value: &_storage._nothingToConvert) }()
-        case 5: try { try decoder.decodeSingularStringField(value: &_storage._rate) }()
-        case 6: try { try decoder.decodeSingularEnumField(value: &_storage._source) }()
-        case 7: try { try decoder.decodeSingularStringField(value: &_storage._asOf) }()
-        case 8: try { try decoder.decodeSingularMessageField(value: &_storage._preview) }()
+        case 5: try { try decoder.decodeSingularEnumField(value: &_storage._source) }()
+        case 6: try { try decoder.decodeSingularStringField(value: &_storage._asOf) }()
+        case 7: try { try decoder.decodeSingularMessageField(value: &_storage._preview) }()
         default: break
         }
       }
@@ -936,17 +914,14 @@ nonisolated extension MoneyRecap_V1_CurrencyChangePreview: SwiftProtobuf.Message
       if _storage._nothingToConvert != false {
         try visitor.visitSingularBoolField(value: _storage._nothingToConvert, fieldNumber: 4)
       }
-      if !_storage._rate.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._rate, fieldNumber: 5)
-      }
       if _storage._source != .unspecified {
-        try visitor.visitSingularEnumField(value: _storage._source, fieldNumber: 6)
+        try visitor.visitSingularEnumField(value: _storage._source, fieldNumber: 5)
       }
       if !_storage._asOf.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._asOf, fieldNumber: 7)
+        try visitor.visitSingularStringField(value: _storage._asOf, fieldNumber: 6)
       }
       try { if let v = _storage._preview {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
       } }()
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -961,7 +936,6 @@ nonisolated extension MoneyRecap_V1_CurrencyChangePreview: SwiftProtobuf.Message
         if _storage._toCurrencyCode != rhs_storage._toCurrencyCode {return false}
         if _storage._unsupportedPair != rhs_storage._unsupportedPair {return false}
         if _storage._nothingToConvert != rhs_storage._nothingToConvert {return false}
-        if _storage._rate != rhs_storage._rate {return false}
         if _storage._source != rhs_storage._source {return false}
         if _storage._asOf != rhs_storage._asOf {return false}
         if _storage._preview != rhs_storage._preview {return false}

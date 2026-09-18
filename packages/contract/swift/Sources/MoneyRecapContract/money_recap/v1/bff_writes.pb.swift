@@ -305,8 +305,8 @@ public nonisolated struct MoneyRecap_V1_BffServiceChangeCurrencyRequest: Sendabl
   /// ISO 4217 code to convert into.
   public var toCurrencyCode: String = String()
 
-  /// The rate the confirm sheet showed, as a decimal string; empty only when
-  /// the preview said nothing_to_convert.
+  /// preview.rate as the confirm sheet showed it, a decimal string; empty
+  /// only when the preview said nothing_to_convert.
   public var rate: String = String()
 
   /// Where rate came from, as the preview answered it; UNSPECIFIED only when

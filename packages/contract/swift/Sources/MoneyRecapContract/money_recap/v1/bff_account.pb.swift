@@ -54,7 +54,9 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// 1 to 30 characters, trimmed (PRD §6.4).
+  /// 1 to 30 characters, trimmed: letters, spaces, hyphens and apostrophes
+  /// (PRD §6.4); anything else is invalid_argument, checked here, not only on
+  /// the phone.
   public var displayName: String {
     get {_displayName ?? String()}
     set {_displayName = newValue}
@@ -64,6 +66,7 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   /// Clears the value of `displayName`. Subsequent reads from it will return its default value.
   public mutating func clearDisplayName() {self._displayName = nil}
 
+  /// One of the six avatar keys (PRD §6.4); any other is invalid_argument.
   public var avatarKey: String {
     get {_avatarKey ?? String()}
     set {_avatarKey = newValue}

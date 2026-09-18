@@ -91,8 +91,8 @@ message BffServiceSaveTargetResponse {
 message BffServiceChangeCurrencyRequest {
   // ISO 4217 code to convert into.
   string to_currency_code = 1;
-  // The rate the confirm sheet showed, as a decimal string; empty only when
-  // the preview said nothing_to_convert.
+  // preview.rate as the confirm sheet showed it, a decimal string; empty
+  // only when the preview said nothing_to_convert.
   string rate = 2;
   // Where rate came from, as the preview answered it; UNSPECIFIED only when
   // rate is empty.

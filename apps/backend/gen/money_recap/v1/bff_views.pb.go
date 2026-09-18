@@ -433,19 +433,18 @@ func (x *SettingsView) GetNotificationPrefs() *NotificationPrefs {
 // re-selects earlier answers (PRD §6.4). A skipped step counts as saved.
 type OnboardingState struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// True once step 4 is saved or skipped: the app opens on Home.
-	Complete bool `protobuf:"varint,1,opt,name=complete,proto3" json:"complete,omitempty"`
-	// The first unanswered step, 1 to 4; 0 when complete.
-	NextStep int32 `protobuf:"varint,2,opt,name=next_step,json=nextStep,proto3" json:"next_step,omitempty"`
+	// The first unanswered step, 1 to 4; 0 once step 4 is saved or skipped,
+	// when the app opens on Home.
+	NextStep int32 `protobuf:"varint,1,opt,name=next_step,json=nextStep,proto3" json:"next_step,omitempty"`
 	// Display Name, Avatar key and Currency as saved by steps 1 and 2; an empty
 	// field is an unanswered one.
-	Profile *Profile `protobuf:"bytes,3,opt,name=profile,proto3" json:"profile,omitempty"`
+	Profile *Profile `protobuf:"bytes,2,opt,name=profile,proto3" json:"profile,omitempty"`
 	// Step 3's answer; absent when not yet reached, or skipped, which is absent
 	// with profile.onboarding_step at 3 or more.
-	Salary *SalarySetting `protobuf:"bytes,4,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
+	Salary *SalarySetting `protobuf:"bytes,3,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
 	// Step 4's answer; absent when not yet reached, or skipped or blocked by a
 	// skipped Salary (D44), which is absent with profile.onboarding_step at 4.
-	SavingTarget  *SavingTargetSetting `protobuf:"bytes,5,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	SavingTarget  *SavingTargetSetting `protobuf:"bytes,4,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -478,13 +477,6 @@ func (x *OnboardingState) ProtoReflect() protoreflect.Message {
 // Deprecated: Use OnboardingState.ProtoReflect.Descriptor instead.
 func (*OnboardingState) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_bff_views_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *OnboardingState) GetComplete() bool {
-	if x != nil {
-		return x.Complete
-	}
-	return false
 }
 
 func (x *OnboardingState) GetNextStep() int32 {
@@ -529,17 +521,14 @@ type CurrencyChangePreview struct {
 	// True with no Salary and no Spends: ChangeCurrency skips the confirm sheet
 	// and needs no rate (§8.9 step 2).
 	NothingToConvert bool `protobuf:"varint,4,opt,name=nothing_to_convert,json=nothingToConvert,proto3" json:"nothing_to_convert,omitempty"`
-	// Decimal string: units of to_currency_code per unit of from_currency_code.
-	// Empty when unsupported_pair.
-	Rate string `protobuf:"bytes,5,opt,name=rate,proto3" json:"rate,omitempty"`
 	// PROVIDER for a fetched rate, MANUAL for one the Member typed; what
-	// ChangeCurrency sends back.
-	Source RateSource `protobuf:"varint,6,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
+	// ChangeCurrency sends back with preview.rate.
+	Source RateSource `protobuf:"varint,5,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
 	// "YYYY-MM-DD" the provider rate is dated; empty for a manual rate.
-	AsOf string `protobuf:"bytes,7,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
-	// The before-and-after rows, rounded by ledger; absent when unsupported_pair
-	// or nothing_to_convert.
-	Preview       *ConversionPreview `protobuf:"bytes,8,opt,name=preview,proto3,oneof" json:"preview,omitempty"`
+	AsOf string `protobuf:"bytes,6,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	// The before-and-after rows and the rate, rounded by ledger; absent when
+	// unsupported_pair or nothing_to_convert.
+	Preview       *ConversionPreview `protobuf:"bytes,7,opt,name=preview,proto3,oneof" json:"preview,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -600,13 +589,6 @@ func (x *CurrencyChangePreview) GetNothingToConvert() bool {
 		return x.NothingToConvert
 	}
 	return false
-}
-
-func (x *CurrencyChangePreview) GetRate() string {
-	if x != nil {
-		return x.Rate
-	}
-	return ""
 }
 
 func (x *CurrencyChangePreview) GetSource() RateSource {
@@ -677,24 +659,22 @@ const file_money_recap_v1_bff_views_proto_rawDesc = "" +
 	"\fSettingsView\x121\n" +
 	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\x12G\n" +
 	"\x0fledger_settings\x18\x02 \x01(\v2\x1e.money_recap.v1.LedgerSettingsR\x0eledgerSettings\x12P\n" +
-	"\x12notification_prefs\x18\x03 \x01(\v2!.money_recap.v1.NotificationPrefsR\x11notificationPrefs\"\xa5\x02\n" +
-	"\x0fOnboardingState\x12\x1a\n" +
-	"\bcomplete\x18\x01 \x01(\bR\bcomplete\x12\x1b\n" +
-	"\tnext_step\x18\x02 \x01(\x05R\bnextStep\x121\n" +
-	"\aprofile\x18\x03 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\x12:\n" +
-	"\x06salary\x18\x04 \x01(\v2\x1d.money_recap.v1.SalarySettingH\x00R\x06salary\x88\x01\x01\x12M\n" +
-	"\rsaving_target\x18\x05 \x01(\v2#.money_recap.v1.SavingTargetSettingH\x01R\fsavingTarget\x88\x01\x01B\t\n" +
+	"\x12notification_prefs\x18\x03 \x01(\v2!.money_recap.v1.NotificationPrefsR\x11notificationPrefs\"\x89\x02\n" +
+	"\x0fOnboardingState\x12\x1b\n" +
+	"\tnext_step\x18\x01 \x01(\x05R\bnextStep\x121\n" +
+	"\aprofile\x18\x02 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\x12:\n" +
+	"\x06salary\x18\x03 \x01(\v2\x1d.money_recap.v1.SalarySettingH\x00R\x06salary\x88\x01\x01\x12M\n" +
+	"\rsaving_target\x18\x04 \x01(\v2#.money_recap.v1.SavingTargetSettingH\x01R\fsavingTarget\x88\x01\x01B\t\n" +
 	"\a_salaryB\x10\n" +
-	"\x0e_saving_target\"\xf3\x02\n" +
+	"\x0e_saving_target\"\xdf\x02\n" +
 	"\x15CurrencyChangePreview\x12,\n" +
 	"\x12from_currency_code\x18\x01 \x01(\tR\x10fromCurrencyCode\x12(\n" +
 	"\x10to_currency_code\x18\x02 \x01(\tR\x0etoCurrencyCode\x12)\n" +
 	"\x10unsupported_pair\x18\x03 \x01(\bR\x0funsupportedPair\x12,\n" +
-	"\x12nothing_to_convert\x18\x04 \x01(\bR\x10nothingToConvert\x12\x12\n" +
-	"\x04rate\x18\x05 \x01(\tR\x04rate\x122\n" +
-	"\x06source\x18\x06 \x01(\x0e2\x1a.money_recap.v1.RateSourceR\x06source\x12\x13\n" +
-	"\x05as_of\x18\a \x01(\tR\x04asOf\x12@\n" +
-	"\apreview\x18\b \x01(\v2!.money_recap.v1.ConversionPreviewH\x00R\apreview\x88\x01\x01B\n" +
+	"\x12nothing_to_convert\x18\x04 \x01(\bR\x10nothingToConvert\x122\n" +
+	"\x06source\x18\x05 \x01(\x0e2\x1a.money_recap.v1.RateSourceR\x06source\x12\x13\n" +
+	"\x05as_of\x18\x06 \x01(\tR\x04asOf\x12@\n" +
+	"\apreview\x18\a \x01(\v2!.money_recap.v1.ConversionPreviewH\x00R\apreview\x88\x01\x01B\n" +
 	"\n" +
 	"\b_previewB[ZYgithub.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1b\x06proto3"
 

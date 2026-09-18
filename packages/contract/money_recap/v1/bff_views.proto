@@ -93,19 +93,18 @@ message SettingsView {
 // Where onboarding resumes and every answer saved so far, so a force-quit
 // re-selects earlier answers (PRD §6.4). A skipped step counts as saved.
 message OnboardingState {
-  // True once step 4 is saved or skipped: the app opens on Home.
-  bool complete = 1;
-  // The first unanswered step, 1 to 4; 0 when complete.
-  int32 next_step = 2;
+  // The first unanswered step, 1 to 4; 0 once step 4 is saved or skipped,
+  // when the app opens on Home.
+  int32 next_step = 1;
   // Display Name, Avatar key and Currency as saved by steps 1 and 2; an empty
   // field is an unanswered one.
-  Profile profile = 3;
+  Profile profile = 2;
   // Step 3's answer; absent when not yet reached, or skipped, which is absent
   // with profile.onboarding_step at 3 or more.
-  optional SalarySetting salary = 4;
+  optional SalarySetting salary = 3;
   // Step 4's answer; absent when not yet reached, or skipped or blocked by a
   // skipped Salary (D44), which is absent with profile.onboarding_step at 4.
-  optional SavingTargetSetting saving_target = 5;
+  optional SavingTargetSetting saving_target = 4;
 }
 
 // What the currency confirm sheet draws, or why it does not open (PRD §8.9
@@ -121,15 +120,12 @@ message CurrencyChangePreview {
   // True with no Salary and no Spends: ChangeCurrency skips the confirm sheet
   // and needs no rate (§8.9 step 2).
   bool nothing_to_convert = 4;
-  // Decimal string: units of to_currency_code per unit of from_currency_code.
-  // Empty when unsupported_pair.
-  string rate = 5;
   // PROVIDER for a fetched rate, MANUAL for one the Member typed; what
-  // ChangeCurrency sends back.
-  RateSource source = 6;
+  // ChangeCurrency sends back with preview.rate.
+  RateSource source = 5;
   // "YYYY-MM-DD" the provider rate is dated; empty for a manual rate.
-  string as_of = 7;
-  // The before-and-after rows, rounded by ledger; absent when unsupported_pair
-  // or nothing_to_convert.
-  optional ConversionPreview preview = 8;
+  string as_of = 6;
+  // The before-and-after rows and the rate, rounded by ledger; absent when
+  // unsupported_pair or nothing_to_convert.
+  optional ConversionPreview preview = 7;
 }

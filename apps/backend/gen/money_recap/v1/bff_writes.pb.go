@@ -596,8 +596,8 @@ type BffServiceChangeCurrencyRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ISO 4217 code to convert into.
 	ToCurrencyCode string `protobuf:"bytes,1,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
-	// The rate the confirm sheet showed, as a decimal string; empty only when
-	// the preview said nothing_to_convert.
+	// preview.rate as the confirm sheet showed it, a decimal string; empty
+	// only when the preview said nothing_to_convert.
 	Rate string `protobuf:"bytes,2,opt,name=rate,proto3" json:"rate,omitempty"`
 	// Where rate came from, as the preview answered it; UNSPECIFIED only when
 	// rate is empty.

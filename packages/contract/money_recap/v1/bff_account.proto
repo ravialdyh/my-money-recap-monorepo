@@ -22,8 +22,11 @@ message BffServiceRequestMagicLinkResponse {}
 // §6.4, §6.5, §6.16). A present field replaces the stored value; an absent
 // one is untouched.
 message BffServiceSaveProfileRequest {
-  // 1 to 30 characters, trimmed (PRD §6.4).
+  // 1 to 30 characters, trimmed: letters, spaces, hyphens and apostrophes
+  // (PRD §6.4); anything else is invalid_argument, checked here, not only on
+  // the phone.
   optional string display_name = 1;
+  // One of the six avatar keys (PRD §6.4); any other is invalid_argument.
   optional string avatar_key = 2;
   // ISO 4217. Accepted only while ledger holds no amount (step 2, or the
   // §8.9 step 2 shortcut); otherwise ChangeCurrency is the path.

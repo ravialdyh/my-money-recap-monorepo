@@ -111,9 +111,12 @@ func (*BffServiceRequestMagicLinkResponse) Descriptor() ([]byte, []int) {
 // one is untouched.
 type BffServiceSaveProfileRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// 1 to 30 characters, trimmed (PRD §6.4).
+	// 1 to 30 characters, trimmed: letters, spaces, hyphens and apostrophes
+	// (PRD §6.4); anything else is invalid_argument, checked here, not only on
+	// the phone.
 	DisplayName *string `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	AvatarKey   *string `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
+	// One of the six avatar keys (PRD §6.4); any other is invalid_argument.
+	AvatarKey *string `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
 	// ISO 4217. Accepted only while ledger holds no amount (step 2, or the
 	// §8.9 step 2 shortcut); otherwise ChangeCurrency is the path.
 	CurrencyCode *string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
