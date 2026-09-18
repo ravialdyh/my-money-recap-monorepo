@@ -61,9 +61,9 @@ final class AuthSession {
         persist()
     }
 
-    /// A current access token, refreshed when expired (I1, I3). A refresh error throws, as AppAuth can pass the stale
-    /// token with it. Only the realm refusing the refresh signs out; network, server, parse and ID token validation
-    /// errors keep the session (PRD D61).
+    /// The access token, refreshed if expired (I1, I3). Any refresh error throws, as AppAuth may pass the stale token
+    /// too. Only the realm's refusal signs out; a network error, a realm 5xx, a garbled answer or a failed ID token
+    /// check keeps the session (PRD D61).
     func freshAccessToken() async throws -> String {
         guard let authState else { throw CancellationError() }
         do {
