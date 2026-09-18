@@ -46,19 +46,36 @@ func fixtureNames(t *testing.T, dir string) []string {
 	return names
 }
 
+// manifestMismatch says how the folder disagrees with want, or nothing when they match.
+func manifestMismatch(t *testing.T, dir string, want []string) string {
+	t.Helper()
+	if got := fixtureNames(t, dir); !slices.Equal(got, want) {
+		return fmt.Sprintf("fixture files %v, manifest %v", got, want)
+	}
+	return ""
+}
+
 func TestFixturesMatchManifest(t *testing.T) {
-	if got := fixtureNames(t, fixtureDir); !slices.Equal(got, manifest) {
-		t.Fatalf("fixture files %v, manifest %v", got, manifest)
+	if msg := manifestMismatch(t, fixtureDir, manifest); msg != "" {
+		t.Fatal(msg)
 	}
 }
 
 func TestManifestSeesAMissingAndAnExtraFile(t *testing.T) {
 	dir := t.TempDir()
+	for _, name := range manifest[1:] {
+		if err := os.WriteFile(filepath.Join(dir, name+".json"), []byte("{}"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if manifestMismatch(t, dir, manifest) == "" {
+		t.Fatal("a missing file passed")
+	}
 	if err := os.WriteFile(filepath.Join(dir, "prd-0-extra.json"), []byte("{}"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if got := fixtureNames(t, dir); slices.Equal(got, manifest) {
-		t.Fatalf("%v equals the manifest", got)
+	if manifestMismatch(t, dir, manifest[1:]) == "" {
+		t.Fatal("an extra file passed")
 	}
 }
 

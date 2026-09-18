@@ -18,16 +18,19 @@ One ledger and one "as of" date, in protobuf JSON (`lowerCamelCase` names, enums
 | --- | --- |
 | `doc` | The PRD paragraph every number is worked from, with the working. A failing fixture names what to reread. |
 | `timezone`, `signedUpOn`, `currencyCode` | The `member_facts` replica (§7.2). `signedUpOn` bounds the Streak window (D43) and names the sign-up month (D52). |
-| `salaries`, `savingTargets`, `spends` | The rows as stored. `spends` leaves `createdAt` and `updatedAt` for `ledger` to stamp, and holds nothing dated after `asOf`. |
+| `salaries`, `savingTargets`, `spends` | The rows as stored. `spends` holds nothing dated after `asOf`; its `id` is a label and `createdAt`/`updatedAt` are left for `ledger` to stamp. |
 | `asOf` | Today in the Member's zone. |
 | `saveSalary`, `convert` | A write made on `asOf` before the expected values are read (§8.10, §8.9); `memberId` and `idempotencyKey` stay empty. |
 | `months`, `recaps`, `settings`, `conversionPreview` | What `GetMonthSummary`, `GetRecap`, `GetSettings` and `PreviewConversion` answer. List only what the example proves. |
 | `crossedLine` | What logging the last entry of `spends` answered (§8.8). |
 | `salariesAfter`, `spendsAfter` | The rows after `convert` or `saveSalary`, originals untouched (§8.9 step 4). |
 
-An expected field that is absent asserts nothing. An expected optional that the PRD says is
-absent (Saved before Payday, D41; the Archetype of a Partial Recap, §8.6) is left out of the file,
-which the test reads as "must be absent".
+How slice 5 compares an answer to an expected message: a top-level expected field that is left
+out (`recaps` in a Home-only file) asserts nothing; inside a listed message every field is
+compared, so an `optional` the PRD says is absent (Saved before Payday, D41; the Archetype of a
+Partial Recap, §8.6) is left out of the file and must be absent in the answer. Three things are
+never compared: `Spend.id`, which `ledger` assigns (`maya-01` is a label that pairs an input row
+with `splurge` or `spendsAfter`), and `createdAt` and `updatedAt`, which `ledger` stamps.
 
 Amounts follow `Money`: a decimal string with at most 11 digits before the separator (D57) and an
 ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"15000000"`), the decimals CLDR
