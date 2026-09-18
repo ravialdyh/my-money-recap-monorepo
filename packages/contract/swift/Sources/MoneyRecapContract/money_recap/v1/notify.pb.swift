@@ -166,9 +166,22 @@ public nonisolated struct MoneyRecap_V1_EvaluateWarningResponse: Sendable {
   /// sees it (PRD §8.8).
   public var firedNow: Bool = false
 
+  /// The copy kept when the month was stamped, by this call or an earlier one;
+  /// present whenever fired. It reads the same until the 1st (PRD §8.8).
+  public var warning: MoneyRecap_V1_TargetWarning {
+    get {_warning ?? MoneyRecap_V1_TargetWarning()}
+    set {_warning = newValue}
+  }
+  /// Returns true if `warning` has been explicitly set.
+  public var hasWarning: Bool {self._warning != nil}
+  /// Clears the value of `warning`. Subsequent reads from it will return its default value.
+  public mutating func clearWarning() {self._warning = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+
+  fileprivate var _warning: MoneyRecap_V1_TargetWarning? = nil
 }
 
 public nonisolated struct MoneyRecap_V1_GetPrefsRequest: Sendable {
@@ -557,7 +570,7 @@ nonisolated extension MoneyRecap_V1_EvaluateWarningRequest: SwiftProtobuf.Messag
 
 nonisolated extension MoneyRecap_V1_EvaluateWarningResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EvaluateWarningResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}fired\0\u{3}fired_now\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}fired\0\u{3}fired_now\0\u{1}warning\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -567,24 +580,33 @@ nonisolated extension MoneyRecap_V1_EvaluateWarningResponse: SwiftProtobuf.Messa
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBoolField(value: &self.fired) }()
       case 2: try { try decoder.decodeSingularBoolField(value: &self.firedNow) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._warning) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.fired != false {
       try visitor.visitSingularBoolField(value: self.fired, fieldNumber: 1)
     }
     if self.firedNow != false {
       try visitor.visitSingularBoolField(value: self.firedNow, fieldNumber: 2)
     }
+    try { if let v = self._warning {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_EvaluateWarningResponse, rhs: MoneyRecap_V1_EvaluateWarningResponse) -> Bool {
     if lhs.fired != rhs.fired {return false}
     if lhs.firedNow != rhs.firedNow {return false}
+    if lhs._warning != rhs._warning {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
