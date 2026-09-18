@@ -101,7 +101,7 @@ Install an older runtime through Xcode > Settings > Components (or `xcodebuild -
 | Folder | What lives here |
 | --- | --- |
 | `App/` | Entry point, the SwiftData container, root switch between Sign in and Home (sign-out deletes the cache), `Info.plist` (URL scheme, the ATS local-networking allowance). |
-| `Auth/` | `AuthConfig` (issuer, client id, redirect; no secret exists in the target), `AuthSession` (AppAuth discovery, PKCE authorization, `OIDAuthState`, fresh tokens and the refresh-or-sign-out on `unauthenticated`), `Keychain`. |
+| `Auth/` | `AuthConfig` (issuer, client id, redirect; no secret exists in the target), `AuthSession` (AppAuth discovery, PKCE authorization, `OIDAuthState`, fresh tokens, and on `unauthenticated` a refresh that signs out only when the realm refuses it), `Keychain`. |
 | `Networking/` | `BffClient` builds the generated `MoneyRecap_V1_BffServiceClient` (proto codec, `MMR_BFF_URL` or its default); `BearerInterceptor` is the one interceptor of I3 so far. No request or response type is written here. |
 | `Snapshots/` | `HomeSnapshot`, the one SwiftData model of I4: the `HomeView` bytes plus `updatedAt`, replaced whole on every success. |
 | `Screens/` | One folder per SCREEN-STATES group: `SignIn/` and `Home/`, each a view plus an `@Observable` view model (I6). |
