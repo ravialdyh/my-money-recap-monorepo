@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -116,6 +117,29 @@ func TestStoreFailureIsUnavailableWithoutTheDriverText(t *testing.T) {
 	for name, err := range map[string]error{"GetOrCreateBySubject": createErr, "GetProfile": profileErr} {
 		if connect.CodeOf(err) != connect.CodeUnavailable || strings.Contains(err.Error(), "127.0.0.1") || strings.Contains(err.Error(), raw.Error()) {
 			t.Errorf("%s: %v, want unavailable without the driver's %q", name, err, raw)
+		}
+	}
+}
+
+func TestTheCallersDeadlineOrCancelIsNotAStoreFailure(t *testing.T) {
+	claims := auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com"})
+	db, err := pgxpool.New(claims, "postgres://x:y@127.0.0.1:1/x?connect_timeout=1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(db.Close)
+	s := &Service{DB: db}
+	expired, stop := context.WithDeadline(claims, time.Now().Add(-time.Second))
+	defer stop()
+	cancelled, cancel := context.WithCancel(claims)
+	cancel()
+	for want, ctx := range map[connect.Code]context.Context{connect.CodeDeadlineExceeded: expired, connect.CodeCanceled: cancelled} {
+		_, createErr := s.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: "sub-1", Email: "test@example.com"}))
+		_, profileErr := s.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: "00000000-0000-0000-0000-000000000001"}))
+		for name, err := range map[string]error{"GetOrCreateBySubject": createErr, "GetProfile": profileErr} {
+			if connect.CodeOf(err) != want || strings.Contains(err.Error(), "127.0.0.1") {
+				t.Errorf("%s: %v, want %v", name, err, want)
+			}
 		}
 	}
 }
