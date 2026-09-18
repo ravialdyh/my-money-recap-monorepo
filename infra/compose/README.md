@@ -98,11 +98,11 @@ replaces this bootstrap with OpenTofu (A13).
 - Test user `test` / `test@example.com`, password from `TEST_USER_PASSWORD`.
 
 The JSON's two `${VARIABLE}` placeholders, `BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD`, are filled
-from the container environment only when the realm is imported, and `KC_BOOTSTRAP_ADMIN_PASSWORD`
-only seeds the admin of an empty database. So a change to any of the three in `.env` reaches
-Keycloak only after `down -v`; until then, whatever reads the new value (the test variables below,
-`a10-smoke.sh`, the `kcadm` login under "Admin access") is refused. Nothing secret is in a
-committed file.
+from the container environment only when the realm is imported, and `KC_BOOTSTRAP_ADMIN_USERNAME`
+and `KC_BOOTSTRAP_ADMIN_PASSWORD` only seed the admin of an empty database. So a change to any of
+the four in `.env` reaches Keycloak only after `down -v`; until then, whatever reads the new value
+(the test variables below, `a10-smoke.sh`, the `kcadm` login under "Admin access") is refused.
+Nothing secret is in a committed file.
 
 ## Try it
 
@@ -130,8 +130,8 @@ curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorizatio
 The `internal/members` tests and `internal/bff`'s `TestEndToEnd` skip unless their variables are set
 (`internal/members`' store-failure and caller-deadline tests and `internal/bff`'s other tests need
 nothing); with the stack up and the stock `.env` they are the values below. A non-default `.env`
-substitutes its own `*_HOST_PORT`s. Either way the passwords are the values `.env` held when the
-volumes were created (see "The `mmr` realm").
+substitutes its own `*_HOST_PORT`s. Either way the passwords and the client secret are the values
+`.env` held when the volumes were created (see "The `mmr` realm").
 
 | Variable | Stock value | What it is |
 | --- | --- | --- |
@@ -188,8 +188,9 @@ host. Inspect the realm with `kcadm` inside the container instead:
 docker compose -f infra/compose/compose.yaml exec keycloak bash -c '/opt/keycloak/bin/kcadm.sh config credentials --server http://127.0.0.1:8080 --realm master --user "$KC_BOOTSTRAP_ADMIN_USERNAME" --password "$KC_BOOTSTRAP_ADMIN_PASSWORD" && /opt/keycloak/bin/kcadm.sh get clients -r mmr --fields clientId,publicClient'
 ```
 
-That login uses the container's current `KC_BOOTSTRAP_ADMIN_PASSWORD`, which fails once it differs
-from the value the volume was first booted with (see "The `mmr` realm").
+That login uses the container's current `KC_BOOTSTRAP_ADMIN_USERNAME` and
+`KC_BOOTSTRAP_ADMIN_PASSWORD`, and fails once either differs from the value the volume was first
+booted with (see "The `mmr` realm").
 
 To use the admin console from a browser, relax `master` once per volume after that login:
 

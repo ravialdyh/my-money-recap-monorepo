@@ -77,7 +77,9 @@ down: the newest installed iOS runtime and the oldest (the deployment target's f
 offers that runtime; on a Mac whose Xcode no longer lists it, the oldest it does; Xcode 27 no longer
 offers iOS 17 or 18 for download, so on such a Mac the floor is iOS 26.0).
 `scripts/ui-test.sh` builds once, then runs the UI test on each, taking the password from
-`MMR_TEST_USER_PASSWORD` or, failing that, from the running `mmr-keycloak-1` container:
+`MMR_TEST_USER_PASSWORD` or, failing that, from the running `mmr-keycloak-1` container. The realm
+accepts only the password it was first imported with, so once a changed `.env` recreates the
+container, its value is refused until `down -v` (`infra/compose/README.md`, "The `mmr` realm"):
 
 ```bash
 scripts/ui-test.sh
