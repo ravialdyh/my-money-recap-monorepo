@@ -19,11 +19,11 @@ Run it and commit `baseline.json` in the same pull request that added the tests.
 
 ## The floors, and where they came from
 
-All three come from a CI run, not a guess.
+All three come from a measured run, not a guess: CI, or the CI commands run locally when GitHub refuses to start the jobs.
 
 | Language | Floor | Measured | Where it comes from |
 | --- | --- | --- | --- |
-| `go` | 52.9% | 52.9% | The backend job, with the Compose stack up, so `internal/members` and the end-to-end test really run. `internal/serve` is at 100%. |
+| `go` | 53.6% | 53.6% | The backend job's commands, with the Compose stack up, so `internal/members` and the end-to-end test really run. 52.9% came from a CI run; 53.6% was measured locally the same way on PR #56 while GitHub refused to start the jobs (AGENTS.md exception). `internal/serve` is at 100%, `internal/bff` at 92.9%. |
 | `ios` | 30.9% | 30.9% | The iOS job on a macOS runner, ten tests, `-enableCodeCoverage YES` on both halves of the build-then-test split. |
 | `typescript` | 80% | 97.8% | `npm run test:coverage` — 134 tests across nine files, over the components, the hooks and the four Recap screens. The floor sits at the target, not at the measurement, because the ratchet stops there. |
 

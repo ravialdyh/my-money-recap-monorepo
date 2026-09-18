@@ -117,13 +117,18 @@ func TestGetHomeBannerOnlyWhenNotifySaysFired(t *testing.T) {
 	s := newService(t, &fakeMembers{}, StubNotify{})
 	s.Ledger = warningLedger{}
 	res, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
-	if err != nil || res.Msg.Home.TargetWarning != nil {
-		t.Fatalf("not fired: %v %v", err, res.Msg.Home.TargetWarning)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Msg.Home.TargetWarning != nil {
+		t.Fatalf("not fired: %v", res.Msg.Home.TargetWarning)
 	}
 	s.Notify = firedNotify{}
-	res, err = s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
-	if err != nil || res.Msg.Home.TargetWarning.GetMessage() != "You've passed your saving line." {
-		t.Fatalf("fired: %v %v", err, res.Msg.Home.TargetWarning)
+	if res, err = s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{})); err != nil {
+		t.Fatal(err)
+	}
+	if res.Msg.Home.TargetWarning.GetMessage() != "You've passed your saving line." {
+		t.Fatalf("fired: %v", res.Msg.Home.TargetWarning)
 	}
 }
 
