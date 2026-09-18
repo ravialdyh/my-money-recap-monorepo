@@ -222,8 +222,8 @@ func badAmounts(m protoreflect.Message, path string) []string {
 }
 
 // badOriginals returns, by path, each Spend and SalarySetting breaking the README's original_amount
-// rule: always present, equal to amount until convert, then equal to the input row's (a Spend by id,
-// a SalarySetting by effective_from).
+// rule: always present, equal to amount until convert (a limit of today's files), then its input
+// row's (a Spend by id, a SalarySetting by effective_from).
 func badOriginals(f *moneyrecapv1.LedgerFixture) []string {
 	typed := map[string]*moneyrecapv1.Money{}
 	for _, s := range f.Salaries {
