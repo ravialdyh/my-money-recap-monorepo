@@ -1,9 +1,9 @@
 import Connect
 import Foundation
 
-/// The one interceptor IOS I3 names: adds the bearer token and, on `unauthenticated`, asks AppAuth to
-/// refresh; a refresh the realm refuses signs the Member out. No fresh token while the session holds
-/// fails the call as `unavailable` (PRD D61).
+/// IOS I3's one interceptor: adds the bearer token and, on `unauthenticated`, forces a refresh that signs the
+/// Member out if the realm refuses it. A call with no fresh token fails: `unavailable` while the session holds
+/// (PRD D61), else `unauthenticated`.
 final class BearerInterceptor: UnaryInterceptor {
     private let session: AuthSession
 
