@@ -343,7 +343,7 @@ func (x *EvaluateWarningRequest) GetWarning() *TargetWarning {
 }
 
 // The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
-// builds the HomeView banner without a second round trip.
+// builds a current-month write's HomeView banner without a second round trip.
 type EvaluateWarningResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// True when the month is stamped, by this call or an earlier one.

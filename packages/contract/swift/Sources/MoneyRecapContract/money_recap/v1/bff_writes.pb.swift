@@ -53,9 +53,9 @@ public nonisolated struct MoneyRecap_V1_BffServiceLogSpendRequest: Sendable {
 }
 
 /// The fresh HomeView of ARCHITECTURE §6.2 step 5 and the Spend as stored. Its
-/// target_warning is EvaluateWarningResponse.warning when the Spend is in the
-/// current month, absent if notify timed out (step 4), else
-/// GetWarningState(current)'s.
+/// target_warning is, for a Spend in the current month,
+/// EvaluateWarningResponse.warning (absent if notify timed out, step 4);
+/// otherwise GetWarningState(current)'s.
 public nonisolated struct MoneyRecap_V1_BffServiceLogSpendResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

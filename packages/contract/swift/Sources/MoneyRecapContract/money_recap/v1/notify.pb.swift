@@ -153,7 +153,7 @@ public nonisolated struct MoneyRecap_V1_EvaluateWarningRequest: Sendable {
 }
 
 /// The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
-/// builds the HomeView banner without a second round trip.
+/// builds a current-month write's HomeView banner without a second round trip.
 public nonisolated struct MoneyRecap_V1_EvaluateWarningResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

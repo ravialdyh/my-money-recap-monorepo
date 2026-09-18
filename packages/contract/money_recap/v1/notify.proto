@@ -58,7 +58,7 @@ message EvaluateWarningRequest {
 }
 
 // The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
-// builds the HomeView banner without a second round trip.
+// builds a current-month write's HomeView banner without a second round trip.
 message EvaluateWarningResponse {
   // True when the month is stamped, by this call or an earlier one.
   bool fired = 1;
