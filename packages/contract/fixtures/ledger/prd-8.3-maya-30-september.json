@@ -1,0 +1,183 @@
+{
+  "doc": "PRD §8.3, Maya on 30 September: Spent £1,760, Money In £2,400 (§8.2), Saved £640; target £480 (§8.4); Streak 9, the 12th to the 20th (§8.5); 1 day remaining, allowance floor((2,400 − 480 − 1,760) ÷ 1) = £160 (§8.7); under the line (§8.8).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [
+    {
+      "id": "maya-01",
+      "amount": {
+        "amount": "300.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "300.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_BILLS",
+      "date": "2026-09-03"
+    },
+    {
+      "id": "maya-02",
+      "amount": {
+        "amount": "150.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "150.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-06"
+    },
+    {
+      "id": "maya-03",
+      "amount": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "200.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_RIDES",
+      "date": "2026-09-09"
+    },
+    {
+      "id": "maya-04",
+      "amount": {
+        "amount": "250.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "250.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GAMES",
+      "date": "2026-09-11"
+    },
+    {
+      "id": "maya-05",
+      "amount": {
+        "amount": "180.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "180.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_CLOTHES",
+      "date": "2026-09-21"
+    },
+    {
+      "id": "maya-06",
+      "amount": {
+        "amount": "120.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "120.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_SNACKS",
+      "date": "2026-09-24"
+    },
+    {
+      "id": "maya-07",
+      "amount": {
+        "amount": "420.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "420.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_TOYS",
+      "date": "2026-09-27"
+    },
+    {
+      "id": "maya-08",
+      "amount": {
+        "amount": "140.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "140.00",
+        "currencyCode": "GBP"
+      },
+      "category": "CATEGORY_GIFTS",
+      "date": "2026-09-29"
+    }
+  ],
+  "asOf": "2026-09-30",
+  "months": [
+    {
+      "month": "2026-09",
+      "spent": {
+        "amount": "1760.00",
+        "currencyCode": "GBP"
+      },
+      "moneyIn": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "saved": {
+        "amount": "640.00",
+        "currencyCode": "GBP"
+      },
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "480.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Keep spending under £160 a day and you'll make it."
+      },
+      "streakDay": 9,
+      "daysRemaining": 1,
+      "partial": false
+    }
+  ],
+  "settings": {
+    "salary": {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    },
+    "savingTarget": {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    },
+    "paydayPassedThisMonth": true,
+    "currencyCode": "GBP",
+    "hasAmountsToConvert": true
+  },
+  "crossedLine": false
+}

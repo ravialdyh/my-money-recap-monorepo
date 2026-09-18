@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package money_recap.v1;
+
+option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
+
+import "money_recap/v1/ledger_views.proto";
+import "money_recap/v1/ledger_writes.proto";
+import "money_recap/v1/shared.proto";
+
+// Test-only, carried by no RPC: one PRD §8 scenario as the answer key for
+// the arithmetic only ledger holds (A2, ARCHITECTURE §7.2 "Tests"): one
+// ledger, one "as of" date, the figures ledger must compute. JSON in
+// fixtures/ledger; run in slice 5.
+message LedgerFixture {
+  // The PRD paragraph every expected value below is worked from, for example
+  // "PRD §8.3, Maya on 20 September".
+  string doc = 1;
+  // IANA zone every "today" is evaluated in (A3).
+  string timezone = 2;
+  // "YYYY-MM-DD": the local date at sign-up, bounding the Streak window (D43)
+  // and naming the sign-up month (D52).
+  string signed_up_on = 3;
+  // ISO 4217 code every input amount is held in.
+  string currency_code = 4;
+  // The append-only salary_setting rows (PRD §7).
+  repeated SalarySetting salaries = 5;
+  // The append-only saving_target_setting rows (PRD §7).
+  repeated SavingTargetSetting saving_targets = 6;
+  // Every non-deleted Spend; created_at and updated_at are left for ledger to
+  // stamp.
+  repeated Spend spends = 7;
+  // "YYYY-MM-DD": today in the Member's zone when the expected values hold.
+  string as_of = 8;
+  // A SaveSalary made on as_of before the expected values are read (PRD
+  // §8.10, D56); member_id and idempotency_key stay empty.
+  optional SaveSalaryRequest save_salary = 9;
+  // An ApplyCurrencyConversion made on as_of before the expected values are
+  // read (PRD §8.9); member_id and idempotency_key stay empty.
+  optional ApplyCurrencyConversionRequest convert = 10;
+  // GetMonthSummary for each listed month, as of as_of.
+  repeated MonthSummary months = 11;
+  // GetRecap for each listed month, as of as_of.
+  repeated Recap recaps = 12;
+  // GetSettings as of as_of.
+  optional LedgerSettings settings = 13;
+  // PreviewConversion with convert's rate and Currency, as of as_of.
+  optional ConversionPreview conversion_preview = 14;
+  // Whether logging the last entry of spends, on its date, answered
+  // crossed_line (PRD §8.8).
+  optional bool crossed_line = 15;
+  // The salary_setting rows after convert or save_salary (PRD §8.9 step 4,
+  // §8.10).
+  repeated SalarySetting salaries_after = 16;
+  // The Spend rows after convert, original amounts untouched (PRD §8.9 step 4).
+  repeated Spend spends_after = 17;
+}
