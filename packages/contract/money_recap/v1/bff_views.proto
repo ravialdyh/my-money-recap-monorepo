@@ -30,7 +30,9 @@ message HomeView {
   optional SalaryFacts salary = 8;
   // Absent until a Saving Target is set.
   optional SavingTargetFacts saving_target = 9;
-  // Current day of the Streak window (PRD §8.5). Day 1 on the first-run Home.
+  // The month's Streak so far (PRD §8.5, D43): the longest spend-free run in
+  // the window to today. With no Spends it is the elapsed days, which Home
+  // prints as "Streak day {n}"; 1 on the first-run Home.
   int32 streak_day = 10;
   // Days left in the month counting today, never below 1 (PRD §8.7).
   int32 days_remaining = 11;
@@ -72,7 +74,8 @@ message SpendListView {
   // Newest first, deleted rows excluded; the detail and edit sheets read
   // every §6.9 field from here.
   repeated Spend spends = 6;
-  // Elapsed days of the Streak window (PRD §8.5, D43): what the empty
+  // The month's Streak so far (PRD §8.5, D43): MonthSummary.streak_day for
+  // the current month, Recap.streak.days for a past one; what the empty
   // month's "Nothing spent yet. Streak day {n}." line prints.
   int32 streak_day = 7;
 }

@@ -206,8 +206,9 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryRequest: Sendable {
   /// 1 to 31, or "last" (PRD D51).
   public var payday: String = String()
 
-  /// The D56 sheet's answer; UNSPECIFIED when the sheet did not open, which
-  /// the BFF sends to ledger as THIS_MONTH (PRD §8.10).
+  /// The D56 sheet's answer; UNSPECIFIED when the sheet did not open, passed
+  /// to ledger as is: failed_precondition on or after Payday means the phone
+  /// must open the sheet (PRD §8.10).
   public var appliesFrom: MoneyRecap_V1_SalaryAppliesFrom = .unspecified
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

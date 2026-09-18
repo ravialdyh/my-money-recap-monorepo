@@ -100,9 +100,22 @@ public nonisolated struct MoneyRecap_V1_GetWarningStateResponse: Sendable {
 
   public var fired: Bool = false
 
+  /// The copy kept when the month was stamped; present whenever fired. Deleting
+  /// or editing Spends never clears it (PRD §8.8): Home's banner is this.
+  public var warning: MoneyRecap_V1_TargetWarning {
+    get {_warning ?? MoneyRecap_V1_TargetWarning()}
+    set {_warning = newValue}
+  }
+  /// Returns true if `warning` has been explicitly set.
+  public var hasWarning: Bool {self._warning != nil}
+  /// Clears the value of `warning`. Subsequent reads from it will return its default value.
+  public mutating func clearWarning() {self._warning = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+
+  fileprivate var _warning: MoneyRecap_V1_TargetWarning? = nil
 }
 
 public nonisolated struct MoneyRecap_V1_EvaluateWarningRequest: Sendable {
@@ -121,9 +134,22 @@ public nonisolated struct MoneyRecap_V1_EvaluateWarningRequest: Sendable {
   /// Computed by ledger (ARCHITECTURE §7.2); notify holds no PRD §8 rule.
   public var crossedLine: Bool = false
 
+  /// Ledger's MonthSummary.target_warning as this Spend left it; kept with the
+  /// stamp, so the banner reads the same until the 1st (PRD §6.8, §8.8).
+  public var warning: MoneyRecap_V1_TargetWarning {
+    get {_warning ?? MoneyRecap_V1_TargetWarning()}
+    set {_warning = newValue}
+  }
+  /// Returns true if `warning` has been explicitly set.
+  public var hasWarning: Bool {self._warning != nil}
+  /// Clears the value of `warning`. Subsequent reads from it will return its default value.
+  public mutating func clearWarning() {self._warning = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+
+  fileprivate var _warning: MoneyRecap_V1_TargetWarning? = nil
 }
 
 /// The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
@@ -438,7 +464,7 @@ nonisolated extension MoneyRecap_V1_GetWarningStateRequest: SwiftProtobuf.Messag
 
 nonisolated extension MoneyRecap_V1_GetWarningStateResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".GetWarningStateResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}fired\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}fired\0\u{1}warning\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -447,20 +473,29 @@ nonisolated extension MoneyRecap_V1_GetWarningStateResponse: SwiftProtobuf.Messa
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBoolField(value: &self.fired) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._warning) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.fired != false {
       try visitor.visitSingularBoolField(value: self.fired, fieldNumber: 1)
     }
+    try { if let v = self._warning {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_GetWarningStateResponse, rhs: MoneyRecap_V1_GetWarningStateResponse) -> Bool {
     if lhs.fired != rhs.fired {return false}
+    if lhs._warning != rhs._warning {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -468,7 +503,7 @@ nonisolated extension MoneyRecap_V1_GetWarningStateResponse: SwiftProtobuf.Messa
 
 nonisolated extension MoneyRecap_V1_EvaluateWarningRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".EvaluateWarningRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}idempotency_key\0\u{3}member_id\0\u{1}month\0\u{3}crossed_line\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}idempotency_key\0\u{3}member_id\0\u{1}month\0\u{3}crossed_line\0\u{1}warning\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -480,12 +515,17 @@ nonisolated extension MoneyRecap_V1_EvaluateWarningRequest: SwiftProtobuf.Messag
       case 2: try { try decoder.decodeSingularStringField(value: &self.memberID) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.month) }()
       case 4: try { try decoder.decodeSingularBoolField(value: &self.crossedLine) }()
+      case 5: try { try decoder.decodeSingularMessageField(value: &self._warning) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.idempotencyKey.isEmpty {
       try visitor.visitSingularStringField(value: self.idempotencyKey, fieldNumber: 1)
     }
@@ -498,6 +538,9 @@ nonisolated extension MoneyRecap_V1_EvaluateWarningRequest: SwiftProtobuf.Messag
     if self.crossedLine != false {
       try visitor.visitSingularBoolField(value: self.crossedLine, fieldNumber: 4)
     }
+    try { if let v = self._warning {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -506,6 +549,7 @@ nonisolated extension MoneyRecap_V1_EvaluateWarningRequest: SwiftProtobuf.Messag
     if lhs.memberID != rhs.memberID {return false}
     if lhs.month != rhs.month {return false}
     if lhs.crossedLine != rhs.crossedLine {return false}
+    if lhs._warning != rhs._warning {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -63,6 +63,9 @@ message SaveProfileRequest {
   // PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
   // ledger.currency.converted (§7.1), never by this write.
   optional string currency_code = 5;
+  // The step just completed or skipped, 1 to 4 (PRD §5 step 6), saved in the
+  // same write as the answers so one Idempotency-Key covers both (A14).
+  optional int32 onboarding_step = 6;
 }
 
 message SaveProfileResponse {
@@ -73,9 +76,9 @@ message SaveOnboardingStepRequest {
   // A14.
   string idempotency_key = 1;
   string member_id = 2;
-  // The step just completed or skipped, 1 to 4 (PRD §5 step 6). The BFF sends
-  // it after the step's SaveProfile succeeded, so progress never runs ahead
-  // of the answers.
+  // The step just completed or skipped, 1 to 4 (PRD §5 step 6), for a step
+  // with no answers to save; a step with answers rides on
+  // SaveProfileRequest.onboarding_step in the same write.
   int32 step = 3;
 }
 

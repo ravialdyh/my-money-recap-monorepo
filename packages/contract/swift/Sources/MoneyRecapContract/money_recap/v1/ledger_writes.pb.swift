@@ -246,8 +246,9 @@ public nonisolated struct MoneyRecap_V1_SaveSalaryRequest: Sendable {
   /// 1 to 31, or "last" (PRD D51).
   public var payday: String = String()
 
-  /// The D56 sheet's answer, or THIS_MONTH when the sheet did not open; the
-  /// BFF always sends one, and UNSPECIFIED is invalid_argument.
+  /// The D56 sheet's answer. UNSPECIFIED means no sheet opened: THIS_MONTH
+  /// before the effective Payday in the Member's zone, failed_precondition on
+  /// or after it, which the phone answers by opening the sheet (PRD §8.10).
   public var appliesFrom: MoneyRecap_V1_SalaryAppliesFrom = .unspecified
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

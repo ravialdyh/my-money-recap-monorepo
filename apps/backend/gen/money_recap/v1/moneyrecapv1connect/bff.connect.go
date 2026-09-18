@@ -105,12 +105,14 @@ type BffServiceClient interface {
 	DeleteSpend(context.Context, *connect.Request[v1.BffServiceDeleteSpendRequest]) (*connect.Response[v1.BffServiceDeleteSpendResponse], error)
 	// Where onboarding resumes after a force-quit (PRD §6.4).
 	GetOnboardingState(context.Context, *connect.Request[v1.BffServiceGetOnboardingStateRequest]) (*connect.Response[v1.BffServiceGetOnboardingStateResponse], error)
-	// members.SaveProfile, then members.SaveOnboardingStep when a step is named.
+	// One members.SaveProfile carrying the answers and the step: one write under
+	// the one Idempotency-Key (A14).
 	SaveProfile(context.Context, *connect.Request[v1.BffServiceSaveProfileRequest]) (*connect.Response[v1.BffServiceSaveProfileResponse], error)
 	// Called on every launch (A3); the answer drives the restore sheet (D60).
 	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
-	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56).
+	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
+	// failed_precondition when the sheet should have opened.
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
 	// ledger.SaveTarget; effective from next month (D65). failed_precondition
 	// without a Salary (D44).
@@ -420,12 +422,14 @@ type BffServiceHandler interface {
 	DeleteSpend(context.Context, *connect.Request[v1.BffServiceDeleteSpendRequest]) (*connect.Response[v1.BffServiceDeleteSpendResponse], error)
 	// Where onboarding resumes after a force-quit (PRD §6.4).
 	GetOnboardingState(context.Context, *connect.Request[v1.BffServiceGetOnboardingStateRequest]) (*connect.Response[v1.BffServiceGetOnboardingStateResponse], error)
-	// members.SaveProfile, then members.SaveOnboardingStep when a step is named.
+	// One members.SaveProfile carrying the answers and the step: one write under
+	// the one Idempotency-Key (A14).
 	SaveProfile(context.Context, *connect.Request[v1.BffServiceSaveProfileRequest]) (*connect.Response[v1.BffServiceSaveProfileResponse], error)
 	// Called on every launch (A3); the answer drives the restore sheet (D60).
 	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
-	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56).
+	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
+	// failed_precondition when the sheet should have opened.
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
 	// ledger.SaveTarget; effective from next month (D65). failed_precondition
 	// without a Salary (D44).

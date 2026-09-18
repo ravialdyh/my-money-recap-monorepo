@@ -48,7 +48,8 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `getOnboardingState`(request: MoneyRecap_V1_BffServiceGetOnboardingStateRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetOnboardingStateResponse>
 
-    /// members.SaveProfile, then members.SaveOnboardingStep when a step is named.
+    /// One members.SaveProfile carrying the answers and the step: one write under
+    /// the one Idempotency-Key (A14).
     @available(iOS 13, *)
     func `saveProfile`(request: MoneyRecap_V1_BffServiceSaveProfileRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveProfileResponse>
 
@@ -59,7 +60,8 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `getSettings`(request: MoneyRecap_V1_BffServiceGetSettingsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetSettingsResponse>
 
-    /// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56).
+    /// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
+    /// failed_precondition when the sheet should have opened.
     @available(iOS 13, *)
     func `saveSalary`(request: MoneyRecap_V1_BffServiceSaveSalaryRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveSalaryResponse>
 

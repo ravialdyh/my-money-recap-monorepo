@@ -380,8 +380,9 @@ type BffServiceSaveSalaryRequest struct {
 	Amount *Money `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
 	// 1 to 31, or "last" (PRD D51).
 	Payday string `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
-	// The D56 sheet's answer; UNSPECIFIED when the sheet did not open, which
-	// the BFF sends to ledger as THIS_MONTH (PRD §8.10).
+	// The D56 sheet's answer; UNSPECIFIED when the sheet did not open, passed
+	// to ledger as is: failed_precondition on or after Payday means the phone
+	// must open the sheet (PRD §8.10).
 	AppliesFrom   SalaryAppliesFrom `protobuf:"varint,3,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

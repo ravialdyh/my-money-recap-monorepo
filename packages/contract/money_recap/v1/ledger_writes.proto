@@ -83,8 +83,9 @@ message SaveSalaryRequest {
   Money amount = 3;
   // 1 to 31, or "last" (PRD D51).
   string payday = 4;
-  // The D56 sheet's answer, or THIS_MONTH when the sheet did not open; the
-  // BFF always sends one, and UNSPECIFIED is invalid_argument.
+  // The D56 sheet's answer. UNSPECIFIED means no sheet opened: THIS_MONTH
+  // before the effective Payday in the Member's zone, failed_precondition on
+  // or after it, which the phone answers by opening the sheet (PRD §8.10).
   SalaryAppliesFrom applies_from = 5;
 }
 

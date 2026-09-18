@@ -5,6 +5,7 @@ package money_recap.v1;
 option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
 
 import "google/protobuf/timestamp.proto";
+import "money_recap/v1/shared.proto";
 
 // The three toggles and the reminder time from PRD §6.16 and §10. notify
 // fills every field on read: a Member with no row gets the PRD §10 defaults,
@@ -38,6 +39,9 @@ message GetWarningStateRequest {
 // lives here; the banner copy is ledger's (ARCHITECTURE §7.3).
 message GetWarningStateResponse {
   bool fired = 1;
+  // The copy kept when the month was stamped; present whenever fired. Deleting
+  // or editing Spends never clears it (PRD §8.8): Home's banner is this.
+  optional TargetWarning warning = 2;
 }
 
 message EvaluateWarningRequest {
@@ -48,6 +52,9 @@ message EvaluateWarningRequest {
   string month = 3;
   // Computed by ledger (ARCHITECTURE §7.2); notify holds no PRD §8 rule.
   bool crossed_line = 4;
+  // Ledger's MonthSummary.target_warning as this Spend left it; kept with the
+  // stamp, so the banner reads the same until the 1st (PRD §6.8, §8.8).
+  optional TargetWarning warning = 5;
 }
 
 // The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF

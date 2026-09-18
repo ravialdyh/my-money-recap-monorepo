@@ -342,9 +342,12 @@ type SaveProfileRequest struct {
 	// ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
 	// PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
 	// ledger.currency.converted (§7.1), never by this write.
-	CurrencyCode  *string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	CurrencyCode *string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
+	// The step just completed or skipped, 1 to 4 (PRD §5 step 6), saved in the
+	// same write as the answers so one Idempotency-Key covers both (A14).
+	OnboardingStep *int32 `protobuf:"varint,6,opt,name=onboarding_step,json=onboardingStep,proto3,oneof" json:"onboarding_step,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SaveProfileRequest) Reset() {
@@ -412,6 +415,13 @@ func (x *SaveProfileRequest) GetCurrencyCode() string {
 	return ""
 }
 
+func (x *SaveProfileRequest) GetOnboardingStep() int32 {
+	if x != nil && x.OnboardingStep != nil {
+		return *x.OnboardingStep
+	}
+	return 0
+}
+
 type SaveProfileResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
@@ -461,9 +471,9 @@ type SaveOnboardingStepRequest struct {
 	// A14.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// The step just completed or skipped, 1 to 4 (PRD §5 step 6). The BFF sends
-	// it after the step's SaveProfile succeeded, so progress never runs ahead
-	// of the answers.
+	// The step just completed or skipped, 1 to 4 (PRD §5 step 6), for a step
+	// with no answers to save; a step with answers rides on
+	// SaveProfileRequest.onboarding_step in the same write.
 	Step          int32 `protobuf:"varint,3,opt,name=step,proto3" json:"step,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -890,17 +900,19 @@ const file_money_recap_v1_members_proto_rawDesc = "" +
 	"\x11GetProfileRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\"G\n" +
 	"\x12GetProfileResponse\x121\n" +
-	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\"\x82\x02\n" +
+	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\"\xc4\x02\n" +
 	"\x12SaveProfileRequest\x12'\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12&\n" +
 	"\fdisplay_name\x18\x03 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"avatar_key\x18\x04 \x01(\tH\x01R\tavatarKey\x88\x01\x01\x12(\n" +
-	"\rcurrency_code\x18\x05 \x01(\tH\x02R\fcurrencyCode\x88\x01\x01B\x0f\n" +
+	"\rcurrency_code\x18\x05 \x01(\tH\x02R\fcurrencyCode\x88\x01\x01\x12,\n" +
+	"\x0fonboarding_step\x18\x06 \x01(\x05H\x03R\x0eonboardingStep\x88\x01\x01B\x0f\n" +
 	"\r_display_nameB\r\n" +
 	"\v_avatar_keyB\x10\n" +
-	"\x0e_currency_code\"H\n" +
+	"\x0e_currency_codeB\x12\n" +
+	"\x10_onboarding_step\"H\n" +
 	"\x13SaveProfileResponse\x121\n" +
 	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\"u\n" +
 	"\x19SaveOnboardingStepRequest\x12'\n" +

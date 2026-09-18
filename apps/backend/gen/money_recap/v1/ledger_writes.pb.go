@@ -470,8 +470,9 @@ type SaveSalaryRequest struct {
 	Amount         *Money `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	// 1 to 31, or "last" (PRD D51).
 	Payday string `protobuf:"bytes,4,opt,name=payday,proto3" json:"payday,omitempty"`
-	// The D56 sheet's answer, or THIS_MONTH when the sheet did not open; the
-	// BFF always sends one, and UNSPECIFIED is invalid_argument.
+	// The D56 sheet's answer. UNSPECIFIED means no sheet opened: THIS_MONTH
+	// before the effective Payday in the Member's zone, failed_precondition on
+	// or after it, which the phone answers by opening the sheet (PRD §8.10).
 	AppliesFrom   SalaryAppliesFrom `protobuf:"varint,5,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
