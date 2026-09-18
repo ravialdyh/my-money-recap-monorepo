@@ -73,3 +73,55 @@ func TestInterceptor(t *testing.T) {
 		}
 	}
 }
+
+func TestInterceptorKeyFetchFailureIsUnavailable(t *testing.T) {
+	key, stranger := newKey(t), newKey(t)
+	jwks := jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{Key: &key.PublicKey, KeyID: "k1", Algorithm: "RS256", Use: "sig"}}}
+	realm := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if err := json.NewEncoder(w).Encode(jwks); err != nil {
+			t.Error(err)
+		}
+	}))
+	down := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusServiceUnavailable)
+	}))
+	defer down.Close()
+	claims := jwt.Claims{Issuer: issuer, Subject: "sub-1", Audience: jwt.Audience{"bff"}, Expiry: jwt.NewNumericDate(time.Now().Add(time.Minute))}
+	valid, foreign := testauth.Mint(t, key, "k1", claims), testauth.Mint(t, stranger, "k2", claims)
+	code := func(v *Verifier, tok string) connect.Code {
+		req := connect.NewRequest(&struct{}{})
+		req.Header().Set("Authorization", "Bearer "+tok)
+		_, err := v.Interceptor()(func(context.Context, connect.AnyRequest) (connect.AnyResponse, error) { return nil, nil })(context.Background(), req)
+		if err == nil {
+			return 0
+		}
+		return connect.CodeOf(err)
+	}
+
+	cached := NewVerifier(context.Background(), issuer, realm.URL, "bff")
+	if got := code(cached, foreign); got != connect.CodeUnauthenticated {
+		t.Errorf("key the reachable realm does not hold: %v, want unauthenticated", got)
+	}
+	if got := code(cached, valid); got != 0 {
+		t.Fatalf("valid token: %v", got)
+	}
+	realm.Close()
+	if got := code(cached, valid); got != 0 {
+		t.Errorf("cached key while the realm is refused: %v, want accepted", got)
+	}
+	if got := code(cached, foreign); got != connect.CodeUnavailable {
+		t.Errorf("uncached key while the realm is refused: %v, want unavailable", got)
+	}
+	if got := code(NewVerifier(context.Background(), issuer, down.URL, "bff"), valid); got != connect.CodeUnavailable {
+		t.Errorf("realm answering 503: %v, want unavailable", got)
+	}
+}
+
+func newKey(t *testing.T) *rsa.PrivateKey {
+	t.Helper()
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return key
+}

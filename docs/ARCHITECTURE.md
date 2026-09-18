@@ -79,7 +79,7 @@ flowchart LR
 ### 4.2 Authentication, at three points
 
 1. **Nginx** does not read the token. Open-source Nginx has no JWT module; that is Nginx Plus. Nginx terminates TLS, limits requests and connections per IP, and hides internal addresses.
-2. **The BFF** verifies the Keycloak JWT on every request against the realm's JWKS, cached and refreshed on an unknown key id. It rejects expired or wrong-audience tokens before any service is called. It applies the per-Member limit in Redis keyed by the token subject, because thousands of phones behind one carrier address make a per-IP limit useless for fairness.
+2. **The BFF** verifies the Keycloak JWT on every request against the realm's JWKS, cached and refreshed on an unknown key id. It rejects expired or wrong-audience tokens before any service is called. A token it cannot check because the JWKS is out of reach is answered `unavailable`, not `unauthenticated`, so the phone keeps its session and its last snapshot instead of refreshing (PRD D61); a token whose key is already cached still verifies, and each service in point 3 answers the same way. It applies the per-Member limit in Redis keyed by the token subject, because thousands of phones behind one carrier address make a per-IP limit useless for fairness.
 3. **Each service** verifies the same JWT again, as PRD §9 requires. The BFF forwards the bearer token unchanged. A bug in the BFF therefore cannot expose one Member's rows to another.
 
 ### 4.3 Events: RabbitMQ with the outbox pattern (A4, A5)
