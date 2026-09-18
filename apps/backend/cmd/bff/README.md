@@ -53,6 +53,7 @@ A token for the realm's test user and the `GetHome` call are in `infra/compose/R
 
 `go test ./internal/bff/` runs the unit tests: the zero HomeView, the caller's token forwarded to
 `members`, a `notify` timeout still answering, a `members` timeout failing (on `GetProfile` and on
-`GetOrCreateBySubject`), `days_remaining` on the last day of a month. The end-to-end test
+`GetOrCreateBySubject`), a failed upstream call keeping its code and dropping its text,
+`days_remaining` on the last day of a month. The end-to-end test
 `TestEndToEnd` needs the stack and the `BFF_TEST_*` variables listed at the top of
 `internal/bff/e2e_test.go` (`apps/README.md`); CI runs it in the `backend` job.

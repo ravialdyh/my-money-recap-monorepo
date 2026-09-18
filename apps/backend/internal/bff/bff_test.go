@@ -155,8 +155,8 @@ func TestGetHomeMembersTimeoutIsAnError(t *testing.T) {
 func TestGetHomeGetOrCreateTimeoutIsAnError(t *testing.T) {
 	start := time.Now()
 	_, err := newService(t, &fakeMembers{createDelay: 2 * time.Second}, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
-	if elapsed := time.Since(start); connect.CodeOf(err) != connect.CodeDeadlineExceeded || elapsed > time.Second {
-		t.Fatalf("GetOrCreateBySubject timeout: %v after %v, want deadline_exceeded within the 100ms bound", err, elapsed)
+	if elapsed := time.Since(start); connect.CodeOf(err) != connect.CodeDeadlineExceeded || elapsed > 500*time.Millisecond {
+		t.Fatalf("GetOrCreateBySubject timeout: %v after %v, want deadline_exceeded near the 100ms bound", err, elapsed)
 	}
 }
 
