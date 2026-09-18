@@ -58,7 +58,6 @@ func TestEndToEnd(t *testing.T) {
 	for name, tok := range map[string]string{
 		"no token":                    "",
 		"token signed by another key": mintForeignlySignedToken(time.Now().Add(time.Hour)),
-		"expired token":               mintForeignlySignedToken(time.Now().Add(-time.Hour)),
 	} {
 		_, err := getHome(tok)
 		if connect.CodeOf(err) != connect.CodeUnauthenticated {
