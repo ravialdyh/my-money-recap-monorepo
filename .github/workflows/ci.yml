@@ -37,11 +37,14 @@ jobs:
               - 'tools/coverage/**'
             contract:
               - '.github/workflows/ci.yml'
+              - 'apps/backend/gen/**'
               - 'packages/contract/**'
             design-system:
               - '.github/workflows/ci.yml'
+              - 'apps/ios/DesignSystem/Tokens.swift'
               - 'biome.json'
               - 'my-money-recap-ds/**'
+              - 'my-money-recap/assets/illustrations/**'
               - 'package-lock.json'
               - 'package.json'
               - 'tools/coverage/**'

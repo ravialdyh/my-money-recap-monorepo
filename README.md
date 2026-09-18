@@ -149,11 +149,11 @@ The configs carry no comments, so the reasoning lives here.
 ### What CI costs, and why jobs are skipped
 
 This repository is private, so Actions minutes are billed, and macOS bills at **ten times** the
-Linux rate. Each job of the `CI` workflow is therefore gated on whether its inputs changed.
-`docs/ARCHITECTURE.md` A15 records that design, and why `all green` is the job to require rather
-than any single one. The `Security` workflow's jobs are not gated: they all run on Linux, so gating
-saves little, and govulncheck reports only the advisories the Go code reaches, so a change to Go
-code alone can make it fail while `go.mod` stays the same.
+Linux rate. Each job of the `CI` workflow is therefore gated on whether the files it builds or
+checks changed. `docs/ARCHITECTURE.md` A15 records that design, and why `all green` is the job to
+require rather than any single one. The `Security` workflow's jobs are not gated: they all run on
+Linux, so gating saves little, and govulncheck reports only the advisories the Go code reaches, so a
+change to Go code alone can make it fail while `go.mod` stays the same.
 
 What the gating saves. These figures are **estimates**: they were measured from real runs while the
 `Security` workflow was still gated, then adjusted for its ungated jobs by counting each job as one
