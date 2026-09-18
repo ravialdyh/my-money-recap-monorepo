@@ -184,6 +184,22 @@ func TestConnectBoundary(t *testing.T) {
 	}
 	t.Logf("GetProfile: %v", prof.Msg.Profile)
 
+	other := "other-" + t.Name()
+	var otherID string
+	if err := db.QueryRow(ctx, `INSERT INTO member (keycloak_subject, email) VALUES ($1, 'other@example.com') RETURNING id`, other).Scan(&otherID); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, other); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
+	for name, id := range map[string]string{"another Member's id": otherID, "unknown id": "00000000-0000-0000-0000-000000000001", "malformed id": "not-a-uuid"} {
+		if _, err := authed.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: id})); connect.CodeOf(err) != connect.CodeNotFound {
+			t.Errorf("GetProfile of %s: %v, want not_found", name, err)
+		}
+	}
+
 	if _, err := getOrCreate(authed, "someone-else", email); connect.CodeOf(err) != connect.CodePermissionDenied {
 		t.Errorf("subject mismatch: %v, want permission_denied", err)
 	}
