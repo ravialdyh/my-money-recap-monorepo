@@ -31,17 +31,35 @@ final class AuthSessionTests: XCTestCase {
 
     func testATransientRefreshFailureFailsTheCallAsUnavailable() async throws {
         let session = expiredSession(realm: "unreachable.invalid")
+        guard case let .failure(error) = try await intercept(session) else {
+            return XCTFail("the call went out with the stale token")
+        }
+        XCTAssertEqual(error.code, .unavailable, "the phone keeps its snapshot (PRD D61)")
+    }
+
+    func testARefusedRefreshOnTheRequestPathSignsOut() async throws {
+        let session = expiredSession(realm: "refusing.invalid")
+        try Keychain.write(NSKeyedArchiver.archivedData(
+            withRootObject: XCTUnwrap(session.authState), requiringSecureCoding: true
+        ))
+        guard case let .failure(error) = try await intercept(session) else {
+            return XCTFail("the call went out with a refused refresh")
+        }
+        XCTAssertEqual(error.code, .unauthenticated)
+        XCTAssertNil(session.authState, "RootView observes authState, so Sign in shows")
+        XCTAssertNil(Keychain.read(), "a relaunch must not reload the refused state")
+        XCTAssertEqual(session.signInMessage, AuthSession.expiredCopy)
+    }
+
+    /// Runs `BearerInterceptor`'s request step alone, where no response interceptor follows a failure.
+    private func intercept(_ session: AuthSession) async throws -> Result<HTTPRequest<Data?>, ConnectError> {
         let request = try HTTPRequest<Data?>(
             url: XCTUnwrap(URL(string: BffClient.baseURL)), headers: [:], message: nil, method: .post,
             trailers: nil, idempotencyLevel: .unknown
         )
-        let result = await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             BearerInterceptor(session: session).handleUnaryRawRequest(request) { continuation.resume(returning: $0) }
         }
-        guard case let .failure(error) = result else {
-            return XCTFail("the call went out with the stale token")
-        }
-        XCTAssertEqual(error.code, .unavailable, "the phone keeps its snapshot (PRD D61)")
     }
 
     /// A signed-in state whose access token has expired, so the next action refreshes against `realm`.
