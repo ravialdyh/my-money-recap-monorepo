@@ -20,8 +20,9 @@ message BffServiceLogSpendRequest {
   string note = 4;
 }
 
-// The fresh HomeView of §6.2 step 5, whose target_warning is the banner if
-// this Spend crossed the line, and the Spend as stored.
+// The fresh HomeView of §6.2 step 5, whose target_warning is the copy notify
+// kept (EvaluateWarningResponse.warning) once the month's Target Warning has
+// fired, absent if notify timed out (§6.2 step 4), and the Spend as stored.
 message BffServiceLogSpendResponse {
   HomeView home = 1;
   Spend spend = 2;

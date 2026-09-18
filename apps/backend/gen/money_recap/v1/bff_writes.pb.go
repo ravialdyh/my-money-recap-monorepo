@@ -94,8 +94,9 @@ func (x *BffServiceLogSpendRequest) GetNote() string {
 	return ""
 }
 
-// The fresh HomeView of §6.2 step 5, whose target_warning is the banner if
-// this Spend crossed the line, and the Spend as stored.
+// The fresh HomeView of §6.2 step 5, whose target_warning is the copy notify
+// kept (EvaluateWarningResponse.warning) once the month's Target Warning has
+// fired, absent if notify timed out (§6.2 step 4), and the Spend as stored.
 type BffServiceLogSpendResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Home          *HomeView              `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`

@@ -52,8 +52,9 @@ public nonisolated struct MoneyRecap_V1_BffServiceLogSpendRequest: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The fresh HomeView of §6.2 step 5, whose target_warning is the banner if
-/// this Spend crossed the line, and the Spend as stored.
+/// The fresh HomeView of §6.2 step 5, whose target_warning is the copy notify
+/// kept (EvaluateWarningResponse.warning) once the month's Target Warning has
+/// fired, absent if notify timed out (§6.2 step 4), and the Spend as stored.
 public nonisolated struct MoneyRecap_V1_BffServiceLogSpendResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
