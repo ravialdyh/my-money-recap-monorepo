@@ -20,9 +20,10 @@ message BffServiceLogSpendRequest {
   string note = 4;
 }
 
-// The fresh HomeView of §6.2 step 5, whose target_warning is the copy notify
-// kept (EvaluateWarningResponse.warning) once the month's Target Warning has
-// fired, absent if notify timed out (§6.2 step 4), and the Spend as stored.
+// The fresh HomeView of ARCHITECTURE §6.2 step 5 and the Spend as stored. Its
+// target_warning is EvaluateWarningResponse.warning when the Spend is in the
+// current month, absent if notify timed out (step 4), else
+// GetWarningState(current)'s.
 message BffServiceLogSpendResponse {
   HomeView home = 1;
   Spend spend = 2;
@@ -43,8 +44,10 @@ message BffServiceEditSpendRequest {
   string note = 5;
 }
 
-// The fresh HomeView and the Spend after the edit. A past month's Recap
-// changes at once (D22) and is fetched again on open.
+// The fresh HomeView and the Spend after the edit. Its banner comes as
+// LogSpend's does (ARCHITECTURE §6.2), from EditSpendResponse's month and
+// crossed_line. A past month's Recap changes at once (D22) and is fetched
+// again on open.
 message BffServiceEditSpendResponse {
   HomeView home = 1;
   Spend spend = 2;
