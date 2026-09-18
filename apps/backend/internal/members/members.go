@@ -6,6 +6,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"log"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
@@ -107,7 +108,7 @@ func (s *Service) GetOrCreateBySubject(ctx context.Context, req *connect.Request
 	}
 	m, err := Upsert(ctx, s.DB, claims.Subject, claims.Email)
 	if err != nil {
-		return nil, err
+		return nil, storeFailed(err)
 	}
 	return connect.NewResponse(&moneyrecapv1.GetOrCreateBySubjectResponse{Profile: profile(m)}), nil
 }
@@ -118,9 +119,16 @@ func (s *Service) GetProfile(ctx context.Context, req *connect.Request[moneyreca
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
 	}
 	if err != nil {
-		return nil, err
+		return nil, storeFailed(err)
 	}
 	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: profile(m)}), nil
+}
+
+// storeFailed logs a store error and answers unavailable, so no driver text (database role and
+// name, an address) reaches the caller.
+func storeFailed(err error) error {
+	log.Printf("members store: %v", err)
+	return connect.NewError(connect.CodeUnavailable, errors.New("the members store is unavailable"))
 }
 
 func profile(m Row) *moneyrecapv1.Profile {

@@ -5,16 +5,17 @@ The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning 
 realm JWKS (issuer, audience `bff`, expiry, signature; keys cached in memory and refetched on an
 unknown key id) and returns `unauthenticated` before any service is called (§4.2, A6).
 
-`GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim
-(PRD §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members`
-verifies it again, with the same one-second timeout. Then the §6.1 fan-out runs in parallel with a
-one-second timeout each:
-`members.GetProfile` (required), `ledger.GetMonthSummary` and `notify.GetWarningState` (optional).
-`ledger` and `notify` are Go interfaces with in-process stubs (`internal/bff`) returning zeros and
-"no warning"; slices 5 and 7 swap in Connect clients. The join fills `currency_code` with `GBP` and
-leaves `display_name` empty for a Member who has not onboarded, the two skeleton-only states spec #10
-records; `days_remaining` and `first_recap_on` come from the server clock in UTC until `SetTimezone`
-lands (A3).
+`GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim (PRD
+§5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
+it again, with the same one-second timeout. Then the §6.1 fan-out runs in parallel with a one-second
+timeout each: `members.GetProfile` (required), `ledger.GetMonthSummary` and `notify.GetWarningState`
+(optional). A failed `members` call reaches the phone with its own Connect code, a failed `ledger`
+call as `unavailable`, each with a message naming only the call; the upstream text, which can hold a
+host or a database name, goes to the log. `ledger` and `notify` are Go interfaces with in-process
+stubs (`internal/bff`) returning zeros and "no warning"; slices 5 and 7 swap in Connect clients. The
+join fills `currency_code` with `GBP` and leaves `display_name` empty for a Member who has not
+onboarded, the two skeleton-only states spec #10 records; `days_remaining` and `first_recap_on` come
+from the server clock in UTC until `SetTimezone` lands (A3).
 
 | Path | Holds |
 | --- | --- |

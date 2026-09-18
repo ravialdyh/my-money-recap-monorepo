@@ -4,6 +4,7 @@ package bff
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -76,7 +77,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	defer cancel()
 	created, err := s.Members.GetOrCreateBySubject(createCtx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: claims.Subject, Email: claims.Email}))
 	if err != nil {
-		return nil, err
+		return nil, requiredCallFailed("members.GetOrCreateBySubject", connect.CodeOf(err), err)
 	}
 	memberID := created.Msg.Profile.MemberId
 	now := nowFn().UTC()
@@ -112,10 +113,10 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	})
 	wg.Wait()
 	if profErr != nil {
-		return nil, profErr
+		return nil, requiredCallFailed("members.GetProfile", connect.CodeOf(profErr), profErr)
 	}
 	if ledgerErr != nil {
-		return nil, connect.NewError(connect.CodeUnavailable, ledgerErr)
+		return nil, requiredCallFailed("ledger.GetMonthSummary", connect.CodeUnavailable, ledgerErr)
 	}
 	summary := ledgerRes.Msg.GetSummary()
 	var warning *moneyrecapv1.TargetWarning
@@ -152,6 +153,13 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		RecapMonths:   ledgerRes.Msg.GetRecapMonths(),
 		FirstRecapOn:  firstOfNext.Format(dateLayout),
 	}}), nil
+}
+
+// requiredCallFailed logs why a required call failed and answers with code and a message naming only
+// the call, so no upstream text (a host, a database) reaches the phone.
+func requiredCallFailed(call string, code connect.Code, err error) error {
+	log.Printf("%s: %v", call, err)
+	return connect.NewError(code, fmt.Errorf("%s failed", call))
 }
 
 // logOptionalCallDegraded records that an optional fan-out call failed and the HomeView went out

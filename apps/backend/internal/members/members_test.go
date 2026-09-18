@@ -14,6 +14,7 @@ import (
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
@@ -76,6 +77,27 @@ func TestConcurrentFirstCallsCreateOneRow(t *testing.T) {
 		t.Fatalf("%d rows for one subject, want 1", rows)
 	}
 	t.Logf("%d concurrent first calls → 1 row, every call returned member id %s", n, ids[0])
+}
+
+func TestStoreFailureIsUnavailableWithoutTheDriverText(t *testing.T) {
+	ctx := auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com"})
+	db, err := pgxpool.New(ctx, "postgres://x:y@127.0.0.1:1/x?connect_timeout=1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(db.Close)
+	_, raw := Upsert(ctx, db, "sub-1", "test@example.com")
+	if raw == nil {
+		t.Fatal("Upsert reached a database on port 1")
+	}
+	s := &Service{DB: db}
+	_, createErr := s.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: "sub-1", Email: "test@example.com"}))
+	_, profileErr := s.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: "00000000-0000-0000-0000-000000000001"}))
+	for name, err := range map[string]error{"GetOrCreateBySubject": createErr, "GetProfile": profileErr} {
+		if connect.CodeOf(err) != connect.CodeUnavailable || strings.Contains(err.Error(), "127.0.0.1") || strings.Contains(err.Error(), raw.Error()) {
+			t.Errorf("%s: %v, want unavailable without the driver's %q", name, err, raw)
+		}
+	}
 }
 
 func TestConnectBoundary(t *testing.T) {

@@ -2,8 +2,10 @@ package bff
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,10 +17,11 @@ import (
 )
 
 // fakeMembers is a MembersService that answers one fixed Member; createDelay and profileDelay slow
-// GetOrCreateBySubject and GetProfile.
+// GetOrCreateBySubject and GetProfile, createErr and profileErr fail them.
 type fakeMembers struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
 	createDelay, profileDelay time.Duration
+	createErr, profileErr     error
 	gotToken                  string
 }
 
@@ -29,6 +32,9 @@ func (f *fakeMembers) GetOrCreateBySubject(ctx context.Context, req *connect.Req
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+	if f.createErr != nil {
+		return nil, f.createErr
+	}
 	return connect.NewResponse(&moneyrecapv1.GetOrCreateBySubjectResponse{Profile: &moneyrecapv1.Profile{MemberId: "m-1", Email: req.Msg.Email}}), nil
 }
 
@@ -37,6 +43,9 @@ func (f *fakeMembers) GetProfile(ctx context.Context, _ *connect.Request[moneyre
 	case <-time.After(f.profileDelay):
 	case <-ctx.Done():
 		return nil, ctx.Err()
+	}
+	if f.profileErr != nil {
+		return nil, f.profileErr
 	}
 	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: &moneyrecapv1.Profile{MemberId: "m-1", Email: "test@example.com"}}), nil
 }
@@ -47,6 +56,13 @@ type hangingNotify struct{}
 func (hangingNotify) GetWarningState(ctx context.Context, _ *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error) {
 	<-ctx.Done()
 	return nil, ctx.Err()
+}
+
+// failingLedger fails the way a ledger whose database is gone would, naming the address.
+type failingLedger struct{}
+
+func (failingLedger) GetMonthSummary(context.Context, *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error) {
+	return nil, errors.New("dial tcp 172.18.0.5:5432: connect: connection refused")
 }
 
 // firedNotify says the Target Warning fired and carries the §8.8 copy it kept (PRD §6.8).
@@ -141,6 +157,27 @@ func TestGetHomeGetOrCreateTimeoutIsAnError(t *testing.T) {
 	_, err := newService(t, &fakeMembers{createDelay: 2 * time.Second}, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if elapsed := time.Since(start); connect.CodeOf(err) != connect.CodeDeadlineExceeded || elapsed > time.Second {
 		t.Fatalf("GetOrCreateBySubject timeout: %v after %v, want deadline_exceeded within the 100ms bound", err, elapsed)
+	}
+}
+
+func TestGetHomeKeepsTheCodeAndDropsTheUpstreamText(t *testing.T) {
+	const host = "172.18.0."
+	cases := map[string]struct {
+		members *fakeMembers
+		ledger  Ledger
+		want    connect.Code
+	}{
+		"GetOrCreateBySubject": {&fakeMembers{createErr: connect.NewError(connect.CodeUnauthenticated, errors.New("fetching keys: dial tcp 172.18.0.2:8080: connection refused"))}, StubLedger{}, connect.CodeUnauthenticated},
+		"GetProfile":           {&fakeMembers{profileErr: connect.NewError(connect.CodeUnavailable, errors.New("failed to connect to `user=members database=members`: 172.18.0.3:5432"))}, StubLedger{}, connect.CodeUnavailable},
+		"GetMonthSummary":      {&fakeMembers{}, failingLedger{}, connect.CodeUnavailable},
+	}
+	for name, c := range cases {
+		s := newService(t, c.members, StubNotify{})
+		s.Ledger = c.ledger
+		_, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+		if connect.CodeOf(err) != c.want || strings.Contains(err.Error(), host) {
+			t.Errorf("%s: %v, want %v without the upstream text", name, err, c.want)
+		}
 	}
 }
 

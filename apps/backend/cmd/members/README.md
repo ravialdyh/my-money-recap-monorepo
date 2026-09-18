@@ -46,7 +46,8 @@ curl -s http://localhost:8081/money_recap.v1.MembersService/GetOrCreateBySubject
 
 The subject and email in the request must be the token's own `sub` and `email` claim; anything else
 is `permission_denied`, and the claim is what gets stored. `GetProfile` answers `not_found` for a
-Member the token does not name.
+Member the token does not name. A store failure is `unavailable` with a generic message; the
+driver's text, which names the database role, the database and its address, goes to the log.
 
 ## Migrations
 
