@@ -334,7 +334,7 @@ func (x *GetProfileResponse) GetProfile() *Profile {
 // Display Name and Avatar) each send only their answers.
 type SaveProfileRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string  `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string  `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	DisplayName    *string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
@@ -468,7 +468,7 @@ func (x *SaveProfileResponse) GetProfile() *Profile {
 
 type SaveOnboardingStepRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// The step just completed or skipped, 1 to 4 (PRD §5 step 6), for a step
@@ -576,7 +576,7 @@ func (x *SaveOnboardingStepResponse) GetProfile() *Profile {
 
 type SetTimezoneRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// IANA zone name (A3).
@@ -682,7 +682,7 @@ func (x *SetTimezoneResponse) GetProfile() *Profile {
 
 type RequestDeletionRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
@@ -779,7 +779,7 @@ func (x *RequestDeletionResponse) GetProfile() *Profile {
 
 type CancelDeletionRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields

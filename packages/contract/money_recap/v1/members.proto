@@ -54,7 +54,7 @@ message GetProfileResponse {
 // so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16,
 // Display Name and Avatar) each send only their answers.
 message SaveProfileRequest {
-  // A14.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   optional string display_name = 3;
@@ -73,7 +73,7 @@ message SaveProfileResponse {
 }
 
 message SaveOnboardingStepRequest {
-  // A14.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   // The step just completed or skipped, 1 to 4 (PRD §5 step 6), for a step
@@ -87,7 +87,7 @@ message SaveOnboardingStepResponse {
 }
 
 message SetTimezoneRequest {
-  // A14.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   // IANA zone name (A3).
@@ -99,7 +99,7 @@ message SetTimezoneResponse {
 }
 
 message RequestDeletionRequest {
-  // A14.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
 }
@@ -109,7 +109,7 @@ message RequestDeletionResponse {
 }
 
 message CancelDeletionRequest {
-  // A14.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
 }

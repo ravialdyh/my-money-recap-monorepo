@@ -148,7 +148,7 @@ public nonisolated struct MoneyRecap_V1_SaveProfileRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -230,7 +230,7 @@ public nonisolated struct MoneyRecap_V1_SaveOnboardingStepRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -271,7 +271,7 @@ public nonisolated struct MoneyRecap_V1_SetTimezoneRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -310,7 +310,7 @@ public nonisolated struct MoneyRecap_V1_RequestDeletionRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -346,7 +346,7 @@ public nonisolated struct MoneyRecap_V1_CancelDeletionRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// A14.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()

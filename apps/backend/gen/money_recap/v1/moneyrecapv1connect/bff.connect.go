@@ -111,8 +111,8 @@ type BffServiceClient interface {
 	// Called on every launch (A3); the answer drives the restore sheet (D60).
 	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
-	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
-	// failed_precondition when the sheet should have opened.
+	// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
+	// included; failed_precondition when the D56 sheet should have opened.
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
 	// ledger.SaveTarget; effective from next month (D65). failed_precondition
 	// without a Salary (D44).
@@ -428,8 +428,8 @@ type BffServiceHandler interface {
 	// Called on every launch (A3); the answer drives the restore sheet (D60).
 	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
-	// ledger.SaveSalary appends the row applies_from names (PRD §8.10, D56);
-	// failed_precondition when the sheet should have opened.
+	// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
+	// included; failed_precondition when the D56 sheet should have opened.
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
 	// ledger.SaveTarget; effective from next month (D65). failed_precondition
 	// without a Salary (D44).

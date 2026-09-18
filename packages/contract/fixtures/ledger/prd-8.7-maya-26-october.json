@@ -1,0 +1,60 @@
+{
+  "doc": "PRD §8.7, Maya on 26 October, nothing spent all month: Money In £2,400 (Payday 25 passed, §8.2), Saved £2,400 (§8.3); on track, allowance floor((2,400 − 480 − 0) ÷ 6) = £320 a day with days remaining 31 − 26 + 1 = 6 (§8.7); Streak day 26, the elapsed days with no Spends (§8.5); target £480 (§8.4).",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "GBP",
+  "salaries": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "savingTargets": [
+    {
+      "percent": 20,
+      "effectiveFrom": "2026-08"
+    }
+  ],
+  "spends": [],
+  "asOf": "2026-10-26",
+  "months": [
+    {
+      "month": "2026-10",
+      "spent": {
+        "amount": "0.00",
+        "currencyCode": "GBP"
+      },
+      "moneyIn": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "saved": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "salary": {
+        "amount": {
+          "amount": "2400.00",
+          "currencyCode": "GBP"
+        },
+        "payday": "25",
+        "daysUntilPayday": 0
+      },
+      "savingTarget": {
+        "percent": 20,
+        "amount": {
+          "amount": "480.00",
+          "currencyCode": "GBP"
+        },
+        "progressSentence": "Keep spending under £320 a day and you'll make it."
+      },
+      "streakDay": 26,
+      "daysRemaining": 6,
+      "partial": false
+    }
+  ]
+}

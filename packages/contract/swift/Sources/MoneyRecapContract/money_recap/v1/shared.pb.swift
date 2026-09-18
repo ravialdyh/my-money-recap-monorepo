@@ -356,7 +356,7 @@ public nonisolated struct MoneyRecap_V1_SavingTargetFacts: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// The §8.7 sentence, already chosen server-side.
+  /// The §8.7 sentence, chosen by ledger.
   public var progressSentence: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -366,7 +366,7 @@ public nonisolated struct MoneyRecap_V1_SavingTargetFacts: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The coral Banner (PRD D38, D53); copy chosen server-side per §8.8.
+/// The coral Banner (PRD D38, D53); copy chosen by ledger per §8.8.
 public nonisolated struct MoneyRecap_V1_TargetWarning: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

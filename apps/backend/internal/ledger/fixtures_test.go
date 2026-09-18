@@ -39,6 +39,7 @@ var manifest = []string{
 	"prd-8.5-signup-4-september-recap",
 	"prd-8.6-maya-september-recap",
 	"prd-8.7-maya-1-october",
+	"prd-8.7-maya-26-october",
 	"prd-8.7-maya-300-over",
 	"prd-8.7-maya-31-october",
 	"prd-8.8-maya-20-september-before-payday",

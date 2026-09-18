@@ -23,7 +23,7 @@ const (
 
 // An exact amount in one Currency (PRD §7, D71). The amount is a decimal
 // string such as "2400.00" or "15000000", never a float and never an integer
-// count of minor units, so the phone prints exactly what the server holds.
+// count of minor units, so the phone prints exactly what is stored.
 type Money struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Decimal string, at most 11 digits before the separator (PRD D57).

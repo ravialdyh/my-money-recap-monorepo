@@ -23,8 +23,7 @@ const (
 
 type LogSpendRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-	// key returns the original Spend's result, not an error.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// Above zero, at most 11 digits before the separator (PRD D57).
@@ -177,8 +176,7 @@ func (x *LogSpendResponse) GetCrossedLine() bool {
 // (PRD §8.10, D57, §6.9); the edit sheet reuses the same fields (§6.10).
 type EditSpendRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-	// key returns the original result, not an error.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	SpendId        string `protobuf:"bytes,3,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
@@ -338,8 +336,7 @@ func (x *EditSpendResponse) GetCrossedLine() bool {
 
 type DeleteSpendRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-	// key returns the original result, not an error.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	SpendId        string `protobuf:"bytes,3,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
@@ -463,8 +460,7 @@ func (x *DeleteSpendResponse) GetCrossedLine() bool {
 
 type SaveSalaryRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-	// key returns the original result, not an error.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	Amount         *Money `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
@@ -598,8 +594,7 @@ func (x *SaveSalaryResponse) GetMonth() *MonthSummary {
 
 type SaveTargetRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-	// key returns the original result, not an error.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// 0 to 100; 0 clears the Saving Target (PRD §8.4).
@@ -716,8 +711,7 @@ func (x *SaveTargetResponse) GetMonth() *MonthSummary {
 // (ARCHITECTURE §7.2 currency flow).
 type ApplyCurrencyConversionRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-	// key returns the original result, not an error.
+	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// Decimal string: units of to_currency_code per unit of the current one.

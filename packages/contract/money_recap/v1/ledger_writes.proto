@@ -9,8 +9,7 @@ import "money_recap/v1/money.proto";
 import "money_recap/v1/shared.proto";
 
 message LogSpendRequest {
-  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  // key returns the original Spend's result, not an error.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   // Above zero, at most 11 digits before the separator (PRD D57).
@@ -34,8 +33,7 @@ message LogSpendResponse {
 // Every field is the new value, validated exactly as LogSpend validates it
 // (PRD §8.10, D57, §6.9); the edit sheet reuses the same fields (§6.10).
 message EditSpendRequest {
-  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  // key returns the original result, not an error.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   string spend_id = 3;
@@ -59,8 +57,7 @@ message EditSpendResponse {
 }
 
 message DeleteSpendRequest {
-  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  // key returns the original result, not an error.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   string spend_id = 3;
@@ -76,8 +73,7 @@ message DeleteSpendResponse {
 }
 
 message SaveSalaryRequest {
-  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  // key returns the original result, not an error.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   Money amount = 3;
@@ -96,8 +92,7 @@ message SaveSalaryResponse {
 }
 
 message SaveTargetRequest {
-  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  // key returns the original result, not an error.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   // 0 to 100; 0 clears the Saving Target (PRD §8.4).
@@ -113,8 +108,7 @@ message SaveTargetResponse {
 // The BFF forwards the rate the confirm sheet showed and where it came from
 // (ARCHITECTURE §7.2 currency flow).
 message ApplyCurrencyConversionRequest {
-  // The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  // key returns the original result, not an error.
+  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
   // Decimal string: units of to_currency_code per unit of the current one.

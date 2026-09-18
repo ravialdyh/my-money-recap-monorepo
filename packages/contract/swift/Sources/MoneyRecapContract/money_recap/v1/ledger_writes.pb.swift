@@ -25,8 +25,7 @@ public nonisolated struct MoneyRecap_V1_LogSpendRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  /// key returns the original Spend's result, not an error.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -99,8 +98,7 @@ public nonisolated struct MoneyRecap_V1_EditSpendRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  /// key returns the original result, not an error.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -174,8 +172,7 @@ public nonisolated struct MoneyRecap_V1_DeleteSpendRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  /// key returns the original result, not an error.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -228,8 +225,7 @@ public nonisolated struct MoneyRecap_V1_SaveSalaryRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  /// key returns the original result, not an error.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -295,8 +291,7 @@ public nonisolated struct MoneyRecap_V1_SaveTargetRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  /// key returns the original result, not an error.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()
@@ -348,8 +343,7 @@ public nonisolated struct MoneyRecap_V1_ApplyCurrencyConversionRequest: Sendable
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The phone's Idempotency-Key, copied by the BFF (A14, §6.2). A duplicate
-  /// key returns the original result, not an error.
+  /// A14; see the package doc in shared.proto.
   public var idempotencyKey: String = String()
 
   public var memberID: String = String()

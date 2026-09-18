@@ -12,7 +12,7 @@ It fails when coverage drops more than 0.5 points below the floor, and passes wh
 printing the command that records the new one:
 
 ```
-go: 52.9%, up from 46.8%. Run python3 tools/coverage/coverage_gate.py go 52.9 --update and commit the floor.
+go: 53.6%, up from 52.9%. Run python3 tools/coverage/coverage_gate.py go 53.6 --update and commit the floor.
 ```
 
 Run it and commit `baseline.json` in the same pull request that added the tests.
@@ -40,7 +40,7 @@ TypeScript has none left worth chasing: 97.8% of statements and 90% of branches.
 components rather than only calling functions, so the fit-to-width measurement, the count-up animation
 and every event handler are exercised.
 
-Go's gap is `internal/bff`'s unexercised branches; `internal/members` and `internal/serve` are covered.
+Go's gap is `internal/members` at 43.5%; `internal/bff` is at 92.9% and `internal/serve` at 100%. `internal/ledger` holds only the fixture decoding test until slice 5.
 iOS at 30.9% is ten tests over the view models, the Keychain and money formatting, with the views
 untested.
 

@@ -94,11 +94,11 @@ message SavingTargetFacts {
   int32 percent = 1;
   // round-half-up(Salary × percent ÷ 100), computed by ledger.
   Money amount = 2;
-  // The §8.7 sentence, already chosen server-side.
+  // The §8.7 sentence, chosen by ledger.
   string progress_sentence = 3;
 }
 
-// The coral Banner (PRD D38, D53); copy chosen server-side per §8.8.
+// The coral Banner (PRD D38, D53); copy chosen by ledger per §8.8.
 message TargetWarning {
   string message = 1;
 }

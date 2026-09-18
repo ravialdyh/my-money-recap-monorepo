@@ -825,7 +825,7 @@ func (x *ExportCSVRequest) GetMemberId() string {
 
 // Every non-deleted Spend of the Member as one CSV document (PRD §6.16, D39):
 // a Member's Spends fit in one message, and the BFF hands the bytes straight
-// to notify.EmailExport. Nothing is stored server-side.
+// to notify.EmailExport. Nothing is stored.
 type ExportCSVResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Csv           []byte                 `protobuf:"bytes,1,opt,name=csv,proto3" json:"csv,omitempty"`

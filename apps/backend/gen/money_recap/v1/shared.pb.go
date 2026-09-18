@@ -503,7 +503,7 @@ type SavingTargetFacts struct {
 	Percent int32                  `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
 	// round-half-up(Salary × percent ÷ 100), computed by ledger.
 	Amount *Money `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	// The §8.7 sentence, already chosen server-side.
+	// The §8.7 sentence, chosen by ledger.
 	ProgressSentence string `protobuf:"bytes,3,opt,name=progress_sentence,json=progressSentence,proto3" json:"progress_sentence,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
@@ -560,7 +560,7 @@ func (x *SavingTargetFacts) GetProgressSentence() string {
 	return ""
 }
 
-// The coral Banner (PRD D38, D53); copy chosen server-side per §8.8.
+// The coral Banner (PRD D38, D53); copy chosen by ledger per §8.8.
 type TargetWarning struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`

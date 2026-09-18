@@ -311,7 +311,7 @@ public nonisolated struct MoneyRecap_V1_ExportCSVRequest: Sendable {
 
 /// Every non-deleted Spend of the Member as one CSV document (PRD §6.16, D39):
 /// a Member's Spends fit in one message, and the BFF hands the bytes straight
-/// to notify.EmailExport. Nothing is stored server-side.
+/// to notify.EmailExport. Nothing is stored.
 public nonisolated struct MoneyRecap_V1_ExportCSVResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

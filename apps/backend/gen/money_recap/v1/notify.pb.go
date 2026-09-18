@@ -205,8 +205,8 @@ func (x *GetWarningStateRequest) GetMonth() string {
 	return ""
 }
 
-// Whether the Target Warning has fired this month (PRD §8.8). Only the stamp
-// lives here; the banner copy is ledger's (ARCHITECTURE §7.3).
+// Whether the Target Warning has fired this month and the copy kept when it
+// did (PRD §8.8, ARCHITECTURE §7.3).
 type GetWarningStateResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Fired bool                   `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
