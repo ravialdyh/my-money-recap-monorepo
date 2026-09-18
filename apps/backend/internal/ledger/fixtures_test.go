@@ -167,6 +167,11 @@ func TestBadOriginalsSeesEachDrift(t *testing.T) {
 			Salaries:      []*moneyrecapv1.SalarySetting{{Amount: gbp, EffectiveFrom: "2026-08", OriginalAmount: gbp}},
 			SalariesAfter: []*moneyrecapv1.SalarySetting{{Amount: idr, EffectiveFrom: "2026-08", OriginalAmount: idr}},
 		},
+		".salaries_after[0] has no input row salary 2026-09": {
+			Convert:       convert,
+			Salaries:      []*moneyrecapv1.SalarySetting{{Amount: gbp, EffectiveFrom: "2026-08", OriginalAmount: gbp}},
+			SalariesAfter: []*moneyrecapv1.SalarySetting{{Amount: idr, EffectiveFrom: "2026-09", OriginalAmount: gbp}},
+		},
 	} {
 		if bad := badOriginals(f); !slices.Equal(bad, []string{want}) {
 			t.Errorf("want [%s], got %v", want, bad)
@@ -242,7 +247,11 @@ func badOriginals(f *moneyrecapv1.LedgerFixture) []string {
 		}
 		want := amount
 		if f.Convert != nil && !input {
-			want = typed[key]
+			var paired bool
+			if want, paired = typed[key]; !paired {
+				bad = append(bad, at+" has no input row "+key)
+				return
+			}
 		}
 		switch {
 		case original == nil:
