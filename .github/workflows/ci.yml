@@ -80,7 +80,7 @@ jobs:
       - name: Every hook except the per-language toolchains, which are gates in their own jobs
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
         env:
-          SKIP: no-commit-to-branch,golangci-lint,gofmt,swiftlint,swiftformat,buf-lint
+          SKIP: no-commit-to-branch,golangci-lint,gofmt,swiftlint,swiftformat,buf-lint,tofu-fmt,tofu-validate
 
   design-system:
     needs: changes
@@ -165,7 +165,18 @@ jobs:
           version: v2.13.2
           working-directory: apps/backend
           args: --config ../../.golangci.yml
-      - name: Compose stack with the migration step, members and the BFF
+      - name: Install OpenTofu, whose two hooks the pre-commit job skips
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -sSfL -o tofu.zip \
+            https://github.com/opentofu/opentofu/releases/download/v1.12.6/tofu_1.12.6_linux_amd64.zip
+          echo "5dc43da4f750f33873dc25e94587128709e819e544b7be9016b255316153c3a8  tofu.zip" | sha256sum -c -
+          unzip -q tofu.zip tofu && chmod +x tofu && sudo mv tofu /usr/local/bin/
+      - name: The OpenTofu roots are formatted and valid
+        run: |
+          ../../tools/hooks/tofu.sh fmt -check -diff
+          ../../tools/hooks/tofu.sh validate
+      - name: Compose stack with the migration step, the realm, members and the BFF
         working-directory: infra/compose
         run: |
           sed 's/=$/=ci-throwaway/' .env.example > .env
@@ -184,13 +195,16 @@ jobs:
       - name: Login Token issued and redeemed on the pinned Keycloak image, decision A10
         working-directory: infra/compose
         run: ./a10-smoke.sh
+      - name: The realm the stack built re-applies as a no-op, so no resource is re-created
+        working-directory: infra/compose
+        run: ./realm-noop.sh
       - name: Stack logs, only on failure because a passing run buries every step before it
         if: failure()
         working-directory: infra/compose
         run: |
           test -f .env || { echo "the stack never started; the real failure is above"; exit 0; }
           docker compose ps
-          docker compose logs keycloak members-migrate members bff
+          docker compose logs keycloak realm-apply members-migrate members bff
       - name: Teardown
         if: always()
         working-directory: infra/compose
