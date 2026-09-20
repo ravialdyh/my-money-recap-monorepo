@@ -33,3 +33,7 @@ __pycache__/
 my-money-recap-ds/coverage/
 apps/backend/cover.out
 apps/backend/cover.filtered
+
+.terraform/
+*.tfstate
+*.tfstate.*
