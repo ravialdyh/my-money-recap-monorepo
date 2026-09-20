@@ -23,7 +23,7 @@ All three come from a measured run, not a guess: CI, or the CI commands run loca
 
 | Language | Floor | Measured | Where it comes from |
 | --- | --- | --- | --- |
-| `go` | 66.7% | 66.7% | The backend job's commands, with the Compose stack up, so `internal/members` and the end-to-end test really run. 52.9% came from a CI run and 53.6% from the same commands run locally on PR #56 while GitHub refused to start the jobs (AGENTS.md exception); 65.6% and then 66.7% were measured locally the same way on `fix/backend-and-ios`. `internal/serve` is at 100%, `internal/bff` at 96.7%, `internal/auth` at 86.3%. |
+| `go` | 68.1% | 68.1% | The backend job's commands, with the Compose stack up, so `internal/members` and the end-to-end test really run. 52.9% came from a CI run and 53.6% from the same commands run locally on PR #56 while GitHub refused to start the jobs (AGENTS.md exception); 65.6% and then 66.7% were measured locally the same way on `fix/backend-and-ios`, and 68.1% on `feat/secrets-shape`, where `serve.Env.Get` gained the `<NAME>_FILE` form and its tests. `internal/serve` is at 100%, `internal/bff` at 96.7%, `internal/auth` at 86.3%. |
 | `ios` | 37.7% | 37.9% | The iOS job's commands, fourteen tests, `-enableCodeCoverage YES` on both halves of the build-then-test split. 30.9% came from a macOS runner; 37.7% and then 37.9% were measured locally the same way on `fix/backend-and-ios`, the second within the gate's 0.5-point tolerance, so the floor stayed. |
 | `typescript` | 80% | 97.8% | `npm run test:coverage` — 134 tests across nine files, over the components, the hooks and the four Recap screens. The floor sits at the target, not at the measurement, because the ratchet stops there. |
 

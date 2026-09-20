@@ -18,13 +18,16 @@ reason, which can quote the realm's answer, goes to the log.
 
 | Variable | Serve | Migrate | Meaning |
 | --- | --- | --- | --- |
-| `MEMBERS_DATABASE_URL` | required | required | `postgres://members:<password>@postgres:5432/members`; the `members` role reaches only this database (A9). |
+| `MEMBERS_DATABASE_URL_FILE` | one of the two | one of the two | The file holding the whole connection string, `/run/secrets/members_database_url` in Compose. Its trimmed contents win over `MEMBERS_DATABASE_URL` and it is never also reported missing (A13). |
+| `MEMBERS_DATABASE_URL` | one of the two | one of the two | `postgres://members:<password>@postgres:5432/members`; the `members` role reaches only this database (A9). The plain form is what a local `go run` uses. |
 | `MEMBERS_OIDC_ISSUER` | required | — | As `BFF_OIDC_ISSUER` (`../bff/README.md`). |
 | `MEMBERS_OIDC_JWKS_URL` | required | — | As `BFF_OIDC_JWKS_URL`. |
 | `MEMBERS_OIDC_AUDIENCE` | `bff` | — | The `aud` a token must carry. |
 | `MEMBERS_LISTEN` | `:8080` | — | Listen address. |
 
-Slice 3 moves the password to a `*_FILE` secret (A13).
+Every other variable takes the same `<NAME>_FILE` form, read inside `serve.Env.Get`; the database
+URL is the one that moved first, because `members` reads one whole connection string rather than a
+password of its own (A13).
 
 ## Run
 

@@ -34,6 +34,11 @@ JSON-imported realm in Keycloak's database, and the first `tofu apply` fails cre
 is already there. Run `docker compose -f infra/compose/compose.yaml down -v` once, then `up` as
 above. From that stack onward a realm change is an `up` (see "The `mmr` realm").
 
+**An existing `.env` needs one new line.** `MEMBERS_DATABASE_URL` is what Compose turns into the
+`members` connection-string secret, so a `.env` written before this gains the line `.env.example`
+carries. Without it Compose refuses the `up` with `environment variable "MEMBERS_DATABASE_URL"
+required by secret "members_database_url" is not set` (see "Secrets").
+
 ## What comes up
 
 The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.example`.
@@ -44,9 +49,9 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). |
 | rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
 | redis | `redis:8` | — | No client until slice 5. |
-| members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. |
+| members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. Reads its connection string from `/run/secrets/members_database_url`, as `members` does. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy. |
-| members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect, `/healthz` pings the database. Starts after the migration step and the realm step completed; verifies every bearer token against the realm JWKS (audience `bff`). |
+| members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect, `/healthz` pings the database. Its connection string arrives as a file, never as an environment variable (see "Secrets"). Starts after the migration step and the realm step completed; verifies every bearer token against the realm JWKS (audience `bff`). |
 | bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` and `notify` are in-process stubs until slices 5 and 7. |
 
 Every long-running container has a health check and `depends_on: condition: service_healthy` orders
@@ -60,6 +65,25 @@ on 8080, and `realm-apply` then gets `503 Service Unavailable` from the token en
 Keycloak and the BFF
 publish on every interface because the phone reaches them; the Postgres and `members` ports bind to
 loopback and exist for the Connect-boundary tests (`apps/README.md`).
+
+## Secrets
+
+`members` and `members-migrate` read their connection string from
+`/run/secrets/members_database_url`, not from the environment, so it is absent from `docker inspect`
+and from the process list (`docs/ARCHITECTURE.md` A13). The shared reader takes any variable in the
+`<NAME>_FILE` form, trims the file and falls back to the plain variable, so a file-backed variable is
+never also reported missing.
+
+The Compose secret's source differs by machine and the containers cannot tell:
+
+| Where | Source | How |
+| --- | --- | --- |
+| A laptop and CI | `MEMBERS_DATABASE_URL` in `.env` | `secrets: members_database_url: {environment: ...}`. Docker materialises the file at mode 0444 with the exact value and no trailing newline, and does not export the variable into the container. |
+| The VM | `infra/secrets/prod.yaml` | `infra/secrets/decrypt.sh` writes one file per value at mode 0400 before Compose starts. See [`../secrets/README.md`](../secrets/README.md). |
+
+`.env.example` assembles the URL from `MEMBERS_DB_PASSWORD` in the same file, so the password still
+has one local source; the Postgres init script keeps reading the bare password, because `CREATE ROLE`
+needs it by itself.
 
 ## Parallel worktrees
 

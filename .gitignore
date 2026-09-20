@@ -17,6 +17,10 @@ docs/design/**/screens/
 *.pem
 *.key
 
+.sops.yaml
+infra/secrets/prod.yaml
+infra/secrets/decrypted/
+
 packages/contract/swift/.build/
 packages/contract/swift/Package.resolved
 

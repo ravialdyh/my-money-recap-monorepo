@@ -176,6 +176,20 @@ jobs:
         run: |
           ../../tools/hooks/tofu.sh fmt -check -diff
           ../../tools/hooks/tofu.sh validate
+      - name: Install sops and age, pinned and checksummed like hadolint in the quality job
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl -sSfL -o sops \
+            https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.linux.amd64
+          echo "e5bec3346a873ae91d871550f3e698c1aad962aff462a080e40f25fde17fef6b  sops" | sha256sum -c -
+          chmod +x sops && sudo mv sops /usr/local/bin/
+          curl -sSfL -o age.tgz \
+            https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz
+          echo "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10  age.tgz" | sha256sum -c -
+          tar -xzf age.tgz && sudo mv age/age age/age-keygen /usr/local/bin/
+      - name: Secrets decrypt to one file per value at mode 0400, decision A13
+        working-directory: infra/secrets
+        run: ./decrypt-smoke.sh
       - name: Compose stack with the migration step, the realm, members and the BFF
         working-directory: infra/compose
         run: |

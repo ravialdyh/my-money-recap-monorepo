@@ -92,7 +92,8 @@ services:
     pull_policy: never
     command: ["migrate"]
     environment:
-      MEMBERS_DATABASE_URL: &members-db postgres://members:${MEMBERS_DB_PASSWORD:?set in .env}@postgres:5432/members
+      MEMBERS_DATABASE_URL_FILE: &members-db-file /run/secrets/members_database_url
+    secrets: &members-db-secret [members_database_url]
     depends_on:
       postgres:
         condition: service_healthy
@@ -103,12 +104,13 @@ services:
       args: { CMD: members }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-members
     environment:
-      MEMBERS_DATABASE_URL: *members-db
+      MEMBERS_DATABASE_URL_FILE: *members-db-file
       MEMBERS_OIDC_ISSUER: &issuer http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}/realms/mmr
       MEMBERS_OIDC_JWKS_URL: &jwks http://keycloak:8080/realms/mmr/protocol/openid-connect/certs
       MEMBERS_OIDC_AUDIENCE: bff
     ports:
       - "127.0.0.1:${MEMBERS_HOST_PORT:-8081}:8080"
+    secrets: *members-db-secret
     depends_on:
       members-migrate:
         condition: service_completed_successfully
@@ -138,6 +140,10 @@ services:
       realm-apply:
         condition: service_completed_successfully
     healthcheck: *go-healthcheck
+
+secrets:
+  members_database_url:
+    environment: MEMBERS_DATABASE_URL
 
 volumes:
   postgres-data:
