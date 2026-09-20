@@ -137,6 +137,11 @@ class Comments(unittest.TestCase):
 
 class Directives(unittest.TestCase):
     def test_load_bearing_directives_survive(self):
+        def in_body(line):
+            return "package x\n\nfunc F() {\n\t" + line + "\n\t_ = 1\n}\n"
+
+        found = problems("a.go", in_body("// a note"))
+        self.assertEqual(found, ["comment inside a function body; name the code instead"])
         for line in (
             "//go:embed migrations/*.sql",
             "//go:build linux",
@@ -147,7 +152,7 @@ class Directives(unittest.TestCase):
             "// biome-ignore lint: on purpose",
         ):
             with self.subTest(line=line):
-                self.assertEqual(problems("a.go", line + "\npackage x\n"), [])
+                self.assertEqual(problems("a.go", in_body(line)), [])
 
     def test_shebang_survives_and_the_prose_under_it_does_not(self):
         self.assertEqual(problems("a.sh", "#!/bin/sh\nset -eu\n"), [])

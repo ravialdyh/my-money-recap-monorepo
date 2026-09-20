@@ -80,6 +80,7 @@ pre-commit run --hook-stage pre-push    # also regenerates and diffs the generat
 | --- | --- | --- |
 | Whitespace, JSON and YAML, large files, private keys, case conflicts, commits to `main` | `pre-commit-hooks` | `.pre-commit-config.yaml` |
 | Secrets | gitleaks | `.pre-commit-config.yaml` |
+| gitleaks pinned to one version in the hook and in `security.yml` | `tools/hooks/check-pins.sh` | `.pre-commit-config.yaml` |
 | File size and comment policy | `tools/policy/check_policy.py` | `tools/policy/README.md` |
 | TypeScript lint and format | Biome | `biome.json` |
 | Go lint and format | golangci-lint, gofmt | `.golangci.yml` |
@@ -140,6 +141,10 @@ The configs carry no comments, so the reasoning lives here.
   a wildcard group hides majors inside a routine-looking update: the first npm group PR raised here
   was titled "bump the node group with 5 updates" and was in fact React 18 → 19 *and* TypeScript
   5 → 7. `swift` and `docker` are ungrouped, so their majors already arrive one per pull request.
+  The `pre-commit` ecosystem bumps the gitleaks hook's `rev`, but no ecosystem sees the gitleaks
+  binary `security.yml` downloads by URL and sha256: a hooks pull request that bumps gitleaks must
+  also update that URL and sha256. `tools/hooks/check-pins.sh` fails until the URL carries the
+  hook's version; it does not read the sha256, which only the `secrets` job's `sha256sum -c` checks.
 - **Actions are pinned to a commit, never a tag.** A tag is mutable, and whoever owns the action can
   repoint it at code that runs with this job's token. The trailing `# vN` is Dependabot's, and
   `tools/policy` exempts it for that reason.
@@ -149,14 +154,20 @@ The configs carry no comments, so the reasoning lives here.
 ### What CI costs, and why jobs are skipped
 
 This repository is private, so Actions minutes are billed, and macOS bills at **ten times** the
-Linux rate. Each job is therefore gated on whether its inputs changed. `docs/ARCHITECTURE.md` A15
-records that design, and why `all green` is the job to require rather than any single one.
+Linux rate. Each job of the `CI` workflow is therefore gated on whether the files it builds or
+checks changed. `docs/ARCHITECTURE.md` A15 records that design, and why `all green` is the job to
+require rather than any single one. The `Security` workflow's jobs are not gated: they all run on
+Linux, so gating saves little, and govulncheck reports only the advisories the Go code reaches, so a
+change to Go code alone can make it fail while `go.mod` stays the same.
 
-What the gating saves, measured from real runs rather than estimated:
+What the gating saves. These figures are **estimates**: they were measured from real runs while the
+`Security` workflow was still gated, then adjusted for its ungated jobs by counting each job as one
+billed minute, and nothing can be re-measured while GitHub refuses to start the jobs (`AGENTS.md`).
+The `dependencies` job compiles govulncheck and may round up to two minutes.
 
-| A change touching | Billable minutes |
+| A change touching | Billable minutes (estimated) |
 | --- | --- |
-| Documentation only | 6 |
+| Documentation only | 8 |
 | One config file | 8 |
 | The design system only | 10 |
 | Everything, iOS included | 45–55 |

@@ -9,42 +9,14 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  changes:
-    name: what changed
-    runs-on: ubuntu-latest
-    outputs:
-      code: ${{ steps.filter.outputs.code }}
-      deps: ${{ steps.filter.outputs.deps }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
-        id: filter
-        with:
-          predicate-quantifier: some-with-excludes
-          filters: |
-            code:
-              - '**'
-              - '!**/*.md'
-            deps:
-              - '.github/workflows/security.yml'
-              - 'apps/backend/go.mod'
-              - 'apps/backend/go.sum'
-              - 'apps/ios/**/Package.resolved'
-              - 'package-lock.json'
-              - 'package.json'
-              - 'packages/contract/swift/**'
-
   dependencies:
     name: dependency advisories
-    needs: changes
-    if: needs.changes.outputs.deps == 'true' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -83,8 +55,6 @@ jobs:
 
   code:
     name: static analysis
-    needs: changes
-    if: needs.changes.outputs.code == 'true' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     container:
       image: semgrep/semgrep:1.145.0
@@ -100,8 +70,6 @@ jobs:
 
   filesystem:
     name: trivy
-    needs: changes
-    if: needs.changes.outputs.code == 'true' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -125,7 +93,7 @@ jobs:
   security:
     name: all green
     if: always()
-    needs: [changes, dependencies, secrets, code, filesystem]
+    needs: [dependencies, secrets, code, filesystem]
     runs-on: ubuntu-latest
     steps:
       - name: Every needed job passed or had nothing to do

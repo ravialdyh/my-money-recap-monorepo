@@ -53,7 +53,7 @@ To run the breaking check locally before pushing (the `git rev-parse` form also 
 cd packages/contract && buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
 ```
 
-## Rules CI enforces on every pull request (`.github/workflows/ci.yml`, job `contract`)
+## Rules CI enforces on every contract change (`.github/workflows/ci.yml`, job `contract`)
 
 - `buf lint` (the `STANDARD` rule set).
 - `buf breaking --against` the `main` branch, `PACKAGE` rules: a renamed, removed or retyped field fails the build.
