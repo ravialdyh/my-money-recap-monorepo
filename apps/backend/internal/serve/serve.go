@@ -9,6 +9,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -16,8 +18,13 @@ import (
 // start-up reads everything it needs and then fails once, through main, with its defers intact.
 type Env struct{ err error }
 
-// Get is the variable's value, or def; an empty def means the variable is required.
+// Get is the variable's value, or def; an empty def means the variable is required. A secret arrives
+// as the file <key>_FILE names, whose trimmed contents win over key, so it is never also reported
+// missing (ARCHITECTURE A13).
 func (e *Env) Get(key, def string) string {
+	if v := e.fromFile(key); v != "" {
+		return v
+	}
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
@@ -27,7 +34,25 @@ func (e *Env) Get(key, def string) string {
 	return def
 }
 
-// Err is the first required variable that was missing, or nil.
+// fromFile is the trimmed contents of the file <key>_FILE names, and "" when that variable is unset
+// or the file holds only whitespace. A named file that cannot be read is the first error: a mount the
+// container cannot reach is not a missing variable.
+func (e *Env) fromFile(key string) string {
+	path := os.Getenv(key + "_FILE")
+	if path == "" {
+		return ""
+	}
+	body, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		if e.err == nil {
+			e.err = err
+		}
+		return ""
+	}
+	return strings.TrimSpace(string(body))
+}
+
+// Err is the first required variable that was missing or unreadable, or nil.
 func (e *Env) Err() error { return e.err }
 
 // Run adds /healthz to mux (ready, when set, must succeed for "ok"; members pings its database) and

@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -188,5 +189,64 @@ func getHealthz(t *testing.T, addr string) (body string, status int) {
 			t.Fatal(err)
 		}
 		return string(read), res.StatusCode
+	}
+}
+
+func writeSecret(t *testing.T, body string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "secret")
+	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+func TestEnvAFileWinsOverThePlainVariable(t *testing.T) {
+	t.Setenv("MMR_TEST_DSN", "from-env")
+	t.Setenv("MMR_TEST_DSN_FILE", writeSecret(t, "from-file\n"))
+	var env Env
+	if got := env.Get("MMR_TEST_DSN", ""); got != "from-file" {
+		t.Errorf("Get = %q, want from-file", got)
+	}
+	if err := env.Err(); err != nil {
+		t.Errorf("Err = %v, want nil", err)
+	}
+}
+
+func TestEnvAWhitespaceOnlyFileIsUnsetRatherThanSatisfied(t *testing.T) {
+	t.Setenv("MMR_TEST_BLANK_FILE", writeSecret(t, " \n\t\n"))
+	var withDefault Env
+	if got := withDefault.Get("MMR_TEST_BLANK", "fallback"); got != "fallback" {
+		t.Errorf("Get = %q, want fallback", got)
+	}
+	var required Env
+	required.Get("MMR_TEST_BLANK", "")
+	if err := required.Err(); err == nil {
+		t.Fatal("Err = nil, want MMR_TEST_BLANK reported missing")
+	}
+}
+
+func TestEnvAFileBackedVariableIsNeverReportedMissing(t *testing.T) {
+	os.Unsetenv("MMR_TEST_ONLY_FILE")
+	t.Setenv("MMR_TEST_ONLY_FILE_FILE", writeSecret(t, "from-file"))
+	var env Env
+	if got := env.Get("MMR_TEST_ONLY_FILE", ""); got != "from-file" {
+		t.Errorf("Get = %q, want from-file", got)
+	}
+	if err := env.Err(); err != nil {
+		t.Errorf("Err = %v, want nil for a file-backed variable", err)
+	}
+}
+
+func TestEnvAnUnreadableFileIsTheFirstError(t *testing.T) {
+	t.Setenv("MMR_TEST_GONE_FILE", filepath.Join(t.TempDir(), "never-written"))
+	var env Env
+	env.Get("MMR_TEST_GONE", "fallback")
+	err := env.Err()
+	if err == nil {
+		t.Fatal("Err = nil, want the read error")
+	}
+	if !strings.Contains(err.Error(), "never-written") {
+		t.Errorf("Err = %v, want it to name the file", err)
 	}
 }
