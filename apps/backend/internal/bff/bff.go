@@ -4,6 +4,7 @@ package bff
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -50,7 +51,7 @@ type Service struct {
 	Members moneyrecapv1connect.MembersServiceClient
 	Ledger  Ledger
 	Notify  Notify
-	// Timeout bounds each fan-out call; zero means the §6.1 one second.
+	// Timeout bounds GetOrCreateBySubject and each fan-out call; zero means the §6.1 one second.
 	Timeout time.Duration
 	// Now is the server clock; nil means time.Now. UTC until SetTimezone lands (#10, A3).
 	Now func() time.Time
@@ -64,12 +65,6 @@ const fallbackCurrency = "GBP"
 const monthLayout, dateLayout = "2006-01", "2006-01-02"
 
 func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
-	claims := auth.From(ctx)
-	created, err := s.Members.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: claims.Subject, Email: claims.Email}))
-	if err != nil {
-		return nil, err
-	}
-	memberID := created.Msg.Profile.MemberId
 	nowFn, timeout := s.Now, s.Timeout
 	if nowFn == nil {
 		nowFn = time.Now
@@ -77,6 +72,14 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	if timeout == 0 {
 		timeout = time.Second
 	}
+	claims := auth.From(ctx)
+	createCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	created, err := s.Members.GetOrCreateBySubject(createCtx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: claims.Subject, Email: claims.Email}))
+	if err != nil {
+		return nil, requiredCallFailed("members.GetOrCreateBySubject", connect.CodeOf(err), err)
+	}
+	memberID := created.Msg.Profile.MemberId
 	now := nowFn().UTC()
 	month := now.Format(monthLayout)
 
@@ -110,10 +113,10 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	})
 	wg.Wait()
 	if profErr != nil {
-		return nil, profErr
+		return nil, requiredCallFailed("members.GetProfile", connect.CodeOf(profErr), profErr)
 	}
 	if ledgerErr != nil {
-		return nil, connect.NewError(connect.CodeUnavailable, ledgerErr)
+		return nil, requiredCallFailed("ledger.GetMonthSummary", connect.CodeUnavailable, ledgerErr)
 	}
 	summary := ledgerRes.Msg.GetSummary()
 	var warning *moneyrecapv1.TargetWarning
@@ -150,6 +153,13 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		RecapMonths:   ledgerRes.Msg.GetRecapMonths(),
 		FirstRecapOn:  firstOfNext.Format(dateLayout),
 	}}), nil
+}
+
+// requiredCallFailed logs why a required call failed and answers with code and a message naming only
+// the call, so no upstream text (a host, a database) reaches the phone.
+func requiredCallFailed(call string, code connect.Code, err error) error {
+	log.Printf("%s: %v", call, err)
+	return connect.NewError(code, fmt.Errorf("%s failed", call))
 }
 
 // logOptionalCallDegraded records that an optional fan-out call failed and the HomeView went out

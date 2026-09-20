@@ -6,6 +6,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"log"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
@@ -73,12 +74,13 @@ func scanRow(r pgx.Row) (Row, error) {
 	return m, err
 }
 
-// Upsert is the one statement behind GetOrCreateBySubject: creates on first sight, refreshes the
-// email on every call, and under two concurrent first calls the unique index makes the loser update.
+// Upsert is the one statement behind GetOrCreateBySubject: creates on first sight, refreshes the email
+// on every call that carries one (an empty one keeps the stored address), and under two concurrent
+// first calls the unique index makes the loser update.
 func Upsert(ctx context.Context, db *pgxpool.Pool, subject, email string) (Row, error) {
 	return scanRow(db.QueryRow(ctx, `
 		INSERT INTO member (keycloak_subject, email) VALUES ($1, $2)
-		ON CONFLICT (keycloak_subject) DO UPDATE SET email = EXCLUDED.email
+		ON CONFLICT (keycloak_subject) DO UPDATE SET email = coalesce(nullif(EXCLUDED.email, ''), member.email)
 		RETURNING `+rowColumns, subject, email))
 }
 
@@ -98,12 +100,16 @@ type Service struct {
 }
 
 func (s *Service) GetOrCreateBySubject(ctx context.Context, req *connect.Request[moneyrecapv1.GetOrCreateBySubjectRequest]) (*connect.Response[moneyrecapv1.GetOrCreateBySubjectResponse], error) {
-	if req.Msg.Subject != auth.From(ctx).Subject {
+	claims := auth.From(ctx)
+	if req.Msg.Subject != claims.Subject {
 		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("subject does not match the token"))
 	}
-	m, err := Upsert(ctx, s.DB, req.Msg.Subject, req.Msg.Email)
+	if req.Msg.Email != claims.Email {
+		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("email does not match the token"))
+	}
+	m, err := Upsert(ctx, s.DB, claims.Subject, claims.Email)
 	if err != nil {
-		return nil, err
+		return nil, storeFailed(ctx, err)
 	}
 	return connect.NewResponse(&moneyrecapv1.GetOrCreateBySubjectResponse{Profile: profile(m)}), nil
 }
@@ -114,9 +120,23 @@ func (s *Service) GetProfile(ctx context.Context, req *connect.Request[moneyreca
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
 	}
 	if err != nil {
-		return nil, err
+		return nil, storeFailed(ctx, err)
 	}
 	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: profile(m)}), nil
+}
+
+// storeFailed answers the caller's own expired deadline or cancel with its code, unlogged; any other
+// store error is logged and answers unavailable, so no driver text (database role and name, an
+// address) reaches the caller.
+func storeFailed(ctx context.Context, err error) error {
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
+	}
+	if ctx.Err() != nil {
+		return connect.NewError(connect.CodeCanceled, ctx.Err())
+	}
+	log.Printf("members store: %v", err)
+	return connect.NewError(connect.CodeUnavailable, errors.New("the members store is unavailable"))
 }
 
 func profile(m Row) *moneyrecapv1.Profile {

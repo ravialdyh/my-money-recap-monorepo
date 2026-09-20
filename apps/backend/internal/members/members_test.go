@@ -1,19 +1,23 @@
 package members
 
 import (
+	"bytes"
 	"context"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
@@ -78,6 +82,77 @@ func TestConcurrentFirstCallsCreateOneRow(t *testing.T) {
 	t.Logf("%d concurrent first calls → 1 row, every call returned member id %s", n, ids[0])
 }
 
+// A Member whose email an admin cleared still refreshes a token, one without the claim; the stored
+// address must survive it (PRD §7: it addresses the magic link and the CSV export).
+func TestAnEmptyEmailClaimKeepsTheStoredAddress(t *testing.T) {
+	db := testDB(t)
+	subject := "empty-claim-" + t.Name()
+	ctx := auth.NewContext(context.Background(), auth.Claims{Subject: subject})
+	t.Cleanup(func() {
+		if _, err := db.Exec(context.Background(), `DELETE FROM member WHERE keycloak_subject = $1`, subject); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
+	if _, err := Upsert(ctx, db, subject, "kept@example.com"); err != nil {
+		t.Fatal(err)
+	}
+	res, err := (&Service{DB: db}).GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: subject}))
+	if err != nil || res.Msg.Profile.Email != "kept@example.com" {
+		t.Fatalf("empty email claim: %v, %v, want the stored kept@example.com", res, err)
+	}
+}
+
+func TestStoreFailureIsUnavailableWithoutTheDriverText(t *testing.T) {
+	ctx := auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com"})
+	db, err := pgxpool.New(ctx, "postgres://x:y@127.0.0.1:1/x?connect_timeout=1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(db.Close)
+	_, raw := Upsert(ctx, db, "sub-1", "test@example.com")
+	if raw == nil {
+		t.Fatal("Upsert reached a database on port 1")
+	}
+	s := &Service{DB: db}
+	_, createErr := s.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: "sub-1", Email: "test@example.com"}))
+	_, profileErr := s.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: "00000000-0000-0000-0000-000000000001"}))
+	for name, err := range map[string]error{"GetOrCreateBySubject": createErr, "GetProfile": profileErr} {
+		if connect.CodeOf(err) != connect.CodeUnavailable || strings.Contains(err.Error(), "127.0.0.1") || strings.Contains(err.Error(), raw.Error()) {
+			t.Errorf("%s: %v, want unavailable without the driver's %q", name, err, raw)
+		}
+	}
+}
+
+func TestTheCallersDeadlineOrCancelIsNotAStoreFailure(t *testing.T) {
+	claims := auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com"})
+	db, err := pgxpool.New(claims, "postgres://x:y@127.0.0.1:1/x?connect_timeout=1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(db.Close)
+	s := &Service{DB: db}
+	expired, stop := context.WithDeadline(claims, time.Now().Add(-time.Second))
+	defer stop()
+	cancelled, cancel := context.WithCancel(claims)
+	cancel()
+	var logged bytes.Buffer
+	prev := log.Writer()
+	log.SetOutput(&logged)
+	t.Cleanup(func() { log.SetOutput(prev) })
+	for want, ctx := range map[connect.Code]context.Context{connect.CodeDeadlineExceeded: expired, connect.CodeCanceled: cancelled} {
+		_, createErr := s.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: "sub-1", Email: "test@example.com"}))
+		_, profileErr := s.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: "00000000-0000-0000-0000-000000000001"}))
+		for name, err := range map[string]error{"GetOrCreateBySubject": createErr, "GetProfile": profileErr} {
+			if connect.CodeOf(err) != want || strings.Contains(err.Error(), "127.0.0.1") {
+				t.Errorf("%s: %v, want %v", name, err, want)
+			}
+		}
+	}
+	if strings.Contains(logged.String(), "members store:") {
+		t.Errorf("logged the caller's own deadline or cancel as a store failure: %q", logged.String())
+	}
+}
+
 func TestConnectBoundary(t *testing.T) {
 	base := os.Getenv("MEMBERS_TEST_URL")
 	if base == "" || os.Getenv("MEMBERS_TEST_KEYCLOAK") == "" || os.Getenv("MEMBERS_TEST_USER_PASSWORD") == "" {
@@ -126,27 +201,57 @@ func TestConnectBoundary(t *testing.T) {
 	}
 	t.Logf("first and second call: member id %s", first.MemberId)
 
-	third, err := getOrCreate(authed, sub, "renamed@example.com")
+	storedEmail := func() string {
+		var stored string
+		if err := db.QueryRow(ctx, `SELECT email FROM member WHERE id = $1`, first.MemberId).Scan(&stored); err != nil {
+			t.Fatal(err)
+		}
+		return stored
+	}
+	if _, err := db.Exec(ctx, `UPDATE member SET email = 'stale@example.com' WHERE id = $1`, first.MemberId); err != nil {
+		t.Fatal(err)
+	}
+	third, err := getOrCreate(authed, sub, email)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var stored string
-	if err := db.QueryRow(ctx, `SELECT email FROM member WHERE id = $1`, first.MemberId).Scan(&stored); err != nil {
-		t.Fatal(err)
+	if stored := storedEmail(); third.MemberId != first.MemberId || third.Email != email || stored != email {
+		t.Fatalf("email refresh: response %v, stored %q, want the token's %q", third, stored, email)
 	}
-	if third.MemberId != first.MemberId || third.Email != "renamed@example.com" || stored != "renamed@example.com" {
-		t.Fatalf("email refresh: response %v, stored %q", third, stored)
+	t.Logf("stale email refreshed to the token's claim %q", email)
+
+	_, err = getOrCreate(authed, sub, "someone-else@example.com")
+	if connect.CodeOf(err) != connect.CodePermissionDenied || !strings.Contains(err.Error(), "email does not match the token") {
+		t.Errorf("email mismatch: %v, want permission_denied", err)
 	}
-	t.Logf("different email: stored email is now %q", stored)
+	if stored := storedEmail(); stored != email {
+		t.Errorf("email mismatch stored %q, want %q unchanged", stored, email)
+	}
 
 	prof, err := authed.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: first.MemberId}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if p := prof.Msg.Profile; p.MemberId != first.MemberId || p.Email != "renamed@example.com" || p.DisplayName != "" || p.Timezone != "" {
+	if p := prof.Msg.Profile; p.MemberId != first.MemberId || p.Email != email || p.DisplayName != "" || p.Timezone != "" {
 		t.Fatalf("GetProfile: %v", p)
 	}
 	t.Logf("GetProfile: %v", prof.Msg.Profile)
+
+	other := "other-" + t.Name()
+	otherRow, err := Upsert(ctx, db, other, "other@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, other); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
+	for name, id := range map[string]string{"another Member's id": otherRow.ID, "unknown id": "00000000-0000-0000-0000-000000000001", "malformed id": "not-a-uuid"} {
+		if _, err := authed.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: id})); connect.CodeOf(err) != connect.CodeNotFound {
+			t.Errorf("GetProfile of %s: %v, want not_found", name, err)
+		}
+	}
 
 	if _, err := getOrCreate(authed, "someone-else", email); connect.CodeOf(err) != connect.CodePermissionDenied {
 		t.Errorf("subject mismatch: %v, want permission_denied", err)

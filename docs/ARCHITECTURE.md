@@ -79,7 +79,7 @@ flowchart LR
 ### 4.2 Authentication, at three points
 
 1. **Nginx** does not read the token. Open-source Nginx has no JWT module; that is Nginx Plus. Nginx terminates TLS, limits requests and connections per IP, and hides internal addresses.
-2. **The BFF** verifies the Keycloak JWT on every request against the realm's JWKS, cached and refreshed on an unknown key id. It rejects expired or wrong-audience tokens before any service is called. It applies the per-Member limit in Redis keyed by the token subject, because thousands of phones behind one carrier address make a per-IP limit useless for fairness.
+2. **The BFF** verifies the Keycloak JWT on every request against the realm's JWKS, cached and refreshed on an unknown key id. It rejects expired or wrong-audience tokens before any service is called. A token it cannot check because the JWKS is out of reach is answered `unavailable`, not `unauthenticated`, so the phone keeps its session and its last snapshot instead of refreshing (PRD D61); a token whose key is already cached still verifies, and each service in point 3 answers the same way. It applies the per-Member limit in Redis keyed by the token subject, because thousands of phones behind one carrier address make a per-IP limit useless for fairness.
 3. **Each service** verifies the same JWT again, as PRD §9 requires. The BFF forwards the bearer token unchanged. A bug in the BFF therefore cannot expose one Member's rows to another.
 
 ### 4.3 Events: RabbitMQ with the outbox pattern (A4, A5)
@@ -176,6 +176,7 @@ sequenceDiagram
     participant N as notify
     P->>B: GetHome (bearer token)
     B->>B: verify JWT, per-Member limit
+    B->>M: GetOrCreateBySubject, 1 s timeout
     par in parallel, 1 s timeout each
         B->>M: GetProfile
         B->>L: GetMonthSummary(current)
@@ -206,7 +207,7 @@ sequenceDiagram
 |---|---|
 | Responsibility | Who the Member is: Keycloak subject, email as the token's `email` claim reports it, Display Name, Avatar, Currency code, timezone, sign-up date, deletion request. First-sign-in detection (PRD §5 step 5). Onboarding progress (§6.4). The 24-hour deletion job (§9). |
 | Owns | `member` (id, keycloak_subject, email, display_name, avatar_key, currency_code, timezone, created_at, signed_up_on, deletion_requested_at, deleted_at, onboarding_step), `deletion_progress` (member_id, keycloak_deleted_at, ledger_purged_at, notify_purged_at, currency_purged_at), `outbox`, `processed_events`. |
-| RPCs | `GetOrCreateBySubject` (saves the token's `email` claim on create and refreshes it on every call, so a change made in Keycloak reaches us on the next sign-in), `GetProfile`, `SaveProfile` (Display Name, Avatar, Currency and the onboarding step just completed or skipped, one write per step), `SetTimezone`, `RequestDeletion`, `CancelDeletion`. Every write takes an idempotency key (A14). |
+| RPCs | `GetOrCreateBySubject` (saves the token's `email` claim on create and refreshes it on every call whose token carries one, so a change made in Keycloak reaches us on the next sign-in; a refreshed token lacks the claim after an admin clears the address, and the stored one stays), `GetProfile`, `SaveProfile` (Display Name, Avatar, Currency and the onboarding step just completed or skipped, one write per step), `SetTimezone`, `RequestDeletion`, `CancelDeletion`. Every write takes an idempotency key (A14). |
 | Publishes | `members.created`, `members.updated` (name, avatar, timezone, currency, email), `members.deletion.requested`, `members.deletion.cancelled`, `members.deleted`. |
 | Consumes | `ledger.currency.converted` → set `currency_code`, then publish `members.updated`. `ledger.member.purged`, `notify.member.purged`, `currency.member.purged` → stamp `deletion_progress`. |
 | Why separate | Identity and profile change rarely and are needed by every other service. Publishing them as events lets `ledger` and `notify` keep the few facts they need, timezone, `signed_up_on` and email, without calling `members` on every request. The email is an identifier, not a credential: it is the standard OIDC claim, read from a signed token over TLS, and storing it carries the same risk as storing the Display Name. |

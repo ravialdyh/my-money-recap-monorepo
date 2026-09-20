@@ -1,9 +1,9 @@
 import Connect
 import Foundation
 
-/// The one interceptor IOS I3 names: adds the bearer token to every call and, when the BFF answers
-/// `unauthenticated`, asks AppAuth to refresh. A failed refresh signs the Member out, back to Sign
-/// in with the inline error.
+/// IOS I3's one interceptor: adds the bearer token and forces a refresh on `unauthenticated`; only a refresh the
+/// realm refuses signs the Member out. A call with no fresh token fails: `unavailable` while the session holds (PRD
+/// D61), else `unauthenticated`.
 final class BearerInterceptor: UnaryInterceptor {
     private let session: AuthSession
 
@@ -25,7 +25,8 @@ final class BearerInterceptor: UnaryInterceptor {
                     trailers: request.trailers, idempotencyLevel: request.idempotencyLevel
                 )))
             } catch {
-                proceed(.failure(ConnectError(code: .unauthenticated, message: "no usable session", exception: error)))
+                let code: Code = session.isSignedIn ? .unavailable : .unauthenticated
+                proceed(.failure(ConnectError(code: code, message: "no fresh access token", exception: error)))
             }
         }
     }

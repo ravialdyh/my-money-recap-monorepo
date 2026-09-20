@@ -6,7 +6,7 @@ import SwiftUI
 @Observable
 @MainActor
 final class AuthSession {
-    /// Copy Sign in shows after a token refresh failed (IOS I3): the session is gone, not the tap.
+    /// Copy Sign in shows after the realm refused a token refresh (IOS I3): the session is gone, not the tap.
     static let expiredCopy = "Your session expired. Sign in again."
 
     private(set) var authState: OIDAuthState?
@@ -22,6 +22,11 @@ final class AuthSession {
         if let data = Keychain.read() {
             authState = try? NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: data)
         }
+    }
+
+    /// Starts from a given state instead of the Keychain; the tests' seam.
+    init(authState: OIDAuthState) {
+        self.authState = authState
     }
 
     var isSignedIn: Bool {
@@ -56,26 +61,37 @@ final class AuthSession {
         persist()
     }
 
-    /// A current access token, refreshed by AppAuth first when it has expired (I1, I3).
+    /// The access token, refreshed if expired (I1, I3). Any refresh error throws, as AppAuth may pass the stale token
+    /// too. Only the realm's refusal signs out; a network error, a realm 5xx, a garbled answer or a failed ID token
+    /// check keeps the session (PRD D61).
     func freshAccessToken() async throws -> String {
         guard let authState else { throw CancellationError() }
-        let token: String = try await withCheckedThrowingContinuation { continuation in
-            authState.performAction { accessToken, _, error in
-                if let accessToken {
-                    continuation.resume(returning: accessToken)
-                } else {
-                    continuation.resume(throwing: error ?? CancellationError())
+        do {
+            let token: String = try await withCheckedThrowingContinuation { continuation in
+                authState.performAction { accessToken, _, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else if let accessToken {
+                        continuation.resume(returning: accessToken)
+                    } else {
+                        continuation.resume(throwing: CancellationError())
+                    }
                 }
             }
+            persist()
+            return token
+        } catch {
+            if !isSignedIn {
+                signOut(message: Self.expiredCopy)
+            }
+            throw error
         }
-        persist()
-        return token
     }
 
-    /// The BFF rejected the token: force a refresh; if that fails too, back to Sign in with the inline error (I3).
+    /// The BFF rejected the token: force a refresh, which ends the session only if the realm refuses it (I3).
     func recoverFromUnauthenticated() async {
         authState?.setNeedsTokenRefresh()
-        do { _ = try await freshAccessToken() } catch { signOut(message: Self.expiredCopy) }
+        _ = try? await freshAccessToken()
     }
 
     /// Erases the session; the cache goes with it in `RootView` (PRD §7 "on device only", I4).

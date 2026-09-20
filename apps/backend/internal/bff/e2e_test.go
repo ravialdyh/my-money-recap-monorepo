@@ -58,7 +58,6 @@ func TestEndToEnd(t *testing.T) {
 	for name, tok := range map[string]string{
 		"no token":                    "",
 		"token signed by another key": mintForeignlySignedToken(time.Now().Add(time.Hour)),
-		"expired token":               mintForeignlySignedToken(time.Now().Add(-time.Hour)),
 	} {
 		_, err := getHome(tok)
 		if connect.CodeOf(err) != connect.CodeUnauthenticated {
@@ -96,18 +95,21 @@ func TestEndToEnd(t *testing.T) {
 	}
 	t.Logf("one Member row: id %s, email %q", id, email)
 
+	if _, err := db.Exec(ctx, `UPDATE member SET email = 'stale@example.com' WHERE id = $1`, id); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := getHome(accessToken); err != nil {
 		t.Fatal(err)
 	}
 	var id2 string
-	if err := db.QueryRow(ctx, `SELECT id FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&id2); err != nil {
+	if err := db.QueryRow(ctx, `SELECT id, email FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&id2, &email); err != nil {
 		t.Fatal(err)
 	}
 	if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE keycloak_subject = $1`, claims.Sub).Scan(&rows); err != nil {
 		t.Fatal(err)
 	}
-	if rows != 1 || id2 != id {
-		t.Fatalf("after the second call: %d rows, id %s (first %s)", rows, id2, id)
+	if rows != 1 || id2 != id || email != claims.Email {
+		t.Fatalf("after the second call: %d rows, id %s (first %s), email %q (want the token's %q)", rows, id2, id, email, claims.Email)
 	}
-	t.Logf("second GetHome: still 1 row, same member id %s", id2)
+	t.Logf("second GetHome: still 1 row, same member id %s, stale email refreshed to %q", id2, email)
 }

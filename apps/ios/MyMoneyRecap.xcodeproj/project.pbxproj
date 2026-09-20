@@ -13,6 +13,7 @@
 		A100000000000000000000004D /* Connect in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000004A /* Connect */; };
 		A100000000000000000000004E /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000004B /* SwiftProtobuf */; };
 		A100000000000000000000004F /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000004C /* SwiftProtobuf */; };
+		A1000000000000000000000075 /* Connect in Frameworks */ = {isa = PBXBuildFile; productRef = A1000000000000000000000074 /* Connect */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,6 +118,7 @@
 			files = (
 				A1000000000000000000000047 /* MoneyRecapContract in Frameworks */,
 				A100000000000000000000004F /* SwiftProtobuf in Frameworks */,
+				A1000000000000000000000075 /* Connect in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,6 +213,7 @@
 			packageProductDependencies = (
 				A1000000000000000000000046 /* MoneyRecapContract */,
 				A100000000000000000000004C /* SwiftProtobuf */,
+				A1000000000000000000000074 /* Connect */,
 			);
 			productName = MyMoneyRecapTests;
 			productReference = A1000000000000000000000013 /* MyMoneyRecapTests.xctest */;
@@ -625,6 +628,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1000000000000000000000049 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
 			productName = SwiftProtobuf;
+		};
+		A1000000000000000000000074 /* Connect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1000000000000000000000048 /* XCRemoteSwiftPackageReference "connect-swift" */;
+			productName = Connect;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

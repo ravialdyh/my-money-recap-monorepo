@@ -3,7 +3,9 @@
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
 subject. Slice 1 (#15) answers `GetOrCreateBySubject` and `GetProfile` over Connect; every RPC
 verifies the bearer JWT against the realm JWKS (issuer, audience `bff`, expiry, signature) and
-returns `unauthenticated` otherwise (§4.2).
+returns `unauthenticated` otherwise, or `unavailable` when the keys it needs cannot be fetched or
+arrive as a 200 that is not JSON (§4.2). Either answer carries a generic message; the verifier's
+reason, which can quote the realm's answer, goes to the log.
 
 | Path | Holds |
 | --- | --- |
@@ -44,8 +46,13 @@ Call it with a token for the realm's test user (`infra/compose/README.md`, "Try 
 curl -s http://localhost:8081/money_recap.v1.MembersService/GetOrCreateBySubject -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"subject":"<the token sub>","email":"test@example.com"}'
 ```
 
-The subject in the request must be the token's own `sub`; anything else is `permission_denied`, and
-`GetProfile` answers `not_found` for a Member the token does not name.
+The subject and email in the request must be the token's own `sub` and `email` claim; anything else
+is `permission_denied`, and the claim is what gets stored; a token without the claim, which a refresh
+issues after an admin clears the address, keeps the stored one. `GetProfile` answers `not_found` for a
+Member the token does not name. A store failure is `unavailable` with a generic message; the
+driver's text, which names the database role, the database and its address, goes to the log. A call
+whose own deadline passes, or that its caller cancels, is not a store failure: it answers
+`deadline_exceeded` or `canceled` and is not logged, since the caller logs its own.
 
 ## Migrations
 
@@ -54,7 +61,9 @@ recorded in `schema_migrations`. Add a new numbered file; never edit an applied 
 
 ## Tests
 
-`go test ./...` runs the unit tests (JWT verification against a local JWKS). The boundary tests need
-the stack and the `MEMBERS_TEST_*` variables listed at the top of `internal/members/members_test.go`:
-the concurrent-upsert test against the real Postgres, and the Connect calls through a real Keycloak
-token. CI runs them in the `backend` job.
+`go test ./...` runs the unit tests (JWT verification against a local JWKS, a store failure
+answering `unavailable` without the driver's text, and the caller's own deadline or cancel keeping
+its code). The boundary tests need the stack and the
+`MEMBERS_TEST_*` variables listed at the top of `internal/members/members_test.go`: the
+concurrent-upsert and empty-email-claim tests against the real Postgres, and the Connect calls through
+a real Keycloak token. CI runs them in the `backend` job.

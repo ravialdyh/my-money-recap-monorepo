@@ -2,9 +2,17 @@
 package auth
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -12,20 +20,68 @@ import (
 
 type ctxKey struct{}
 
+type fetchFailedKey struct{}
+
 // Claims is what a verified token tells the handler: the subject, the standard OIDC email
 // claim, and the raw token so the BFF can forward it unchanged (§4.2 point 3).
 type Claims struct{ Subject, Email, Raw string }
 
-// Verifier checks issuer, audience, expiry and signature against the realm JWKS.
-// The key set is fetched lazily and refreshed on an unknown key id.
+// Verifier checks issuer, audience, expiry and signature against the realm JWKS. Keys are cached
+// and refetched on any miss, so while the realm is down a token with a cached key still verifies and
+// any other is unavailable, never accepted.
 type Verifier struct{ v *oidc.IDTokenVerifier }
 
 func NewVerifier(ctx context.Context, issuer, jwksURL, audience string) *Verifier {
-	return &Verifier{oidc.NewVerifier(issuer, oidc.NewRemoteKeySet(ctx, jwksURL), &oidc.Config{ClientID: audience})}
+	keys := oidc.NewRemoteKeySet(oidc.ClientContext(ctx, jwksClient), jwksURL)
+	return &Verifier{oidc.NewVerifier(issuer, keySet{keys}, &oidc.Config{ClientID: audience})}
 }
 
-// Interceptor rejects any request without a valid bearer token and stores the
-// token's Claims in the context for From.
+// jwksClient gives a key fetch five seconds and fails, in its transport, any answer but a whole 200 of
+// JSON, a redirect included, so every failed fetch (refused, DNS, timeout, TLS, 5xx, truncated body,
+// a body that is not JSON) surfaces as a *url.Error.
+var jwksClient = &http.Client{Timeout: 5 * time.Second, Transport: okOnly{http.DefaultTransport}}
+
+// okOnly turns any answer but a whole 200 of JSON into a transport error; go-oidc would report it as
+// plain text.
+type okOnly struct{ next http.RoundTripper }
+
+func (t okOnly) RoundTrip(req *http.Request) (*http.Response, error) {
+	res, err := t.next.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("realm keys answered %s", res.Status)
+	}
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	if !json.Valid(body) {
+		return nil, errors.New("realm keys answered 200 with a body that is not JSON")
+	}
+	res.Body = io.NopCloser(bytes.NewReader(body))
+	return res, nil
+}
+
+// keySet is the realm's RemoteKeySet. A fetch that fails, or that the caller's deadline cuts short, sets
+// the *bool the interceptor put in the context, because go-oidc's Verify flattens that error into text.
+type keySet struct{ *oidc.RemoteKeySet }
+
+func (k keySet) VerifySignature(ctx context.Context, jwt string) ([]byte, error) {
+	payload, err := k.RemoteKeySet.VerifySignature(ctx, jwt)
+	var fetch *url.Error
+	failed, ok := ctx.Value(fetchFailedKey{}).(*bool)
+	if ok && err != nil && (errors.As(err, &fetch) || errors.Is(err, ctx.Err())) {
+		*failed = true
+	}
+	return payload, err
+}
+
+// Interceptor rejects any request without a valid bearer token and stores its Claims in the context
+// for From. A token it cannot check because the realm's keys are out of reach is unavailable, so the
+// phone keeps its session (PRD D61).
 func (v *Verifier) Interceptor() connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
@@ -33,19 +89,31 @@ func (v *Verifier) Interceptor() connect.UnaryInterceptorFunc {
 			if !ok || raw == "" {
 				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing bearer token"))
 			}
-			tok, err := v.v.Verify(ctx, raw)
+			fetchFailed := false
+			tok, err := v.v.Verify(context.WithValue(ctx, fetchFailedKey{}, &fetchFailed), raw)
+			if err != nil && fetchFailed {
+				log.Printf("auth: %v", err)
+				return nil, connect.NewError(connect.CodeUnavailable, errors.New("the realm's signing keys are out of reach"))
+			}
 			if err != nil {
-				return nil, connect.NewError(connect.CodeUnauthenticated, err)
+				return nil, notValid(err)
 			}
 			var extra struct {
 				Email string `json:"email"`
 			}
 			if err := tok.Claims(&extra); err != nil {
-				return nil, connect.NewError(connect.CodeUnauthenticated, err)
+				return nil, notValid(err)
 			}
 			return next(NewContext(ctx, Claims{Subject: tok.Subject, Email: extra.Email, Raw: raw}), req)
 		}
 	}
+}
+
+// notValid logs why a token failed and answers a generic unauthenticated: go-oidc's text can quote the
+// realm's key answer, which the phone has no use for.
+func notValid(err error) error {
+	log.Printf("auth: %v", err)
+	return connect.NewError(connect.CodeUnauthenticated, errors.New("the bearer token is not valid"))
 }
 
 // NewContext stores verified Claims; the interceptor calls it, tests may too.
