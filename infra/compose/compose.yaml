@@ -20,7 +20,7 @@ services:
 
   keycloak:
     image: quay.io/phasetwo/phasetwo-keycloak:${KEYCLOAK_TAG:-26.6.6.1789466980}
-    command: ["start", "--import-realm"]
+    command: ["start"]
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
@@ -29,23 +29,44 @@ services:
       KC_HOSTNAME: http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME:?set in .env}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD:?set in .env}
-      TEST_USER_PASSWORD: ${TEST_USER_PASSWORD:?set in .env}
-      BFF_CLIENT_SECRET: ${BFF_CLIENT_SECRET:?set in .env}
+      KC_BOOTSTRAP_ADMIN_USERNAME: &kc-admin ${KC_BOOTSTRAP_ADMIN_USERNAME:?set in .env}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: &kc-admin-password ${KC_BOOTSTRAP_ADMIN_PASSWORD:?set in .env}
     ports:
       - "${KEYCLOAK_HOST_PORT:-8080}:8080"
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import:ro
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "bash", "-c", 'exec 3<>/dev/tcp/127.0.0.1/9000 && printf "GET /health/ready HTTP/1.0\r\n\r\n" >&3 && grep -q "\"status\": \"UP\"" <&3 && exec 4<>/dev/tcp/127.0.0.1/8080 && printf "GET /realms/mmr HTTP/1.0\r\n\r\n" >&4 && grep -q "\"realm\":\"mmr\"" <&4']
+      test: ["CMD", "bash", "-c", 'exec 3<>/dev/tcp/127.0.0.1/9000 && printf "GET /health/ready HTTP/1.0\r\n\r\n" >&3 && grep -q "\"status\": \"UP\"" <&3 && exec 4<>/dev/tcp/127.0.0.1/8080 && printf "GET /realms/master HTTP/1.0\r\n\r\n" >&4 && grep -q "\"realm\":\"master\"" <&4']
       interval: 10s
       timeout: 5s
       retries: 30
       start_period: 60s
+
+  realm-apply:
+    image: ghcr.io/opentofu/opentofu:1.12.6
+    entrypoint:
+      - /bin/sh
+      - -c
+      - rm -f /state/*.tf && cp /realm/*.tf /realm/.terraform.lock.hcl /state/ && cd /state &&
+        tofu init -input=false && tofu "$$@"
+      - tofu
+    command: ["apply", "-input=false", "-auto-approve"]
+    environment:
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: master
+      KEYCLOAK_CLIENT_ID: admin-cli
+      KEYCLOAK_USER: *kc-admin
+      KEYCLOAK_PASSWORD: *kc-admin-password
+      TF_VAR_ssl_required: none
+      TF_VAR_bff_client_secret: ${BFF_CLIENT_SECRET:?set in .env}
+      TF_VAR_test_user_password: ${TEST_USER_PASSWORD:?set in .env}
+    volumes:
+      - ../tofu/realm:/realm:ro
+      - realm-state:/state
+    depends_on:
+      keycloak:
+        condition: service_healthy
 
   rabbitmq:
     image: rabbitmq:4-management
@@ -91,8 +112,8 @@ services:
     depends_on:
       members-migrate:
         condition: service_completed_successfully
-      keycloak:
-        condition: service_healthy
+      realm-apply:
+        condition: service_completed_successfully
     healthcheck: &go-healthcheck
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
       interval: 5s
@@ -114,10 +135,11 @@ services:
     depends_on:
       members:
         condition: service_healthy
-      keycloak:
-        condition: service_healthy
+      realm-apply:
+        condition: service_completed_successfully
     healthcheck: *go-healthcheck
 
 volumes:
   postgres-data:
   rabbitmq-data:
+  realm-state:

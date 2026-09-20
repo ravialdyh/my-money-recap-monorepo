@@ -24,7 +24,7 @@ fails with `errSecMissingEntitlement`, so a relaunch shows Sign in again.
 
 1. Bring the stack up (`infra/compose/README.md`): Keycloak on `http://localhost:8080` with the `mmr`
    realm, its public `ios` client (PKCE S256, redirect `mymoneyrecap://auth/callback`) and the test
-   user `test`, password `TEST_USER_PASSWORD` from `infra/compose/.env`; the BFF on
+   Member `test`, password `TEST_USER_PASSWORD` from `infra/compose/.env`; the BFF on
    `http://localhost:8082` (`BFF_HOST_PORT`), which is what the app calls.
 2. Pick any iPhone simulator in Xcode and Run. The simulator shares the Mac's `localhost`, and the
    app allows plain HTTP on the local network only (`NSAllowsLocalNetworking` in `App/Info.plist`).
@@ -77,9 +77,9 @@ down: the newest installed iOS runtime and the oldest (the deployment target's f
 offers that runtime; on a Mac whose Xcode no longer lists it, the oldest it does; Xcode 27 no longer
 offers iOS 17 or 18 for download, so on such a Mac the floor is iOS 26.0).
 `scripts/ui-test.sh` builds once, then runs the UI test on each, taking the password from
-`MMR_TEST_USER_PASSWORD` or, failing that, from the running `mmr-keycloak-1` container. The realm
-accepts only the password it was first imported with, so once a changed `.env` recreates the
-container, its value is refused until `down -v` (`infra/compose/README.md`, "The `mmr` realm"):
+`MMR_TEST_USER_PASSWORD` or, failing that, from the `mmr-realm-apply-1` container, which carries it
+as `TF_VAR_test_user_password`. That container re-applies the realm on every `up`, so a changed
+`.env` value is live after the next `up` (`infra/compose/README.md`, "The `mmr` realm"):
 
 ```bash
 scripts/ui-test.sh
@@ -91,7 +91,7 @@ creates an iPhone on a runtime that has none), and with no argument it keeps the
 behaviour the unit-test command uses. To run one destination by hand:
 
 ```bash
-TEST_RUNNER_MMR_TEST_USER_PASSWORD="$(docker inspect mmr-keycloak-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^TEST_USER_PASSWORD=//p')" xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap -destination "id=$(scripts/simulator-udid.sh oldest)" -derivedDataPath build -only-testing:MyMoneyRecapUITests -resultBundlePath build/ui.xcresult
+TEST_RUNNER_MMR_TEST_USER_PASSWORD="$(docker inspect mmr-realm-apply-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^TF_VAR_test_user_password=//p')" xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap -destination "id=$(scripts/simulator-udid.sh oldest)" -derivedDataPath build -only-testing:MyMoneyRecapUITests -resultBundlePath build/ui.xcresult
 xcrun xcresulttool export attachments --path build/ui.xcresult --output-path build/ui-screenshots
 ```
 

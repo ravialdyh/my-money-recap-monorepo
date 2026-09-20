@@ -1,8 +1,9 @@
 # infra/compose
 
-The phase-1 stack on a laptop (`docs/ARCHITECTURE.md` §10, A9). Slice 1 runs Keycloak (Phase Two
-image, pinned), Postgres, RabbitMQ, Redis, the `members` migration step, the `members` service and
-the BFF. Nginx, `otel-lgtm` and `pg-backup` come in later slices.
+The phase-1 stack on a laptop (`docs/ARCHITECTURE.md` §10, A9). It runs Keycloak (Phase Two
+image, pinned), Postgres, RabbitMQ, Redis, the `members` migration step, the OpenTofu step that
+builds the `mmr` realm, the `members` service and the BFF. Nginx, `otel-lgtm` and `pg-backup` come
+in later slices.
 
 ## Run it
 
@@ -26,8 +27,12 @@ reports healthy and the migration step has exited 0. Check with:
 docker compose -f infra/compose/compose.yaml ps
 ```
 
-Stop with `down`; add `-v` to drop the volumes, which is also how you get a fresh realm import
-(see below).
+Stop with `down`; add `-v` to drop the volumes.
+
+**One last `down -v`.** A stack created before the realm moved to OpenTofu still holds the
+JSON-imported realm in Keycloak's database, and the first `tofu apply` fails creating a realm that
+is already there. Run `docker compose -f infra/compose/compose.yaml down -v` once, then `up` as
+above. From that stack onward a realm change is an `up` (see "The `mmr` realm").
 
 ## What comes up
 
@@ -40,14 +45,19 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
 | redis | `redis:8` | — | No client until slice 5. |
 | members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. |
-| members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect, `/healthz` pings the database. Starts after the migration step completed and Keycloak is healthy; verifies every bearer token against the realm JWKS (audience `bff`). |
+| realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy. |
+| members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect, `/healthz` pings the database. Starts after the migration step and the realm step completed; verifies every bearer token against the realm JWKS (audience `bff`). |
 | bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` and `notify` are in-process stubs until slices 5 and 7. |
 
 Every long-running container has a health check and `depends_on: condition: service_healthy` orders
-the start; the migration step is ordered with `condition: service_completed_successfully`. Keycloak's
-check is a bash `/dev/tcp` request rather than `curl`, because the Keycloak image ships neither `curl`
-nor `wget`: it opens 9000 for `/health/ready` and then 8080 for `/realms/mmr`, so the container only
-counts as healthy once the realm import has finished and the realm answers. Keycloak and the BFF
+the start; the migration step and the realm step are ordered with
+`condition: service_completed_successfully`. Keycloak's check is a bash `/dev/tcp` request rather
+than `curl`, because the Keycloak image ships neither `curl` nor `wget`: it opens 9000 for
+`/health/ready` and then 8080 for `/realms/master`. It no longer asks for `/realms/mmr`, because
+Keycloak now starts with no realm and `realm-apply` builds it afterwards. The second hop stays,
+because `/health/ready` answers UP on the management port while a first boot is still bootstrapping
+on 8080, and `realm-apply` then gets `503 Service Unavailable` from the token endpoint.
+Keycloak and the BFF
 publish on every interface because the phone reaches them; the Postgres and `members` ports bind to
 loopback and exist for the Connect-boundary tests (`apps/README.md`).
 
@@ -68,7 +78,7 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
 `members` issuer check and the BFF issuer check all derive from it. To sign in from a device:
 
 1. Set `MMR_HOST=<the Mac's LAN IP>` in `.env` and recreate the stack (`up -d --wait`); Keycloak, `members`
-   and `bff` restart with the new issuer `http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr`. The realm import is unaffected.
+   and `bff` restart with the new issuer `http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr`. The realm is unaffected: it holds no address.
 2. In Xcode, edit the scheme's Run action and add the environment variables
    `MMR_ISSUER=http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr` and `MMR_BFF_URL=http://<ip>:${BFF_HOST_PORT}`; select
    a signing team, pick the phone, Run (`apps/ios/README.md`, "Run on a physical iPhone").
@@ -76,33 +86,37 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
 
 ## The `mmr` realm
 
-`keycloak/mmr-realm.json` is imported by `--import-realm` on first boot. Keycloak skips the import
-once the realm exists in its database, so a change to the JSON needs `down -v` to take effect. Slice 3
-replaces this bootstrap with OpenTofu (A13).
+`infra/tofu/realm` describes the realm and the `realm-apply` container applies it on every `up`
+(A13). Keycloak starts with no realm at all. Editing a value under `infra/tofu/realm` and running
+`up` is enough; there is no import to re-run and no `down -v` to pay.
 
 - Realm `mmr`. Hostname is fixed to `http://${MMR_HOST}:${KEYCLOAK_HOST_PORT}`, so the issuer
   `http://localhost:8080/realms/mmr` (with the default port) is the same whether the caller is the
-  simulator or a container reaching `keycloak:8080`.
+  simulator or a container reaching `keycloak:8080`. `ssl_required` is a variable rather than a
+  default, `none` here, because every laptop caller speaks plain HTTP and the provider's default is
+  `external`. Sign-in with an email address stays on, because the Login Token endpoint finds the
+  Member by email and otherwise creates a second one.
 - `ios`: public client, PKCE S256 required, direct access grants enabled for the test seams, redirect
-  URI `mymoneyrecap://auth/callback` (custom scheme until slice 3 serves universal links). An
+  URI `mymoneyrecap://auth/callback` (custom scheme until universal links). An
   audience mapper adds `bff` to its access tokens. Its direct grant is the custom `ios direct grant`
   flow: two conditional branches on the optional `login-token` client scope. A token request with
   `scope=login-token` runs the Login Token authenticator (A10); one without runs the username and
   password validators. The two cannot be plain alternatives, because the Login Token authenticator
   fails the whole flow when the `login_token` field is absent (`a10-smoke.sh` proved this on the
-  pinned image). The realm attribute `CreateDefaultClientScopes` keeps Keycloak's built-in scopes
-  (`profile`, `email`, `basic`, ...) when the JSON declares its own `clientScopes`; without it the
-  imported realm has none and access tokens carry no `sub`.
+  pinned image). Keycloak's built-in scopes (`profile`, `email`, `basic`, ...) come with the realm,
+  so access tokens carry `sub`; the realm attribute the JSON import needed for that is gone.
 - `bff`: confidential client with a service account holding `realm-management` `manage-users`, which
-  the Login Token endpoint needs (A10). Secret from `BFF_CLIENT_SECRET`.
-- Test user `test` / `test@example.com`, password from `TEST_USER_PASSWORD`.
+  the Login Token endpoint needs (A10). Its secret is a variable rather than a generated value,
+  because `a10-smoke.sh` and the `members` wrong-audience test authenticate as this client.
+- Test Member `test` / `test@example.com`.
 
-The JSON's two `${VARIABLE}` placeholders, `BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD`, are filled
-from the container environment only when the realm is imported, and `KC_BOOTSTRAP_ADMIN_USERNAME`
-and `KC_BOOTSTRAP_ADMIN_PASSWORD` only seed the admin of an empty database. So a change to any of
-the four in `.env` reaches Keycloak only after `down -v`; until then, whatever reads the new value
-(the test variables below, `a10-smoke.sh`, the `kcadm` login under "Admin access") is refused.
-Nothing secret is in a committed file.
+`realm-apply` reads `BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD` from `.env` as `TF_VAR_` variables
+and re-applies both on every `up`, so a change to either takes effect at once. The realm's OpenTofu
+state is a file in the `realm-state` volume, never in the working tree.
+`KC_BOOTSTRAP_ADMIN_USERNAME` and `KC_BOOTSTRAP_ADMIN_PASSWORD` keep the old rule: they seed the
+admin of an empty Keycloak database, so changing either reaches Keycloak only after `down -v`, and
+until then `realm-apply` and the `kcadm` login under "Admin access" are refused. Nothing secret is
+in a committed file.
 
 ## Try it
 
@@ -130,8 +144,9 @@ curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorizatio
 The `internal/members` tests and `internal/bff`'s `TestEndToEnd` skip unless their variables are set
 (`internal/members`' store-failure and caller-deadline tests and `internal/bff`'s other tests need
 nothing); with the stack up and the stock `.env` they are the values below. A non-default `.env`
-substitutes its own `*_HOST_PORT`s. Either way the passwords and the client secret are the values
-`.env` held when the volumes were created (see "The `mmr` realm").
+substitutes its own `*_HOST_PORT`s. Either way the `members` database password is the value `.env`
+held when the volumes were created; the test Member's password and the `bff` client secret are
+whatever `.env` holds now, because `realm-apply` re-applies both on every `up`.
 
 | Variable | Stock value | What it is |
 | --- | --- | --- |
@@ -177,12 +192,24 @@ infra/compose/a10-smoke.sh
 
 It reads `KEYCLOAK_HOST_PORT` from `.env` (see "Parallel worktrees").
 
+## The realm re-applies as a no-op
+
+`realm-noop.sh` runs `tofu plan` in the same state volume `realm-apply` writes and fails when the
+plan is not empty, so a resource the provider would re-create on every `up` is caught. It fails the
+same way when `infra/tofu/realm` has been edited since the last `up`, which is the check's other
+use. CI runs it in the `backend` job after the A10 smoke test.
+
+```bash
+infra/compose/realm-noop.sh
+```
+
 ## Admin access
 
 The `mmr` realm has `sslRequired: none` so the simulator and a container can use plain HTTP. The
 `master` realm keeps Keycloak's default (`external`), and Docker Desktop's host traffic does not
 count as local, so the admin console at `http://localhost:8080` answers "HTTPS required" from the
-host. Inspect the realm with `kcadm` inside the container instead:
+host. A container on the Compose network does count as local, which is how `realm-apply` reaches
+`master` over plain HTTP. Inspect the realm with `kcadm` inside the container instead:
 
 ```bash
 docker compose -f infra/compose/compose.yaml exec keycloak bash -c '/opt/keycloak/bin/kcadm.sh config credentials --server http://127.0.0.1:8080 --realm master --user "$KC_BOOTSTRAP_ADMIN_USERNAME" --password "$KC_BOOTSTRAP_ADMIN_PASSWORD" && /opt/keycloak/bin/kcadm.sh get clients -r mmr --fields clientId,publicClient'

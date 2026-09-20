@@ -32,7 +32,6 @@ repos:
             |my-money-recap-ds/src/assets/illustrations\.ts
             |my-money-recap-ds/src/tokens/tokens\.css
             |my-money-recap-ds/\.design-sync/.*
-            |infra/compose/keycloak/mmr-realm\.json
             |docs/design/.*
             |package-lock\.json
           )$
@@ -134,6 +133,20 @@ repos:
         entry: tools/hooks/if-installed.sh buf lint packages/contract
         language: script
         types: [proto]
+        pass_filenames: false
+
+      - id: tofu-fmt
+        name: tofu fmt
+        entry: tools/hooks/tofu.sh fmt
+        language: script
+        files: ^infra/tofu/
+        pass_filenames: false
+
+      - id: tofu-validate
+        name: tofu validate
+        entry: tools/hooks/tofu.sh validate
+        language: script
+        files: ^infra/tofu/
         pass_filenames: false
 
       - id: generated-up-to-date

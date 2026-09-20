@@ -14,7 +14,7 @@ This repository is the monorepo for it: product docs and design record, illustra
 | `my-money-recap-ds/` | `@my-money-recap/ui` — the React design system: tokens, components, the four Recap screens |
 | `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members` service) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
 | `packages/` | `packages/contract`, the Buf module every client is generated from |
-| `infra/` | `infra/compose`, the phase-1 Compose stack (Keycloak, Postgres, RabbitMQ, Redis, `members`, the BFF) |
+| `infra/` | `infra/compose`, the phase-1 Compose stack (Keycloak, Postgres, RabbitMQ, Redis, `members`, the BFF), and `infra/tofu/realm`, the Keycloak realm in OpenTofu |
 
 It is an npm workspace with one member today, `my-money-recap-ds` (`apps/*` and `packages/*` are
 declared for later JavaScript packages; nothing there has a `package.json`), so one `npm install` at
@@ -87,8 +87,9 @@ pre-commit run --hook-stage pre-push    # also regenerates and diffs the generat
 | Swift lint and format | SwiftLint, SwiftFormat | `.swiftlint.yml`, `.swiftformat` |
 | Shell, Dockerfile, workflows | shellcheck, hadolint, actionlint | `.pre-commit-config.yaml` |
 | Protobuf | buf lint | `packages/contract/buf.yaml` |
+| OpenTofu format and validity | tofu fmt, tofu validate | `tools/hooks/tofu.sh` |
 
-golangci-lint, SwiftLint, SwiftFormat, hadolint and buf are per-language toolchains. The hooks skip
+golangci-lint, SwiftLint, SwiftFormat, hadolint, buf and OpenTofu are per-language toolchains. The hooks skip
 with a note where the binary is missing, so a contributor touching only the design system does not
 have to install all of them; CI installs every one and runs the same commands as hard gates.
 
