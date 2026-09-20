@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
-: "${MMR_TEST_USER_PASSWORD:=$(docker inspect mmr-keycloak-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^TEST_USER_PASSWORD=//p')}"
-[ -n "$MMR_TEST_USER_PASSWORD" ] || { echo "MMR_TEST_USER_PASSWORD is empty and no mmr-keycloak-1 container is running" >&2; exit 1; }
+: "${MMR_TEST_USER_PASSWORD:=$(docker inspect mmr-realm-apply-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^TF_VAR_test_user_password=//p')}"
+[ -n "$MMR_TEST_USER_PASSWORD" ] || { echo "MMR_TEST_USER_PASSWORD is empty and no mmr-realm-apply-1 container exists" >&2; exit 1; }
 
 xcodebuild build-for-testing -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath build -quiet
