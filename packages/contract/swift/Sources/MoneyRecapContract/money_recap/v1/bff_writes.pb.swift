@@ -52,8 +52,10 @@ public nonisolated struct MoneyRecap_V1_BffServiceLogSpendRequest: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The fresh HomeView of §6.2 step 5, whose target_warning is the banner if
-/// this Spend crossed the line, and the Spend as stored.
+/// The fresh HomeView of ARCHITECTURE §6.2 step 5 and the Spend as stored. Its
+/// target_warning is, for a Spend in the current month,
+/// EvaluateWarningResponse.warning (absent if notify timed out, step 4);
+/// otherwise GetWarningState(current)'s.
 public nonisolated struct MoneyRecap_V1_BffServiceLogSpendResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -121,8 +123,10 @@ public nonisolated struct MoneyRecap_V1_BffServiceEditSpendRequest: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The fresh HomeView and the Spend after the edit. A past month's Recap
-/// changes at once (D22) and is fetched again on open.
+/// The fresh HomeView and the Spend after the edit. Its banner comes as
+/// LogSpend's does (ARCHITECTURE §6.2), from EditSpendResponse's month and
+/// crossed_line. A past month's Recap changes at once (D22) and is fetched
+/// again on open.
 public nonisolated struct MoneyRecap_V1_BffServiceEditSpendResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

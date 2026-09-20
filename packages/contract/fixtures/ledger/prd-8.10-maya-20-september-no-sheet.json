@@ -9,6 +9,10 @@
         "amount": "2400.00",
         "currencyCode": "GBP"
       },
+      "originalAmount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
       "payday": "25",
       "effectiveFrom": "2026-08"
     }
@@ -119,6 +123,10 @@
         "amount": "2800.00",
         "currencyCode": "GBP"
       },
+      "originalAmount": {
+        "amount": "2800.00",
+        "currencyCode": "GBP"
+      },
       "payday": "25",
       "effectiveFrom": "2026-09"
     },
@@ -136,11 +144,19 @@
         "amount": "2400.00",
         "currencyCode": "GBP"
       },
+      "originalAmount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
       "payday": "25",
       "effectiveFrom": "2026-08"
     },
     {
       "amount": {
+        "amount": "2800.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
         "amount": "2800.00",
         "currencyCode": "GBP"
       },

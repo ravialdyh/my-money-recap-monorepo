@@ -224,48 +224,50 @@ public nonisolated struct MoneyRecap_V1_SpendListView: Sendable {
 
 /// Everything Settings draws (PRD §6.16): the profile from members, the rows
 /// in force and the D56 facts from ledger, the toggles from notify.
-public nonisolated struct MoneyRecap_V1_SettingsView: @unchecked Sendable {
+public nonisolated struct MoneyRecap_V1_SettingsView: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   /// Display Name, Avatar, Currency and the deletion stamp (§6.18).
   public var profile: MoneyRecap_V1_Profile {
-    get {_storage._profile ?? MoneyRecap_V1_Profile()}
-    set {_uniqueStorage()._profile = newValue}
+    get {_profile ?? MoneyRecap_V1_Profile()}
+    set {_profile = newValue}
   }
   /// Returns true if `profile` has been explicitly set.
-  public var hasProfile: Bool {_storage._profile != nil}
+  public var hasProfile: Bool {self._profile != nil}
   /// Clears the value of `profile`. Subsequent reads from it will return its default value.
-  public mutating func clearProfile() {_uniqueStorage()._profile = nil}
+  public mutating func clearProfile() {self._profile = nil}
 
   /// Salary and Payday, Saving Target, payday_passed_this_month (D56) and
   /// has_amounts_to_convert (§8.9 step 2); a "Not set" row is an absent field.
   public var ledgerSettings: MoneyRecap_V1_LedgerSettings {
-    get {_storage._ledgerSettings ?? MoneyRecap_V1_LedgerSettings()}
-    set {_uniqueStorage()._ledgerSettings = newValue}
+    get {_ledgerSettings ?? MoneyRecap_V1_LedgerSettings()}
+    set {_ledgerSettings = newValue}
   }
   /// Returns true if `ledgerSettings` has been explicitly set.
-  public var hasLedgerSettings: Bool {_storage._ledgerSettings != nil}
+  public var hasLedgerSettings: Bool {self._ledgerSettings != nil}
   /// Clears the value of `ledgerSettings`. Subsequent reads from it will return its default value.
-  public mutating func clearLedgerSettings() {_uniqueStorage()._ledgerSettings = nil}
+  public mutating func clearLedgerSettings() {self._ledgerSettings = nil}
 
   /// The three toggles and the reminder time; the push-permission state is
   /// the phone's own (PRD §6.16).
   public var notificationPrefs: MoneyRecap_V1_NotificationPrefs {
-    get {_storage._notificationPrefs ?? MoneyRecap_V1_NotificationPrefs()}
-    set {_uniqueStorage()._notificationPrefs = newValue}
+    get {_notificationPrefs ?? MoneyRecap_V1_NotificationPrefs()}
+    set {_notificationPrefs = newValue}
   }
   /// Returns true if `notificationPrefs` has been explicitly set.
-  public var hasNotificationPrefs: Bool {_storage._notificationPrefs != nil}
+  public var hasNotificationPrefs: Bool {self._notificationPrefs != nil}
   /// Clears the value of `notificationPrefs`. Subsequent reads from it will return its default value.
-  public mutating func clearNotificationPrefs() {_uniqueStorage()._notificationPrefs = nil}
+  public mutating func clearNotificationPrefs() {self._notificationPrefs = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
-  fileprivate var _storage = _StorageClass.defaultInstance
+  fileprivate var _profile: MoneyRecap_V1_Profile? = nil
+  fileprivate var _ledgerSettings: MoneyRecap_V1_LedgerSettings? = nil
+  fileprivate var _notificationPrefs: MoneyRecap_V1_NotificationPrefs? = nil
 }
 
 /// Where onboarding resumes and every answer saved so far, so a force-quit
@@ -668,81 +670,41 @@ nonisolated extension MoneyRecap_V1_SettingsView: SwiftProtobuf.Message, SwiftPr
   public static let protoMessageName: String = _protobuf_package + ".SettingsView"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}profile\0\u{3}ledger_settings\0\u{3}notification_prefs\0")
 
-  fileprivate class _StorageClass {
-    var _profile: MoneyRecap_V1_Profile? = nil
-    var _ledgerSettings: MoneyRecap_V1_LedgerSettings? = nil
-    var _notificationPrefs: MoneyRecap_V1_NotificationPrefs? = nil
-
-      // This property is used as the initial default value for new instances of the type.
-      // The type itself is protecting the reference to its storage via CoW semantics.
-      // This will force a copy to be made of this reference when the first mutation occurs;
-      // hence, it is safe to mark this as `nonisolated(unsafe)`.
-      static nonisolated(unsafe) let defaultInstance = _StorageClass()
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _profile = source._profile
-      _ledgerSettings = source._ledgerSettings
-      _notificationPrefs = source._notificationPrefs
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
-
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._profile) }()
-        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._ledgerSettings) }()
-        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._notificationPrefs) }()
-        default: break
-        }
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._profile) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._ledgerSettings) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._notificationPrefs) }()
+      default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      try { if let v = _storage._profile {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-      } }()
-      try { if let v = _storage._ledgerSettings {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-      } }()
-      try { if let v = _storage._notificationPrefs {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-      } }()
-    }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._profile {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._ledgerSettings {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._notificationPrefs {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_SettingsView, rhs: MoneyRecap_V1_SettingsView) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._profile != rhs_storage._profile {return false}
-        if _storage._ledgerSettings != rhs_storage._ledgerSettings {return false}
-        if _storage._notificationPrefs != rhs_storage._notificationPrefs {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
+    if lhs._profile != rhs._profile {return false}
+    if lhs._ledgerSettings != rhs._ledgerSettings {return false}
+    if lhs._notificationPrefs != rhs._notificationPrefs {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

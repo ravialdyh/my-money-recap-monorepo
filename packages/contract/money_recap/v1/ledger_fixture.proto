@@ -49,8 +49,8 @@ message LedgerFixture {
   // Whether logging the last entry of spends, on its date, answered
   // crossed_line (PRD §8.8).
   optional bool crossed_line = 15;
-  // The salary_setting rows after convert or save_salary (PRD §8.9 step 4,
-  // §8.10).
+  // The salary_setting rows after convert or save_salary, original amounts
+  // untouched (PRD §8.9 step 4, §8.10).
   repeated SalarySetting salaries_after = 16;
   // The Spend rows after convert, original amounts untouched (PRD §8.9 step 4).
   repeated Spend spends_after = 17;

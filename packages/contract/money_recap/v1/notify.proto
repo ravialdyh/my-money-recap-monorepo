@@ -58,13 +58,16 @@ message EvaluateWarningRequest {
 }
 
 // The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
-// builds the HomeView banner without a second round trip.
+// builds a current-month write's HomeView banner without a second round trip.
 message EvaluateWarningResponse {
   // True when the month is stamped, by this call or an earlier one.
   bool fired = 1;
   // True when this call stamped the month, so exactly one call per month
   // sees it (PRD §8.8).
   bool fired_now = 2;
+  // The copy kept when the month was stamped, by this call or an earlier one;
+  // present whenever fired. It reads the same until the 1st (PRD §8.8).
+  optional TargetWarning warning = 3;
 }
 
 message GetPrefsRequest {

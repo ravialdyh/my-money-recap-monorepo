@@ -37,6 +37,17 @@ ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"15000000"`), 
 reports for the currency (§8.4). A sentence that embeds an amount is written as the PRD prints it
 (`£160`, `Rp 2.600.000`).
 
+Every `SalarySetting` and every `Spend`, wherever it sits, carries `originalAmount`: the amount as
+typed, with its Currency (PRD §7, §8.9 step 4). Every file so far starts from a ledger never
+converted, so its input rows `salaries` and `spends`, and every row of a file without `convert`,
+have `originalAmount` equal to `amount`. That is a limit of today's files, not a rule of the
+ledger: converting again (§8.9 step 6) starts from Rp amounts with £ originals, and a file starting
+there, the only shape that catches a conversion from `originalAmount` instead of `amount`, widens
+this check in `fixtures_test.go` first. After `convert`, every other row (`settings.salary`,
+`settings.nextSalary`, `salariesAfter`, `spendsAfter`, a Recap's `splurge`) keeps its input row's
+`originalAmount`, a `SalarySetting` paired by `effectiveFrom` and a `Spend` by `id`; a row with no
+input row fails. `fixtures_test.go` checks all three and names the row that drifts.
+
 `streakDay` on a month is the month's Streak so far (§8.5, the glossary's Streak): the longest
 spend-free run in the window up to `asOf`. With no Spends it is the elapsed days, which Home prints
 as "Streak day {n}" (SCREEN-STATES B6: 23 on 26 September for a 4 September sign-up). `streak.days`

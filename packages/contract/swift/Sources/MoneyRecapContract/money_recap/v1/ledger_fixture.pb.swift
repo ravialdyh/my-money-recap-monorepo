@@ -145,8 +145,8 @@ public nonisolated struct MoneyRecap_V1_LedgerFixture: @unchecked Sendable {
   /// Clears the value of `crossedLine`. Subsequent reads from it will return its default value.
   public mutating func clearCrossedLine() {_uniqueStorage()._crossedLine = nil}
 
-  /// The salary_setting rows after convert or save_salary (PRD §8.9 step 4,
-  /// §8.10).
+  /// The salary_setting rows after convert or save_salary, original amounts
+  /// untouched (PRD §8.9 step 4, §8.10).
   public var salariesAfter: [MoneyRecap_V1_SalarySetting] {
     get {_storage._salariesAfter}
     set {_uniqueStorage()._salariesAfter = newValue}

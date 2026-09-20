@@ -94,8 +94,10 @@ func (x *BffServiceLogSpendRequest) GetNote() string {
 	return ""
 }
 
-// The fresh HomeView of §6.2 step 5, whose target_warning is the banner if
-// this Spend crossed the line, and the Spend as stored.
+// The fresh HomeView of ARCHITECTURE §6.2 step 5 and the Spend as stored. Its
+// target_warning is, for a Spend in the current month,
+// EvaluateWarningResponse.warning (absent if notify timed out, step 4);
+// otherwise GetWarningState(current)'s.
 type BffServiceLogSpendResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Home          *HomeView              `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`
@@ -231,8 +233,10 @@ func (x *BffServiceEditSpendRequest) GetNote() string {
 	return ""
 }
 
-// The fresh HomeView and the Spend after the edit. A past month's Recap
-// changes at once (D22) and is fetched again on open.
+// The fresh HomeView and the Spend after the edit. Its banner comes as
+// LogSpend's does (ARCHITECTURE §6.2), from EditSpendResponse's month and
+// crossed_line. A past month's Recap changes at once (D22) and is fetched
+// again on open.
 type BffServiceEditSpendResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Home          *HomeView              `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`

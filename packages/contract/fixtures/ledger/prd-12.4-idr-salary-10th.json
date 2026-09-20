@@ -9,6 +9,10 @@
         "amount": "3000000",
         "currencyCode": "IDR"
       },
+      "originalAmount": {
+        "amount": "3000000",
+        "currencyCode": "IDR"
+      },
       "payday": "25",
       "effectiveFrom": "2026-09"
     }
@@ -56,6 +60,10 @@
   "settings": {
     "salary": {
       "amount": {
+        "amount": "3000000",
+        "currencyCode": "IDR"
+      },
+      "originalAmount": {
         "amount": "3000000",
         "currencyCode": "IDR"
       },

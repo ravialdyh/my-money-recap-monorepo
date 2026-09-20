@@ -343,14 +343,17 @@ func (x *EvaluateWarningRequest) GetWarning() *TargetWarning {
 }
 
 // The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
-// builds the HomeView banner without a second round trip.
+// builds a current-month write's HomeView banner without a second round trip.
 type EvaluateWarningResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// True when the month is stamped, by this call or an earlier one.
 	Fired bool `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
 	// True when this call stamped the month, so exactly one call per month
 	// sees it (PRD §8.8).
-	FiredNow      bool `protobuf:"varint,2,opt,name=fired_now,json=firedNow,proto3" json:"fired_now,omitempty"`
+	FiredNow bool `protobuf:"varint,2,opt,name=fired_now,json=firedNow,proto3" json:"fired_now,omitempty"`
+	// The copy kept when the month was stamped, by this call or an earlier one;
+	// present whenever fired. It reads the same until the 1st (PRD §8.8).
+	Warning       *TargetWarning `protobuf:"bytes,3,opt,name=warning,proto3,oneof" json:"warning,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -397,6 +400,13 @@ func (x *EvaluateWarningResponse) GetFiredNow() bool {
 		return x.FiredNow
 	}
 	return false
+}
+
+func (x *EvaluateWarningResponse) GetWarning() *TargetWarning {
+	if x != nil {
+		return x.Warning
+	}
+	return nil
 }
 
 type GetPrefsRequest struct {
@@ -920,10 +930,13 @@ const file_money_recap_v1_notify_proto_rawDesc = "" +
 	"\fcrossed_line\x18\x04 \x01(\bR\vcrossedLine\x12<\n" +
 	"\awarning\x18\x05 \x01(\v2\x1d.money_recap.v1.TargetWarningH\x00R\awarning\x88\x01\x01B\n" +
 	"\n" +
-	"\b_warning\"L\n" +
+	"\b_warning\"\x96\x01\n" +
 	"\x17EvaluateWarningResponse\x12\x14\n" +
 	"\x05fired\x18\x01 \x01(\bR\x05fired\x12\x1b\n" +
-	"\tfired_now\x18\x02 \x01(\bR\bfiredNow\".\n" +
+	"\tfired_now\x18\x02 \x01(\bR\bfiredNow\x12<\n" +
+	"\awarning\x18\x03 \x01(\v2\x1d.money_recap.v1.TargetWarningH\x00R\awarning\x88\x01\x01B\n" +
+	"\n" +
+	"\b_warning\".\n" +
 	"\x0fGetPrefsRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\"K\n" +
 	"\x10GetPrefsResponse\x127\n" +
@@ -996,28 +1009,29 @@ var file_money_recap_v1_notify_proto_depIdxs = []int32{
 	16, // 0: money_recap.v1.EmailBounced.bounced_at:type_name -> google.protobuf.Timestamp
 	17, // 1: money_recap.v1.GetWarningStateResponse.warning:type_name -> money_recap.v1.TargetWarning
 	17, // 2: money_recap.v1.EvaluateWarningRequest.warning:type_name -> money_recap.v1.TargetWarning
-	0,  // 3: money_recap.v1.GetPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
-	0,  // 4: money_recap.v1.SavePrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
-	0,  // 5: money_recap.v1.SavePrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
-	2,  // 6: money_recap.v1.NotifyService.GetWarningState:input_type -> money_recap.v1.GetWarningStateRequest
-	4,  // 7: money_recap.v1.NotifyService.EvaluateWarning:input_type -> money_recap.v1.EvaluateWarningRequest
-	6,  // 8: money_recap.v1.NotifyService.GetPrefs:input_type -> money_recap.v1.GetPrefsRequest
-	8,  // 9: money_recap.v1.NotifyService.SavePrefs:input_type -> money_recap.v1.SavePrefsRequest
-	10, // 10: money_recap.v1.NotifyService.RegisterDevice:input_type -> money_recap.v1.RegisterDeviceRequest
-	12, // 11: money_recap.v1.NotifyService.EmailMagicLink:input_type -> money_recap.v1.EmailMagicLinkRequest
-	14, // 12: money_recap.v1.NotifyService.EmailExport:input_type -> money_recap.v1.EmailExportRequest
-	3,  // 13: money_recap.v1.NotifyService.GetWarningState:output_type -> money_recap.v1.GetWarningStateResponse
-	5,  // 14: money_recap.v1.NotifyService.EvaluateWarning:output_type -> money_recap.v1.EvaluateWarningResponse
-	7,  // 15: money_recap.v1.NotifyService.GetPrefs:output_type -> money_recap.v1.GetPrefsResponse
-	9,  // 16: money_recap.v1.NotifyService.SavePrefs:output_type -> money_recap.v1.SavePrefsResponse
-	11, // 17: money_recap.v1.NotifyService.RegisterDevice:output_type -> money_recap.v1.RegisterDeviceResponse
-	13, // 18: money_recap.v1.NotifyService.EmailMagicLink:output_type -> money_recap.v1.EmailMagicLinkResponse
-	15, // 19: money_recap.v1.NotifyService.EmailExport:output_type -> money_recap.v1.EmailExportResponse
-	13, // [13:20] is the sub-list for method output_type
-	6,  // [6:13] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	17, // 3: money_recap.v1.EvaluateWarningResponse.warning:type_name -> money_recap.v1.TargetWarning
+	0,  // 4: money_recap.v1.GetPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
+	0,  // 5: money_recap.v1.SavePrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
+	0,  // 6: money_recap.v1.SavePrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
+	2,  // 7: money_recap.v1.NotifyService.GetWarningState:input_type -> money_recap.v1.GetWarningStateRequest
+	4,  // 8: money_recap.v1.NotifyService.EvaluateWarning:input_type -> money_recap.v1.EvaluateWarningRequest
+	6,  // 9: money_recap.v1.NotifyService.GetPrefs:input_type -> money_recap.v1.GetPrefsRequest
+	8,  // 10: money_recap.v1.NotifyService.SavePrefs:input_type -> money_recap.v1.SavePrefsRequest
+	10, // 11: money_recap.v1.NotifyService.RegisterDevice:input_type -> money_recap.v1.RegisterDeviceRequest
+	12, // 12: money_recap.v1.NotifyService.EmailMagicLink:input_type -> money_recap.v1.EmailMagicLinkRequest
+	14, // 13: money_recap.v1.NotifyService.EmailExport:input_type -> money_recap.v1.EmailExportRequest
+	3,  // 14: money_recap.v1.NotifyService.GetWarningState:output_type -> money_recap.v1.GetWarningStateResponse
+	5,  // 15: money_recap.v1.NotifyService.EvaluateWarning:output_type -> money_recap.v1.EvaluateWarningResponse
+	7,  // 16: money_recap.v1.NotifyService.GetPrefs:output_type -> money_recap.v1.GetPrefsResponse
+	9,  // 17: money_recap.v1.NotifyService.SavePrefs:output_type -> money_recap.v1.SavePrefsResponse
+	11, // 18: money_recap.v1.NotifyService.RegisterDevice:output_type -> money_recap.v1.RegisterDeviceResponse
+	13, // 19: money_recap.v1.NotifyService.EmailMagicLink:output_type -> money_recap.v1.EmailMagicLinkResponse
+	15, // 20: money_recap.v1.NotifyService.EmailExport:output_type -> money_recap.v1.EmailExportResponse
+	14, // [14:21] is the sub-list for method output_type
+	7,  // [7:14] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_notify_proto_init() }
@@ -1028,6 +1042,7 @@ func file_money_recap_v1_notify_proto_init() {
 	file_money_recap_v1_shared_proto_init()
 	file_money_recap_v1_notify_proto_msgTypes[3].OneofWrappers = []any{}
 	file_money_recap_v1_notify_proto_msgTypes[4].OneofWrappers = []any{}
+	file_money_recap_v1_notify_proto_msgTypes[5].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

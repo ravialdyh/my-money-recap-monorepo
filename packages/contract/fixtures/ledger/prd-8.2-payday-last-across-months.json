@@ -9,6 +9,10 @@
         "amount": "2400.00",
         "currencyCode": "GBP"
       },
+      "originalAmount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
       "payday": "last",
       "effectiveFrom": "2026-08"
     }
@@ -99,6 +103,10 @@
   "settings": {
     "salary": {
       "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
         "amount": "2400.00",
         "currencyCode": "GBP"
       },

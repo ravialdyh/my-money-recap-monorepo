@@ -123,6 +123,9 @@ message SalarySetting {
   string payday = 2;
   // "YYYY-MM" the row takes effect from (PRD D56).
   string effective_from = 3;
+  // Always present: the amount as typed, with its Currency, never touched by a
+  // currency change (PRD §8.9).
+  Money original_amount = 4;
 }
 
 // One append-only saving_target_setting row (PRD §7, D65).
