@@ -15,9 +15,10 @@ answers success without a second email and a failed one leaves the key free (A14
 
 | Path | Holds |
 | --- | --- |
-| `main.go` | The binary. `notify` serves on `NOTIFY_LISTEN` (default `:8080`); `notify migrate` applies the schema and exits. |
+| `main.go` | The binary: this service's name, its schema step and its handler, handed to `serve.Main`. `notify` serves on `NOTIFY_LISTEN` (default `:8080`); `notify migrate` applies the schema and exits. |
 | `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=notify .` |
 | `../../internal/notify/` | The store, the SMTP client, the Connect handler and `migrations/*.sql` (embedded). |
+| `../../internal/serve/` | `serve.Main`: the start-up, the `migrate` subcommand and the shutdown `members` also uses. |
 | `../../internal/migrate/` | The migration runner `members` also uses. |
 | `../../internal/auth/` | The JWT interceptor and its pre-authentication exemption. |
 
@@ -37,8 +38,11 @@ answers success without a second email and a failed one leaves the key free (A14
 ## Run
 
 The normal way is the whole stack (`infra/compose/README.md`, "Run it"), which runs `notify-migrate`
-to completion and then starts `notify`. Mailpit is behind the `mail` profile, so a send needs
-`--profile mail` (`infra/compose/README.md`, "Mailpit").
+to completion and then starts `notify`. That command carries `--profile mail`, and it has to:
+`NOTIFY_SMTP_ADDR` is `mailpit:1025` and Mailpit is behind that profile, so an `up` without it
+leaves `notify` reporting healthy — `/healthz` pings only the database — while every send answers
+`unavailable` with `dial tcp: lookup mailpit ... no such host` in the log
+(`infra/compose/README.md`, "Mailpit").
 
 By hand, against that stack's Postgres, Keycloak and Mailpit, on a port the stack does not publish:
 
