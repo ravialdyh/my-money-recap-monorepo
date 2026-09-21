@@ -4,6 +4,11 @@ import XCTest
 /// the runner names the stack's Mailpit: `TEST_RUNNER_MMR_MAILPIT_URL=… xcodebuild test …`. CI skips it.
 @MainActor
 final class SignInUITests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+    }
+
     func testSignInByMagicLinkThenRelaunch() async throws {
         let stack = try Stack()
         let address = "mmr-test-\(UUID().uuidString.lowercased())@example.test"
@@ -23,7 +28,7 @@ final class SignInUITests: XCTestCase {
         XCTAssert(app.buttons["Send me a link"].isEnabled)
         snapshot("02-enter-email-typed")
 
-        app.buttons["Send me a link"].tap()
+        field.typeText("\n")
         XCTAssert(app.staticTexts["Check your inbox."].waitForExistence(timeout: 15), "RequestMagicLink answered")
         XCTAssert(app.staticTexts["We sent a link to \(address). It works for 15 minutes."].exists)
         let countdown = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Resend in 0:'")).firstMatch

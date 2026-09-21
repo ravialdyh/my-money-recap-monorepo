@@ -5,6 +5,11 @@ import XCTest
 /// seam 6). Needs the test user's password.
 @MainActor
 final class AuthorizationCodeUITests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+    }
+
     func testCancelThenSignInThroughKeycloak() throws {
         guard let password = ProcessInfo.processInfo.environment["MMR_TEST_USER_PASSWORD"] else {
             throw XCTSkip(
@@ -35,12 +40,14 @@ final class AuthorizationCodeUITests: XCTestCase {
             return XCTFail("Keycloak login page did not load; is Compose up?")
         }
         snapshot("02-keycloak-login-page")
-        username.tap()
-        username.typeText("test")
         let sheet = try XCTUnwrap(hosts.first { $0.webViews.firstMatch.exists })
-        sheet.webViews.secureTextFields.firstMatch.tap()
-        sheet.webViews.secureTextFields.firstMatch.typeText(password)
-        sheet.webViews.buttons["Sign In"].tap()
+        if !isReauthenticating(sheet) {
+            username.tap()
+            username.typeText("test")
+        }
+        let secret = sheet.webViews.secureTextFields.firstMatch
+        secret.tap()
+        secret.typeText(password + "\n")
 
         assertHomeAtZero(app)
         snapshot("03-home-at-zero-through-the-web-sheet")
@@ -50,6 +57,12 @@ final class AuthorizationCodeUITests: XCTestCase {
     /// (SpringBoard, SafariViewService), not the app, so element queries look there first.
     private let hosts = ["com.apple.springboard", "com.apple.SafariViewService"]
         .map(XCUIApplication.init(bundleIdentifier:)) + [XCUIApplication()]
+
+    /// Keycloak's SSO cookie outlives a run, and under `prompt=login` the next run inside its idle window gets the
+    /// re-authentication form: the username fixed to the test user, the focus already in the password field.
+    private func isReauthenticating(_ sheet: XCUIApplication) -> Bool {
+        sheet.webViews.buttons["Restart login"].waitForExistence(timeout: 2)
+    }
 
     private func systemButton(_ title: String, in _: XCUIApplication) throws -> XCUIElement {
         try XCTUnwrap(first(hosts.map { $0.buttons[title] }, attempts: 6), "no system button titled \(title)")
