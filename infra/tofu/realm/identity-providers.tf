@@ -37,6 +37,7 @@ resource "keycloak_oidc_identity_provider" "apple" {
   token_url         = "https://appleid.apple.com/auth/token"
   default_scopes    = "openid name email"
   trust_email       = true
+  store_token       = true
 
   extra_config = {
     teamId = var.apple_team_id
