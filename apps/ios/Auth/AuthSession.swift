@@ -38,11 +38,11 @@ final class AuthSession {
         authState?.isAuthorized ?? false
     }
 
-    /// The authorization-code flow of IOS I1, which Apple and Google use and which a debug launch argument
-    /// still drives for the UI test (spec #61 seam 6).
-    func signIn() async throws {
+    /// The authorization-code flow of IOS I1: Apple and Google through their `kc_idp_hint`, and Keycloak's own
+    /// page with none, which a debug launch argument drives for the UI test (spec #61 seam 6).
+    func signIn(identityProvider: IdentityProvider? = nil) async throws {
         let configuration = try await discover()
-        let request = AuthConfig.authorizationRequest(configuration)
+        let request = AuthConfig.authorizationRequest(configuration, identityProvider: identityProvider)
         let state: OIDAuthState = try await withCheckedThrowingContinuation { continuation in
             flow = OIDAuthState.authState(byPresenting: request, presenting: Self.presenter) { state, error in
                 if let state {
