@@ -2,10 +2,10 @@
 
 The phase-1 stack on a laptop (`docs/ARCHITECTURE.md` §10, A9). It runs Keycloak (Phase Two
 image, pinned), Postgres, RabbitMQ, Redis, the `members` and `notify` migration steps, the OpenTofu
-step that builds the `mmr` realm, the `members` service, `notify` and the BFF. Mailpit catches the
-mail `notify` sends and is dev-only, behind the `mail` profile, which every command here takes
-because `notify` has no other mail host on a laptop (see "Mailpit"). Nginx, `otel-lgtm` and
-`pg-backup` come in later slices.
+step that builds the `mmr` realm, the `members` service, `notify`, the BFF, Nginx and its `acme.sh`
+sidecar. Mailpit catches the mail `notify` sends and is dev-only, behind the `mail` profile, which
+every command here takes because `notify` has no other mail host on a laptop (see "Mailpit").
+`otel-lgtm` and `pg-backup` come in later slices.
 
 ## Run it
 
@@ -52,9 +52,9 @@ that stack onward a realm change is an `up` (see "The `mmr` realm").
 `NOTIFY_DB_PASSWORD` is what the Postgres init script gives the `notify` role. Without the first two
 Compose refuses the `up` with `environment variable "MEMBERS_DATABASE_URL" required by secret
 "members_database_url" is not set` (see "Secrets"); without the third it refuses it with
-`NOTIFY_DB_PASSWORD: set in .env`. `NOTIFY_HOST_PORT`, `MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`
-and `REDIS_HOST_PORT` have defaults and are needed only by a worktree running its own stack (see
-"Parallel worktrees").
+`NOTIFY_DB_PASSWORD: set in .env`. `NOTIFY_HOST_PORT`, `MAILPIT_HOST_PORT`,
+`MAILPIT_SMTP_HOST_PORT`, `REDIS_HOST_PORT` and `NGINX_HOST_PORT` have defaults and are needed only
+by a worktree running its own stack (see "Parallel worktrees").
 
 ## What comes up
 
@@ -73,6 +73,8 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect, `/healthz` pings the database. Its connection string arrives as a file, never as an environment variable (see "Secrets"). Starts after the migration step and the realm step completed; verifies every bearer token against the realm JWKS (audience `bff`). |
 | notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect, `/healthz` pings the database. Slice 3 serves `EmailMagicLink` alone, which is the one procedure outside the bearer check (§4.2 point 3); every other procedure answers `unauthenticated` without a token and arrives in slice 7. Sends through `NOTIFY_SMTP_ADDR`, `mailpit:1025` here, so it is healthy but cannot send unless the `up` carried `--profile mail`. |
 | bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` is an in-process stub until slice 5, and so is `notify.GetWarningState` until slice 7; the `notify` container is real from slice 3 for `EmailMagicLink`, which the BFF calls from `RequestMagicLink` (#69). |
+| nginx | `nginx:stable` | `NGINX_HOST_PORT` | The edge (§5, A7): the four routes, the per-IP limits, the `/magic` fallback page and the apple-app-site-association file. One mounted configuration file and one mounted directory of static files, both read-only; see [`../nginx/README.md`](../nginx/README.md). Plain HTTP on a laptop, because ACME needs a domain. |
+| acme | `neilpang/acme.sh`, pinned | — | The certificate sidecar (§5, §10). Runs the image's `daemon` command and shares the `acme-certs` volume with Nginx; with no domain registered it renews nothing, which is all it does on a laptop. |
 
 Every long-running container has a health check and `depends_on: condition: service_healthy` orders
 the start; the two migration steps and the realm step are ordered with
@@ -113,7 +115,7 @@ Compose identifies a stack by project name, so two worktrees that both run this 
 each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
 sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
 `BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `POSTGRES_HOST_PORT`, `REDIS_HOST_PORT`,
-`MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`); the defaults in `.env.example` are the stock
+`MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`); the defaults in `.env.example` are the stock
 stack the iOS app signs in against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
 `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
 Volumes and the `members` and `bff` images are named after the project, so stacks do not share data either.
@@ -186,6 +188,30 @@ curl -s -X POST http://localhost:8080/realms/mmr/protocol/openid-connect/token -
 curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
 ```
 
+## The edge
+
+Nginx is the one container in front of the BFF and Keycloak (§5, A7). On a laptop it serves plain
+HTTP on `NGINX_HOST_PORT`, and [`../nginx/README.md`](../nginx/README.md) holds its four routes, its
+two static files and its limits. Keycloak and the BFF keep their own published ports, and the app's
+configuration, every test variable and `a10-smoke.sh` still use them, so nothing a caller follows
+moved when Nginx arrived. The one value that did is `BFF_MAGIC_LINK_BASE_URL`: the link in the email
+is now `http://$MMR_HOST:$NGINX_HOST_PORT/magic?lt=...`, so tapping it on a laptop reaches the
+fallback page instead of a BFF that serves no such path.
+
+The same call through the edge and straight to the BFF, which answer the same thing:
+
+```bash
+curl -s http://localhost:8090/api/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+```
+
+The two static files take no token at all:
+
+```bash
+curl -si http://localhost:8090/.well-known/apple-app-site-association | grep -i '^HTTP/\|^Content-Type'
+curl -s http://localhost:8090/magic | grep -o 'Open My Money Recap[^<]*'
+```
+
 ## Mailpit
 
 Mailpit is the SMTP host `notify` sends to on a laptop and in CI, so the client is exercised on every
@@ -226,7 +252,7 @@ The same key twice sends one message and answers `{}` both times; an empty key i
 ## Running the Go tests against this stack
 
 The `internal/members`, `internal/notify` and `internal/migrate` tests and `internal/bff`'s
-`TestEndToEnd` and `TestMagicLinkEndToEnd` skip unless their variables are set (`internal/members`' store-failure and
+`TestEndToEnd`, `TestMagicLinkEndToEnd` and `TestEdge` skip unless their variables are set (`internal/members`' store-failure and
 caller-deadline tests, `internal/notify`'s empty-key test and `internal/bff`'s other tests need
 nothing); with the stack up, Mailpit started and the stock `.env` they are the values below. A
 non-default `.env` substitutes its own `*_HOST_PORT`s. Either way the `members` database password is
@@ -245,6 +271,7 @@ whatever `.env` holds now, because `realm-apply` re-applies both on every `up`.
 | `BFF_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | As `MEMBERS_TEST_USER_PASSWORD`. |
 | `BFF_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The same `members` database; `TestEndToEnd` clears its own row before it runs, and `TestMagicLinkEndToEnd` counts and then drops the row its fresh address makes. |
 | `BFF_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where `TestMagicLinkEndToEnd` reads the message it caused and pulls the login token out of the link. With `BFF_TEST_URL`, `BFF_TEST_KEYCLOAK` and `BFF_TEST_DATABASE_URL` it is that test's whole set; it needs no `BFF_TEST_USER_PASSWORD`, because it spends a fresh address and never signs in as `test`. |
+| `BFF_TEST_EDGE` | `http://localhost:8090` | Nginx on `NGINX_HOST_PORT`, the edge `TestEdge` drives. With `BFF_TEST_URL`, `BFF_TEST_KEYCLOAK` and `BFF_TEST_USER_PASSWORD` it is that test's whole set: it compares one `GetHome` through the edge with the same call straight to the BFF, fetches the `/magic` page and the association file, and proves the stricter limit zone matches the `RequestMagicLink` path and nothing else (#72). |
 | `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all. |
 | `NOTIFY_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where that test reads the message it caused. |
 | `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests, `cmd/notify`'s migrate case and, when `MEMBERS_TEST_DATABASE_URL` is unset, the shared migration runner's tests. |

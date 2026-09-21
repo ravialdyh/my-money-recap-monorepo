@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAMID.com.mymoneyrecap.app"],
+        "components": [
+          { "/": "/magic", "?": { "lt": "?*" } }
+        ]
+      }
+    ]
+  }
+}
