@@ -155,6 +155,7 @@ jobs:
       BFF_TEST_USER_PASSWORD: ci-throwaway
       BFF_TEST_DATABASE_URL: postgres://members:ci-throwaway@localhost:5432/members
       BFF_TEST_MAILPIT: http://localhost:8025
+      BFF_TEST_EDGE: http://localhost:8090
       NOTIFY_TEST_URL: http://localhost:8083
       NOTIFY_TEST_MAILPIT: http://localhost:8025
       NOTIFY_TEST_SMTP: localhost:1025
@@ -226,7 +227,7 @@ jobs:
         run: |
           test -f .env || { echo "the stack never started; the real failure is above"; exit 0; }
           docker compose ps
-          docker compose logs keycloak realm-apply members-migrate members notify-migrate notify mailpit bff
+          docker compose logs keycloak realm-apply members-migrate members notify-migrate notify mailpit bff nginx
       - name: Teardown
         if: always()
         working-directory: infra/compose
