@@ -32,4 +32,15 @@ want=$(wc -w <<<"$keys" | tr -d " ")
 got=$(find "$work/out" -type f | wc -l | tr -d " ")
 [ "$want" -eq "$got" ] || fail "$want keys made $got files"
 echo "$want values, each its own file, mode 0400, contents intact"
+
+env=$work/machine.env
+../compose/machine-env.sh "$work/out" >"$env"
+grep -qxF "BFF_CLIENT_SECRET='$(expected bff_client_secret)'" "$env" || fail "the machine's .env lost bff_client_secret"
+grep -qxF "MEMBERS_DATABASE_URL='$(expected members_database_url)'" "$env" || fail "the machine's .env lost members_database_url"
+grep -qxF "REALM_SSL_REQUIRED=external" "$env" || fail "the machine's .env leaves ssl_required at the laptop's none"
+! grep -qE '^(TEST_USER_PASSWORD|DEPLOY_SSH_PRIVATE_KEY)=' "$env" || fail "the machine's .env carries a test password or the deploy key"
+cp -R "$work/out" "$work/quoted" && chmod u+w "$work/quoted/bff_client_secret"
+printf "it's" >"$work/quoted/bff_client_secret"
+! ../compose/machine-env.sh "$work/quoted" >/dev/null 2>&1 || fail "a value with a quote reached the machine's .env"
+echo "machine .env: $(wc -l <"$env" | tr -d ' ') lines, stack values intact, no test Member password, a quote refused"
 echo "secrets OK on $(sops --version --disable-version-check) and $(age-keygen --version)"

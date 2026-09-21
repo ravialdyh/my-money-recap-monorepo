@@ -6,6 +6,7 @@ Deployment and infrastructure-as-code.
 - `infra/tofu/realm/` — the `mmr` realm in OpenTofu (official `keycloak/keycloak` provider, A13): the realm, the `ios` and `bff` clients, the `login-token` scope, the custom `ios direct grant` flow, the test Member, and the Google and Apple identity providers with their secrets as Keycloak vault references. The Compose stack applies it on every `up`; the lock file covers `linux_amd64`, `linux_arm64` and `darwin_arm64`, which are CI, the one-shot container and a Mac running pre-commit.
 - `infra/secrets/` — every secret, encrypted with SOPS and an age key (A13). Decrypted at deploy into one directory as one file per value, mounted with Compose `secrets:`; never plain text, never environment variables. See [`secrets/README.md`](secrets/README.md). This slice commits the shape: the key set, the decrypt step and its proof.
 - `infra/nginx/` — the edge (§5, A7): one configuration file with the four routes and the per-IP limits, the static `/magic` fallback page and the apple-app-site-association file. Compose mounts both read-only into `nginx:stable`, beside an `acme.sh` sidecar that is written and inert until there is a domain. See [`nginx/README.md`](nginx/README.md).
+- `.github/workflows/deploy.yml` — the deploy (A15), written and never run; see "Deploying" below.
 - `infra/wizard/` — the one-time script for the nine steps only a human can do (`docs/research/2026-09-14-setup-automation.md` §4), with a non-interactive check mode that reports which are done. See [`wizard/README.md`](wizard/README.md).
 
 Planned from slice 3 onward, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
@@ -13,3 +14,61 @@ Planned from slice 3 onward, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
 - `infra/tofu/` — a second root for the machine: DNS records and the apple-app-site-association file, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root, written and never applied.
 - `infra/compose/` grows to the full §10 set: `ledger`, `currency`, `otel-lgtm`, `pg-backup`.
 - `infra/pg-backup/` — the nightly `pg_dump` image.
+
+## Deploying
+
+`.github/workflows/deploy.yml` is the only way anything deploys (A15). It is written, `actionlint` is
+its only gate, and it has never run: the first tag push is the follow-up issue's, not #73's.
+
+**Trigger.** A tag matching `v[0-9]+.[0-9]+.[0-9]+`: `v1.2.3` and `v10.20.30`, never `v1.2`,
+`v1.2.3-rc.1` or a branch name. The `push` trigger names `tags` and nothing else, so GitHub runs it
+for no branch push, `main` included, and there is no `workflow_dispatch`. One job, in the GitHub
+`production` environment. A second tag waits for the first rather than cancelling it halfway.
+
+**The one hand-held secret.** `SOPS_AGE_KEY`, the whole age key file, is the environment's only
+secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry login uses the job's own
+`GITHUB_TOKEN`, which GitHub issues per run and nobody holds.
+
+**The steps, in order.**
+
+1. Check out the repository. The encrypted file is in it, so nothing can be decrypted earlier, and a
+   checkout copies nothing to the machine.
+2. Decrypt `prod.yaml` on the runner with `infra/secrets/decrypt.sh`. The pinned, checksummed `sops`
+   is installed inside this same step, so no step sits between the checkout and the decrypt, and
+   every decrypted line is masked in the log.
+3. Write the SSH client configuration from three decided values: the host is the `domain` value, the
+   user is the literal `ubuntu` (the cloud-init default of Ubuntu's images), and the host-key policy
+   is `accept-new`. The key is `deploy_ssh_private_key`, given back the final newline `decrypt.sh`
+   strips; OpenSSH refuses a key without it as `invalid format`.
+4. Build `members`, `notify` and `bff` from the one `apps/backend/Dockerfile`, one `CMD` build
+   argument each, and push them to GHCR as `ghcr.io/<owner>/<repository>/<service>:<tag>`. GHCR
+   needs no account beyond the repository's own.
+5. Copy to `~/mmr` on the machine, replacing what the last deploy left: `infra/compose/compose.yaml`
+   and everything it bind-mounts relative to itself, in the same layout — `infra/compose/postgres`,
+   `infra/tofu/realm`, `infra/nginx/default.conf`, `infra/nginx/html` — and the machine's `.env`,
+   mode 0600, written by `infra/compose/machine-env.sh` from the decrypted values.
+6. Log the machine in to GHCR with the job's token, pull the three images, tag them `mmr-members`,
+   `mmr-notify` and `mmr-bff` (the names Compose gives the images it builds on a laptop), log out,
+   and `docker compose up -d --wait`. Compose finds its images present and builds nothing; the
+   `build:` sections stay for the laptop. `realm-apply` builds the realm and the migration steps run
+   in the order `service_completed_successfully` already gives them. `nginx` is restarted last,
+   because a running container keeps serving the files it was started with after the copy replaces
+   them.
+
+**The machine's `.env`** is the laptop's with four differences: `MMR_HOST` is the domain,
+`REALM_SSL_REQUIRED=external` sets the realm's `ssl_required` (spec #61: never the laptop's `none`),
+`NGINX_HOST_PORT=80`, and there is no `TEST_USER_PASSWORD`, so the realm creates no test Member.
+The eight stack values in `infra/secrets/example.yaml` arrive under their names in capitals. Every
+value is single-quoted, so Compose interpolates nothing inside it, and a value holding a quote or a
+line break stops the deploy instead.
+
+**What A13 keeps and does not.** Every secret is encrypted in one committed file, the age key is the
+only one a human holds, and rotation is edit, commit, tag. `members` and `notify` still read their
+connection strings from files Compose writes under `/run/secrets`. But the values reach Compose
+through a `.env` on the machine's disk rather than through files decrypted under `/run/secrets`, and
+Postgres, Keycloak and the BFF receive theirs as environment variables, exactly as on a laptop.
+
+**Not in the repository yet.** `infra/secrets/prod.yaml` is git-ignored and does not exist, and the
+workflow reads it anyway: committing it is the follow-up issue's first item. Nor do the `production`
+environment and its `SOPS_AGE_KEY` exist yet, or the machine, which needs Docker, its Compose plugin
+and the deploy key's public half from cloud-init.

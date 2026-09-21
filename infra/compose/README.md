@@ -105,7 +105,7 @@ The Compose secret's source differs by machine and the containers cannot tell:
 | Where | Source | How |
 | --- | --- | --- |
 | A laptop and CI | `MEMBERS_DATABASE_URL` and `NOTIFY_DATABASE_URL` in `.env` | `secrets: members_database_url: {environment: ...}`. Docker materialises the file at mode 0444 with the exact value and no trailing newline, and does not export the variable into the container. |
-| The VM | `infra/secrets/prod.yaml` | `infra/secrets/decrypt.sh` writes one file per value at mode 0400 before Compose starts. See [`../secrets/README.md`](../secrets/README.md). |
+| The machine | `infra/secrets/prod.yaml` | The deploy decrypts it on the runner with `infra/secrets/decrypt.sh`, and `machine-env.sh` writes the values into the machine's `.env`, so the same `environment:` source serves both. See [`../README.md`](../README.md), "Deploying". |
 
 `.env.example` assembles each URL from `MEMBERS_DB_PASSWORD` and `NOTIFY_DB_PASSWORD` in the same
 file, so a password still has one local source; the Postgres init script keeps reading the bare
