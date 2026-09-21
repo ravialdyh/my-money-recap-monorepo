@@ -194,6 +194,9 @@ jobs:
       - name: Secrets decrypt to one file per value at mode 0400, decision A13
         working-directory: infra/secrets
         run: ./decrypt-smoke.sh
+      - name: The wizard reports each of the nine setup steps done or missing, decision A13
+        working-directory: infra/wizard
+        run: ./check-smoke.sh
       - name: Compose stack with the migration steps, the realm, members, notify, Mailpit and the BFF
         working-directory: infra/compose
         run: |
