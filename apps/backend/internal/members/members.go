@@ -5,7 +5,6 @@ import (
 	"context"
 	"embed"
 	"errors"
-	"fmt"
 	"log"
 
 	"connectrpc.com/connect"
@@ -16,50 +15,14 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/migrate"
 )
 
 //go:embed migrations/*.sql
 var migrations embed.FS
 
-// Migrate applies every embedded migration not yet recorded in schema_migrations, in file-name order
-// (embed.FS lists a directory sorted by name),
-// each in its own transaction. Safe to rerun.
-func Migrate(ctx context.Context, db *pgxpool.Pool) error {
-	if _, err := db.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
-		return err
-	}
-	entries, err := migrations.ReadDir("migrations")
-	if err != nil {
-		return err
-	}
-	for _, e := range entries {
-		sql, err := migrations.ReadFile("migrations/" + e.Name())
-		if err != nil {
-			return err
-		}
-		err = pgx.BeginFunc(ctx, db, func(tx pgx.Tx) error {
-			if err := lockMigrationLedger(ctx, tx); err != nil {
-				return err
-			}
-			var applied bool
-			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM schema_migrations WHERE name = $1)`, e.Name()).Scan(&applied); err != nil {
-				return err
-			}
-			if applied {
-				return nil
-			}
-			if _, err := tx.Exec(ctx, string(sql)); err != nil {
-				return fmt.Errorf("%s: %w", e.Name(), err)
-			}
-			_, err := tx.Exec(ctx, `INSERT INTO schema_migrations (name) VALUES ($1)`, e.Name())
-			return err
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// Migrate applies this service's embedded migrations to the members database (internal/migrate).
+func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
 // Row is one member row's profile columns; nullable columns read as empty strings.
 type Row struct {
@@ -141,10 +104,4 @@ func storeFailed(ctx context.Context, err error) error {
 
 func profile(m Row) *moneyrecapv1.Profile {
 	return &moneyrecapv1.Profile{MemberId: m.ID, Email: m.Email, DisplayName: m.DisplayName, AvatarKey: m.AvatarKey, CurrencyCode: m.CurrencyCode, Timezone: m.Timezone}
-}
-
-// lockMigrationLedger serialises two migrate runs racing on one database, so each file applies once.
-func lockMigrationLedger(ctx context.Context, tx pgx.Tx) error {
-	_, err := tx.Exec(ctx, `LOCK TABLE schema_migrations IN ACCESS EXCLUSIVE MODE`)
-	return err
 }

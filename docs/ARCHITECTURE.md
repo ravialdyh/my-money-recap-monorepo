@@ -18,7 +18,7 @@ Payment and AI/ML services after phase 1, and web and Android clients later, plu
 | Source | Decision |
 |---|---|
 | PRD D11, D31, §11 | Native iOS 17+, SwiftUI. Money is printed on the phone by the platform formatter. The phone caches its last snapshot in SwiftData. |
-| PRD D6–D8, §9 | Keycloak for identity: Apple, Google and magic-link sign-in. Every service verifies the JWT on every request. |
+| PRD D6–D8, §9 | Keycloak for identity: Apple, Google and magic-link sign-in. Every service verifies the JWT on every request but the pre-authentication procedures §4.2 point 3 names. |
 | PRD §7 | Postgres. Amounts are `NUMERIC` with an ISO 4217 code. Salary and target settings are append-only rows. |
 | PRD D61, D63 | Read offline, write online. Offline, the phone shows its last snapshot with a "Last updated" line. |
 | A2 (this doc) | The server computes every figure; the phone only stores and displays. |
@@ -80,7 +80,7 @@ flowchart LR
 
 1. **Nginx** does not read the token. Open-source Nginx has no JWT module; that is Nginx Plus. Nginx terminates TLS, limits requests and connections per IP, and hides internal addresses.
 2. **The BFF** verifies the Keycloak JWT on every request against the realm's JWKS, cached and refreshed on an unknown key id. It rejects expired or wrong-audience tokens before any service is called. A token it cannot check because the JWKS is out of reach is answered `unavailable`, not `unauthenticated`, so the phone keeps its session and its last snapshot instead of refreshing (PRD D61); a token whose key is already cached still verifies, and each service in point 3 answers the same way. It applies the per-Member limit in Redis keyed by the token subject, because thousands of phones behind one carrier address make a per-IP limit useless for fairness.
-3. **Each service** verifies the same JWT again, as PRD §9 requires. The BFF forwards the bearer token unchanged. A bug in the BFF therefore cannot expose one Member's rows to another.
+3. **Each service** verifies the same JWT again, as PRD §9 requires. The BFF forwards the bearer token unchanged. A bug in the BFF therefore cannot expose one Member's rows to another. The reason is that rule's own limit: a pre-authentication procedure is sent before a Member has a token, so it has no Member and no rows to isolate, and it is exempt by procedure name and never by service, leaving every other procedure of the same service behind the check (`internal/auth`, `PreAuth`). `notify.EmailMagicLink` is one, since the BFF reaches it on a request that carries no token (#68); the BFF's own `RequestMagicLink` is the other (#69).
 
 ### 4.3 Events: RabbitMQ with the outbox pattern (A4, A5)
 
@@ -269,7 +269,7 @@ Flow: salary edit after Payday (D56)
 | | |
 |---|---|
 | Responsibility | Deciding and sending every notification in PRD §10, and remembering what was sent. Device tokens. Notification preferences. The Target Warning state the Home banner reads. All outbound email: the magic-link email (§7.5) and the CSV export (PRD §6.16). Keycloak sends no mail. |
-| Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at, target_warning_message: ledger's §8.8 copy as it read when the month was stamped, so the Home banner stays until the 1st however Spent moves afterwards), `sent_log` (unique on member_id, kind, period), `email_status` (member_id, address, last_bounce_at), `member_facts` (replica: timezone, display_name, email, next_recap_at, next_reminder_at), `processed_events`. |
+| Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at, target_warning_message: ledger's §8.8 copy as it read when the month was stamped, so the Home banner stays until the 1st however Spent moves afterwards), `sent_log` (unique on member_id, kind, period), `email_status` (member_id, address, last_bounce_at), `magic_link_send` (idempotency_key, email, sent_at: one row per magic-link send, unique on the key alone because A14's `(member_id, idempotency_key)` has no Member on this path), `member_facts` (replica: timezone, display_name, email, next_recap_at, next_reminder_at), `processed_events`. |
 | RPCs | `GetWarningState(month)` answering `fired` and the kept copy, `EvaluateWarning(month, crossed_line, warning)` answering `fired`, `fired_now` and the kept copy, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailMagicLink(email, link)`, `EmailExport(csv)`. Every write takes an idempotency key (A14). `notify` holds no rule from PRD §8; `crossed_line` is computed by `ledger`. |
 | Email | One SMTP provider, credentials mounted as a secret file (A13). `EmailMagicLink` takes the typed address because no member row may exist yet; `EmailExport` reads the address from `member_facts`. A hard bounce recorded by the provider's webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
 | Consumes | `ledger.spend.logged`, `ledger.spend.edited` → stamp `month_flag` if `crossed_line` and unstamped, send the push if the stamp is fresh. `members.updated` → replica, recompute `next_*_at`. `members.deleted` → purge, then publish `notify.member.purged`. |
@@ -335,7 +335,7 @@ Keycloak's magic-link action token cannot be placed on the app's domain and is c
 | `member`, `deletion_progress` | members | members | members only; others hold `member_facts` replicas fed by events |
 | `salary_setting`, `saving_target_setting`, `spend`, `currency_conversion` | ledger | ledger | ledger only |
 | `member_facts` (replica) | ledger, notify | that service's consumer | that service |
-| `notification_preference`, `device`, `month_flag`, `sent_log`, `email_status` | notify | notify | notify only |
+| `notification_preference`, `device`, `month_flag`, `sent_log`, `email_status`, `magic_link_send` | notify | notify | notify only |
 | `rate_snapshot` | currency | currency | currency only |
 | `outbox`, `processed_events` | every service | that service | that service's relay and consumers |
 | Keycloak tables | keycloak | Keycloak | Keycloak only |

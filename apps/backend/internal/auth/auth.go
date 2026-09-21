@@ -1,4 +1,5 @@
-// Package auth verifies the Keycloak JWT on every RPC (ARCHITECTURE §4.2, PRD §9).
+// Package auth verifies the Keycloak JWT on every RPC but the PreAuth procedures, which are sent
+// before a Member has a token (ARCHITECTURE §4.2, PRD §9).
 package auth
 
 import (
@@ -16,6 +17,8 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/coreos/go-oidc/v3/oidc"
+
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 )
 
 type ctxKey struct{}
@@ -79,12 +82,20 @@ func (k keySet) VerifySignature(ctx context.Context, jwt string) ([]byte, error)
 	return payload, err
 }
 
-// Interceptor rejects any request without a valid bearer token and stores its Claims in the context
-// for From. A token it cannot check because the realm's keys are out of reach is unavailable, so the
-// phone keeps its session (PRD D61).
+// PreAuth are the procedures sent before a Member has a token, which Interceptor calls through
+// unverified. Membership is by procedure name and never by service, so every other procedure of the
+// same service stays behind the check (ARCHITECTURE §4.2 point 3).
+var PreAuth = map[string]bool{moneyrecapv1connect.NotifyServiceEmailMagicLinkProcedure: true}
+
+// Interceptor rejects any request without a valid bearer token, a PreAuth procedure apart, and
+// stores its Claims for From. A token it cannot check because the realm's keys are out of reach is
+// unavailable, so the phone keeps its session (PRD D61).
 func (v *Verifier) Interceptor() connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+			if PreAuth[req.Spec().Procedure] {
+				return next(ctx, req)
+			}
 			raw, ok := strings.CutPrefix(req.Header().Get("Authorization"), "Bearer ")
 			if !ok || raw == "" {
 				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing bearer token"))

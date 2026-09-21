@@ -16,6 +16,8 @@ import (
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 
+	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
@@ -127,6 +129,71 @@ func TestInterceptorSendsNoRealmText(t *testing.T) {
 			t.Errorf("%s: %v %q, want %v without the realm's text", name, code, text, c.want)
 		}
 	}
+}
+
+// The BFF reaches notify on a request that carries no token, because an exempted hop never filled
+// the context Forward reads (ARCHITECTURE §4.2 point 3). Its siblings on the same service must
+// still be refused, or the exemption is by service.
+func TestAPreAuthProcedureIsTheOnlyOneCalledThroughWithoutAToken(t *testing.T) {
+	v := NewVerifier(context.Background(), issuer, serveKey(t, newKey(t)).URL, "bff")
+	srv := httptest.NewServer(mux(moneyrecapv1connect.NewNotifyServiceHandler(reached{}, connect.WithInterceptors(v.Interceptor()))))
+	defer srv.Close()
+	ctx := context.Background()
+
+	for name, client := range map[string]moneyrecapv1connect.NotifyServiceClient{
+		"no token":      moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, srv.URL),
+		"garbage token": moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, srv.URL, testauth.Bearer("not.a.jwt")),
+	} {
+		if _, err := client.EmailMagicLink(ctx, connect.NewRequest(&moneyrecapv1.EmailMagicLinkRequest{IdempotencyKey: "k"})); err != nil {
+			t.Errorf("EmailMagicLink with %s: %v, want the handler reached", name, err)
+		}
+		_, err := client.GetPrefs(ctx, connect.NewRequest(&moneyrecapv1.GetPrefsRequest{}))
+		if connect.CodeOf(err) != connect.CodeUnauthenticated {
+			t.Errorf("GetPrefs with %s: %v, want unauthenticated", name, err)
+		}
+	}
+}
+
+// Forward sends the caller's own token on, and nothing at all when the context holds no verified
+// claims, which is what an exempted hop leaves behind: the reason notify needs its own exemption
+// rather than a token from the BFF (§4.2 point 3).
+func TestForwardSendsAHeaderOnlyWhenTheContextHoldsAToken(t *testing.T) {
+	for name, c := range map[string]struct {
+		ctx  context.Context
+		want string
+	}{
+		"verified claims": {NewContext(context.Background(), Claims{Subject: "sub-1", Raw: "tok"}), "Bearer tok"},
+		"an exempted hop": {context.Background(), ""},
+	} {
+		req := connect.NewRequest(&struct{}{})
+		if _, err := Forward()(func(context.Context, connect.AnyRequest) (connect.AnyResponse, error) {
+			return nil, nil
+		})(c.ctx, req); err != nil {
+			t.Fatal(err)
+		}
+		if got := req.Header().Get("Authorization"); got != c.want {
+			t.Errorf("%s: sent %q, want %q", name, got, c.want)
+		}
+	}
+}
+
+// reached answers both procedures the exemption test calls, so a handler that ran is a nil error.
+type reached struct {
+	moneyrecapv1connect.UnimplementedNotifyServiceHandler
+}
+
+func (reached) EmailMagicLink(context.Context, *connect.Request[moneyrecapv1.EmailMagicLinkRequest]) (*connect.Response[moneyrecapv1.EmailMagicLinkResponse], error) {
+	return connect.NewResponse(&moneyrecapv1.EmailMagicLinkResponse{}), nil
+}
+
+func (reached) GetPrefs(context.Context, *connect.Request[moneyrecapv1.GetPrefsRequest]) (*connect.Response[moneyrecapv1.GetPrefsResponse], error) {
+	return connect.NewResponse(&moneyrecapv1.GetPrefsResponse{}), nil
+}
+
+func mux(path string, handler http.Handler) http.Handler {
+	m := http.NewServeMux()
+	m.Handle(path, handler)
+	return m
 }
 
 func newKey(t *testing.T) *rsa.PrivateKey {
