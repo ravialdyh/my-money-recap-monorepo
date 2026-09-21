@@ -16,7 +16,7 @@ STEPS=(
 "@decrypt|One age key pair, the only secret a human holds|age-keygen here, free and local"
 "@byhand|Apple Developer Program enrolment|developer.apple.com, USD 99 a year"
 "app_store_connect_api_key|App Store Connect API key|App Store Connect > Users and Access > Integrations"
-"apple_services_id apple_sign_in_key apple_push_key|Apple Services ID and the two .p8 keys|Apple Developer > Identifiers, then Keys"
+"apple_services_id apple_team_id apple_sign_in_key_id apple_sign_in_key apple_push_key|Apple Services ID and the two .p8 keys|Apple Developer > Membership details, Identifiers, then Keys"
 "google_client_id google_client_secret|Google OAuth client|Google Auth Platform > Clients"
 "open_exchange_rates_app_id|Open Exchange Rates App ID|the Open Exchange Rates account dashboard"
 "smtp_token|SMTP provider account and its first token|the provider's dashboard"

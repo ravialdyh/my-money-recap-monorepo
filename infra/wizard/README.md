@@ -18,7 +18,7 @@ Check mode is non-interactive and touches nothing, so the developer can stop hal
 | 1 | One age key pair | `.sops.yaml` and `infra/secrets/prod.yaml` | attempting a decrypt |
 | 2 | Apple Developer Program enrolment | nothing | nothing: reported by hand |
 | 3 | App Store Connect API key | `app_store_connect_api_key` | key presence |
-| 4 | Apple Services ID and the two `.p8` keys | `apple_services_id`, `apple_sign_in_key`, `apple_push_key` | key presence |
+| 4 | Apple Services ID and the two `.p8` keys | `apple_services_id`, `apple_team_id`, `apple_sign_in_key_id`, `apple_sign_in_key`, `apple_push_key` | key presence |
 | 5 | Google OAuth client | `google_client_id`, `google_client_secret` | key presence |
 | 6 | Open Exchange Rates App ID | `open_exchange_rates_app_id` | key presence |
 | 7 | SMTP provider account and its first token | `smtp_token` | key presence |
