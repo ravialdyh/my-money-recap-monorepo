@@ -8,7 +8,8 @@ SECRETS=$SECRETS_DIR/prod.yaml
 RULES=${WIZARD_RULES_FILE:-.sops.yaml}
 KEYSET=infra/secrets/keyset.sh
 KEY_FILE=${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}
-STACK_KEYS="members_db_password members_database_url notify_db_password notify_database_url"
+STACK_KEYS="members_db_password members_database_url notify_db_password notify_database_url
+postgres_password keycloak_db_password kc_bootstrap_admin_password bff_client_secret"
 STACK_TITLE="Values the stack itself needs, chosen once and assembled"
 PLAIN=
 
@@ -20,7 +21,7 @@ STEPS=(
 "google_client_id google_client_secret|Google OAuth client|Google Auth Platform > Clients"
 "open_exchange_rates_app_id|Open Exchange Rates App ID|the Open Exchange Rates account dashboard"
 "smtp_token|SMTP provider account and its first token|the provider's dashboard"
-"registrar_token|Domain, and a registrar token scoped to its zone|the registrar's dashboard"
+"domain registrar_token|Domain, and a registrar token scoped to its zone|the registrar's dashboard"
 "cloud_api_token deploy_ssh_private_key|Cloud account, its API token and a deploy key|the cloud dashboard, then ssh-keygen here"
 )
 

@@ -22,7 +22,7 @@ from `example.yaml`.
 ## The key set
 
 Seven of the nine human steps (`docs/research/2026-09-14-setup-automation.md` §4) put a value here;
-Apple Developer Program enrolment and `age-keygen` produce none. The last four keys are what the
+Apple Developer Program enrolment and `age-keygen` produce none. The last eight keys are what the
 stack itself needs, and the wizard's check mode weighs them alongside the steps.
 
 | Key | Comes from | Consumed by |
@@ -37,6 +37,7 @@ stack itself needs, and the wizard's check mode weighs them alongside the steps.
 | `google_client_secret` | the same client | The same provider, through Keycloak's file vault as `${vault.google_client_secret}` |
 | `open_exchange_rates_app_id` | Open Exchange Rates | `currency`, slice 6 |
 | `smtp_token` | the SMTP provider's first account-level token | `notify`, slice 7; Mailpit stands in locally |
+| `domain` | the domain bought in the same step | The deploy workflow's SSH host, and the machine's `MMR_HOST` |
 | `registrar_token` | the registrar, scoped to one zone | OpenTofu's DNS records |
 | `cloud_api_token` | the cloud account | OpenTofu's VM, firewall and cloud-init |
 | `deploy_ssh_private_key` | `ssh-keygen`, inside the cloud-account step | The deploy workflow's transport to the machine; OpenTofu hands the public half to cloud-init |
@@ -44,6 +45,10 @@ stack itself needs, and the wizard's check mode weighs them alongside the steps.
 | `members_database_url` | assembled from it | `members` and `members migrate`, as `MEMBERS_DATABASE_URL_FILE` |
 | `notify_db_password` | chosen once | The same init script, which creates the `notify` role the same way |
 | `notify_database_url` | assembled from it | `notify` and `notify migrate`, as `NOTIFY_DATABASE_URL_FILE` |
+| `postgres_password` | chosen once | The Postgres superuser, `POSTGRES_PASSWORD` |
+| `keycloak_db_password` | chosen once | The init script's `keycloak` role and Keycloak itself, `KEYCLOAK_DB_PASSWORD` |
+| `kc_bootstrap_admin_password` | chosen once | Keycloak's first admin, whose username is the literal `admin`, and `realm-apply`'s login |
+| `bff_client_secret` | chosen once | The `bff` client in the realm and the BFF, `BFF_CLIENT_SECRET` |
 
 Each pair holds the same password twice on purpose: `members` and `notify` each read one whole
 connection string rather than a password of their own, and `postgres/10-databases.sh` reads the bare
