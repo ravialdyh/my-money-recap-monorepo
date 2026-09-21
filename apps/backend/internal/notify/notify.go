@@ -25,7 +25,7 @@ var migrations embed.FS
 func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
 // Service implements NotifyService. Slice 3 serves EmailMagicLink alone, which is the one procedure
-// outside the bearer check (auth.PreAuth); every other RPC arrives in slice 7 behind it.
+// outside the bearer check (internal/auth); every other RPC arrives in slice 7 behind it.
 type Service struct {
 	moneyrecapv1connect.UnimplementedNotifyServiceHandler
 	DB *pgxpool.Pool

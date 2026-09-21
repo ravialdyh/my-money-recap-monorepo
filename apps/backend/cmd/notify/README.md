@@ -7,7 +7,7 @@ arrive in slice 7.
 
 `EmailMagicLink` is a pre-authentication procedure: the BFF reaches it on a request that carries no
 token, so it is exempt from the bearer check by procedure name and never by service (§4.2 point 3,
-`internal/auth`'s `PreAuth`). Every other procedure of the same service answers `unauthenticated`
+`internal/auth`). Every other procedure of the same service answers `unauthenticated`
 without a valid token, as `members` does. It sends the link over plain SMTP, and one idempotency key
 sends one message: the row is claimed first and a refused SMTP host rolls it back, so a retried send
 answers success without a second email and a failed one leaves the key free (A14). An empty key is
@@ -19,7 +19,7 @@ answers success without a second email and a failed one leaves the key free (A14
 | `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=notify .` |
 | `../../internal/notify/` | The store, the SMTP client, the Connect handler and `migrations/*.sql` (embedded). |
 | `../../internal/migrate/` | The migration runner `members` also uses. |
-| `../../internal/auth/` | The JWT interceptor and the `PreAuth` exemption. |
+| `../../internal/auth/` | The JWT interceptor and its pre-authentication exemption. |
 
 ## Environment
 
