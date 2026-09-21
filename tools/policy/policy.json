@@ -11,6 +11,11 @@
   "exclude": [
     "my-money-recap/**",
     "my-money-recap-ds/.design-sync/**",
-    "docs/**"
+    "docs/**",
+    "package-lock.json",
+    "*/go.sum",
+    "*/.terraform.lock.hcl",
+    "*.xcodeproj/*",
+    "*.md"
   ]
 }

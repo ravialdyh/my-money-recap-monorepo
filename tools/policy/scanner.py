@@ -51,6 +51,7 @@ STYLES = {
     ".yaml": HASH,
     ".py": HASH,
     ".toml": HASH,
+    ".conf": HASH,
     ".gitignore": HASH,
     ".dockerignore": HASH,
     ".example": HASH,
