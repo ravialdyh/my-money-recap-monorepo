@@ -23,6 +23,7 @@ resource "keycloak_oidc_google_identity_provider" "google" {
   client_id     = var.google_client_id
   client_secret = "$${vault.google_client_secret}"
   trust_email   = true
+  store_token   = false
 }
 
 resource "keycloak_oidc_identity_provider" "apple" {
@@ -35,6 +36,7 @@ resource "keycloak_oidc_identity_provider" "apple" {
   authorization_url = "https://appleid.apple.com/auth/authorize?response_mode=form_post"
   token_url         = "https://appleid.apple.com/auth/token"
   default_scopes    = "openid name email"
+  trust_email       = true
 
   extra_config = {
     teamId = var.apple_team_id

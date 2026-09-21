@@ -166,15 +166,15 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
   the Login Token endpoint needs (A10). Its secret is a variable rather than a generated value,
   because `a10-smoke.sh` and the `members` wrong-audience test authenticate as this client.
 - Test Member `test` / `test@example.com`.
-- Identity providers `google` (Keycloak's built-in Google provider, "Trust email" on, PRD §6.1) and
+- Identity providers `google` (Keycloak's built-in Google provider, "Store tokens" off) and
   `apple` (the image's Apple extension through the generic OIDC resource with
-  `provider_id = "apple"`, the Team ID and Key ID in `extra_config`). The app sends
-  `kc_idp_hint` with one of those two aliases, so Keycloak skips its own login page and redirects
-  straight to the provider (#71). Their client ids and the Apple Team ID and Key ID are
-  `GOOGLE_CLIENT_ID`, `APPLE_SERVICES_ID`, `APPLE_TEAM_ID` and `APPLE_SIGN_IN_KEY_ID`, which
-  `.env` may set and nothing requires: unset, each is `replace-me`, so the providers exist, the
-  buttons reach them, and the provider answers with its own error page. Their secrets are vault
-  references (see "Secrets").
+  `provider_id = "apple"`, the Team ID and Key ID in `extra_config`), both with "Trust email" on
+  (PRD §9). The app sends `kc_idp_hint` with one of those two aliases, so Keycloak skips its own
+  login page and redirects straight to the provider (#71). Their client ids and the Apple Team ID
+  and Key ID are `GOOGLE_CLIENT_ID`, `APPLE_SERVICES_ID`, `APPLE_TEAM_ID` and
+  `APPLE_SIGN_IN_KEY_ID`, which `.env` may set and nothing requires: unset, each is `replace-me`,
+  so the providers exist, the buttons reach them, and the provider answers with its own error
+  page. Their secrets are vault references (see "Secrets").
 
 `realm-apply` reads `BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD` from `.env` as `TF_VAR_` variables
 and re-applies both on every `up`, so a change to either takes effect at once. The realm's OpenTofu
