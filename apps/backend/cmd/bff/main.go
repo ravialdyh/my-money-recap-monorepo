@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"connectrpc.com/connect"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
@@ -32,10 +33,12 @@ func run() error {
 	audience, membersURL := env.Get("BFF_OIDC_AUDIENCE", "bff"), env.Get("BFF_MEMBERS_URL", "")
 	notifyURL, realm := env.Get("BFF_NOTIFY_URL", ""), env.Get("BFF_REALM_URL", "")
 	clientSecret, linkBase := env.Get("BFF_CLIENT_SECRET", ""), env.Get("BFF_MAGIC_LINK_BASE_URL", "")
-	listen := env.Get("BFF_LISTEN", ":8080")
+	redisAddr, listen := env.Get("BFF_REDIS_ADDR", ""), env.Get("BFF_LISTEN", ":8080")
 	if err := env.Err(); err != nil {
 		return err
 	}
+	limit := redis.NewClient(&redis.Options{Addr: redisAddr})
+	defer func() { _ = limit.Close() }()
 	verifier := auth.NewVerifier(ctx, issuer, jwks, audience)
 	svc := &bff.Service{
 		Members: moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, membersURL, connect.WithInterceptors(auth.Forward())),
@@ -45,6 +48,7 @@ func run() error {
 			Realm:        realm,
 			ClientSecret: clientSecret,
 			LinkBase:     linkBase,
+			Limit:        bff.RedisLimiter{Client: limit},
 			Mail:         moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, notifyURL),
 		},
 	}

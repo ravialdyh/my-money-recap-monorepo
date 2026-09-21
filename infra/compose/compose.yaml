@@ -82,6 +82,8 @@ services:
 
   redis:
     image: redis:8
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -182,10 +184,13 @@ services:
       BFF_REALM_URL: http://keycloak:8080/realms/mmr
       BFF_CLIENT_SECRET: ${BFF_CLIENT_SECRET:?set in .env}
       BFF_MAGIC_LINK_BASE_URL: http://${MMR_HOST:-localhost}:${BFF_HOST_PORT:-8082}/magic
+      BFF_REDIS_ADDR: redis:6379
     ports:
       - "${BFF_HOST_PORT:-8082}:8080"
     depends_on:
       members:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       realm-apply:
         condition: service_completed_successfully

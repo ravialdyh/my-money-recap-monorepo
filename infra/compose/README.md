@@ -52,8 +52,9 @@ that stack onward a realm change is an `up` (see "The `mmr` realm").
 `NOTIFY_DB_PASSWORD` is what the Postgres init script gives the `notify` role. Without the first two
 Compose refuses the `up` with `environment variable "MEMBERS_DATABASE_URL" required by secret
 "members_database_url" is not set` (see "Secrets"); without the third it refuses it with
-`NOTIFY_DB_PASSWORD: set in .env`. `NOTIFY_HOST_PORT`, `MAILPIT_HOST_PORT` and `MAILPIT_SMTP_HOST_PORT` have
-defaults and are needed only by a worktree running its own stack (see "Parallel worktrees").
+`NOTIFY_DB_PASSWORD: set in .env`. `NOTIFY_HOST_PORT`, `MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`
+and `REDIS_HOST_PORT` have defaults and are needed only by a worktree running its own stack (see
+"Parallel worktrees").
 
 ## What comes up
 
@@ -64,7 +65,7 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members` and `notify` — three of the five A9 plans — one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). |
 | keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). |
 | rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
-| redis | `redis:8` | — | No client until slice 5. |
+| redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link limit, §4.4's fifth job and the first one built: five requests per address per hour, counted with `INCR` and `EXPIRE`, failing closed (#69). Published to loopback so a `bff` run on the host has a Redis too. The other four §4.4 jobs arrive with slices 4 and 5. |
 | members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. Reads its connection string from `/run/secrets/members_database_url`, as `members` does. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy. |
 | notify-migrate | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | — | One-shot: `notify migrate` applies the embedded SQL migrations to the `notify` database and exits. Reads its connection string from `/run/secrets/notify_database_url`, as `notify` does. |
@@ -111,9 +112,9 @@ passwords, because `CREATE ROLE` needs them by themselves.
 Compose identifies a stack by project name, so two worktrees that both run this file as `mmr` recreate
 each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
 sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
-`BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `POSTGRES_HOST_PORT`, `MAILPIT_HOST_PORT`,
-`MAILPIT_SMTP_HOST_PORT`); the defaults in `.env.example` are the stock stack the iOS app signs in
-against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
+`BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `POSTGRES_HOST_PORT`, `REDIS_HOST_PORT`,
+`MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`); the defaults in `.env.example` are the stock
+stack the iOS app signs in against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
 `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
 Volumes and the `members` and `bff` images are named after the project, so stacks do not share data either.
 

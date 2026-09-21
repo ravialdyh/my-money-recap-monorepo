@@ -8,12 +8,27 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
+	"github.com/redis/go-redis/v9"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
+
+// fakeLimit is Redis for the tests that are not about the limit: one counter per key, as INCR is.
+type fakeLimit struct {
+	counts map[string]int64
+}
+
+func (f *fakeLimit) Count(_ context.Context, key string, _ time.Duration) (int64, error) {
+	if f.counts == nil {
+		f.counts = map[string]int64{}
+	}
+	f.counts[key]++
+	return f.counts[key], nil
+}
 
 // fakeMailer is notify: it keeps the last request and fails with sendErr when set.
 type fakeMailer struct {
@@ -76,6 +91,7 @@ func newMagicLinkService(t *testing.T, realm *fakeRealm, mailer Mailer) *Service
 		Realm:        newRealm(t, realm),
 		ClientSecret: "s3cret",
 		LinkBase:     "http://localhost:8082/magic",
+		Limit:        &fakeLimit{},
 		Mail:         mailer,
 	}}
 }
@@ -137,6 +153,34 @@ func TestRequestMagicLinkWhenTheRealmIsUnreachable(t *testing.T) {
 	_, err := s.RequestMagicLink(context.Background(), request("maya@example.test", ""))
 	if connect.CodeOf(err) != connect.CodeUnavailable || mailer.calls != 0 {
 		t.Errorf("%v after %d sends, want unavailable after 0", err, mailer.calls)
+	}
+}
+
+// Five per address per hour, then resource_exhausted before the realm or notify is called, and the
+// address is lower-cased into the key so a capital letter cannot buy five more (PRD §11, §4.4).
+func TestRequestMagicLinkRefusesTheSixthRequestForAnAddress(t *testing.T) {
+	mailer := &fakeMailer{}
+	s := newMagicLinkService(t, &fakeRealm{}, mailer)
+	for i := range limitPerWindow {
+		if _, err := s.RequestMagicLink(context.Background(), request("maya@example.test", "")); err != nil {
+			t.Fatalf("request %d: %v", i+1, err)
+		}
+	}
+	_, err := s.RequestMagicLink(context.Background(), request("MAYA@Example.test", ""))
+	if connect.CodeOf(err) != connect.CodeResourceExhausted || mailer.calls != limitPerWindow {
+		t.Errorf("%v after %d sends, want resource_exhausted after %d", err, mailer.calls, limitPerWindow)
+	}
+}
+
+// The closed door: a Redis that answers nothing refuses the send rather than passing the request
+// through. The end-to-end sixth request passes either way, so this is the only gate on the branch.
+func TestRequestMagicLinkFailsClosedWhenRedisIsUnreachable(t *testing.T) {
+	mailer := &fakeMailer{}
+	s := newMagicLinkService(t, &fakeRealm{}, mailer)
+	s.MagicLink.Limit = RedisLimiter{Client: redis.NewClient(&redis.Options{Addr: "127.0.0.1:1", MaxRetries: -1})}
+	_, err := s.RequestMagicLink(context.Background(), request("maya@example.test", ""))
+	if connect.CodeOf(err) != connect.CodeResourceExhausted || mailer.calls != 0 {
+		t.Errorf("%v after %d sends, want resource_exhausted after 0", err, mailer.calls)
 	}
 }
 

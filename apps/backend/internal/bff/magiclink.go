@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/redis/go-redis/v9"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
@@ -24,7 +25,29 @@ type Mailer interface {
 	EmailMagicLink(ctx context.Context, req *connect.Request[moneyrecapv1.EmailMagicLinkRequest]) (*connect.Response[moneyrecapv1.EmailMagicLinkResponse], error)
 }
 
-// MagicLink is what RequestMagicLink needs of the realm and of notify (A10, ARCHITECTURE §7.5).
+// Limiter is the slice of Redis the magic-link limit needs: one counter per key, expiring after
+// window, as §4.4 counts with INCR and EXPIRE (A6).
+type Limiter interface {
+	Count(ctx context.Context, key string, window time.Duration) (int64, error)
+}
+
+// RedisLimiter is the BFF's first Redis client (§4.4, A6). TxPipeline makes the INCR and the EXPIRE
+// one round trip, so a key can never outlive its window because the second call was lost.
+type RedisLimiter struct {
+	Client redis.UniversalClient
+}
+
+func (r RedisLimiter) Count(ctx context.Context, key string, window time.Duration) (int64, error) {
+	pipe := r.Client.TxPipeline()
+	count := pipe.Incr(ctx, key)
+	pipe.Expire(ctx, key, window)
+	if _, err := pipe.Exec(ctx); err != nil {
+		return 0, err
+	}
+	return count.Val(), nil
+}
+
+// MagicLink is what RequestMagicLink needs of the realm, of Redis and of notify (A10, ARCHITECTURE §7.5).
 type MagicLink struct {
 	// Realm is Keycloak's realm from this process, parent of the token and login-token endpoints.
 	Realm string
@@ -32,6 +55,8 @@ type MagicLink struct {
 	ClientSecret string
 	// LinkBase is the configured address the link is built on; the login token is its lt query.
 	LinkBase string
+	// Limit counts §4.4's fifth Redis job, five requests per address per hour (PRD §11, A6).
+	Limit Limiter
 	// Mail is notify, reached on a request carrying no token (§4.2 point 3, #68).
 	Mail Mailer
 }
@@ -39,6 +64,15 @@ type MagicLink struct {
 // linkLifetime is the 900 seconds A10 asks the extension for, which is the 15 minutes Check your
 // inbox promises (PRD D32).
 const linkLifetime = 900
+
+// PRD §11's magic-link limit, a security requirement rather than fairness: five per address per
+// fixed hour, counted in Redis because the edge cannot (§4.4, A6). limitTimeout bounds the count
+// as realmClient bounds the realm: a closed door has to close fast.
+const (
+	limitPerWindow = 5
+	limitWindow    = time.Hour
+	limitTimeout   = 2 * time.Second
+)
 
 // realmClient bounds each of the two realm calls. The notify hop that follows carries notify's own
 // ten-second cap on the SMTP conversation (internal/notify).
@@ -51,6 +85,9 @@ func (s *Service) RequestMagicLink(ctx context.Context, req *connect.Request[mon
 	addr, err := mail.ParseAddress(strings.TrimSpace(req.Msg.Email))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("email is not an address"))
+	}
+	if err := s.MagicLink.withinLimit(ctx, addr.Address); err != nil {
+		return nil, err
 	}
 	key := req.Header().Get("Idempotency-Key")
 	if key == "" {
@@ -71,6 +108,23 @@ func (s *Service) RequestMagicLink(ctx context.Context, req *connect.Request[mon
 		return nil, requiredCallFailed("notify.EmailMagicLink", connect.CodeOf(err), err)
 	}
 	return connect.NewResponse(&moneyrecapv1.BffServiceRequestMagicLinkResponse{}), nil
+}
+
+// withinLimit is PRD §11's five per address per hour, keyed by the address because the RPC carries
+// no token and so has no subject. It fails closed, unlike §4.4's fail-open per-Member row: A6 sets
+// the rule per job, and no edge limit can stand behind it.
+func (m MagicLink) withinLimit(ctx context.Context, addr string) error {
+	ctx, cancel := context.WithTimeout(ctx, limitTimeout)
+	defer cancel()
+	window := time.Now().Unix() / int64(limitWindow/time.Second)
+	count, err := m.Limit.Count(ctx, fmt.Sprintf("ml:%s:%d", strings.ToLower(addr), window), limitWindow)
+	if err != nil {
+		return requiredCallFailed("redis.magic-link-limit", connect.CodeResourceExhausted, err)
+	}
+	if count > limitPerWindow {
+		return connect.NewError(connect.CodeResourceExhausted, errors.New("too many magic-link requests for this address"))
+	}
+	return nil
 }
 
 // newIdempotencyKey is the fresh version 4 UUID a request carrying no Idempotency-Key header sends
