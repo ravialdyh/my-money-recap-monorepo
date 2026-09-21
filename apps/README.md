@@ -4,7 +4,7 @@ Runnable products.
 
 | Path | What lives here |
 | --- | --- |
-| `apps/backend/` | The one Go module for the backend (spec #10): the generated contract package under `gen/`, shared packages under `internal/`, one binary per app under `cmd/`, and one `Dockerfile` that builds any of them (`--build-arg CMD=<name>`) from the module root, per `docs/ARCHITECTURE.md` §10. Today: `cmd/members` and `cmd/bff` (see their READMEs); `ledger`, `notify` and `currency` land with later slices. |
+| `apps/backend/` | The one Go module for the backend (spec #10): the generated contract package under `gen/`, shared packages under `internal/`, one binary per app under `cmd/`, and one `Dockerfile` that builds any of them (`--build-arg CMD=<name>`) from the module root, per `docs/ARCHITECTURE.md` §10. Today: `cmd/members`, `cmd/notify` and `cmd/bff` (see their READMEs); `ledger` and `currency` land with later slices. |
 | `apps/ios/` | The SwiftUI app (`docs/IOS.md`): `MyMoneyRecap.xcodeproj`, Sign in through Keycloak with AppAuth-iOS, and the generated `DesignSystem/Tokens.swift`. See `apps/ios/README.md` to open, build and run it against local Compose. |
 
 The iOS app consumes the design tokens and illustrations from `my-money-recap-ds` and the Swift
@@ -24,6 +24,8 @@ and their variables are set; the CI job `backend` runs them that way:
 
 - the `members` Connect-boundary tests, `MEMBERS_TEST_*` listed at the top of
   `internal/members/members_test.go`;
+- the `notify` magic-link test, `NOTIFY_TEST_*`, which also needs Mailpit
+  (`infra/compose/README.md`, "Mailpit");
 - the backend end-to-end test at the BFF's HTTP boundary (`TestEndToEnd`), `BFF_TEST_*` listed at
   the top of `internal/bff/e2e_test.go`. With the stock `.env`:
 

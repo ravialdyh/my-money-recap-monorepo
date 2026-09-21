@@ -12,6 +12,7 @@ reason, which can quote the realm's answer, goes to the log.
 | `main.go` | The binary. `members` serves on `MEMBERS_LISTEN` (default `:8080`); `members migrate` applies the schema and exits. |
 | `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=members .` |
 | `../../internal/members/` | Store, Connect handler and `migrations/*.sql` (embedded). |
+| `../../internal/migrate/` | The migration runner `notify` also uses. |
 | `../../internal/auth/` | The JWT interceptor. |
 
 ## Environment

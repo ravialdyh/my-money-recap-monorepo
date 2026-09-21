@@ -1,9 +1,10 @@
 # infra/compose
 
 The phase-1 stack on a laptop (`docs/ARCHITECTURE.md` §10, A9). It runs Keycloak (Phase Two
-image, pinned), Postgres, RabbitMQ, Redis, the `members` migration step, the OpenTofu step that
-builds the `mmr` realm, the `members` service and the BFF. Nginx, `otel-lgtm` and `pg-backup` come
-in later slices.
+image, pinned), Postgres, RabbitMQ, Redis, the `members` and `notify` migration steps, the OpenTofu
+step that builds the `mmr` realm, the `members` service, `notify` and the BFF. Mailpit catches the
+mail `notify` sends and is dev-only, behind a profile (see "Mailpit"). Nginx, `otel-lgtm` and
+`pg-backup` come in later slices.
 
 ## Run it
 
@@ -27,17 +28,24 @@ reports healthy and the migration step has exited 0. Check with:
 docker compose -f infra/compose/compose.yaml ps
 ```
 
-Stop with `down`; add `-v` to drop the volumes.
+Stop with `down`; add `-v` to drop the volumes. A `down` takes the profile the `up` took, so
+`--profile mail down` is what also removes Mailpit.
 
-**One last `down -v`.** A stack created before the realm moved to OpenTofu still holds the
-JSON-imported realm in Keycloak's database, and the first `tofu apply` fails creating a realm that
-is already there. Run `docker compose -f infra/compose/compose.yaml down -v` once, then `up` as
-above. From that stack onward a realm change is an `up` (see "The `mmr` realm").
+**One last `down -v`.** Postgres runs `postgres/10-databases.sh` only on an empty data directory,
+so the `notify` database and role it now creates never appear on an existing volume and
+`notify-migrate` aborts the `up` with `database "notify" does not exist`. A stack created before the
+realm moved to OpenTofu also still holds the JSON-imported realm in Keycloak's database, and the
+first `tofu apply` fails creating a realm that is already there. Run
+`docker compose -f infra/compose/compose.yaml down -v` once, then `up` as above. From that stack
+onward a realm change is an `up` (see "The `mmr` realm").
 
-**An existing `.env` needs one new line.** `MEMBERS_DATABASE_URL` is what Compose turns into the
-`members` connection-string secret, so a `.env` written before this gains the line `.env.example`
-carries. Without it Compose refuses the `up` with `environment variable "MEMBERS_DATABASE_URL"
-required by secret "members_database_url" is not set` (see "Secrets").
+**An existing `.env` needs the lines `.env.example` has gained.** `MEMBERS_DATABASE_URL` and
+`NOTIFY_DATABASE_URL` are what Compose turns into the two connection-string secrets, and
+`NOTIFY_DB_PASSWORD` is what the Postgres init script gives the `notify` role. Without the first two
+Compose refuses the `up` with `environment variable "MEMBERS_DATABASE_URL" required by secret
+"members_database_url" is not set` (see "Secrets"); without the third it refuses it with
+`NOTIFY_DB_PASSWORD: set in .env`. `NOTIFY_HOST_PORT`, `MAILPIT_HOST_PORT` and `MAILPIT_SMTP_HOST_PORT` have
+defaults and are needed only by a worktree running its own stack (see "Parallel worktrees").
 
 ## What comes up
 
@@ -45,17 +53,20 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 
 | Container | Image | Host port | Notes |
 | --- | --- | --- | --- |
-| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak` and `members`, one role each, `CONNECT` revoked from `PUBLIC` so neither role can reach the other's database (A9). |
+| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members` and `notify` — three of the five A9 plans — one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). |
 | keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). |
 | rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
 | redis | `redis:8` | — | No client until slice 5. |
 | members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. Reads its connection string from `/run/secrets/members_database_url`, as `members` does. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy. |
+| notify-migrate | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | — | One-shot: `notify migrate` applies the embedded SQL migrations to the `notify` database and exits. Reads its connection string from `/run/secrets/notify_database_url`, as `notify` does. |
+| mailpit | `axllent/mailpit`, pinned | 127.0.0.1:`MAILPIT_HOST_PORT` and `MAILPIT_SMTP_HOST_PORT` | Dev-only, behind the `mail` profile, so a default `up` never starts it (see "Mailpit"). Takes SMTP on 1025 and shows what arrived on 8025; both are published to loopback, the second so a `notify` run on the host has a mail host too. |
 | members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect, `/healthz` pings the database. Its connection string arrives as a file, never as an environment variable (see "Secrets"). Starts after the migration step and the realm step completed; verifies every bearer token against the realm JWKS (audience `bff`). |
-| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` and `notify` are in-process stubs until slices 5 and 7. |
+| notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect, `/healthz` pings the database. Slice 3 serves `EmailMagicLink` alone, which is the one procedure outside the bearer check (§4.2 point 3); every other procedure answers `unauthenticated` without a token and arrives in slice 7. Sends through `NOTIFY_SMTP_ADDR`, `mailpit:1025` here. |
+| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` is an in-process stub until slice 5, and so is `notify.GetWarningState` until slice 7; the `notify` container is real from slice 3 for `EmailMagicLink`, which the BFF calls from `RequestMagicLink` (#69). |
 
 Every long-running container has a health check and `depends_on: condition: service_healthy` orders
-the start; the migration step and the realm step are ordered with
+the start; the two migration steps and the realm step are ordered with
 `condition: service_completed_successfully`. Keycloak's check is a bash `/dev/tcp` request rather
 than `curl`, because the Keycloak image ships neither `curl` nor `wget`: it opens 9000 for
 `/health/ready` and then 8080 for `/realms/master`. It no longer asks for `/realms/mmr`, because
@@ -63,14 +74,16 @@ Keycloak now starts with no realm and `realm-apply` builds it afterwards. The se
 because `/health/ready` answers UP on the management port while a first boot is still bootstrapping
 on 8080, and `realm-apply` then gets `503 Service Unavailable` from the token endpoint.
 Keycloak and the BFF
-publish on every interface because the phone reaches them; the Postgres and `members` ports bind to
-loopback and exist for the Connect-boundary tests (`apps/README.md`).
+publish on every interface because the phone reaches them; the Postgres, `members` and `notify`
+ports bind to loopback and exist for the Connect-boundary tests (`apps/README.md`), as does
+Mailpit's, which is where the magic-link test reads the message it caused.
 
 ## Secrets
 
 `members` and `members-migrate` read their connection string from
-`/run/secrets/members_database_url`, not from the environment, so it is absent from `docker inspect`
-and from the process list (`docs/ARCHITECTURE.md` A13). The shared reader takes any variable in the
+`/run/secrets/members_database_url`, and `notify` and `notify-migrate` theirs from
+`/run/secrets/notify_database_url`, not from the environment, so neither is in `docker inspect`
+or the process list (`docs/ARCHITECTURE.md` A13). The shared reader takes any variable in the
 `<NAME>_FILE` form, trims the file and falls back to the plain variable, so a file-backed variable is
 never also reported missing.
 
@@ -78,19 +91,20 @@ The Compose secret's source differs by machine and the containers cannot tell:
 
 | Where | Source | How |
 | --- | --- | --- |
-| A laptop and CI | `MEMBERS_DATABASE_URL` in `.env` | `secrets: members_database_url: {environment: ...}`. Docker materialises the file at mode 0444 with the exact value and no trailing newline, and does not export the variable into the container. |
+| A laptop and CI | `MEMBERS_DATABASE_URL` and `NOTIFY_DATABASE_URL` in `.env` | `secrets: members_database_url: {environment: ...}`. Docker materialises the file at mode 0444 with the exact value and no trailing newline, and does not export the variable into the container. |
 | The VM | `infra/secrets/prod.yaml` | `infra/secrets/decrypt.sh` writes one file per value at mode 0400 before Compose starts. See [`../secrets/README.md`](../secrets/README.md). |
 
-`.env.example` assembles the URL from `MEMBERS_DB_PASSWORD` in the same file, so the password still
-has one local source; the Postgres init script keeps reading the bare password, because `CREATE ROLE`
-needs it by itself.
+`.env.example` assembles each URL from `MEMBERS_DB_PASSWORD` and `NOTIFY_DB_PASSWORD` in the same
+file, so a password still has one local source; the Postgres init script keeps reading the bare
+passwords, because `CREATE ROLE` needs them by themselves.
 
 ## Parallel worktrees
 
 Compose identifies a stack by project name, so two worktrees that both run this file as `mmr` recreate
 each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
 sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
-`BFF_HOST_PORT`, `POSTGRES_HOST_PORT`); the defaults in `.env.example` are the stock stack the iOS app signs in
+`BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `POSTGRES_HOST_PORT`, `MAILPIT_HOST_PORT`,
+`MAILPIT_SMTP_HOST_PORT`); the defaults in `.env.example` are the stock stack the iOS app signs in
 against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
 `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
 Volumes and the `members` and `bff` images are named after the project, so stacks do not share data either.
@@ -163,11 +177,40 @@ curl -s -X POST http://localhost:8080/realms/mmr/protocol/openid-connect/token -
 curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
 ```
 
+## Mailpit
+
+Mailpit is the SMTP host `notify` sends to on a laptop and in CI, so the client is exercised on every
+run rather than first meeting a real provider on a VM. It is dev-only and sits behind the `mail`
+profile, so a default `up` does not start it and `docker compose ps` does not list it:
+
+```bash
+docker compose -f infra/compose/compose.yaml --profile mail up -d --wait
+```
+
+Read what arrived at `http://localhost:8025` in a browser, or over its HTTP interface, which is what
+the tests use:
+
+```bash
+curl -s "http://localhost:8025/api/v1/search?query=to:someone@example.test" | jq '.messages[0].ID'
+curl -s http://localhost:8025/api/v1/message/<ID> | jq -r .Text
+```
+
+Send one without a token, the way the BFF will (`EmailMagicLink` is exempt from the bearer check by
+procedure name, §4.2 point 3):
+
+```bash
+curl -s http://localhost:8083/money_recap.v1.NotifyService/EmailMagicLink -H 'Content-Type: application/json' \
+  -d '{"idempotency_key":"'"$(uuidgen)"'","email":"someone@example.test","link":"https://mymoneyrecap.test/magic?lt=demo"}'
+```
+
+The same key twice sends one message and answers `{}` both times; an empty key is `invalid_argument`.
+
 ## Running the Go tests against this stack
 
-The `internal/members` tests and `internal/bff`'s `TestEndToEnd` skip unless their variables are set
-(`internal/members`' store-failure and caller-deadline tests and `internal/bff`'s other tests need
-nothing); with the stack up and the stock `.env` they are the values below. A non-default `.env`
+The `internal/members` and `internal/notify` tests and `internal/bff`'s `TestEndToEnd` skip unless
+their variables are set (`internal/members`' store-failure and caller-deadline tests,
+`internal/notify`'s empty-key test and `internal/bff`'s other tests need nothing); with the stack up,
+Mailpit started and the stock `.env` they are the values below. A non-default `.env`
 substitutes its own `*_HOST_PORT`s. Either way the `members` database password is the value `.env`
 held when the volumes were created; the test Member's password and the `bff` client secret are
 whatever `.env` holds now, because `realm-apply` re-applies both on every `up`.
@@ -183,6 +226,10 @@ whatever `.env` holds now, because `realm-apply` re-applies both on every `up`.
 | `BFF_TEST_KEYCLOAK` | `http://localhost:8080` | As `MEMBERS_TEST_KEYCLOAK`. |
 | `BFF_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | As `MEMBERS_TEST_USER_PASSWORD`. |
 | `BFF_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The same `members` database; the end-to-end test clears its own row before it runs. |
+| `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all. |
+| `NOTIFY_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where that test reads the message it caused. |
+| `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests, the migration-runner test and `cmd/notify`'s migrate case. |
+| `NOTIFY_TEST_SMTP` | `localhost:1025` | Mailpit's SMTP port on `MAILPIT_SMTP_HOST_PORT`, for the in-process send. |
 
 Run them with `-p 1`:
 
