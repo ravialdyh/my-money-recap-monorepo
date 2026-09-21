@@ -189,8 +189,8 @@ curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorizatio
 
 Mailpit is the SMTP host `notify` sends to on a laptop and in CI, so the client is exercised on every
 run rather than first meeting a real provider on a VM. It is dev-only and sits behind the `mail`
-profile (#68), so it is one of the thirteen §10 containers on no machine, a default `up` does not
-start it and a plain `docker compose ps` does not list it:
+profile (#68), so it is not one of the thirteen §10 containers on any machine, a default `up` does
+not start it and a plain `docker compose ps` does not list it:
 
 ```bash
 docker compose -f infra/compose/compose.yaml --profile mail up -d --wait
@@ -227,9 +227,9 @@ The same key twice sends one message and answers `{}` both times; an empty key i
 The `internal/members`, `internal/notify` and `internal/migrate` tests and `internal/bff`'s
 `TestEndToEnd` skip unless their variables are set (`internal/members`' store-failure and
 caller-deadline tests, `internal/notify`'s empty-key test and `internal/bff`'s other tests need
-nothing); with the stack up, Mailpit started and the stock `.env` they are the values below. A non-default `.env`
-substitutes its own `*_HOST_PORT`s. Either way the `members` database password is the value `.env`
-held when the volumes were created; the test Member's password and the `bff` client secret are
+nothing); with the stack up, Mailpit started and the stock `.env` they are the values below. A
+non-default `.env` substitutes its own `*_HOST_PORT`s. Either way the `members` database password is
+the value `.env` held when the volumes were created; the test Member's password and the `bff` client secret are
 whatever `.env` holds now, because `realm-apply` re-applies both on every `up`.
 
 | Variable | Stock value | What it is |
