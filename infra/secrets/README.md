@@ -12,7 +12,7 @@ container as a file, so nothing sensitive shows up in `docker inspect` or a proc
 | `decrypt.sh` | yes | The deploy's decrypt step: one file per value, mode 0400. |
 | `decrypt-smoke.sh` | yes | Its proof, on a throwaway age key it generates itself. |
 | `prod.yaml` | **no** | The real values. Git-ignored until the nine human steps have been done; committing it is the first item of the slice's follow-up issue. |
-| `.sops.yaml` | **no** | The creation rule naming the age recipient. Git-ignored for the same reason: a rule with an invalid recipient makes `sops edit` fail outright rather than degrade, so it cannot be committed before a key exists. |
+| `.sops.yaml`, at the **repository root** | **no** | The creation rule naming the age recipient. It sits at the root because sops resolves the rule by walking up from the working directory, not from the file it is given, so a copy in this directory is invisible to `sops edit infra/secrets/prod.yaml` run from the root. Git-ignored for the same reason as `prod.yaml`: a rule with an invalid recipient makes `sops edit` fail outright rather than degrade, so it cannot be committed before a key exists. |
 
 No age key has been generated yet, so this slice commits the shape and nothing else. The wizard's
 first step is `age-keygen`, which writes the new public key into `.sops.yaml` and creates `prod.yaml`
