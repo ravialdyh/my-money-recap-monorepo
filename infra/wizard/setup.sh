@@ -194,7 +194,7 @@ age_step() {
     printf '  %s written from %s.\n' "$SECRETS" "$EXAMPLE"
   fi
   printf '  %s names the key %s holds.\n' "$RULES" "$KEY_FILE"
-  printf '  Copy %s to the machine and to the GitHub production environment.\n' "$KEY_FILE"
+  printf '  Copy %s to the GitHub production environment; the machine never needs it.\n' "$KEY_FILE"
 }
 
 ssh_step() {

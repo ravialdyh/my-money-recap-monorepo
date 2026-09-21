@@ -63,7 +63,7 @@ jobs:
             docker push "$IMAGES/$cmd:$GITHUB_REF_NAME"
           done
 
-      - name: Copy the Compose file, the edge configuration, the realm root and the machine's .env
+      - name: Copy the Compose file, the edge configuration, the realm root, the machine's .env and Keycloak's two vault files
         run: |
           umask 077
           infra/compose/machine-env.sh "$RUNNER_TEMP/secrets" >"$RUNNER_TEMP/machine.env"
@@ -71,6 +71,10 @@ jobs:
             infra/nginx/default.conf infra/nginx/html |
             ssh machine 'rm -rf mmr && mkdir mmr && tar -xf - -C mmr'
           ssh machine 'umask 077 && cat >mmr/infra/compose/.env' <"$RUNNER_TEMP/machine.env"
+          mkdir -m 700 "$RUNNER_TEMP/vault"
+          cp "$RUNNER_TEMP/secrets/google_client_secret" "$RUNNER_TEMP/secrets/apple_sign_in_key" "$RUNNER_TEMP/vault/"
+          chmod 644 "$RUNNER_TEMP"/vault/*
+          tar -cf - -C "$RUNNER_TEMP" vault | ssh machine 'tar -xf - -C mmr/infra/compose'
 
       - name: Pull the images, then up, which runs realm-apply and the migration steps in the order Compose already gives them
         env:

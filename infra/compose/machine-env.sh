@@ -20,6 +20,7 @@ line MMR_HOST domain
 echo REALM_SSL_REQUIRED=external
 echo NGINX_HOST_PORT=80
 for key in postgres_password keycloak_db_password members_db_password members_database_url \
-  notify_db_password notify_database_url kc_bootstrap_admin_password bff_client_secret; do
+  notify_db_password notify_database_url kc_bootstrap_admin_password bff_client_secret \
+  google_client_id apple_services_id apple_team_id apple_sign_in_key_id; do
   line "$(tr '[:lower:]' '[:upper:]' <<<"$key")" "$key"
 done

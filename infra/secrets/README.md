@@ -93,7 +93,8 @@ on the pinned image:
   `infra/compose/compose.yaml`), and `decrypt.sh` keeps naming files after the bare key.
 
 On a laptop there is no decrypted directory, so the two sources are `infra/compose/vault/`, committed
-files holding the same `replace-me` placeholders as `example.yaml`.
+files holding the same `replace-me` placeholders as `example.yaml`. On the machine the deploy writes
+the two decrypted values into that same directory instead (`../README.md`, "Deploying").
 
 **Google's secret resolves; Apple's does not.** Keycloak's own Google provider asks the vault for its
 client secret on every code exchange. The Apple extension pinned in the image (1.17.0) does not: it
