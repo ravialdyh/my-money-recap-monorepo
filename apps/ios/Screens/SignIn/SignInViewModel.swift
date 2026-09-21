@@ -5,7 +5,8 @@ import Foundation
 @Observable
 @MainActor
 final class SignInViewModel {
-    static let errorCopy = "We couldn't sign you in. Try again."
+    /// One string: the email path shows the same words for every failure it cannot name (PRD §6.3).
+    static let errorCopy = MagicLinkFailure.generic.copy
 
     private(set) var isLoading = false
     private(set) var errorMessage: String?
