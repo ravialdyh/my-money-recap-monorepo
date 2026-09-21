@@ -11,6 +11,7 @@ container as a file, so nothing sensitive shows up in `docker inspect` or a proc
 | `example.yaml` | yes | The key set with placeholder values, the convention `.env.example` already follows. It is what the wizard checks presence against, so the two files cannot drift. |
 | `decrypt.sh` | yes | The deploy's decrypt step: one file per value, mode 0400. |
 | `decrypt-smoke.sh` | yes | Its proof, on a throwaway age key it generates itself. |
+| `keyset.sh` | yes | The one reader of `example.yaml`'s shape: `keys` lists the key set, `value` prints the placeholder one key carries. The smoke and the wizard both go through it, so a change to the file's shape cannot leave the two disagreeing about the key set. |
 | `prod.yaml` | **no** | The real values. Git-ignored until the nine human steps have been done; committing it is the first item of the slice's follow-up issue. |
 | `.sops.yaml`, at the **repository root** | **no** | The creation rule naming the age recipient. It sits at the root because sops resolves the rule by walking up from the working directory, not from the file it is given, so a copy in this directory is invisible to `sops edit infra/secrets/prod.yaml` run from the root. Git-ignored for the same reason as `prod.yaml`: a rule with an invalid recipient makes `sops edit` fail outright rather than degrade, so it cannot be committed before a key exists. |
 
@@ -21,8 +22,8 @@ from `example.yaml`.
 ## The key set
 
 Seven of the nine human steps (`docs/research/2026-09-14-setup-automation.md` §4) put a value here;
-Apple Developer Program enrolment and `age-keygen` produce none. The last two keys are what the stack
-itself needs.
+Apple Developer Program enrolment and `age-keygen` produce none. The last four keys are what the
+stack itself needs, and the wizard's check mode weighs them alongside the steps.
 
 | Key | Comes from | Consumed by |
 | --- | --- | --- |
@@ -39,10 +40,12 @@ itself needs.
 | `deploy_ssh_private_key` | `ssh-keygen`, inside the cloud-account step | The deploy workflow's transport to the machine; OpenTofu hands the public half to cloud-init |
 | `members_db_password` | chosen once | The Postgres init script, which needs the password by itself to create the role |
 | `members_database_url` | assembled from it | `members` and `members migrate`, as `MEMBERS_DATABASE_URL_FILE` |
+| `notify_db_password` | chosen once | The same init script, which creates the `notify` role the same way |
+| `notify_database_url` | assembled from it | `notify` and `notify migrate`, as `NOTIFY_DATABASE_URL_FILE` |
 
-The last two hold the same password twice on purpose: `members` reads one whole connection string
-rather than a password of its own, and `postgres/10-databases.sh` reads the bare password. Keep them
-in step when either changes.
+Each pair holds the same password twice on purpose: `members` and `notify` each read one whole
+connection string rather than a password of their own, and `postgres/10-databases.sh` reads the bare
+password. Keep a pair in step when either half changes.
 
 ## Decrypting
 

@@ -6,7 +6,7 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
 mode() { stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1"; }
-expected() { sed -n "s/^$1: //p" example.yaml; }
+expected() { ./keyset.sh value example.yaml "$1"; }
 
 age-keygen -o "$work/key.txt" 2>/dev/null
 recipient=$(age-keygen -y "$work/key.txt")
@@ -19,7 +19,7 @@ echo "encrypted: $(wc -l <"$work/prod.yaml" | tr -d ' ') lines of ciphertext and
 
 SOPS_AGE_KEY_FILE=$work/key.txt ./decrypt.sh "$work/prod.yaml" "$work/out"
 
-keys=$(sed -n 's/^\([a-z0-9_]*\):.*/\1/p' example.yaml)
+keys=$(./keyset.sh keys example.yaml)
 for key in $keys; do
   file=$work/out/$key
   [ -f "$file" ] || fail "$key has no file"

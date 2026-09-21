@@ -5,9 +5,11 @@ cd "$(dirname "$0")/../.."
 SECRETS_DIR=${WIZARD_SECRETS_DIR:-infra/secrets}
 EXAMPLE=$SECRETS_DIR/example.yaml
 SECRETS=$SECRETS_DIR/prod.yaml
-RULES=.sops.yaml
+RULES=${WIZARD_RULES_FILE:-.sops.yaml}
+KEYSET=infra/secrets/keyset.sh
 KEY_FILE=${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}
-STACK_KEYS="members_db_password members_database_url"
+STACK_KEYS="members_db_password members_database_url notify_db_password notify_database_url"
+STACK_TITLE="Values the stack itself needs, chosen once and assembled"
 PLAIN=
 
 STEPS=(
@@ -30,9 +32,9 @@ usage() {
   printf '  --check      report which are done, non-zero while any checkable one is not\n'
 }
 
-example_keys() { sed -n 's/^\([a-z0-9_]*\):.*/\1/p' "$EXAMPLE"; }
+example_keys() { "$KEYSET" keys "$EXAMPLE"; }
 
-placeholder() { sed -n "s/^$1: //p" "$EXAMPLE"; }
+placeholder() { "$KEYSET" value "$EXAMPLE" "$1"; }
 
 step_keys() {
   local record
@@ -148,11 +150,18 @@ check() {
     esac
   done
 
-  local problems=0
+  local stack problems=0
+  if [ -n "$blocked" ]; then stack=$(join "$STACK_KEYS"); else stack=$(value_note "$STACK_KEYS"); fi
+  if [ -n "$stack" ]; then
+    report - missing "$STACK_TITLE" "$stack"
+  else
+    report - "done" "$STACK_TITLE" ""
+  fi
+
   drift || problems=$?
-  printf '\n%d of %d checkable steps done, %d reported by hand, %d drift.\n' \
-    "$finished" "$((finished + pending))" "$byhand" "$problems"
-  [ "$pending" -eq 0 ] && [ "$problems" -eq 0 ]
+  printf '\n%d of %d checkable steps done, %d reported by hand, stack values %sfilled, %d drift.\n' \
+    "$finished" "$((finished + pending))" "$byhand" "${stack:+not }" "$problems"
+  [ "$pending" -eq 0 ] && [ -z "$stack" ] && [ "$problems" -eq 0 ]
 }
 
 ask() {
@@ -164,19 +173,26 @@ ask() {
 
 age_step() {
   local recipient
+  umask 077
   if [ -f "$KEY_FILE" ]; then
     printf '  %s already holds a key, and the wizard never overwrites one.\n' "$KEY_FILE"
+  elif ask "Generate the age key pair now"; then
+    mkdir -p "$(dirname "$KEY_FILE")"
+    age-keygen -o "$KEY_FILE"
+  else
     return 0
   fi
-  ask "Generate the age key pair now" || return 0
-  umask 077
-  mkdir -p "$(dirname "$KEY_FILE")"
-  age-keygen -o "$KEY_FILE"
   recipient=$(age-keygen -y "$KEY_FILE")
-  printf 'creation_rules:\n  - path_regex: infra/secrets/prod\\.yaml$\n    age: %s\n' "$recipient" >"$RULES"
-  sops encrypt --input-type yaml --output-type yaml \
-    --filename-override "$SECRETS" --output "$SECRETS" "$EXAMPLE"
-  printf '  %s and %s written.\n' "$RULES" "$SECRETS"
+  grep -qsF "$recipient" "$RULES" ||
+    printf 'creation_rules:\n  - path_regex: infra/secrets/prod\\.yaml$\n    age: %s\n' "$recipient" >"$RULES"
+  if [ -f "$SECRETS" ]; then
+    printf '  %s already exists, and the wizard never overwrites it either.\n' "$SECRETS"
+  else
+    sops encrypt --age "$recipient" --input-type yaml --output-type yaml \
+      --filename-override "$SECRETS" --output "$SECRETS" "$EXAMPLE"
+    printf '  %s written from %s.\n' "$SECRETS" "$EXAMPLE"
+  fi
+  printf '  %s names the key %s holds.\n' "$RULES" "$KEY_FILE"
   printf '  Copy %s to the machine and to the GitHub production environment.\n' "$KEY_FILE"
 }
 
@@ -194,11 +210,11 @@ ssh_step() {
 
 value_step() {
   printf '  Fills: %s\n' "$(join "$1")"
-  case " $1 " in *" deploy_ssh_private_key "*) ssh_step ;; esac
   if [ ! -f "$SECRETS" ]; then
     printf '  %s does not exist yet; do step 1 first.\n' "$SECRETS"
     return 0
   fi
+  case " $1 " in *" deploy_ssh_private_key "*) ssh_step ;; esac
   ask "Open sops edit now" || return 0
   sops edit "$SECRETS"
 }
