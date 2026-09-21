@@ -91,6 +91,7 @@ resource "keycloak_openid_client_service_account_role" "bff_manage_users" {
 }
 
 resource "keycloak_user" "test" {
+  count          = var.test_user_password == "" ? 0 : 1
   realm_id       = keycloak_realm.mmr.id
   username       = "test"
   email          = "test@example.com"
@@ -103,4 +104,9 @@ resource "keycloak_user" "test" {
     value     = var.test_user_password
     temporary = false
   }
+}
+
+moved {
+  from = keycloak_user.test
+  to   = keycloak_user.test[0]
 }

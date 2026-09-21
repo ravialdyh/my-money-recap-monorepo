@@ -1,0 +1,94 @@
+name: Deploy
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy to the machine
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    env:
+      IMAGES: ghcr.io/${{ github.repository }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Decrypt the secrets file before anything is copied, because the transport credential is inside it (A13)
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/sops" \
+            https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.linux.amd64
+          echo "e5bec3346a873ae91d871550f3e698c1aad962aff462a080e40f25fde17fef6b  $RUNNER_TEMP/sops" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/sops" && sudo mv "$RUNNER_TEMP/sops" /usr/local/bin/
+          infra/secrets/decrypt.sh infra/secrets/prod.yaml "$RUNNER_TEMP/secrets"
+          for file in "$RUNNER_TEMP"/secrets/*; do
+            while IFS= read -r line || [ -n "$line" ]; do
+              [ -z "$line" ] || echo "::add-mask::$line"
+            done <"$file"
+          done
+
+      - name: SSH to the domain as ubuntu, the image's cloud-init default, with accept-new as the host-key policy
+        run: |
+          umask 077
+          mkdir -p ~/.ssh
+          printf '%s\n' "$(cat "$RUNNER_TEMP/secrets/deploy_ssh_private_key")" >~/.ssh/deploy
+          printf 'Host machine\n  HostName %s\n  User ubuntu\n  IdentityFile ~/.ssh/deploy\n  IdentitiesOnly yes\n  StrictHostKeyChecking accept-new\n' \
+            "$(cat "$RUNNER_TEMP/secrets/domain")" >~/.ssh/config
+
+      - name: Build the members, notify and bff images from the one Dockerfile and push them to GHCR under the tag
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          for cmd in members notify bff; do
+            docker build --build-arg "CMD=$cmd" \
+              --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+              -t "$IMAGES/$cmd:$GITHUB_REF_NAME" apps/backend
+            docker push "$IMAGES/$cmd:$GITHUB_REF_NAME"
+          done
+
+      - name: Copy the Compose file, the edge configuration, the realm root, the machine's .env and Keycloak's two vault files
+        run: |
+          umask 077
+          infra/compose/machine-env.sh "$RUNNER_TEMP/secrets" >"$RUNNER_TEMP/machine.env"
+          tar -cf - infra/compose/compose.yaml infra/compose/postgres infra/tofu/realm \
+            infra/nginx/default.conf infra/nginx/html |
+            ssh machine 'rm -rf mmr && mkdir mmr && tar -xf - -C mmr'
+          ssh machine 'umask 077 && cat >mmr/infra/compose/.env' <"$RUNNER_TEMP/machine.env"
+          mkdir -m 700 "$RUNNER_TEMP/vault"
+          cp "$RUNNER_TEMP/secrets/google_client_secret" "$RUNNER_TEMP/secrets/apple_sign_in_key" "$RUNNER_TEMP/vault/"
+          chmod 644 "$RUNNER_TEMP"/vault/*
+          tar -cf - -C "$RUNNER_TEMP" vault | ssh machine 'tar -xf - -C mmr/infra/compose'
+
+      - name: Pull the images, then up, which runs realm-apply and the migration steps in the order Compose already gives them
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$REGISTRY_TOKEN" | ssh machine docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          ssh machine bash -s -- "$IMAGES" "$GITHUB_REF_NAME" <<'MACHINE'
+          set -euo pipefail
+          trap 'docker logout ghcr.io' EXIT
+          for cmd in members notify bff; do
+            docker pull "$1/$cmd:$2"
+            docker tag "$1/$cmd:$2" "mmr-$cmd"
+          done
+          cd mmr/infra/compose
+          docker compose up -d --wait
+          docker compose restart nginx
+          MACHINE

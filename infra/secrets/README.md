@@ -22,7 +22,7 @@ from `example.yaml`.
 ## The key set
 
 Seven of the nine human steps (`docs/research/2026-09-14-setup-automation.md` §4) put a value here;
-Apple Developer Program enrolment and `age-keygen` produce none. The last four keys are what the
+Apple Developer Program enrolment and `age-keygen` produce none. The last eight keys are what the
 stack itself needs, and the wizard's check mode weighs them alongside the steps.
 
 | Key | Comes from | Consumed by |
@@ -37,6 +37,7 @@ stack itself needs, and the wizard's check mode weighs them alongside the steps.
 | `google_client_secret` | the same client | The same provider, through Keycloak's file vault as `${vault.google_client_secret}` |
 | `open_exchange_rates_app_id` | Open Exchange Rates | `currency`, slice 6 |
 | `smtp_token` | the SMTP provider's first account-level token | `notify`, slice 7; Mailpit stands in locally |
+| `domain` | the domain bought in the same step | The deploy workflow's SSH host, and the machine's `MMR_HOST` |
 | `registrar_token` | the registrar, scoped to one zone | OpenTofu's DNS records |
 | `cloud_api_token` | the cloud account | OpenTofu's VM, firewall and cloud-init |
 | `deploy_ssh_private_key` | `ssh-keygen`, inside the cloud-account step | The deploy workflow's transport to the machine; OpenTofu hands the public half to cloud-init |
@@ -44,6 +45,14 @@ stack itself needs, and the wizard's check mode weighs them alongside the steps.
 | `members_database_url` | assembled from it | `members` and `members migrate`, as `MEMBERS_DATABASE_URL_FILE` |
 | `notify_db_password` | chosen once | The same init script, which creates the `notify` role the same way |
 | `notify_database_url` | assembled from it | `notify` and `notify migrate`, as `NOTIFY_DATABASE_URL_FILE` |
+| `postgres_password` | chosen once | The Postgres superuser, `POSTGRES_PASSWORD` |
+| `keycloak_db_password` | chosen once | The init script's `keycloak` role and Keycloak itself, `KEYCLOAK_DB_PASSWORD` |
+| `kc_bootstrap_admin_password` | chosen once | Keycloak's first admin, whose username is the literal `admin`, and `realm-apply`'s login |
+| `bff_client_secret` | chosen once | The `bff` client in the realm and the BFF, `BFF_CLIENT_SECRET` |
+
+Each stack value becomes the Compose variable of the same name in capitals on the machine
+(`infra/compose/machine-env.sh`). There is no `test_user_password`: the realm creates its test Member
+only when given a password, and the machine is never given one.
 
 Each pair holds the same password twice on purpose: `members` and `notify` each read one whole
 connection string rather than a password of their own, and `postgres/10-databases.sh` reads the bare
@@ -52,13 +61,17 @@ password. Keep a pair in step when either half changes.
 ## Decrypting
 
 ```bash
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt infra/secrets/decrypt.sh infra/secrets/prod.yaml /run/secrets
+SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt infra/secrets/decrypt.sh infra/secrets/prod.yaml infra/secrets/decrypted
 ```
 
 Each top-level key becomes a file of that name holding the value with no trailing newline, mode 0400
-in a directory the umask leaves at 0700. Compose mounts those files with `secrets:`, and Keycloak's
-file vault reads the two identity-provider secrets among them (below). The deploy workflow runs this
-as its **first** step, before anything is copied, because the transport credential is inside the file.
+in a directory the umask leaves at 0700. The deploy workflow runs this on the runner as the step right
+after the checkout, before anything is copied, because the transport credential is inside the file. It
+reads the age key from the `SOPS_AGE_KEY` secret of the GitHub `production` environment, which holds
+the whole key file; sops carries age inside it, so no `age` binary is needed there. The directory
+itself stays on the runner. What reaches the machine is its `.env`, written from the stack values and
+the identity providers' ids, and the two identity-provider secrets as files for Keycloak's file vault
+(below, and `../README.md`, "Deploying"). The machine never holds the age key.
 
 `infra/secrets/decrypted/` is the one path inside the repository that is safe to point it at, and
 `.gitignore` covers it. The plaintext is what needs guarding and no scanner guards it: these files
@@ -80,7 +93,8 @@ on the pinned image:
   `infra/compose/compose.yaml`), and `decrypt.sh` keeps naming files after the bare key.
 
 On a laptop there is no decrypted directory, so the two sources are `infra/compose/vault/`, committed
-files holding the same `replace-me` placeholders as `example.yaml`.
+files holding the same `replace-me` placeholders as `example.yaml`. On the machine the deploy writes
+the two decrypted values into that same directory instead (`../README.md`, "Deploying").
 
 **Google's secret resolves; Apple's does not.** Keycloak's own Google provider asks the vault for its
 client secret on every code exchange. The Apple extension pinned in the image (1.17.0) does not: it
@@ -96,7 +110,10 @@ infra/secrets/decrypt-smoke.sh
 ```
 
 It generates a throwaway age key, encrypts `example.yaml` with it, runs the same `decrypt.sh` the
-deploy runs, and asserts one file per key with mode 0400 and the value intact. Nothing secret is
+deploy runs, and asserts one file per key with mode 0400 and the value intact. It then runs
+`infra/compose/machine-env.sh` over those files, as the deploy does next, and asserts the machine's
+`.env` carries the stack values intact, `ssl_required` `external`, no test Member password and no
+deploy key, and that a value holding a quote stops it rather than reaching Compose. Nothing secret is
 committed and no GitHub secret is needed. CI runs it in the `backend` job, which installs `sops`
 3.13.3 and `age` 1.3.2 pinned to a checksum.
 

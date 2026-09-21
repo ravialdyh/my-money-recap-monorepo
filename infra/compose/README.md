@@ -54,7 +54,9 @@ Compose refuses the `up` with `environment variable "MEMBERS_DATABASE_URL" requi
 "members_database_url" is not set` (see "Secrets"); without the third it refuses it with
 `NOTIFY_DB_PASSWORD: set in .env`. `NOTIFY_HOST_PORT`, `MAILPIT_HOST_PORT`,
 `MAILPIT_SMTP_HOST_PORT`, `REDIS_HOST_PORT` and `NGINX_HOST_PORT` have defaults and are needed only
-by a worktree running its own stack (see "Parallel worktrees").
+by a worktree running its own stack (see "Parallel worktrees"). `KC_BOOTSTRAP_ADMIN_USERNAME` is no
+longer read: the admin username is the literal `admin` in `compose.yaml`, so the line an older `.env`
+carries is ignored, and a stack first booted with any other name must be rebuilt with `down -v`.
 
 ## What comes up
 
@@ -103,7 +105,7 @@ The Compose secret's source differs by machine and the containers cannot tell:
 | Where | Source | How |
 | --- | --- | --- |
 | A laptop and CI | `MEMBERS_DATABASE_URL` and `NOTIFY_DATABASE_URL` in `.env` | `secrets: members_database_url: {environment: ...}`. Docker materialises the file at mode 0444 with the exact value and no trailing newline, and does not export the variable into the container. |
-| The VM | `infra/secrets/prod.yaml` | `infra/secrets/decrypt.sh` writes one file per value at mode 0400 before Compose starts. See [`../secrets/README.md`](../secrets/README.md). |
+| The machine | `infra/secrets/prod.yaml` | The deploy decrypts it on the runner with `infra/secrets/decrypt.sh`, and `machine-env.sh` writes the values into the machine's `.env`, so the same `environment:` source serves both. See [`../README.md`](../README.md), "Deploying". |
 
 `.env.example` assembles each URL from `MEMBERS_DB_PASSWORD` and `NOTIFY_DB_PASSWORD` in the same
 file, so a password still has one local source; the Postgres init script keeps reading the bare
@@ -151,7 +153,7 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
   `http://localhost:8080/realms/mmr` (with the default port) is the same whether the caller is the
   simulator or a container reaching `keycloak:8080`. `ssl_required` is a variable rather than a
   default, `none` here, because every laptop caller speaks plain HTTP and the provider's default is
-  `external`. Sign-in with an email address stays on, because the Login Token endpoint finds the
+  `external`. `REALM_SSL_REQUIRED` overrides it, and only the machine's `.env` sets it, to `external`. Sign-in with an email address stays on, because the Login Token endpoint finds the
   Member by email and otherwise creates a second one.
 - `ios`: public client, PKCE S256 required, direct access grants enabled for the test seams, redirect
   URI `mymoneyrecap://auth/callback` (custom scheme until universal links). An
@@ -165,7 +167,12 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
 - `bff`: confidential client with a service account holding `realm-management` `manage-users`, which
   the Login Token endpoint needs (A10). Its secret is a variable rather than a generated value,
   because `a10-smoke.sh` and the `members` wrong-audience test authenticate as this client.
-- Test Member `test` / `test@example.com`.
+- Test Member `test` / `test@example.com`, created only when `TEST_USER_PASSWORD` is non-empty. The
+  machine's `.env` carries no such line, so no account with a known password exists there. On a
+  laptop an empty value is refused by the realm root itself, which requires the password whenever
+  `ssl_required` is `none`, so `realm-apply` exits 1 with `TEST_USER_PASSWORD is empty` and the
+  `up` fails. The test Member's address in the OpenTofu state is `keycloak_user.test[0]`, and a
+  `moved` block carries a stack built before that change across without re-creating the test Member.
 - Identity providers `google` (Keycloak's built-in Google provider, "Store tokens" off) and
   `apple` (the image's Apple extension through the generic OIDC resource with
   `provider_id = "apple"`, the Team ID and Key ID in `extra_config`), both with "Trust email" on
@@ -179,9 +186,9 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
 `realm-apply` reads `BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD` from `.env` as `TF_VAR_` variables
 and re-applies both on every `up`, so a change to either takes effect at once. The realm's OpenTofu
 state is a file in the `realm-state` volume, never in the working tree.
-`KC_BOOTSTRAP_ADMIN_USERNAME` and `KC_BOOTSTRAP_ADMIN_PASSWORD` keep the old rule: they seed the
-admin of an empty Keycloak database, so changing either reaches Keycloak only after `down -v`, and
-until then `realm-apply` and the `kcadm` login under "Admin access" are refused. Nothing secret is
+`KC_BOOTSTRAP_ADMIN_PASSWORD` keeps the old rule, and so does the literal `admin` username beside it:
+they seed the admin of an empty Keycloak database, so changing either reaches Keycloak only after
+`down -v`, and until then `realm-apply` and the `kcadm` login under "Admin access" are refused. Nothing secret is
 in a committed file.
 
 ## Try it

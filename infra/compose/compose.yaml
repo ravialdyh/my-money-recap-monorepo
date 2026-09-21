@@ -30,7 +30,7 @@ services:
       KC_HOSTNAME: http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
-      KC_BOOTSTRAP_ADMIN_USERNAME: &kc-admin ${KC_BOOTSTRAP_ADMIN_USERNAME:?set in .env}
+      KC_BOOTSTRAP_ADMIN_USERNAME: &kc-admin admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: &kc-admin-password ${KC_BOOTSTRAP_ADMIN_PASSWORD:?set in .env}
       KC_VAULT: file
       KC_VAULT_DIR: /run/secrets
@@ -65,9 +65,9 @@ services:
       KEYCLOAK_CLIENT_ID: admin-cli
       KEYCLOAK_USER: *kc-admin
       KEYCLOAK_PASSWORD: *kc-admin-password
-      TF_VAR_ssl_required: none
+      TF_VAR_ssl_required: ${REALM_SSL_REQUIRED:-none}
       TF_VAR_bff_client_secret: ${BFF_CLIENT_SECRET:?set in .env}
-      TF_VAR_test_user_password: ${TEST_USER_PASSWORD:?set in .env}
+      TF_VAR_test_user_password: ${TEST_USER_PASSWORD:-}
       TF_VAR_google_client_id: ${GOOGLE_CLIENT_ID:-replace-me}
       TF_VAR_apple_services_id: ${APPLE_SERVICES_ID:-replace-me}
       TF_VAR_apple_team_id: ${APPLE_TEAM_ID:-replace-me}

@@ -22,7 +22,7 @@ Check mode is non-interactive and touches nothing, so the developer can stop hal
 | 5 | Google OAuth client | `google_client_id`, `google_client_secret` | key presence |
 | 6 | Open Exchange Rates App ID | `open_exchange_rates_app_id` | key presence |
 | 7 | SMTP provider account and its first token | `smtp_token` | key presence |
-| 8 | Domain, and a registrar token scoped to its zone | `registrar_token` | key presence |
+| 8 | Domain, and a registrar token scoped to its zone | `domain`, `registrar_token` | key presence |
 | 9 | Cloud account, its API token and a deploy key | `cloud_api_token`, `deploy_ssh_private_key` | key presence |
 
 Step 1 is first because every other step pastes into the file it creates, and it is `age-keygen`:
@@ -57,9 +57,11 @@ at. It is reported by hand and never counts toward the exit status (slice 3 spec
 decision 9).
 
 **The values the stack assembles for itself are checked too.** `members_db_password`,
-`members_database_url`, `notify_db_password` and `notify_database_url` come from no step — a password
-chosen once, and a connection string built from it — but `infra/secrets/decrypt.sh` writes whatever
-they hold into `/run/secrets`, so a placeholder left in one reaches the machine. They get their own
+`members_database_url`, `notify_db_password`, `notify_database_url`, `postgres_password`,
+`keycloak_db_password`, `kc_bootstrap_admin_password` and `bff_client_secret` come from no step — a
+password chosen once, and for the two databases a connection string built from it — but the deploy
+hands whatever they hold to the machine, so a placeholder left in one reaches it. They are
+`STACK_KEYS` in `setup.sh`. They get their own
 row, below the nine, and they count toward the exit status.
 
 ## Where the creation rule goes
