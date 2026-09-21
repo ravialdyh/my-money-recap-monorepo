@@ -52,8 +52,9 @@ that stack onward a realm change is an `up` (see "The `mmr` realm").
 `NOTIFY_DB_PASSWORD` is what the Postgres init script gives the `notify` role. Without the first two
 Compose refuses the `up` with `environment variable "MEMBERS_DATABASE_URL" required by secret
 "members_database_url" is not set` (see "Secrets"); without the third it refuses it with
-`NOTIFY_DB_PASSWORD: set in .env`. `NOTIFY_HOST_PORT`, `MAILPIT_HOST_PORT` and `MAILPIT_SMTP_HOST_PORT` have
-defaults and are needed only by a worktree running its own stack (see "Parallel worktrees").
+`NOTIFY_DB_PASSWORD: set in .env`. `NOTIFY_HOST_PORT`, `MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`
+and `REDIS_HOST_PORT` have defaults and are needed only by a worktree running its own stack (see
+"Parallel worktrees").
 
 ## What comes up
 
@@ -64,7 +65,7 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members` and `notify` — three of the five A9 plans — one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). |
 | keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). |
 | rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
-| redis | `redis:8` | — | No client until slice 5. |
+| redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link limit, §4.4's fifth job and the first one built: five requests per address per hour, counted with `INCR` and `EXPIRE`, failing closed (#69). Published to loopback so a `bff` run on the host has a Redis too. The other four §4.4 jobs arrive with slices 4 and 5. |
 | members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. Reads its connection string from `/run/secrets/members_database_url`, as `members` does. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy. |
 | notify-migrate | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | — | One-shot: `notify migrate` applies the embedded SQL migrations to the `notify` database and exits. Reads its connection string from `/run/secrets/notify_database_url`, as `notify` does. |
@@ -111,9 +112,9 @@ passwords, because `CREATE ROLE` needs them by themselves.
 Compose identifies a stack by project name, so two worktrees that both run this file as `mmr` recreate
 each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
 sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
-`BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `POSTGRES_HOST_PORT`, `MAILPIT_HOST_PORT`,
-`MAILPIT_SMTP_HOST_PORT`); the defaults in `.env.example` are the stock stack the iOS app signs in
-against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
+`BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `POSTGRES_HOST_PORT`, `REDIS_HOST_PORT`,
+`MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`); the defaults in `.env.example` are the stock
+stack the iOS app signs in against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
 `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
 Volumes and the `members` and `bff` images are named after the project, so stacks do not share data either.
 
@@ -225,7 +226,7 @@ The same key twice sends one message and answers `{}` both times; an empty key i
 ## Running the Go tests against this stack
 
 The `internal/members`, `internal/notify` and `internal/migrate` tests and `internal/bff`'s
-`TestEndToEnd` skip unless their variables are set (`internal/members`' store-failure and
+`TestEndToEnd` and `TestMagicLinkEndToEnd` skip unless their variables are set (`internal/members`' store-failure and
 caller-deadline tests, `internal/notify`'s empty-key test and `internal/bff`'s other tests need
 nothing); with the stack up, Mailpit started and the stock `.env` they are the values below. A
 non-default `.env` substitutes its own `*_HOST_PORT`s. Either way the `members` database password is
@@ -242,7 +243,8 @@ whatever `.env` holds now, because `realm-apply` re-applies both on every `up`.
 | `BFF_TEST_URL` | `http://localhost:8082` | The BFF on `BFF_HOST_PORT`, the HTTP boundary `TestEndToEnd` drives. |
 | `BFF_TEST_KEYCLOAK` | `http://localhost:8080` | As `MEMBERS_TEST_KEYCLOAK`. |
 | `BFF_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | As `MEMBERS_TEST_USER_PASSWORD`. |
-| `BFF_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The same `members` database; the end-to-end test clears its own row before it runs. |
+| `BFF_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The same `members` database; `TestEndToEnd` clears its own row before it runs, and `TestMagicLinkEndToEnd` counts and then drops the row its fresh address makes. |
+| `BFF_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where `TestMagicLinkEndToEnd` reads the message it caused and pulls the login token out of the link. With `BFF_TEST_URL`, `BFF_TEST_KEYCLOAK` and `BFF_TEST_DATABASE_URL` it is that test's whole set; it needs no `BFF_TEST_USER_PASSWORD`, because it spends a fresh address and never signs in as `test`. |
 | `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all. |
 | `NOTIFY_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where that test reads the message it caused. |
 | `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests, `cmd/notify`'s migrate case and, when `MEMBERS_TEST_DATABASE_URL` is unset, the shared migration runner's tests. |

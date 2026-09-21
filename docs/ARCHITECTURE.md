@@ -79,7 +79,7 @@ flowchart LR
 ### 4.2 Authentication, at three points
 
 1. **Nginx** does not read the token. Open-source Nginx has no JWT module; that is Nginx Plus. Nginx terminates TLS, limits requests and connections per IP, and hides internal addresses.
-2. **The BFF** verifies the Keycloak JWT on every request against the realm's JWKS, cached and refreshed on an unknown key id. It rejects expired or wrong-audience tokens before any service is called. A token it cannot check because the JWKS is out of reach is answered `unavailable`, not `unauthenticated`, so the phone keeps its session and its last snapshot instead of refreshing (PRD D61); a token whose key is already cached still verifies, and each service in point 3 answers the same way. It applies the per-Member limit in Redis keyed by the token subject, because thousands of phones behind one carrier address make a per-IP limit useless for fairness.
+2. **The BFF** verifies the Keycloak JWT against the realm's JWKS, cached and refreshed on an unknown key id, on every request but `RequestMagicLink` — its own pre-authentication procedure, exempted by the rule point 3 states, since it is sent before a Member has a token and its handler therefore reads the address from the request rather than from the claims (#69). It rejects expired or wrong-audience tokens before any service is called. A token it cannot check because the JWKS is out of reach is answered `unavailable`, not `unauthenticated`, so the phone keeps its session and its last snapshot instead of refreshing (PRD D61); a token whose key is already cached still verifies, and each service in point 3 answers the same way. It applies the per-Member limit in Redis keyed by the token subject, because thousands of phones behind one carrier address make a per-IP limit useless for fairness.
 3. **Each service** verifies the same JWT again, as PRD §9 requires. The BFF forwards the bearer token unchanged. A bug in the BFF therefore cannot expose one Member's rows to another. The reason is that rule's own limit: a pre-authentication procedure is sent before a Member has a token, so it has no Member and no rows to isolate, and it is exempt by procedure name and never by service, leaving every other procedure of the same service behind the check (`internal/auth`). `notify.EmailMagicLink` is one, since the BFF reaches it on a request that carries no token (#68); the BFF's own `RequestMagicLink` is the other (#69).
 
 ### 4.3 Events: RabbitMQ with the outbox pattern (A4, A5)
@@ -114,11 +114,12 @@ sequenceDiagram
 
 The Spend and its event are written together, so neither can exist without the other. Delivery is at least once; step 1 makes a second delivery harmless. The consumer always evaluates and stamps for itself; it never depends on a synchronous call having happened first. Debezium is the heavyweight relay that reads the outbox from the write-ahead log; a Go loop polling the outbox table every second is the phase-1 version. The relay selects rows with `FOR UPDATE SKIP LOCKED`, so two replicas of a service polling the same table never contend or double-publish.
 
-### 4.4 Redis: four jobs (A6)
+### 4.4 Redis: five jobs (A6)
 
 | Job | Owner | Key | TTL | If Redis is down |
 |---|---|---|---|---|
 | Per-Member rate limit | bff | `rl:{subject}:{minute}`, INCR + EXPIRE | 2 min | Fail open: requests pass, a metric fires. Nginx per-IP limits still stand. |
+| Magic-link rate limit | bff | `ml:{address}:{hour}`, INCR + EXPIRE | 1 h | **Fail closed**: the request is refused with `resource_exhausted`. PRD §11 makes five per address per hour a security requirement rather than fairness, and no backstop can stand behind it: `limit_req` keys on an IP address and cannot see an email address inside a request body, so §5's limit is not this one. The key is the address, not the subject, because `RequestMagicLink` carries no token. |
 | Idempotency of writes, fast path | bff | `idem:{subject}:{Idempotency-Key}` → stored response | 24 h | Fail open. The guarantee is not here: every write RPC carries the key to the owning service, which enforces a unique `(member_id, idempotency_key)` inside the same transaction as the row (A14). A retry after a BFF crash or a Redis restart hits that constraint and gets the original result back, so a retried Save never creates two Spends. Redis only saves the round trip. |
 | Exchange-rate cache | currency | `fx:{yyyy-mm-dd}:USD` → the day's rate table | 36 h | Fall back to the latest `rate_snapshot` row; fetch from OER if none. |
 | JWKS cache | bff, services | `jwks:{realm}` | 1 h | Each process also keeps the last JWKS in memory, so token checks continue. |
@@ -150,7 +151,7 @@ Once one tap on the phone crosses Nginx, the BFF and up to three services, a slo
 |---|---|
 | Responsibility | TLS termination, per-IP and per-connection limits, routing, static files, hiding every internal address. No business logic, no token parsing. |
 | Routes | `/api/` → bff. `/auth/` → Keycloak. `/.well-known/apple-app-site-association` → static, `application/json`, no redirect. `/magic` → the static fallback page. |
-| Limits | `limit_req_zone $binary_remote_addr rate=60r/s burst=120`, deliberately generous because a mobile carrier can put thousands of phones behind one address. `limit_conn` 100 per address. A stricter 5 r/min on the magic-link path only, matching PRD §11. |
+| Limits | `limit_req_zone $binary_remote_addr rate=60r/s burst=120`, deliberately generous because a mobile carrier can put thousands of phones behind one address. `limit_conn` 100 per address. A stricter 5 r/min on the magic-link path only, which blunts a flood from one IP address and is **not** PRD §11's five per email address per hour: `limit_req` keys on an IP address and cannot see an address inside a request body, so the BFF enforces that limit itself, fail closed (§4.4). |
 | Certificates | Let's Encrypt via an `acme.sh` sidecar whose deploy hook runs `nginx -s reload` (`certbot/certbot` was rejected: `research/2026-09-14-setup-automation.md` §1.5). |
 | Why Nginx | The most widely deployed reverse proxy, documented everywhere, and it keeps TLS and abuse control out of Go. |
 | Known limit | JWT validation needs Nginx Plus or the njs module. The design does not depend on it; the BFF verifies tokens. |
@@ -352,7 +353,7 @@ One Postgres container, five databases, five roles, each role granted only its o
 | All of §8 inside `ledger` | §8.9's single transaction, and every rule reads every table. | A separate recap service: three network calls per number and a saga for currency change. |
 | Replicated member facts | `ledger` and `notify` need timezone, `signed_up_on` and email on every computation or send. Events keep the copies fresh without a call per request. | Calling `members` per request: a dependency in the hot path. Sharing the database: not a boundary. |
 | RabbitMQ | The textbook queue: routing, dead letters, quorum queues, per-message acks. MPL-2.0. Streams exist if replay is ever needed. | NATS: lightest, less to learn. Kafka: heaviest, replay not needed yet. Postgres queue: simplest, no broker skills. |
-| Redis in phase 1 | Four real jobs (§4.4). AGPL binds Redis, not the app. | Valkey: identical API, drop-in if policy changes. No cache: fewer parts, no idempotency store. |
+| Redis in phase 1 | Five real jobs (§4.4). AGPL binds Redis, not the app. | Valkey: identical API, drop-in if policy changes. No cache: fewer parts, no idempotency store. |
 | Protobuf, Buf, Connect | One schema for RPCs and events; Go, Swift, TS and Kotlin generated; plain HTTP through Nginx. | OpenAPI: fine for phone-to-BFF, no event types. GraphQL: for many clients, not one. gRPC alone: needs HTTP/2 end to end and a proxy for browsers. |
 | Outbox and `processed_events` | The only pattern under which "Spend saved but event lost" and "event delivered twice" are both impossible to observe. | Publish after commit without outbox: loses events on a crash. Exactly-once from the broker: does not exist end to end. |
 | Server-side computation | One implementation of §8, one answer key, no drift. | Phone-side arithmetic: a second implementation in Swift. |
@@ -401,7 +402,7 @@ Thirteen containers, one `compose.yaml`, health checks on every one so `depends_
 | A3 | `member.timezone` as an IANA name; every "today" in §8 and §10 evaluated in it; the `notify` scheduler is the §4.5 query. | proposed |
 | A4 | Events: outbox relay, at-least-once, `processed_events` dedupe keyed by message id. | proposed |
 | A5 | Broker: RabbitMQ, topic exchange, quorum queues, dead-letter after five tries. | proposed |
-| A6 | Redis for rate limits, idempotency, rate cache and JWKS; fail-open and fail-closed rules per job; AGPL noted. | proposed |
+| A6 | Redis for rate limits, idempotency, rate cache and JWKS; fail-open and fail-closed rules per job; AGPL noted. | in use since slice 3 (#69: §4.4's magic-link limit is the first job built — `INCR` and `EXPIRE` keyed by the address, failing closed, in the BFF's first Redis client; the other four rows are still proposed) |
 | A7 | Front door: Nginx for TLS, per-IP limits and static files; the BFF verifies the JWT; every service verifies again. | proposed |
 | A8 | Service boundaries: `members`, `ledger`, `notify`, `currency`; payment and AI reserved; replicated member facts fed by events. | proposed |
 | A9 | Data: one Postgres container, five databases, one role each, no cross-database grants. Deployment: Docker Compose for phase 1. | in use since slice 1 |
