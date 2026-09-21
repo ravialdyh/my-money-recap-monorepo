@@ -172,7 +172,7 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
   laptop an empty value is refused by the realm root itself, which requires the password whenever
   `ssl_required` is `none`, so `realm-apply` exits 1 with `TEST_USER_PASSWORD is empty` and the
   `up` fails. The test Member's address in the OpenTofu state is `keycloak_user.test[0]`, and a
-  `moved` block carries a stack built before that change across without re-creating the user.
+  `moved` block carries a stack built before that change across without re-creating the test Member.
 - Identity providers `google` (Keycloak's built-in Google provider, "Store tokens" off) and
   `apple` (the image's Apple extension through the generic OIDC resource with
   `provider_id = "apple"`, the Team ID and Key ID in `extra_config`), both with "Trust email" on

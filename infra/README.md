@@ -63,10 +63,19 @@ value is single-quoted, so Compose interpolates nothing inside it, and a value h
 line break stops the deploy instead.
 
 **What A13 keeps and does not.** Every secret is encrypted in one committed file, the age key is the
-only one a human holds, and rotation is edit, commit, tag. `members` and `notify` still read their
-connection strings from files Compose writes under `/run/secrets`. But the values reach Compose
-through a `.env` on the machine's disk rather than through files decrypted under `/run/secrets`, and
-Postgres, Keycloak and the BFF receive theirs as environment variables, exactly as on a laptop.
+only one a human holds, and `bff_client_secret` rotates by edit, commit, tag, because `realm-apply`
+writes it into the realm on every `up`. `members` and `notify` still read their connection strings
+from files Compose writes under `/run/secrets`. But the values reach Compose through a `.env` on the
+machine's disk rather than through files decrypted under `/run/secrets`, and Postgres, Keycloak and
+the BFF receive theirs as environment variables, exactly as on a laptop.
+
+**Chosen once, not rotated by a tag.** The other seven stack values are fixed when their volume is
+first initialised: `postgres/10-databases.sh` sets the three database passwords on an empty Postgres
+(the two connection strings carry two of them), and `kc_bootstrap_admin_password` seeds the admin of
+an empty Keycloak database. A tag that changes one leaves the running role or admin on the old
+value, so the migration steps, Keycloak or `realm-apply` fail to sign in, and a changed
+`postgres_password` changes nothing. Change one by hand on the machine first, then in `prod.yaml`;
+`down -v`, the laptop's answer, deletes the data there.
 
 **Not in the repository yet.** `infra/secrets/prod.yaml` is git-ignored and does not exist, and the
 workflow reads it anyway: committing it is the follow-up issue's first item. Nor do the `production`
