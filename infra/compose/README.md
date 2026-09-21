@@ -226,7 +226,7 @@ The same key twice sends one message and answers `{}` both times; an empty key i
 ## Running the Go tests against this stack
 
 The `internal/members`, `internal/notify` and `internal/migrate` tests and `internal/bff`'s
-`TestEndToEnd` skip unless their variables are set (`internal/members`' store-failure and
+`TestEndToEnd` and `TestMagicLinkEndToEnd` skip unless their variables are set (`internal/members`' store-failure and
 caller-deadline tests, `internal/notify`'s empty-key test and `internal/bff`'s other tests need
 nothing); with the stack up, Mailpit started and the stock `.env` they are the values below. A
 non-default `.env` substitutes its own `*_HOST_PORT`s. Either way the `members` database password is
@@ -243,7 +243,8 @@ whatever `.env` holds now, because `realm-apply` re-applies both on every `up`.
 | `BFF_TEST_URL` | `http://localhost:8082` | The BFF on `BFF_HOST_PORT`, the HTTP boundary `TestEndToEnd` drives. |
 | `BFF_TEST_KEYCLOAK` | `http://localhost:8080` | As `MEMBERS_TEST_KEYCLOAK`. |
 | `BFF_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | As `MEMBERS_TEST_USER_PASSWORD`. |
-| `BFF_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The same `members` database; the end-to-end test clears its own row before it runs. |
+| `BFF_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The same `members` database; `TestEndToEnd` clears its own row before it runs, and `TestMagicLinkEndToEnd` counts and then drops the row its fresh address makes. |
+| `BFF_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where `TestMagicLinkEndToEnd` reads the message it caused and pulls the login token out of the link. With `BFF_TEST_URL`, `BFF_TEST_KEYCLOAK` and `BFF_TEST_DATABASE_URL` it is that test's whole set; it needs no `BFF_TEST_USER_PASSWORD`, because it spends a fresh address and never signs in as `test`. |
 | `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all. |
 | `NOTIFY_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where that test reads the message it caused. |
 | `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests, `cmd/notify`'s migrate case and, when `MEMBERS_TEST_DATABASE_URL` is unset, the shared migration runner's tests. |

@@ -1,0 +1,221 @@
+package bff
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
+)
+
+// TestMagicLinkEndToEnd drives the magic-link chain at the BFF's HTTP boundary against the real
+// Compose stack (#69, spec #61). It skips unless the four BFF_TEST_* variables that
+// infra/compose/README.md lists are all set.
+func TestMagicLinkEndToEnd(t *testing.T) {
+	base, kc := os.Getenv("BFF_TEST_URL"), os.Getenv("BFF_TEST_KEYCLOAK")
+	mailpit, dsn := os.Getenv("BFF_TEST_MAILPIT"), os.Getenv("BFF_TEST_DATABASE_URL")
+	if base == "" || kc == "" || mailpit == "" || dsn == "" {
+		t.Skip("BFF_TEST_URL, BFF_TEST_KEYCLOAK, BFF_TEST_MAILPIT and BFF_TEST_DATABASE_URL not all set")
+	}
+	ctx := t.Context()
+	db, err := pgxpool.New(ctx, dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(db.Close)
+	anonymous := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(""))
+
+	t.Run("a fresh address signs a Member in, once", func(t *testing.T) {
+		address := freshAddress(t)
+		forgetMember(t, db, address)
+		if _, err := anonymous.RequestMagicLink(ctx, request(address, "")); err != nil {
+			t.Fatalf("RequestMagicLink on a client with an empty bearer: %v", err)
+		}
+		loginToken := loginTokenFromMail(t, mailpit, address)
+		t.Logf("%s → %s", address, loginToken)
+
+		access, refused := redeem(t, kc, loginToken)
+		if access == "" {
+			t.Fatalf("redeeming on the ios client: %s", refused)
+		}
+		second, refusal := redeem(t, kc, loginToken)
+		if second != "" {
+			t.Errorf("the second redemption issued another token, want a refusal")
+		}
+		t.Logf("second redemption of the same token → %s", refusal)
+
+		home, err := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(access)).
+			GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		assertZeroHome(t, home.Msg.Home)
+		if rows := memberRows(t, db, address); rows != 1 {
+			t.Fatalf("%d Member rows for %s, want 1", rows, address)
+		}
+		t.Logf("GetHome on the magic-link token → HomeView of zeros and one Member row")
+	})
+
+	t.Run("the sixth request in the hour is refused", func(t *testing.T) {
+		address := freshAddress(t)
+		for i := range limitPerWindow {
+			if _, err := anonymous.RequestMagicLink(ctx, request(address, "")); err != nil {
+				t.Fatalf("request %d for %s: %v", i+1, address, err)
+			}
+		}
+		_, err := anonymous.RequestMagicLink(ctx, request(address, ""))
+		if connect.CodeOf(err) != connect.CodeResourceExhausted {
+			t.Fatalf("request %d for %s: %v, want resource_exhausted", limitPerWindow+1, address, err)
+		}
+		t.Logf("request %d for %s → %v", limitPerWindow+1, address, err)
+	})
+
+	t.Run("one idempotency key sends one email", func(t *testing.T) {
+		address, key := freshAddress(t), mustIdempotencyKey(t)
+		for i := range 2 {
+			if _, err := anonymous.RequestMagicLink(ctx, request(address, key)); err != nil {
+				t.Fatalf("request %d carrying %s: %v", i+1, key, err)
+			}
+		}
+		if inbox := mailpitInbox(t, mailpit, address, 2); len(inbox) != 1 {
+			t.Fatalf("%d messages for two requests carrying %s, want 1", len(inbox), key)
+		}
+		t.Logf("two requests carrying %s → 1 message for %s", key, address)
+	})
+}
+
+// freshAddress is the per-run address of #61 line 166: a hyphen rather than plus-addressing, and its
+// own address per test, because a fixed one collides with the five-per-hour limit and the second
+// local run inside an hour would fail on its first request.
+func freshAddress(t *testing.T) string {
+	t.Helper()
+	return "mmr-test-" + mustIdempotencyKey(t) + "@example.test"
+}
+
+func mustIdempotencyKey(t *testing.T) string {
+	t.Helper()
+	key, err := newIdempotencyKey()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return key
+}
+
+func memberRows(t *testing.T, db *pgxpool.Pool, address string) int {
+	t.Helper()
+	var rows int
+	if err := db.QueryRow(t.Context(), `SELECT count(*) FROM member WHERE email = $1`, address).Scan(&rows); err != nil {
+		t.Fatal(err)
+	}
+	return rows
+}
+
+// forgetMember drops the row this address made when the test ends, on a context of its own because
+// t.Context is already cancelled by then.
+func forgetMember(t *testing.T, db *pgxpool.Pool, address string) {
+	t.Helper()
+	t.Cleanup(func() {
+		if _, err := db.Exec(context.Background(), `DELETE FROM member WHERE email = $1`, address); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
+}
+
+// redeem is the direct-grant exchange the app makes with a link it was handed (A10): the login token
+// on the ios client under the login-token scope. It answers the access token, or "" and the realm's
+// refusal, which is what a token already spent gets.
+func redeem(t *testing.T, kc, loginToken string) (access, refusal string) {
+	t.Helper()
+	form := url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "scope": {"login-token"}, "login_token": {loginToken}}
+	endpoint := kc + "/realms/mmr/protocol/openid-connect/token"
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, endpoint, strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	var body struct {
+		AccessToken      string `json:"access_token"`
+		ErrorDescription string `json:"error_description"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+		t.Fatal(err)
+	}
+	return body.AccessToken, res.Status + " " + body.ErrorDescription
+}
+
+// loginTokenFromMail is the lt:<uuid> inside the one message Mailpit holds for address. The link is
+// {base}?lt={token} and the token is percent-encoded in the body, which Query decodes.
+func loginTokenFromMail(t *testing.T, mailpit, address string) string {
+	t.Helper()
+	inbox := mailpitInbox(t, mailpit, address, 1)
+	if len(inbox) != 1 {
+		t.Fatalf("%d messages for %s, want 1", len(inbox), address)
+	}
+	var message struct{ Text string }
+	mailpitJSON(t, mailpit+"/api/v1/message/"+inbox[0], &message)
+	for _, field := range strings.Fields(message.Text) {
+		link, err := url.Parse(field)
+		if err != nil || !strings.HasPrefix(link.Query().Get("lt"), "lt:") {
+			continue
+		}
+		return link.Query().Get("lt")
+	}
+	t.Fatalf("no magic link in %q", message.Text)
+	return ""
+}
+
+// mailpitInbox is every message Mailpit holds for address, polled until it holds at least want of
+// them, so asserting one waits for a second that never comes rather than reading the inbox early.
+func mailpitInbox(t *testing.T, mailpit, address string, want int) []string {
+	t.Helper()
+	deadline := time.Now().Add(3 * time.Second)
+	for {
+		var found struct {
+			Messages []struct{ ID string }
+		}
+		mailpitJSON(t, mailpit+"/api/v1/search?query="+url.QueryEscape("to:"+address), &found)
+		ids := make([]string, 0, len(found.Messages))
+		for _, m := range found.Messages {
+			ids = append(ids, m.ID)
+		}
+		if len(ids) >= want || time.Now().After(deadline) {
+			return ids
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// mailpitJSON decodes Mailpit's answer into out, failing the test on anything but a 200 of JSON.
+func mailpitJSON(t *testing.T, address string, out any) {
+	t.Helper()
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, address, http.NoBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("%s: status %d", address, res.StatusCode)
+	}
+	if err := json.NewDecoder(res.Body).Decode(out); err != nil {
+		t.Fatal(err)
+	}
+}
