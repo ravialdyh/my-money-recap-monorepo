@@ -23,7 +23,12 @@ variable "bff_client_secret" {
 }
 
 variable "test_user_password" {
-  description = "The realm test Member's password, the seam the Connect-boundary suite and the iOS UI test sign in with."
+  description = "The realm test Member's password, the seam the Connect-boundary suite and the iOS UI test sign in with. Empty creates no test Member, which is the machine; a realm with ssl_required none, the laptop, refuses empty."
   type        = string
   sensitive   = true
+
+  validation {
+    condition     = var.test_user_password != "" || var.ssl_required != "none"
+    error_message = "TEST_USER_PASSWORD is empty: set it in infra/compose/.env. Only the machine, whose realm has ssl_required external, goes without the test Member."
+  }
 }
