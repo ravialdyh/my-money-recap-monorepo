@@ -55,13 +55,26 @@ The call and the message it produces are in `infra/compose/README.md`, "Mailpit"
 
 `internal/notify/migrations/NNNN_name.sql`, applied in file-name order, each in one transaction,
 recorded in `schema_migrations`. Add a new numbered file; never edit an applied one. The one table
-is `magic_link_send`, unique on the idempotency key alone, because A14's `(member_id,
-idempotency_key)` has no Member on this path (§8).
+is `magic_link_send`, unique on `(email, idempotency_key)` (§8). A14's `(member_id,
+idempotency_key)` has no Member on this path, and the key alone was worse than no dedupe at all: a
+key already claimed for one address answered success for a different address and sent nothing, so
+`0002` moved the primary key onto the pair.
+
+Every send first deletes rows older than the `retention` constant in `internal/notify/notify.go`,
+in the same transaction. Nothing else would ever delete them: the row holds a raw address typed at
+sign-in with no `member_id`, so ARCHITECTURE §7.3's `members.deleted` purge cannot reach it, and the
+link it dedupes dies after fifteen minutes (PRD D32). Sweeping on the write path keeps the retention
+bound off slice 7's scheduler.
 
 ## Tests
 
-`go test ./internal/notify/` runs the empty-key test, which needs nothing. The boundary test needs
-the stack, Mailpit and the `NOTIFY_TEST_*` variables listed in `infra/compose/README.md`: it calls
-`EmailMagicLink` with no bearer token, reads the message through Mailpit's HTTP interface, and
-asserts that the same key twice sends one message and that `GetPrefs` is still `unauthenticated`.
-CI runs it in the `backend` job.
+`go test ./internal/notify/` runs the empty-key test and the Mailpit-polling helper's own test,
+which need nothing. The rest need the stack, Mailpit and the `NOTIFY_TEST_*` variables listed in
+`infra/compose/README.md`. The boundary test calls `EmailMagicLink` with no bearer token, reads the
+message through Mailpit's HTTP interface, and asserts that the same key twice sends one message and
+that `GetPrefs` is still `unauthenticated`. The rest drive the SMTP client against fake mail hosts
+on a free port: one that accepts and then says nothing, which must not outlive the caller's deadline
+or block the pool's `Close`; one refusing the recipient with a permanent 5xx, which is
+`invalid_argument` while every other SMTP failure stays `unavailable`; and one that would accept an
+address holding CR or LF, which `net/smtp` refuses before any recipient. CI runs them all in the
+`backend` job.
