@@ -77,7 +77,7 @@ func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 		t.Fatalf("second call with the same key: %v, want success", err)
 	}
 
-	inbox := waitForMail(t, mailpit, address)
+	inbox := waitForMail(t, mailpit, address, 1)
 	if len(inbox) != 1 {
 		t.Fatalf("%d messages for one idempotency key, want 1", len(inbox))
 	}
@@ -99,7 +99,7 @@ func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 	if err := send(second, link+"-again"); err != nil {
 		t.Fatalf("a second key to the same address: %v", err)
 	}
-	if inbox := waitForMail(t, mailpit, address); len(inbox) != 2 {
+	if inbox := waitForMail(t, mailpit, address, 2); len(inbox) != 2 {
 		t.Fatalf("%d messages after a second key, want 2: the key dedupes, not the address", len(inbox))
 	}
 	t.Logf("a second key to %s → 2 messages", address)
@@ -114,10 +114,51 @@ func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 	t.Logf("GetPrefs without a token: %v", err)
 }
 
-// waitForMail is every message Mailpit holds for address, polled for three seconds so the first one
-// is never missed to storage lag; a later duplicate is already stored, because the send happens
-// before EmailMagicLink answers.
-func waitForMail(t *testing.T, mailpit, address string) []string {
+// One key claimed for one address must not answer success for another and send nothing. The claim is
+// unique on the pair, overriding the "unique index is on the key alone" of #68 and #61: A14's
+// member_id has no Member here, the address is what is deduped.
+func TestOneKeyToTwoAddressesSendsToBoth(t *testing.T) {
+	host, mailpit := os.Getenv("NOTIFY_TEST_SMTP"), os.Getenv("NOTIFY_TEST_MAILPIT")
+	if host == "" || mailpit == "" {
+		t.Skip("NOTIFY_TEST_SMTP and NOTIFY_TEST_MAILPIT not both set")
+	}
+	db := testDB(t)
+	ctx := t.Context()
+	if err := Migrate(ctx, db); err != nil {
+		t.Fatal(err)
+	}
+	key := strings.ToLower(rand.Text())
+	first := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
+	second := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
+	t.Cleanup(func() {
+		if _, err := db.Exec(context.Background(), `DELETE FROM magic_link_send WHERE email = ANY($1)`, []string{first, second}); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
+	service := &Service{DB: db, SMTP: host, From: "no-reply@mymoneyrecap.test"}
+	send := func(address string) error {
+		_, err := service.EmailMagicLink(ctx, connect.NewRequest(&moneyrecapv1.EmailMagicLinkRequest{
+			IdempotencyKey: key, Email: address, Link: "https://mymoneyrecap.test/magic?lt=" + key,
+		}))
+		return err
+	}
+	for _, address := range []string{first, second, first} {
+		if err := send(address); err != nil {
+			t.Fatalf("key %s to %s: %v", key, address, err)
+		}
+	}
+	for _, address := range []string{first, second} {
+		if inbox := waitForMail(t, mailpit, address, 1); len(inbox) != 1 {
+			t.Fatalf("%d messages for %s, want 1: the pair dedupes, not the key alone", len(inbox), address)
+		}
+	}
+	t.Logf("key %s → one message each to %s and %s, and the repeat to %s sent nothing", key, first, second, first)
+}
+
+// waitForMail is every message Mailpit holds for address, polled for three seconds until it holds at
+// least want of them, so an assertion on two waits for the second rather than reading whatever had
+// arrived by the first poll.
+func waitForMail(t *testing.T, mailpit, address string, want int) []string {
 	t.Helper()
 	deadline := time.Now().Add(3 * time.Second)
 	for {
@@ -129,7 +170,7 @@ func waitForMail(t *testing.T, mailpit, address string) []string {
 		for _, m := range found.Messages {
 			ids = append(ids, m.ID)
 		}
-		if len(ids) > 0 || time.Now().After(deadline) {
+		if len(ids) >= want || time.Now().After(deadline) {
 			return ids
 		}
 		time.Sleep(100 * time.Millisecond)

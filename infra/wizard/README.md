@@ -30,6 +30,13 @@ free, local, and not a purchase. Step 9 also runs `ssh-keygen`, so the deploy wo
 credential comes out of a step that already exists and the nine stay nine. No step blocks on a
 purchase: each one can be declined and picked up later.
 
+**Step 1 works with a key that is already there.** `$SOPS_AGE_KEY_FILE`, or
+`~/.config/sops/age/keys.txt`, is the path sops itself uses, so a developer may arrive holding a key
+from another project. The wizard never overwrites that key, and never overwrites an existing
+`prod.yaml` either: it derives the recipient with `age-keygen -y` and writes whichever of the two
+files step 1 owes — the creation rule, the secrets file — is still missing. Step 9 runs `ssh-keygen`
+only once `prod.yaml` exists, so no private key is ever left on disk with nowhere to paste it.
+
 ## How a step is judged done
 
 **Key presence is judged against `infra/secrets/example.yaml`**, which is the committed key set, so
@@ -49,6 +56,12 @@ and the same attempt is what makes the seven value steps readable, so an absent 
 at. It is reported by hand and never counts toward the exit status (slice 3 spec #61, testing
 decision 9).
 
+**The values the stack assembles for itself are checked too.** `members_db_password`,
+`members_database_url`, `notify_db_password` and `notify_database_url` come from no step — a password
+chosen once, and a connection string built from it — but `infra/secrets/decrypt.sh` writes whatever
+they hold into `/run/secrets`, so a placeholder left in one reaches the machine. They get their own
+row, below the nine, and they count toward the exit status.
+
 ## Where the creation rule goes
 
 `.sops.yaml` is written at the repository root, not beside `prod.yaml`, because `sops` resolves
@@ -63,12 +76,18 @@ stays git-ignored this slice along with `prod.yaml` (A13, `infra/secrets/README.
 infra/wizard/check-smoke.sh
 ```
 
-It generates a throwaway age key in a temporary directory, points check mode at it with
-`WIZARD_SECRETS_DIR`, and asserts the five cases that matter: an absent secrets file reports all
-eight checkable steps missing and Apple by hand; the decrypt attempt fails without the private half;
-it passes with it, and every value filled exits zero; a key `example.yaml` declares and `prod.yaml`
-lacks is caught; and so is a key no step produces. Nothing secret is committed, no GitHub secret is
-needed, and nothing is written inside the repository. CI runs it in the `backend` job, beside
-`infra/secrets/decrypt-smoke.sh` and on the same pinned `sops` and `age`.
+It generates a throwaway age key in a temporary directory, points the wizard at it with
+`WIZARD_SECRETS_DIR` and `WIZARD_RULES_FILE`, and asserts the nine cases that matter: an absent
+secrets file reports all eight checkable steps missing and Apple by hand; the decrypt attempt fails
+without the private half; it passes with it, and every value filled exits zero; a stack value left at
+its placeholder is named and fails; a key `example.yaml` declares and `prod.yaml` lacks is caught; so
+is a key no step produces; a walk that finds an age key already on disk still writes the creation
+rule and the secrets file, and check mode then reads them; a walk with no secrets file leaves no SSH
+private key behind; and neither script parses `example.yaml` anywhere but `infra/secrets/keyset.sh`.
+
+Nothing secret is committed, no GitHub secret is needed, and nothing is written inside the
+repository: `WIZARD_RULES_FILE` is what keeps a walk's `.sops.yaml` in the temporary directory
+instead of the repository root, and the smoke asserts the tree stayed clean. CI runs it in the
+`backend` job, beside `infra/secrets/decrypt-smoke.sh` and on the same pinned `sops` and `age`.
 
 `shellcheck` is the other gate, already a pre-commit hook.

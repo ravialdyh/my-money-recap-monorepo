@@ -9,9 +9,10 @@ reason, which can quote the realm's answer, goes to the log.
 
 | Path | Holds |
 | --- | --- |
-| `main.go` | The binary. `members` serves on `MEMBERS_LISTEN` (default `:8080`); `members migrate` applies the schema and exits. |
+| `main.go` | The binary: this service's name, its schema step and its handler, handed to `serve.Main`. `members` serves on `MEMBERS_LISTEN` (default `:8080`); `members migrate` applies the schema and exits. |
 | `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=members .` |
 | `../../internal/members/` | Store, Connect handler and `migrations/*.sql` (embedded). |
+| `../../internal/serve/` | `serve.Main`: the start-up, the `migrate` subcommand and the shutdown `notify` also uses. |
 | `../../internal/migrate/` | The migration runner `notify` also uses. |
 | `../../internal/auth/` | The JWT interceptor. |
 
