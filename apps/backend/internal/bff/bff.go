@@ -44,13 +44,15 @@ func (StubNotify) GetWarningState(context.Context, *connect.Request[moneyrecapv1
 	return connect.NewResponse(&moneyrecapv1.GetWarningStateResponse{}), nil
 }
 
-// Service implements BffService. Every RPC runs behind auth.Interceptor; Members must carry
-// auth.Forward so the service verifies the same token again.
+// Service implements BffService. Every RPC but RequestMagicLink runs behind auth.Interceptor;
+// Members must carry auth.Forward so the service verifies the same token again.
 type Service struct {
 	moneyrecapv1connect.UnimplementedBffServiceHandler
 	Members moneyrecapv1connect.MembersServiceClient
 	Ledger  Ledger
 	Notify  Notify
+	// MagicLink is the realm and the notify client RequestMagicLink needs (magiclink.go, A10).
+	MagicLink MagicLink
 	// Timeout bounds GetOrCreateBySubject and each fan-out call; zero means the §6.1 one second.
 	Timeout time.Duration
 	// Now is the server clock; nil means time.Now. UTC until SetTimezone lands (#10, A3).

@@ -178,6 +178,10 @@ services:
       BFF_OIDC_JWKS_URL: *jwks
       BFF_OIDC_AUDIENCE: bff
       BFF_MEMBERS_URL: http://members:8080
+      BFF_NOTIFY_URL: http://notify:8080
+      BFF_REALM_URL: http://keycloak:8080/realms/mmr
+      BFF_CLIENT_SECRET: ${BFF_CLIENT_SECRET:?set in .env}
+      BFF_MAGIC_LINK_BASE_URL: http://${MMR_HOST:-localhost}:${BFF_HOST_PORT:-8082}/magic
     ports:
       - "${BFF_HOST_PORT:-8082}:8080"
     depends_on:

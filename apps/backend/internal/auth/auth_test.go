@@ -154,6 +154,24 @@ func TestAPreAuthProcedureIsTheOnlyOneCalledThroughWithoutAToken(t *testing.T) {
 	}
 }
 
+// The BFF's RequestMagicLink is outside the check one hop earlier, and for the same reason: it is
+// sent before a Member has a token (#69, §4.2 point 2). Its siblings stay behind the check.
+func TestTheBffsPreAuthProcedureIsTheOnlyOneCalledThroughWithoutAToken(t *testing.T) {
+	v := NewVerifier(context.Background(), issuer, serveKey(t, newKey(t)).URL, "bff")
+	srv := httptest.NewServer(mux(moneyrecapv1connect.NewBffServiceHandler(reachedBff{}, connect.WithInterceptors(v.Interceptor()))))
+	defer srv.Close()
+	client := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, srv.URL)
+	ctx := context.Background()
+
+	if _, err := client.RequestMagicLink(ctx, connect.NewRequest(&moneyrecapv1.BffServiceRequestMagicLinkRequest{Email: "maya@example.test"})); err != nil {
+		t.Errorf("RequestMagicLink with no token: %v, want the handler reached", err)
+	}
+	_, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	if connect.CodeOf(err) != connect.CodeUnauthenticated {
+		t.Errorf("GetHome with no token: %v, want unauthenticated", err)
+	}
+}
+
 // Forward sends the caller's own token on, and nothing at all when the context holds no verified
 // claims, which is what an exempted hop leaves behind: the reason notify needs its own exemption
 // rather than a token from the BFF (§4.2 point 3).
@@ -188,6 +206,19 @@ func (reached) EmailMagicLink(context.Context, *connect.Request[moneyrecapv1.Ema
 
 func (reached) GetPrefs(context.Context, *connect.Request[moneyrecapv1.GetPrefsRequest]) (*connect.Response[moneyrecapv1.GetPrefsResponse], error) {
 	return connect.NewResponse(&moneyrecapv1.GetPrefsResponse{}), nil
+}
+
+// reachedBff is the same for the BFF's own pair: the exempted procedure and one behind the check.
+type reachedBff struct {
+	moneyrecapv1connect.UnimplementedBffServiceHandler
+}
+
+func (reachedBff) RequestMagicLink(context.Context, *connect.Request[moneyrecapv1.BffServiceRequestMagicLinkRequest]) (*connect.Response[moneyrecapv1.BffServiceRequestMagicLinkResponse], error) {
+	return connect.NewResponse(&moneyrecapv1.BffServiceRequestMagicLinkResponse{}), nil
+}
+
+func (reachedBff) GetHome(context.Context, *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
+	return connect.NewResponse(&moneyrecapv1.GetHomeResponse{}), nil
 }
 
 func mux(path string, handler http.Handler) http.Handler {

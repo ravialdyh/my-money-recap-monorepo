@@ -85,7 +85,10 @@ func (k keySet) VerifySignature(ctx context.Context, jwt string) ([]byte, error)
 // preAuth are the procedures sent before a Member has a token, which Interceptor calls through
 // unverified. Membership is by procedure name, never by service, so the rest of the same service
 // stays behind the check (ARCHITECTURE §4.2 point 3).
-var preAuth = map[string]bool{moneyrecapv1connect.NotifyServiceEmailMagicLinkProcedure: true}
+var preAuth = map[string]bool{
+	moneyrecapv1connect.BffServiceRequestMagicLinkProcedure:  true,
+	moneyrecapv1connect.NotifyServiceEmailMagicLinkProcedure: true,
+}
 
 // Interceptor rejects any request without a valid bearer token, a pre-authentication procedure
 // apart, and stores its Claims for From. A token it cannot check because the realm's keys are out

@@ -1,12 +1,24 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. Slice 1
-(#17) answers `GetHome` with a HomeView of zeros. Every RPC verifies the bearer JWT against the
-realm JWKS (issuer, audience `bff`, expiry, signature; keys cached in memory and refetched on an
-unknown key id) and returns `unauthenticated` before any service is called (§4.2, A6), or
-`unavailable` when the keys it needs cannot be fetched or arrive as a 200 that is not JSON, so the
-phone keeps its session (PRD D61). Either answer carries a generic message; the verifier's reason,
-which can quote the realm's answer, goes to the log.
+(#17) answers `GetHome` with a HomeView of zeros. Every RPC but `RequestMagicLink` verifies the
+bearer JWT against the realm JWKS (issuer, audience `bff`, expiry, signature; keys cached in memory
+and refetched on an unknown key id) and returns `unauthenticated` before any service is called
+(§4.2, A6), or `unavailable` when the keys it needs cannot be fetched or arrive as a 200 that is not
+JSON, so the phone keeps its session (PRD D61). Either answer carries a generic message; the
+verifier's reason, which can quote the realm's answer, goes to the log.
+
+`RequestMagicLink` (#69) is the one procedure outside that check, exempted by procedure name in
+`internal/auth` because it is sent before a Member has a token — which is the whole point of it — so
+the handler reads the address from the request and never from the context's claims. It asks the
+realm for a service-account token as the `bff` client, calls the Phase Two extension's `login-token`
+endpoint on A10's terms (`expiration_seconds` 900, `reusable: false`, `force_create: true`,
+`set_email_verified: true`), builds `BFF_MAGIC_LINK_BASE_URL?lt=…` from the `lt:<uuid>` it gets back,
+and hands the address and the link to `notify.EmailMagicLink` (§7.5). That call carries no token
+either, and reaches `notify` only because `EmailMagicLink` is exempt on the same rule (#68). The
+`Idempotency-Key` header is copied when the caller sends one and is a fresh version 4 UUID per
+accepted request when it does not: nothing sets that header until slice 4, and `notify` rejects an
+empty key, so a missing one would dedupe every later send into silence (A14).
 
 `GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim (PRD
 §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
@@ -24,7 +36,7 @@ from the server clock in UTC until `SetTimezone` lands (A3).
 | --- | --- |
 | `main.go` | The binary; serves on `BFF_LISTEN` (default `:8080`). No subcommands, and its own start-up rather than `serve.Main` (see below). |
 | `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=bff .` |
-| `../../internal/bff/` | The handler, the `Ledger` and `Notify` interfaces and their stubs, the unit tests and the end-to-end test. |
+| `../../internal/bff/` | The handlers, the `Ledger` and `Notify` interfaces and their stubs, the magic-link path in `magiclink.go`, the unit tests and the end-to-end test. |
 | `../../internal/auth/` | The JWT interceptor and the token-forwarding client interceptor. |
 
 `members` and `notify` hand their name, their schema step and their handler to `serve.Main`, which
@@ -43,6 +55,10 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_OIDC_JWKS_URL` | required | Where to fetch the signing keys from this process: `http://keycloak:8080/realms/mmr/protocol/openid-connect/certs` inside the Compose network, `http://localhost:8080/...` from the host. The two are separate settings because the phone and a container reach Keycloak by different hostnames. |
 | `BFF_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry. |
 | `BFF_MEMBERS_URL` | required | The `members` service: `http://members:8080` in Compose. |
+| `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. Only `RequestMagicLink` calls it; `GetHome`'s `notify` is still the in-process stub. |
+| `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
+| `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads from the environment; `BFF_CLIENT_SECRET_FILE` works like every other. |
+| `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `https://<domain>/magic` on the VM, `http://localhost:8082/magic` on a laptop, where nothing serves it until Nginx arrives (#72). |
 | `BFF_LISTEN` | `:8080` | Listen address. |
 
 ## Run
@@ -54,7 +70,7 @@ By hand, against that stack's Keycloak and `members`, on a port the stack does n
 
 ```bash
 cd apps/backend
-BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_LISTEN=:8084 go run ./cmd/bff
+BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_NOTIFY_URL=http://localhost:8083 BFF_REALM_URL=http://localhost:8080/realms/mmr BFF_CLIENT_SECRET="$BFF_CLIENT_SECRET" BFF_MAGIC_LINK_BASE_URL=http://localhost:8082/magic BFF_LISTEN=:8084 go run ./cmd/bff
 ```
 
 A token for the realm's test user and the `GetHome` call are in `infra/compose/README.md`, "Try it".
@@ -64,6 +80,9 @@ A token for the realm's test user and the `GetHome` call are in `infra/compose/R
 `go test ./internal/bff/` runs the unit tests: the zero HomeView, the caller's token forwarded to
 `members`, a `notify` timeout still answering, a `members` timeout failing (on `GetProfile` and on
 `GetOrCreateBySubject`), a failed upstream call keeping its code and dropping its text,
-`days_remaining` on the last day of a month. The end-to-end test
+`days_remaining` on the last day of a month; and for `RequestMagicLink`, the login-token request
+carrying A10's four settings and the service account's own token, the address coming from the
+request while the context holds a different Member's claims, a fresh key per request when the header
+is absent, and each way the realm or `notify` can refuse. The end-to-end test
 `TestEndToEnd` needs the stack and the `BFF_TEST_*` variables listed at the top of
 `internal/bff/e2e_test.go` (`apps/README.md`); CI runs it in the `backend` job.

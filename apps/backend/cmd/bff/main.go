@@ -30,6 +30,8 @@ func run() error {
 	var env serve.Env
 	issuer, jwks := env.Get("BFF_OIDC_ISSUER", ""), env.Get("BFF_OIDC_JWKS_URL", "")
 	audience, membersURL := env.Get("BFF_OIDC_AUDIENCE", "bff"), env.Get("BFF_MEMBERS_URL", "")
+	notifyURL, realm := env.Get("BFF_NOTIFY_URL", ""), env.Get("BFF_REALM_URL", "")
+	clientSecret, linkBase := env.Get("BFF_CLIENT_SECRET", ""), env.Get("BFF_MAGIC_LINK_BASE_URL", "")
 	listen := env.Get("BFF_LISTEN", ":8080")
 	if err := env.Err(); err != nil {
 		return err
@@ -39,6 +41,12 @@ func run() error {
 		Members: moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, membersURL, connect.WithInterceptors(auth.Forward())),
 		Ledger:  bff.StubLedger{},
 		Notify:  bff.StubNotify{},
+		MagicLink: bff.MagicLink{
+			Realm:        realm,
+			ClientSecret: clientSecret,
+			LinkBase:     linkBase,
+			Mail:         moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, notifyURL),
+		},
 	}
 	mux := http.NewServeMux()
 	mux.Handle(moneyrecapv1connect.NewBffServiceHandler(svc, connect.WithInterceptors(verifier.Interceptor())))
