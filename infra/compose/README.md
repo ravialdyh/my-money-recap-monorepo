@@ -63,7 +63,7 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | Container | Image | Host port | Notes |
 | --- | --- | --- | --- |
 | postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members` and `notify` — three of the five A9 plans — one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). |
-| keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). |
+| keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). Its file vault reads the two identity-provider secrets from `/run/secrets` (see "Secrets"). |
 | rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
 | redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link limit, §4.4's fifth job and the first one built: five requests per address per hour, counted with `INCR` and `EXPIRE`, failing closed (#69). Published to loopback so a `bff` run on the host has a Redis too. The other four §4.4 jobs arrive with slices 4 and 5. |
 | members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. Reads its connection string from `/run/secrets/members_database_url`, as `members` does. |
@@ -108,6 +108,14 @@ The Compose secret's source differs by machine and the containers cannot tell:
 `.env.example` assembles each URL from `MEMBERS_DB_PASSWORD` and `NOTIFY_DB_PASSWORD` in the same
 file, so a password still has one local source; the Postgres init script keeps reading the bare
 passwords, because `CREATE ROLE` needs them by themselves.
+
+Keycloak takes the Google client secret and the Apple `.p8` through its file vault (`KC_VAULT=file`,
+`KC_VAULT_DIR=/run/secrets`, the `KEY_ONLY` key resolver), so the realm holds only
+`${vault.google_client_secret}` and `${vault.apple_sign_in_key}` (#71). Their laptop and CI source
+is `vault/`, two committed files holding `replace-me`, which needs no `.env` line; Compose mounts
+each under the name Keycloak looks for, with every underscore doubled. Why, and why the Apple
+extension never asks the vault at all, is in
+[`../secrets/README.md`](../secrets/README.md#keycloaks-file-vault).
 
 ## Parallel worktrees
 
@@ -158,6 +166,15 @@ phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives
   the Login Token endpoint needs (A10). Its secret is a variable rather than a generated value,
   because `a10-smoke.sh` and the `members` wrong-audience test authenticate as this client.
 - Test Member `test` / `test@example.com`.
+- Identity providers `google` (Keycloak's built-in Google provider, "Store tokens" off) and
+  `apple` (the image's Apple extension through the generic OIDC resource with
+  `provider_id = "apple"`, the Team ID and Key ID in `extra_config`), both with "Trust email" on
+  (PRD §9). The app sends `kc_idp_hint` with one of those two aliases, so Keycloak skips its own
+  login page and redirects straight to the provider (#71). Their client ids and the Apple Team ID
+  and Key ID are `GOOGLE_CLIENT_ID`, `APPLE_SERVICES_ID`, `APPLE_TEAM_ID` and
+  `APPLE_SIGN_IN_KEY_ID`, which `.env` may set and nothing requires: unset, each is `replace-me`,
+  so the providers exist, the buttons reach them, and the provider answers with its own error
+  page. Their secrets are vault references (see "Secrets").
 
 `realm-apply` reads `BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD` from `.env` as `TF_VAR_` variables
 and re-applies both on every `up`, so a change to either takes effect at once. The realm's OpenTofu

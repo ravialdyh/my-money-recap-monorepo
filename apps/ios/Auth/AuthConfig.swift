@@ -17,18 +17,22 @@ enum AuthConfig {
     static let loginTokenScope = "login-token"
     static let loginTokenParameter = "login_token"
 
-    /// `prompt=login` makes a Sign in tap show the login page even with a Keycloak SSO cookie in the web
-    /// sheet; the request generates the PKCE verifier and S256 challenge (IOS I1). The magic-link state is
-    /// synthesized around this same request (spec #61).
-    static func authorizationRequest(_ configuration: OIDServiceConfiguration) -> OIDAuthorizationRequest {
-        OIDAuthorizationRequest(
+    /// PKCE S256 (IOS I1). `kc_idp_hint` hands the sheet straight to Apple or Google (#71); `prompt=login` keeps a
+    /// Keycloak SSO cookie from signing the last Member in silently instead. The magic-link state is built around it.
+    static func authorizationRequest(
+        _ configuration: OIDServiceConfiguration,
+        identityProvider: IdentityProvider? = nil
+    ) -> OIDAuthorizationRequest {
+        var parameters = ["prompt": "login"]
+        parameters["kc_idp_hint"] = identityProvider?.rawValue
+        return OIDAuthorizationRequest(
             configuration: configuration,
             clientId: clientID,
             clientSecret: nil,
             scopes: scopes,
             redirectURL: redirectURL,
             responseType: OIDResponseTypeCode,
-            additionalParameters: ["prompt": "login"]
+            additionalParameters: parameters
         )
     }
 
@@ -44,4 +48,10 @@ enum AuthConfig {
             false
         }
     #endif
+}
+
+/// The realm's identity-provider aliases (`infra/tofu/realm/identity-providers.tf`), sent as `kc_idp_hint`.
+enum IdentityProvider: String {
+    case apple
+    case google
 }

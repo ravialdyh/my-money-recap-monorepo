@@ -2,7 +2,9 @@
 
 The SwiftUI app (`docs/IOS.md`), iOS 17+, iPhone and iPad. So far: Sign in (PRD §6.1) by email, through
 Enter email and Check your inbox (§6.2, §6.3) to a link that opens the app signed in with no browser
-(I1), and the authorization-code flow through Keycloak's login page behind a debug-only launch argument;
+(I1), Sign in with Apple and Continue with Google handing the system web sheet straight to their
+provider (#71), and the authorization-code flow through Keycloak's login page behind a debug-only launch
+argument;
 the session in the Keychain (I2), the generated Connect client calling `GetHome` (I3), the
 `HomeSnapshot` cache in SwiftData (I4) and Home drawn at zero in the B1 "no salary set" layout (PRD §6.8,
 D54, D69). Nothing on Home navigates yet; the sheets and screens
@@ -40,7 +42,9 @@ fails with `errSecMissingEntitlement`, so a relaunch shows Sign in again.
    disabled and the dashed preview card. Relaunching skips Sign in and draws Home from the stored
    `HomeSnapshot` before the network answers; stop Compose and it still draws the last snapshot. A link
    the realm refuses returns to Enter email with the A3 copy for its cause. Sign in with Apple and
-   Continue with Google do nothing yet (#71).
+   Continue with Google open the web sheet on `appleid.apple.com` and `accounts.google.com`, which
+   answer with their own `invalid_client` page until the realm holds real client ids (#71); cancel the
+   sheet to see the `InlineError` inside the card.
 
 Seams, all read at launch: argument `--reset-session` erases the stored session, `--reset-snapshot`
 empties the SwiftData store, `--magic-link <link>` hands the app a link as the custom scheme would, and
@@ -87,7 +91,10 @@ the skeleton. `UITests/AuthorizationCodeUITests.swift` keeps the flow every Appl
 use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test user
 through Keycloak's login page, which covers the PKCE request, the sheet and the state built from its
 authorization response. The first skips itself unless the runner names Mailpit (`MMR_MAILPIT_URL`), the
-second unless it carries the test user's password, so CI's `ios` job runs only the unit tests.
+second unless it carries the test user's password, so CI's `ios` job runs only the unit tests. No UI
+test opens Apple's or Google's page: with placeholder client ids each answers with its own error page,
+which the repository neither controls nor may assert as a round-trip (#71), so the hint the app sends
+is a unit test (`Tests/AuthConfigTests.swift`) and the sheet on the provider's host was checked by hand.
 
 The same section asks for two simulator runtimes, both chosen when the script runs and never written
 down: the newest installed iOS runtime and the oldest (the deployment target's floor, iOS 17, when Xcode

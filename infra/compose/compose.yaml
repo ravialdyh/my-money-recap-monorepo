@@ -32,6 +32,12 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_BOOTSTRAP_ADMIN_USERNAME: &kc-admin ${KC_BOOTSTRAP_ADMIN_USERNAME:?set in .env}
       KC_BOOTSTRAP_ADMIN_PASSWORD: &kc-admin-password ${KC_BOOTSTRAP_ADMIN_PASSWORD:?set in .env}
+      KC_VAULT: file
+      KC_VAULT_DIR: /run/secrets
+      KC_SPI_VAULT__FILE__KEY_RESOLVERS: KEY_ONLY
+    secrets:
+      - { source: google_client_secret, target: google__client__secret }
+      - { source: apple_sign_in_key, target: apple__sign__in__key }
     ports:
       - "${KEYCLOAK_HOST_PORT:-8080}:8080"
     depends_on:
@@ -62,6 +68,10 @@ services:
       TF_VAR_ssl_required: none
       TF_VAR_bff_client_secret: ${BFF_CLIENT_SECRET:?set in .env}
       TF_VAR_test_user_password: ${TEST_USER_PASSWORD:?set in .env}
+      TF_VAR_google_client_id: ${GOOGLE_CLIENT_ID:-replace-me}
+      TF_VAR_apple_services_id: ${APPLE_SERVICES_ID:-replace-me}
+      TF_VAR_apple_team_id: ${APPLE_TEAM_ID:-replace-me}
+      TF_VAR_apple_sign_in_key_id: ${APPLE_SIGN_IN_KEY_ID:-replace-me}
     volumes:
       - ../tofu/realm:/realm:ro
       - realm-state:/state
@@ -227,6 +237,10 @@ secrets:
     environment: MEMBERS_DATABASE_URL
   notify_database_url:
     environment: NOTIFY_DATABASE_URL
+  google_client_secret:
+    file: vault/google_client_secret
+  apple_sign_in_key:
+    file: vault/apple_sign_in_key
 
 volumes:
   postgres-data:

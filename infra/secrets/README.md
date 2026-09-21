@@ -28,11 +28,13 @@ stack itself needs, and the wizard's check mode weighs them alongside the steps.
 | Key | Comes from | Consumed by |
 | --- | --- | --- |
 | `app_store_connect_api_key` | App Store Connect, Users and Access > Integrations | The App Store Connect automation, slice 8 |
-| `apple_services_id` | Apple Developer, Identifiers | The Keycloak Apple identity provider |
-| `apple_sign_in_key` | Apple Developer, Keys — the Sign in with Apple `.p8` | The same provider, which signs the client secret on every token exchange |
+| `apple_services_id` | Apple Developer, Identifiers | The Keycloak Apple identity provider's client id, an OpenTofu variable (#71) |
+| `apple_team_id` | Apple Developer, Membership details | The same provider's `teamId`, the issuer of the client-secret JWT it signs |
+| `apple_sign_in_key_id` | Apple Developer, Keys — the Key ID of the Sign in with Apple `.p8` | The same provider's `keyId`, the JWT's `kid` |
+| `apple_sign_in_key` | Apple Developer, Keys — the Sign in with Apple `.p8` | The same provider, which signs the client secret on every token exchange; referenced as `${vault.apple_sign_in_key}`, which the pinned extension does not resolve (see "Keycloak's file vault") |
 | `apple_push_key` | Apple Developer, Keys — the APNs `.p8` | `notify`, slice 7 |
-| `google_client_id` | Google Auth Platform > Clients | The Keycloak Google identity provider |
-| `google_client_secret` | the same client | The same provider |
+| `google_client_id` | Google Auth Platform > Clients | The Keycloak Google identity provider's client id, an OpenTofu variable (#71) |
+| `google_client_secret` | the same client | The same provider, through Keycloak's file vault as `${vault.google_client_secret}` |
 | `open_exchange_rates_app_id` | Open Exchange Rates | `currency`, slice 6 |
 | `smtp_token` | the SMTP provider's first account-level token | `notify`, slice 7; Mailpit stands in locally |
 | `registrar_token` | the registrar, scoped to one zone | OpenTofu's DNS records |
@@ -54,13 +56,38 @@ SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt infra/secrets/decrypt.sh infra/sec
 ```
 
 Each top-level key becomes a file of that name holding the value with no trailing newline, mode 0400
-in a directory the umask leaves at 0700. Compose mounts those files with `secrets:`; Keycloak's file
-vault reads the same directory. The deploy workflow runs this as its **first** step, before anything
-is copied, because the transport credential is inside the file.
+in a directory the umask leaves at 0700. Compose mounts those files with `secrets:`, and Keycloak's
+file vault reads the two identity-provider secrets among them (below). The deploy workflow runs this
+as its **first** step, before anything is copied, because the transport credential is inside the file.
 
 `infra/secrets/decrypted/` is the one path inside the repository that is safe to point it at, and
 `.gitignore` covers it. The plaintext is what needs guarding and no scanner guards it: these files
 are bare values whose names carry no keyword context, so nothing would flag one that got committed.
+
+## Keycloak's file vault
+
+The realm never holds the two identity-provider secrets, only a reference to each:
+`${vault.google_client_secret}` and `${vault.apple_sign_in_key}` (#71). Keycloak resolves a reference
+when it needs the value, from a file in its vault directory, `/run/secrets` inside the container,
+which Compose fills with `secrets:`. Two details of Keycloak 26.6 decide the file names, both proved
+on the pinned image:
+
+- **The key resolver is `KEY_ONLY`.** The default, `REALM_UNDERSCORE_KEY`, looks for
+  `mmr_google__client__secret`, which nothing writes.
+- **Every resolver doubles an underscore**, so even `KEY_ONLY` looks for `google__client__secret`. A
+  file under the bare key is found only through a deprecated fallback that logs a warning on every
+  lookup. Compose therefore mounts each file under the doubled name (`target:` in
+  `infra/compose/compose.yaml`), and `decrypt.sh` keeps naming files after the bare key.
+
+On a laptop there is no decrypted directory, so the two sources are `infra/compose/vault/`, committed
+files holding the same `replace-me` placeholders as `example.yaml`.
+
+**Google's secret resolves; Apple's does not.** Keycloak's own Google provider asks the vault for its
+client secret on every code exchange. The Apple extension pinned in the image (1.17.0) does not: it
+reads the `.p8` from the raw client-secret field and base64-decodes the literal
+`${vault.apple_sign_in_key}`, so it signs nothing and sends Apple no client secret, even with a real
+key in the vault file. Until that changes, Sign in with Apple cannot finish a code exchange with real
+values (#71).
 
 ## Proving it
 

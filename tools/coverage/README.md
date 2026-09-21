@@ -24,7 +24,7 @@ All three come from a measured run, not a guess: CI, or the CI commands run loca
 | Language | Floor | Measured | Where it comes from |
 | --- | --- | --- | --- |
 | `go` | 80% | 80.8% | The backend job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify` and the end-to-end test really run. 52.9% came from a CI run and 53.6% from the same commands run locally on PR #56 while GitHub refused to start the jobs (AGENTS.md exception); 65.6% and then 66.7% were measured locally the same way on `fix/backend-and-ios`, 68.1% on `feat/secrets-shape`, 72.4% on `feat/notify-magic-link` (#68), and 80.8% on `fix/review-defects`, which bounded the SMTP send, split the idempotency key by address, swept old sends, created the migration ledger under a lock and gave `members` and `notify` one start-up in `serve.Main` — each with its own tests. The floor sits at the target, not at the measurement, because the ratchet stops there. `internal/auth` is at 98.1%, `internal/bff` at 96.7%, `internal/notify` at 88.5%, `internal/serve` at 87.1%, `internal/members` at 83.3%, `internal/migrate` at 80.8%. |
-| `ios` | 41.8% | 41.8%, 41.9% | The iOS job's commands, thirty-seven tests, `-enableCodeCoverage YES` on both halves of the build-then-test split. 30.9% came from a macOS runner; 37.7% and then 37.9% were measured locally the same way on `fix/backend-and-ios`, the second within the gate's 0.5-point tolerance, so the floor stayed. 41.8% and 41.9% were measured on `feat/ios-email-path` (#70), and the floor took the lower. Measure on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home, which counted 54.7% in one run. |
+| `ios` | 43.2% | 43.2%, 43.2% | The iOS job's commands, forty-three tests, `-enableCodeCoverage YES` on both halves of the build-then-test split. 30.9% came from a macOS runner; 37.7% and then 37.9% were measured locally the same way on `fix/backend-and-ios`, the second within the gate's 0.5-point tolerance, so the floor stayed. 41.8% and 41.9% were measured on `feat/ios-email-path` (#70), and the floor took the lower; 43.2% twice on `feat/apple-google-sign-in` (#71), where `main` measured 41.9% the same way. Measure on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home, which counted 54.7% in one run. |
 | `typescript` | 80% | 97.8% | `npm run test:coverage` — 134 tests across nine files, over the components, the hooks and the four Recap screens. The floor sits at the target, not at the measurement, because the ratchet stops there. |
 
 ## What is not counted
@@ -48,9 +48,10 @@ there is `serve.Main`'s serve path, which needs a listener and a signal rather t
 `internal/notify`'s are the STARTTLS upgrade no local mail host offers and write errors a socket
 under a live deadline does not reach.
 `internal/ledger` holds only the fixture decoding test until slice 5.
-iOS at 41.8% is thirty-seven tests over the view models (Sign in, Enter email, Check your inbox, Home),
-the magic-link handler and session against a stub realm, the Keychain, money formatting and the token
-refresh (`AuthSession`, `BearerInterceptor`), with the views untested.
+iOS at 43.2% is forty-three tests over the view models (Sign in, Enter email, Check your inbox, Home),
+the authorization request Apple and Google ride on, the magic-link handler and session against a stub
+realm, the Keychain, money formatting and the token refresh (`AuthSession`, `BearerInterceptor`), with
+the views untested.
 
 Nothing forces those into one change. Add tests with the slice that touches the code, raise the floor
 in the same pull request, and the ratchet keeps what you gained.
