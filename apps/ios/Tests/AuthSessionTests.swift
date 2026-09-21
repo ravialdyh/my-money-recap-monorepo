@@ -51,14 +51,53 @@ final class AuthSessionTests: XCTestCase {
         XCTAssertEqual(session.signInMessage, AuthSession.expiredCopy)
     }
 
+    func testTheMagicLinkCallGoesOutWithNoHeaderAndWithoutAskingForAToken() async throws {
+        let session = expiredSession(realm: "refusing.invalid")
+        let sent = try await intercept(session, path: BearerInterceptor.unauthenticatedPath)
+        guard case let .success(request) = sent else {
+            return XCTFail("RequestMagicLink was failed before it was sent, so email sign-in cannot start")
+        }
+        XCTAssertNil(request.headers["Authorization"], "the one procedure sent with no bearer token")
+        XCTAssertTrue(session.isSignedIn, "the session was never asked for a token, so nothing refused it")
+    }
+
+    func testOnlyTheMagicLinkPathSkipsTheRecoverStepOnAnUnauthenticatedAnswer() async throws {
+        let skipped = expiredSession(realm: "refusing.invalid")
+        let onTheEmailPath = BearerInterceptor(session: skipped)
+        _ = try await intercept(skipped, path: BearerInterceptor.unauthenticatedPath, through: onTheEmailPath)
+        await respondUnauthenticated(onTheEmailPath)
+        XCTAssertTrue(skipped.isSignedIn, "a tokenless call's refusal is not a refused refresh")
+        XCTAssertNil(skipped.signInMessage, "else the expired copy waits on Sign in behind Enter email")
+
+        let recovered = expiredSession(realm: "refusing.invalid")
+        await respondUnauthenticated(BearerInterceptor(session: recovered))
+        XCTAssertFalse(recovered.isSignedIn, "every other path still recovers, and signs out when refused")
+        XCTAssertEqual(recovered.signInMessage, AuthSession.expiredCopy)
+    }
+
     /// Runs `BearerInterceptor`'s request step alone, where no response interceptor follows a failure.
-    private func intercept(_ session: AuthSession) async throws -> Result<HTTPRequest<Data?>, ConnectError> {
+    private func intercept(
+        _ session: AuthSession,
+        path: String = "/money_recap.v1.BffService/GetHome",
+        through interceptor: BearerInterceptor? = nil
+    ) async throws -> Result<HTTPRequest<Data?>, ConnectError> {
         let request = try HTTPRequest<Data?>(
-            url: XCTUnwrap(URL(string: BffClient.baseURL)), headers: [:], message: nil, method: .post,
+            url: XCTUnwrap(URL(string: BffClient.baseURL + path)), headers: [:], message: nil, method: .post,
             trailers: nil, idempotencyLevel: .unknown
         )
+        let bearer = interceptor ?? BearerInterceptor(session: session)
         return await withCheckedContinuation { continuation in
-            BearerInterceptor(session: session).handleUnaryRawRequest(request) { continuation.resume(returning: $0) }
+            bearer.handleUnaryRawRequest(request) { continuation.resume(returning: $0) }
+        }
+    }
+
+    /// The BFF's `unauthenticated`, which every path but one answers by forcing a refresh.
+    private func respondUnauthenticated(_ interceptor: BearerInterceptor) async {
+        let answer = HTTPResponse(
+            code: .unauthenticated, headers: [:], message: nil, trailers: [:], error: nil, tracingInfo: nil
+        )
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            interceptor.handleUnaryRawResponse(answer) { _ in continuation.resume() }
         }
     }
 

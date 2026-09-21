@@ -32,5 +32,12 @@ struct RootView: View {
                 try? context.save()
             }
         }
+        .task {
+            guard let link = MagicLink.launchedLink else { return }
+            await session.openMagicLink(link)
+        }
+        .onOpenURL { url in
+            Task { await session.openMagicLink(url) }
+        }
     }
 }

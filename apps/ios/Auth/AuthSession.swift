@@ -12,8 +12,13 @@ final class AuthSession {
     private(set) var authState: OIDAuthState?
     /// Set when sign-out was not the Member's choice, read once by Sign in.
     private(set) var signInMessage: String?
+    /// A refused login token, which returns the Member to Enter email carrying its copy (PRD §6.3).
+    private(set) var magicLinkFailure: MagicLinkFailure?
     /// AppAuth needs the in-flight session retained until the redirect arrives.
     private var flow: OIDExternalUserAgentSession?
+    /// The login tokens redeemed successfully in this session: the only thing that tells an already-used
+    /// link from an expired one, since both are `invalid_grant` (spec #61).
+    private var redeemed: Set<String> = []
 
     init() {
         if CommandLine.arguments.contains("--reset-session") {
@@ -33,19 +38,11 @@ final class AuthSession {
         authState?.isAuthorized ?? false
     }
 
-    /// `prompt=login` makes a Sign in tap show the login page even with a Keycloak SSO cookie in the
-    /// web sheet; `OIDAuthorizationRequest` generates the PKCE verifier and S256 challenge (IOS I1).
+    /// The authorization-code flow of IOS I1, which Apple and Google use and which a debug launch argument
+    /// still drives for the UI test (spec #61 seam 6).
     func signIn() async throws {
         let configuration = try await discover()
-        let request = OIDAuthorizationRequest(
-            configuration: configuration,
-            clientId: AuthConfig.clientID,
-            clientSecret: nil,
-            scopes: AuthConfig.scopes,
-            redirectURL: AuthConfig.redirectURL,
-            responseType: OIDResponseTypeCode,
-            additionalParameters: ["prompt": "login"]
-        )
+        let request = AuthConfig.authorizationRequest(configuration)
         let state: OIDAuthState = try await withCheckedThrowingContinuation { continuation in
             flow = OIDAuthState.authState(byPresenting: request, presenting: Self.presenter) { state, error in
                 if let state {
@@ -59,6 +56,31 @@ final class AuthSession {
         authState = state
         signInMessage = nil
         persist()
+    }
+
+    /// Where all three incoming-link sources land (spec #61): the login token is redeemed by one direct
+    /// grant, and the session is built from a synthesized authorization response so it can refresh.
+    func openMagicLink(_ url: URL) async {
+        magicLinkFailure = nil
+        guard let token = MagicLink.loginToken(in: url) else {
+            magicLinkFailure = .generic
+            return
+        }
+        do {
+            let configuration = try await discover()
+            let response = try await redeem(MagicLink.tokenRequest(configuration, loginToken: token))
+            redeemed.insert(token)
+            authState = MagicLink.authState(configuration, tokenResponse: response)
+            signInMessage = nil
+            persist()
+        } catch {
+            magicLinkFailure = MagicLink.failure(redeeming: error, alreadyRedeemed: redeemed.contains(token))
+        }
+    }
+
+    /// The copy Enter email shows: a refused login token, or a request either screen could not send.
+    func record(_ failure: MagicLinkFailure?) {
+        magicLinkFailure = failure
     }
 
     /// The access token, refreshed if expired (I1, I3). Any refresh error throws, as AppAuth may pass the stale token
@@ -101,12 +123,25 @@ final class AuthSession {
         Keychain.delete()
     }
 
-    private func persist() {
+    /// The archiver the Keychain item is written with (I2); the magic-link state's round trip is a test.
+    func persist() {
         guard let authState, let data = try? NSKeyedArchiver.archivedData(
             withRootObject: authState,
             requiringSecureCoding: true
         ) else { return }
         Keychain.write(data)
+    }
+
+    private func redeem(_ request: OIDTokenRequest) async throws -> OIDTokenResponse {
+        try await withCheckedThrowingContinuation { continuation in
+            OIDAuthorizationService.perform(request) { response, error in
+                if let response {
+                    continuation.resume(returning: response)
+                } else {
+                    continuation.resume(throwing: error ?? CancellationError())
+                }
+            }
+        }
     }
 
     private func discover() async throws -> OIDServiceConfiguration {

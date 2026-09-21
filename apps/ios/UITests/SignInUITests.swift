@@ -1,51 +1,97 @@
 import XCTest
 
-/// The sign-in-to-Home path against local Compose (IOS I9). Runs only when the realm test user's
-/// password is passed in: `TEST_RUNNER_MMR_TEST_USER_PASSWORD=… xcodebuild test …`. CI skips it.
+/// The sign-in-to-Home path against local Compose (IOS I9), by magic link (spec #61 seam 6). Runs only when
+/// the runner names the stack's Mailpit: `TEST_RUNNER_MMR_MAILPIT_URL=… xcodebuild test …`. CI skips it.
+@MainActor
 final class SignInUITests: XCTestCase {
-    func testCancelThenSignInThroughKeycloakAndRelaunch() throws {
-        guard let password = ProcessInfo.processInfo.environment["MMR_TEST_USER_PASSWORD"] else {
-            throw XCTSkip(
-                "set MMR_TEST_USER_PASSWORD (infra/compose/.env TEST_USER_PASSWORD) to run against local Compose"
-            )
-        }
+    override func setUp() {
+        super.setUp()
+        continueAfterFailure = false
+    }
+
+    func testSignInByMagicLinkThenRelaunch() async throws {
+        let stack = try Stack()
+        let address = "mmr-test-\(UUID().uuidString.lowercased())@example.test"
         let app = XCUIApplication()
+        app.launchEnvironment = stack.appEnvironment
         app.launchArguments = ["--reset-session", "--reset-snapshot"]
         app.launch()
         XCTAssert(app.staticTexts["Your month in money."].waitForExistence(timeout: 10))
         snapshot("01-sign-in")
 
         app.buttons["Continue with email"].tap()
-        try systemButton("Cancel", in: app).tap()
-        XCTAssert(app.staticTexts["We couldn't sign you in. Try again."].waitForExistence(timeout: 5))
-        XCTAssert(app.buttons["Continue with email"].isEnabled, "cancelling the web sheet re-enables the buttons")
-        snapshot("02-cancelled-inline-error")
+        let field = app.textFields["Email address"]
+        XCTAssert(field.waitForExistence(timeout: 5), "Continue with email pushes Enter email")
+        XCTAssertFalse(app.buttons["Send me a link"].isEnabled, "Send stays disabled until the address is one")
+        field.tap()
+        field.typeText(address)
+        XCTAssert(app.buttons["Send me a link"].isEnabled)
+        snapshot("02-enter-email-typed")
 
-        app.buttons["Continue with email"].tap()
-        try systemButton("Continue", in: app).tap()
+        field.typeText("\n")
+        XCTAssert(app.staticTexts["Check your inbox."].waitForExistence(timeout: 15), "RequestMagicLink answered")
+        XCTAssert(app.staticTexts["We sent a link to \(address). It works for 15 minutes."].exists)
+        let countdown = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Resend in 0:'")).firstMatch
+        XCTAssert(countdown.exists, "Resend sleeps behind a live m:ss countdown")
+        XCTAssertFalse(countdown.isEnabled)
+        snapshot("03-check-your-inbox-countdown")
+        let first = countdown.label
+        try await Task.sleep(for: .seconds(3))
+        XCTAssertNotEqual(countdown.label, first, "the countdown is live")
+        snapshot("04-check-your-inbox-countdown-later")
+
+        let link = try await stack.mailpit.link(to: address)
+        app.terminate()
+        app.launchArguments = ["--magic-link", link]
+        app.launch()
+        assertHomeAtZero(app)
+        snapshot("05-home-at-zero-signed-in-by-link")
+
+        app.launchArguments = []
+        app.terminate()
+        app.launch()
+        XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
         XCTAssertFalse(
-            app.staticTexts["We couldn't sign you in. Try again."].exists,
-            "the next tap clears the inline error"
+            app.buttons["Continue with email"].exists,
+            "the Keychain session skips Sign in on relaunch (IOS I2)"
         )
-        guard let username = first(hosts.map(\.webViews.textFields.firstMatch), attempts: 60) else {
-            snapshot("03-keycloak-login-page-missing")
-            return XCTFail("Keycloak login page did not load; is Compose up on localhost:8080?")
-        }
-        snapshot("03-keycloak-login-page")
-        username.tap()
-        username.typeText("test")
-        let sheet = try XCTUnwrap(hosts.first { $0.webViews.firstMatch.exists })
-        sheet.webViews.secureTextFields.firstMatch.tap()
-        sheet.webViews.secureTextFields.firstMatch.typeText(password)
-        sheet.webViews.buttons["Sign In"].tap()
+        snapshot("06-relaunched-home-from-snapshot")
 
-        let zero = Decimal(0).formatted(.currency(code: "GBP").precision(.fractionLength(0)))
+        app.launchEnvironment["MMR_BFF_URL"] = "http://localhost:1"
+        app.terminate()
+        app.launch()
+        XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
         XCTAssert(
-            app.staticTexts["Spent so far"].waitForExistence(timeout: 30),
-            "Home at zero, the B1 \"no salary set\" layout (PRD §6.8)"
+            app.staticTexts["Money in \(Self.zero)"].exists,
+            "an unreachable BFF leaves the last snapshot on screen (PRD D61)"
         )
-        XCTAssert(app.staticTexts[zero].exists, "the hero shows Spent at \(zero)")
-        XCTAssert(app.staticTexts["Money in \(zero)"].exists)
+        snapshot("07-bff-unreachable-snapshot-still-shown")
+
+        app.launchArguments = ["--reset-snapshot"]
+        app.terminate()
+        app.launch()
+        XCTAssert(app.otherElements["home-skeleton"].waitForExistence(timeout: 10))
+        XCTAssertEqual(
+            app.activityIndicators.count,
+            0,
+            "no snapshot and no answer is the §6.19 skeleton, never a spinner"
+        )
+        XCTAssertFalse(app.staticTexts["Spent so far"].exists)
+        snapshot("08-first-load-skeleton")
+    }
+}
+
+extension XCTestCase {
+    static var zero: String {
+        Decimal(0).formatted(.currency(code: "GBP").precision(.fractionLength(0)))
+    }
+
+    /// Home at zero, the B1 "no salary set" layout (PRD §6.8): a new Member and the realm test user alike.
+    @MainActor
+    func assertHomeAtZero(_ app: XCUIApplication) {
+        XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 30), "Home at zero (PRD §6.8)")
+        XCTAssert(app.staticTexts[Self.zero].exists, "the hero shows Spent at \(Self.zero)")
+        XCTAssert(app.staticTexts["Money in \(Self.zero)"].exists)
         XCTAssertEqual(
             app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Saved'")).count,
             0,
@@ -61,64 +107,65 @@ final class SignInUITests: XCTestCase {
             app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Hi,'")).firstMatch.exists,
             "no greeting while display_name is empty"
         )
-        snapshot("04-home-at-zero")
-
-        app.launchArguments = []
-        app.terminate()
-        app.launch()
-        XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
-        XCTAssertFalse(
-            app.buttons["Continue with email"].exists,
-            "the Keychain session skips Sign in on relaunch (IOS I2)"
-        )
-        snapshot("05-relaunched-home-from-snapshot")
-
-        app.launchEnvironment["MMR_BFF_URL"] = "http://localhost:1"
-        app.terminate()
-        app.launch()
-        XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
-        XCTAssert(
-            app.staticTexts["Money in \(zero)"].exists,
-            "an unreachable BFF leaves the last snapshot on screen (PRD D61)"
-        )
-        snapshot("06-bff-unreachable-snapshot-still-shown")
-
-        app.launchArguments = ["--reset-snapshot"]
-        app.terminate()
-        app.launch()
-        XCTAssert(app.otherElements["home-skeleton"].waitForExistence(timeout: 10))
-        XCTAssertEqual(
-            app.activityIndicators.count,
-            0,
-            "no snapshot and no answer is the §6.19 skeleton, never a spinner"
-        )
-        XCTAssertFalse(app.staticTexts["Spent so far"].exists)
-        snapshot("07-first-load-skeleton")
     }
 
-    /// The web sheet and its "wants to use localhost to sign in" alert are drawn by system processes
-    /// (SpringBoard, SafariViewService), not the app, so element queries look there first.
-    private let hosts = ["com.apple.springboard", "com.apple.SafariViewService"]
-        .map(XCUIApplication.init(bundleIdentifier:)) + [XCUIApplication()]
-
-    private func systemButton(_ title: String, in app: XCUIApplication) throws -> XCUIElement {
-        try XCTUnwrap(first(hosts.map { $0.buttons[title] }, attempts: 6), "no system button titled \(title)")
-    }
-
-    /// Polls each candidate for about a second per attempt and returns the first that exists.
-    private func first(_ candidates: [XCUIElement], attempts: Int) -> XCUIElement? {
-        for _ in 0 ..< attempts {
-            for candidate in candidates where candidate.waitForExistence(timeout: 1) {
-                return candidate
-            }
-        }
-        return nil
-    }
-
-    private func snapshot(_ name: String) {
+    @MainActor
+    func snapshot(_ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
     }
+}
+
+/// The Compose stack the runner points at (`scripts/ui-test.sh` reads it from `infra/compose/.env`). The
+/// app gets the BFF and the issuer; Mailpit is read from this process, never from the app.
+struct Stack {
+    let mailpit: Mailpit
+    let appEnvironment: [String: String]
+
+    init() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard let mailpit = environment["MMR_MAILPIT_URL"].flatMap(URL.init(string:)) else {
+            throw XCTSkip("set MMR_MAILPIT_URL (the stack's Mailpit, infra/compose/README.md) to run against Compose")
+        }
+        self.mailpit = Mailpit(base: mailpit)
+        appEnvironment = environment.filter { ["MMR_BFF_URL", "MMR_ISSUER"].contains($0.key) }
+    }
+}
+
+/// Mailpit's HTTP API: the newest message to an address, and the magic link inside it.
+struct Mailpit {
+    let base: URL
+
+    func link(to address: String) async throws -> String {
+        for _ in 0 ..< 20 {
+            if let id = try await newestMessage(to: address) {
+                let message = try await json(base.appending(path: "api/v1/message/\(id)"))
+                let text = message["Text"] as? String ?? ""
+                if let link = text.range(of: #"\S+\?lt=\S+"#, options: .regularExpression) {
+                    return String(text[link])
+                }
+            }
+            try await Task.sleep(for: .milliseconds(500))
+        }
+        throw MailpitError.noLink(address)
+    }
+
+    private func newestMessage(to address: String) async throws -> String? {
+        let search = base.appending(path: "api/v1/search").appending(queryItems: [
+            URLQueryItem(name: "query", value: "to:\(address)"),
+        ])
+        let messages = try await json(search)["messages"] as? [[String: Any]]
+        return messages?.first?["ID"] as? String
+    }
+
+    private func json(_ url: URL) async throws -> [String: Any] {
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
+    }
+}
+
+enum MailpitError: Error {
+    case noLink(String)
 }
