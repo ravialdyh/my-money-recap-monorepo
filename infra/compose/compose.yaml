@@ -7,6 +7,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
       KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set in .env}
       MEMBERS_DB_PASSWORD: ${MEMBERS_DB_PASSWORD:?set in .env}
+      NOTIFY_DB_PASSWORD: ${NOTIFY_DB_PASSWORD:?set in .env}
     ports:
       - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
@@ -122,6 +123,51 @@ services:
       timeout: 3s
       retries: 12
 
+  mailpit:
+    image: axllent/mailpit:v1.31.2
+    profiles: [mail]
+    ports:
+      - "127.0.0.1:${MAILPIT_HOST_PORT:-8025}:8025"
+      - "127.0.0.1:${MAILPIT_SMTP_HOST_PORT:-1025}:1025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  notify-migrate:
+    image: ${COMPOSE_PROJECT_NAME:-mmr}-notify
+    pull_policy: never
+    command: ["migrate"]
+    environment:
+      NOTIFY_DATABASE_URL_FILE: &notify-db-file /run/secrets/notify_database_url
+    secrets: &notify-db-secret [notify_database_url]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  notify:
+    build:
+      context: ../../apps/backend
+      args: { CMD: notify }
+    image: ${COMPOSE_PROJECT_NAME:-mmr}-notify
+    environment:
+      NOTIFY_DATABASE_URL_FILE: *notify-db-file
+      NOTIFY_OIDC_ISSUER: *issuer
+      NOTIFY_OIDC_JWKS_URL: *jwks
+      NOTIFY_OIDC_AUDIENCE: bff
+      NOTIFY_SMTP_ADDR: mailpit:1025
+      NOTIFY_MAIL_FROM: no-reply@mymoneyrecap.test
+    ports:
+      - "127.0.0.1:${NOTIFY_HOST_PORT:-8083}:8080"
+    secrets: *notify-db-secret
+    depends_on:
+      notify-migrate:
+        condition: service_completed_successfully
+      realm-apply:
+        condition: service_completed_successfully
+    healthcheck: *go-healthcheck
+
   bff:
     build:
       context: ../../apps/backend
@@ -144,6 +190,8 @@ services:
 secrets:
   members_database_url:
     environment: MEMBERS_DATABASE_URL
+  notify_database_url:
+    environment: NOTIFY_DATABASE_URL
 
 volumes:
   postgres-data:

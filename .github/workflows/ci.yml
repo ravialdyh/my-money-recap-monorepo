@@ -154,6 +154,10 @@ jobs:
       BFF_TEST_KEYCLOAK: http://localhost:8080
       BFF_TEST_USER_PASSWORD: ci-throwaway
       BFF_TEST_DATABASE_URL: postgres://members:ci-throwaway@localhost:5432/members
+      NOTIFY_TEST_URL: http://localhost:8083
+      NOTIFY_TEST_MAILPIT: http://localhost:8025
+      NOTIFY_TEST_SMTP: localhost:1025
+      NOTIFY_TEST_DATABASE_URL: postgres://notify:ci-throwaway@localhost:5432/notify
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -190,11 +194,11 @@ jobs:
       - name: Secrets decrypt to one file per value at mode 0400, decision A13
         working-directory: infra/secrets
         run: ./decrypt-smoke.sh
-      - name: Compose stack with the migration step, the realm, members and the BFF
+      - name: Compose stack with the migration steps, the realm, members, notify, Mailpit and the BFF
         working-directory: infra/compose
         run: |
           sed 's/=$/=ci-throwaway/' .env.example > .env
-          docker compose up -d --build --wait
+          docker compose --profile mail up -d --build --wait
       - name: Go tests; -p 1 because members and bff both sign in as the realm's one test user
         run: |
           go vet ./...
@@ -218,13 +222,13 @@ jobs:
         run: |
           test -f .env || { echo "the stack never started; the real failure is above"; exit 0; }
           docker compose ps
-          docker compose logs keycloak realm-apply members-migrate members bff
+          docker compose logs keycloak realm-apply members-migrate members notify-migrate notify mailpit bff
       - name: Teardown
         if: always()
         working-directory: infra/compose
         run: |
           test -f .env || exit 0
-          docker compose down -v
+          docker compose --profile mail down -v
 
   ios:
     needs: changes
