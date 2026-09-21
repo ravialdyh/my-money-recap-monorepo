@@ -15,9 +15,6 @@ import (
 // in file-name order (embed.FS lists a directory sorted by name), each in its own transaction. Safe
 // to rerun.
 func Run(ctx context.Context, db *pgxpool.Pool, files fs.FS) error {
-	if _, err := db.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`); err != nil {
-		return err
-	}
 	entries, err := fs.ReadDir(files, "migrations")
 	if err != nil {
 		return err
@@ -51,8 +48,18 @@ func Run(ctx context.Context, db *pgxpool.Pool, files fs.FS) error {
 	return nil
 }
 
-// lockMigrationLedger serialises two migrate runs racing on one database, so each file applies once.
+// ledgerLock is the advisory-lock key a migrate run holds for the length of each file's transaction.
+// One arbitrary constant serves every service, because the lock is per database and each service has
+// its own (ARCHITECTURE A9).
+const ledgerLock = 5138619
+
+// lockMigrationLedger serialises two migrate runs racing on one database, so the ledger is created
+// once and each file applies once. CREATE TABLE IF NOT EXISTS is not race-safe for concurrent DDL;
+// an advisory lock needs no schema to guard it.
 func lockMigrationLedger(ctx context.Context, tx pgx.Tx) error {
-	_, err := tx.Exec(ctx, `LOCK TABLE schema_migrations IN ACCESS EXCLUSIVE MODE`)
+	if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock($1)`, ledgerLock); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`)
 	return err
 }
