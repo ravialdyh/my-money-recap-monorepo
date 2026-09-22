@@ -26,9 +26,10 @@ from `example.yaml`.
 Seven of the nine human steps (`docs/research/2026-09-14-setup-automation.md` §4) put a value here;
 Apple Developer Program enrolment and `age-keygen` produce none. Which step fills which key, and where
 its value comes from, is `STEPS` in [`../wizard/setup.sh`](../wizard/setup.sh). The last eight keys,
-`keyset.sh stack`, come from no step: six passwords chosen once and the two connection strings
-assembled from two of them. They are what the stack itself needs, and the wizard's check mode weighs
-them alongside the steps.
+`keyset.sh stack`, come from no step: five passwords fixed when their volume is first initialised
+([`../compose/README.md`](../compose/README.md#secrets), "Chosen once"), the bff client secret, and the two connection strings
+assembled from two of the passwords. They are what the stack itself needs, and the wizard's check
+mode weighs them alongside the steps.
 
 | Key | Consumed by |
 | --- | --- |
