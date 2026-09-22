@@ -115,7 +115,8 @@ service MembersService {
   rpc GetOrCreateBySubject(GetOrCreateBySubjectRequest) returns (GetOrCreateBySubjectResponse) {}
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
   // Display Name, Avatar key, Currency and the onboarding step just completed
-  // or skipped, in one write (PRD §6.4, §6.5); publishes members.updated.
+  // or skipped, in one write (PRD §6.4, §6.5); publishes members.updated only
+  // when a MemberFacts field changed, so an Avatar-only save publishes nothing.
   rpc SaveProfile(SaveProfileRequest) returns (SaveProfileResponse) {}
   // Called on every launch (A3); publishes members.updated on change.
   rpc SetTimezone(SetTimezoneRequest) returns (SetTimezoneResponse) {}
