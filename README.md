@@ -72,7 +72,7 @@ pre-commit install --install-hooks
 version, keeps them in their own environments, and Dependabot raises those versions.
 
 ```bash
-pre-commit run --all-files              # what CI's pre-commit job runs
+pre-commit run --all-files              # CI's pre-commit job runs it, skipping the hooks other jobs run
 pre-commit run --hook-stage pre-push    # also regenerates and diffs the generated files
 ```
 

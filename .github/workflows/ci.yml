@@ -35,12 +35,15 @@ jobs:
               - 'infra/**'
               - 'packages/contract/**'
               - 'tools/coverage/**'
+              - 'tools/hooks/tofu.sh'
             contract:
               - '.github/workflows/ci.yml'
               - 'apps/backend/gen/**'
               - 'packages/contract/**'
+              - 'tools/hooks/check-generated.sh'
             design-system:
               - '.github/workflows/ci.yml'
+              - '.nvmrc'
               - 'apps/ios/DesignSystem/Tokens.swift'
               - 'biome.json'
               - 'my-money-recap-ds/**'
@@ -48,6 +51,7 @@ jobs:
               - 'package-lock.json'
               - 'package.json'
               - 'tools/coverage/**'
+              - 'tools/hooks/check-generated.sh'
             ios:
               - '.github/workflows/ci.yml'
               - '.swiftformat'
@@ -77,10 +81,10 @@ jobs:
             https://github.com/hadolint/hadolint/releases/download/v2.15.1/hadolint-Linux-x86_64
           echo "c7187db94eeeeca956519a6af171adc31453941a1e777961f6e680f697c8c507  hadolint" | sha256sum -c -
           chmod +x hadolint && sudo mv hadolint /usr/local/bin/
-      - name: Every hook except the per-language toolchains, which are gates in their own jobs
+      - name: Every hook except the per-language toolchains, gates in their own jobs, and gitleaks, which security.yml runs over the whole tree
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
         env:
-          SKIP: no-commit-to-branch,golangci-lint,gofmt,swiftlint,swiftformat,buf-lint,tofu-fmt,tofu-validate
+          SKIP: no-commit-to-branch,gitleaks,golangci-lint,gofmt,swiftlint,swiftformat,buf-lint,tofu-fmt,tofu-validate
 
   design-system:
     needs: changes
@@ -93,18 +97,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Tokens and stylesheet are up to date with tokens.json
-        run: |
-          npm run build:tokens
-          git diff --exit-code -- my-money-recap-ds/src/tokens my-money-recap-ds/src/styles
-      - name: Swift tokens are up to date with tokens.json
-        run: |
-          npm run build:swift-tokens
-          git diff --exit-code -- apps/ios/DesignSystem
-      - name: Inlined artwork is up to date with assets/illustrations
-        run: |
-          npm run build:assets
-          git diff --exit-code -- my-money-recap-ds/src/assets
+      - name: Tokens, stylesheet, Swift tokens and inlined artwork are up to date with their sources
+        run: tools/hooks/check-generated.sh ds
       - run: npm run typecheck
       - name: Unit tests with coverage
         working-directory: my-money-recap-ds
@@ -133,10 +127,7 @@ jobs:
           git fetch --no-tags origin main:refs/remotes/origin/main
           buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
       - name: Generated Go and Swift are up to date with the proto files, new files included
-        run: |
-          buf generate
-          stale=$(git status --porcelain -- ../../apps/backend/gen swift/Sources)
-          test -z "$stale" || { echo "$stale"; exit 1; }
+        run: ../../tools/hooks/check-generated.sh contract
 
   backend:
     needs: changes
@@ -223,7 +214,7 @@ jobs:
         working-directory: infra/compose
         run: |
           test -f .env || { echo "the stack never started; the real failure is above"; exit 0; }
-          docker compose ps
+          docker compose --profile mail ps
           docker compose logs keycloak realm-apply members-migrate members notify-migrate notify mailpit bff nginx
       - name: Teardown
         if: always()
