@@ -132,10 +132,11 @@ jobs:
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main
           buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
-      - name: Generated Go and Swift are up to date with the proto files
+      - name: Generated Go and Swift are up to date with the proto files, new files included
         run: |
           buf generate
-          git diff --exit-code -- ../../apps/backend/gen swift/Sources
+          stale=$(git status --porcelain -- ../../apps/backend/gen swift/Sources)
+          test -z "$stale" || { echo "$stale"; exit 1; }
 
   backend:
     needs: changes

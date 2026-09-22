@@ -4,9 +4,9 @@ cd "$(git rev-parse --show-toplevel)"
 
 fail=0
 check() {
-  if ! git diff --quiet -- "$@"; then
-    printf 'generated files are stale, commit the regenerated output:\n' >&2
-    git --no-pager diff --stat -- "$@" >&2
+  stale=$(git status --porcelain -- "$@")
+  if [ -n "$stale" ]; then
+    printf 'generated files are stale, commit the regenerated output:\n%s\n' "$stale" >&2
     fail=1
   fi
 }
