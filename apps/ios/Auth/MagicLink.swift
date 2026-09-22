@@ -3,8 +3,8 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// The four copies SCREEN-STATES A3 names, chosen by failure code (PRD §6.3, spec #61). Keycloak answers
-/// `invalid_grant` for both an expired and an already-used link, so the caller passes which one it is.
+/// SCREEN-STATES A3's three copies plus A1's error copy, chosen by failure code (PRD §6.3, spec #61). Keycloak
+/// answers `invalid_grant` for both an expired and an already-used link, so the caller passes which one it is.
 enum MagicLinkFailure: Equatable {
     case expired
     case alreadyUsed

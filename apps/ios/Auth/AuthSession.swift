@@ -6,7 +6,8 @@ import SwiftUI
 @Observable
 @MainActor
 final class AuthSession {
-    /// Copy Sign in shows after the realm refused a token refresh (IOS I3): the session is gone, not the tap.
+    /// SCREEN-STATES A1 "session expired": the realm refused a token refresh (IOS I3), so the session is gone,
+    /// not the tap.
     static let expiredCopy = "Your session expired. Sign in again."
 
     private(set) var authState: OIDAuthState?
