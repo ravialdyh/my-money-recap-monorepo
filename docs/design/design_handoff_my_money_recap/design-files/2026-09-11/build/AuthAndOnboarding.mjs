@@ -31,7 +31,7 @@ const a1Expired = col('A1 · Sign in / session expired', screen('recap', `${X('H
   <div style="margin-top:10px">${X('SubCopy', '', 'Sign in to start your recap.', '100%,22px')}</div>
   ${X('Illustration', 'src="{{ coverSrc }}" width="{{ n230 }}"', '', '100%,190px')}
   ${X('Card', 'under-illustration="{{ true }}"', `<div style="display:flex;flex-direction:column;gap:12px">
-      ${X('HelperText', '', "It's been a while — sign in again to pick up where you left off.", '100%,40px')}
+      ${X('HelperText', '', "It's been a while. Sign in again to pick up where you left off.", '100%,40px')}
       ${appleBtn()}
       ${googleBtn}
       ${X('Button', '', 'Continue with email', '100%,52px')}

@@ -27,8 +27,8 @@ message MembersCreated {
   MemberFacts facts = 2;
 }
 
-// Routing key "members.updated": the whole replica after any profile,
-// timezone or currency change (§7.1 "Publishes", "Consumes").
+// Routing key "members.updated": the whole replica after a change to any of
+// its fields (§7.1 "Publishes", "Consumes"); an Avatar-only save sends none.
 message MembersUpdated {
   EventEnvelope envelope = 1;
   MemberFacts facts = 2;

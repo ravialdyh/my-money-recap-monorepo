@@ -27,21 +27,35 @@ lt=$(curl -sfS -X POST "$REALM/login-token" -H "Authorization: Bearer $sa" -H 'C
 [[ $lt == lt:* ]] || fail "login-token endpoint returned '$lt'"
 echo "issued: ${lt:0:11}…"
 
-redeem() { curl -s -o "$1" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=password -d client_id=ios -d scope=login-token -d "login_token=$lt"; }
+redeem() { curl -s -o "$1" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=password -d client_id=ios --data-urlencode 'scope=login-token offline_access' -d "login_token=$lt"; }
 body=$(mktemp)
 status=$(redeem "$body")
 [[ $status == 200 ]] || fail "first redemption: HTTP $status $(cat "$body")"
 sub=$(claim sub <"$body")
 [[ $sub == "$expected" ]] || fail "subject $sub is not the test Member $expected"
 echo "redeemed: sub=$sub username=$(claim preferred_username <"$body") aud=$(claim aud <"$body") email_verified=$(claim email_verified <"$body")"
+kind=$(jq -r '.refresh_token | split(".")[1] | @base64d | fromjson | .typ' <"$body")
+[[ $kind == Offline ]] || fail "the redeemed sign-in is a $kind one, not the offline one PRD D62's 30 days needs"
+echo "sign-in kind: $kind (30 days from last use)"
+offline=$(jq -r .refresh_token <"$body")
 
 status=$(redeem "$body")
-[[ $status == 401 && $(jq -r .error "$body") == invalid_grant ]] || fail "second redemption: HTTP $status $(cat "$body")"
+[[ $status == 401 && $(jq -r .error "$body") == invalid_grant ]] || fail "second redemption: HTTP $status $(jq -r '.error // "new tokens issued"' "$body")"
 echo "second redemption refused: HTTP $status $(cat "$body")"
 
 status=$(curl -s -o "$body" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=password -d client_id=ios \
   -d username=test -d "password=$TEST_USER_PASSWORD")
-[[ $status == 200 && $(claim sub <"$body") == "$expected" ]] || fail "password grant on ios: HTTP $status $(cat "$body")"
+[[ $status == 200 && $(claim sub <"$body") == "$expected" ]] || fail "password grant on ios: HTTP $status $(jq -r '.error // "a token for another subject"' "$body")"
 echo "password grant on ios still works"
+first=$(curl -sfS -X POST "$TOKEN" -d grant_type=password -d client_id=ios -d username=test \
+  -d "password=$TEST_USER_PASSWORD" --data-urlencode 'scope=openid offline_access' | jq -r .refresh_token)
+curl -sfS -o /dev/null -X POST "$TOKEN" -d grant_type=refresh_token -d client_id=ios --data-urlencode "refresh_token=$first"
+status=$(curl -s -o "$body" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=refresh_token -d client_id=ios --data-urlencode "refresh_token=$first")
+[[ $status == 400 && $(jq -r .error "$body") == invalid_grant ]] || fail "a used refresh token still renews: HTTP $status $(jq -r '.error // "new tokens issued"' "$body")"
+echo "a used refresh token is refused: $(jq -r .error_description "$body")"
+curl -sfS -o /dev/null -X POST "$REALM/protocol/openid-connect/logout" -d client_id=ios --data-urlencode "refresh_token=$offline"
+status=$(curl -s -o "$body" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=refresh_token -d client_id=ios --data-urlencode "refresh_token=$offline")
+[[ $status == 400 && $(jq -r .error "$body") == invalid_grant ]] || fail "logout left the offline sign-in alive: HTTP $status $(jq -r '.error // "new tokens issued"' "$body")"
+echo "logout ended the offline sign-in"
 rm -f "$body"
 echo "A10 OK on $image"

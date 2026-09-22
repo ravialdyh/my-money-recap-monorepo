@@ -21,7 +21,8 @@ Violet ground throughout.
 | A1 | Sign in | Three buttons, Apple first. |
 | A1 | loading | Tapped button swaps its glyph for a spinner; others at 40%. |
 | A1 | error | `InlineError` inside the card: `We couldn't sign you in. Try again.` |
-| A1 | session expired | The realm refused the token refresh (D62). Same as A1 plus `InlineError` inside the card: `Your session expired. Sign in again.` |
+| A1 | session expired | After 30 days of no use the app erases its saved sign-in (D62, the app's own 30-day erase of IOS I2). Same as A1 plus one line above the buttons: `It's been a while. Sign in again to pick up where you left off.` |
+| A1 | sign-in refused | The realm refused to renew a saved sign-in before those 30 days, for example after its sessions were ended. Same as A1 plus `InlineError` inside the card: `Your session expired. Sign in again.` |
 | A2 | Enter email | `TextField`, Send disabled until valid. |
 | A2 | invalid | Coral border and helper, only after blur or Send. |
 | A3 | Check your inbox | Envelope 240pt, 15-minute line, Resend countdown. |
@@ -134,7 +135,7 @@ White `Sheet variant="full"` on violet.
 | D6 | Currency confirm | Rate, before/after rows, Convert + Cancel. |
 | D6 | rate fetch failed | `InlineError`: `We couldn't get today's rate.` with `Try again` and `Enter it myself` (→ D7). |
 | D6 | nothing to convert | No salary and no spends: the confirm sheet is skipped entirely and the currency changes directly, with a `Sent ✓`-style confirmation on the row. |
-| D7 | Manual rate | Rate field, Convert disabled until > 0, live preview. |
+| D7 | Manual rate | Rate field, Convert disabled until > 0, live preview. Before a rate is typed the preview reads `All your amounts will be converted at the rate you enter.` |
 | D8 | Notifications | Three toggles writing immediately. |
 | D8 | permission denied | All three at 40%, deep-link to iOS Settings. |
 | D8 | reminder on | Nested time row, 20:00. |

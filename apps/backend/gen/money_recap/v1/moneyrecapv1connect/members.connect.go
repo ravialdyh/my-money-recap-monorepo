@@ -55,14 +55,15 @@ const (
 
 // MembersServiceClient is a client for the money_recap.v1.MembersService service.
 type MembersServiceClient interface {
-	// Upsert on the Keycloak subject: creates on first sight, returns the same
-	// Member on every later call, and refreshes the email when the token
-	// carries one. Planned with the deletion worker: a tombstoned row
-	// (deleted_at set) counts as absent (§7.1 step 3).
+	// Upsert on the Keycloak subject: creates on first sight, else returns the
+	// Member, refreshing the email when the token has one and publishing
+	// members.updated if it changed. Planned: a tombstoned row (deleted_at set)
+	// counts as absent (§7.1 step 3).
 	GetOrCreateBySubject(context.Context, *connect.Request[v1.GetOrCreateBySubjectRequest]) (*connect.Response[v1.GetOrCreateBySubjectResponse], error)
 	GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error)
 	// Display Name, Avatar key, Currency and the onboarding step just completed
-	// or skipped, in one write (PRD §6.4, §6.5); publishes members.updated.
+	// or skipped, in one write (PRD §6.4, §6.5); publishes members.updated only
+	// when a MemberFacts field changed, so an Avatar-only save publishes nothing.
 	SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error)
 	// Called on every launch (A3); publishes members.updated on change.
 	SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error)
@@ -165,14 +166,15 @@ func (c *membersServiceClient) CancelDeletion(ctx context.Context, req *connect.
 
 // MembersServiceHandler is an implementation of the money_recap.v1.MembersService service.
 type MembersServiceHandler interface {
-	// Upsert on the Keycloak subject: creates on first sight, returns the same
-	// Member on every later call, and refreshes the email when the token
-	// carries one. Planned with the deletion worker: a tombstoned row
-	// (deleted_at set) counts as absent (§7.1 step 3).
+	// Upsert on the Keycloak subject: creates on first sight, else returns the
+	// Member, refreshing the email when the token has one and publishing
+	// members.updated if it changed. Planned: a tombstoned row (deleted_at set)
+	// counts as absent (§7.1 step 3).
 	GetOrCreateBySubject(context.Context, *connect.Request[v1.GetOrCreateBySubjectRequest]) (*connect.Response[v1.GetOrCreateBySubjectResponse], error)
 	GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error)
 	// Display Name, Avatar key, Currency and the onboarding step just completed
-	// or skipped, in one write (PRD §6.4, §6.5); publishes members.updated.
+	// or skipped, in one write (PRD §6.4, §6.5); publishes members.updated only
+	// when a MemberFacts field changed, so an Avatar-only save publishes nothing.
 	SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error)
 	// Called on every launch (A3); publishes members.updated on change.
 	SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error)

@@ -139,6 +139,29 @@ class Comments(unittest.TestCase):
         self.assertEqual(found, ["comment attached to no declaration; delete it"])
 
 
+class EmDash(unittest.TestCase):
+    def test_an_em_dash_in_a_string_is_rejected(self):
+        found = problems("a.swift", 'let copy = "It\'s been a while \u2014 sign in again."\n')
+        self.assertEqual(found, ["em dash in a string or a page; the app never shows one to a Member, use a full stop or a comma"])
+
+    def test_an_em_dash_in_a_comment_is_allowed(self):
+        self.assertEqual(problems("a.swift", "/// Signs in \u2014 or says why not.\nfunc signIn() {}\n"), [])
+
+    def test_an_em_dash_after_a_block_comment_on_the_same_line_is_rejected(self):
+        found = problems("a.swift", '/** The calm line. */ let copy = "a \u2014 b"\n')
+        self.assertIn("em dash in a string or a page; the app never shows one to a Member, use a full stop or a comma", found)
+
+    def test_an_escaped_em_dash_is_rejected(self):
+        self.assertEqual(len(problems("a.swift", 'let copy = "a \\u{2014} b"\n')), 1)
+        self.assertEqual(len(problems("a.html", "<p>a &mdash; b</p>\n")), 1)
+
+    def test_an_em_dash_in_a_plist_is_rejected(self):
+        self.assertEqual(len(problems("Info.plist", "<string>Unlock \u2014 please</string>\n")), 1)
+
+    def test_an_em_dash_on_a_page_is_rejected(self):
+        self.assertEqual(problems("a.html", "<p>Open the app \u2014 then sign in.</p>\n"), ["em dash in a string or a page; the app never shows one to a Member, use a full stop or a comma"])
+
+
 class Directives(unittest.TestCase):
     def test_load_bearing_directives_survive(self):
         def in_body(line):

@@ -157,8 +157,8 @@ func (x *MembersCreated) GetFacts() *MemberFacts {
 	return nil
 }
 
-// Routing key "members.updated": the whole replica after any profile,
-// timezone or currency change (§7.1 "Publishes", "Consumes").
+// Routing key "members.updated": the whole replica after a change to any of
+// its fields (§7.1 "Publishes", "Consumes"); an Avatar-only save sends none.
 type MembersUpdated struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`

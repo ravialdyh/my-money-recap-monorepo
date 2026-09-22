@@ -6,9 +6,9 @@ import SwiftUI
 @Observable
 @MainActor
 final class AuthSession {
-    /// SCREEN-STATES A1 "session expired": the realm refused a token refresh (IOS I3), so the session is gone,
+    /// SCREEN-STATES A1 "sign-in refused": the realm refused a token refresh (IOS I3), so the session is gone,
     /// not the tap.
-    static let expiredCopy = "Your session expired. Sign in again."
+    static let refusedCopy = "Your session expired. Sign in again."
 
     private(set) var authState: OIDAuthState?
     /// Set when sign-out was not the Member's choice, read once by Sign in.
@@ -108,7 +108,7 @@ final class AuthSession {
             return token
         } catch {
             if !isSignedIn {
-                signOut(message: Self.expiredCopy)
+                signOut(message: Self.refusedCopy)
             }
             throw error
         }

@@ -1,7 +1,7 @@
 # infra/wizard
 
 The nine setup steps only a human can do (`docs/research/2026-09-14-setup-automation.md` §4), in
-order, in one script. Everything downstream of them is the planned machine root's `tofu apply` (#74)
+order, in one script. Everything downstream of them is the planned machine root's `tofu apply` (#87)
 and the deploy's `docker compose up`, so this is where the setup stops living in the developer's head
 and starts living in the repository.
 

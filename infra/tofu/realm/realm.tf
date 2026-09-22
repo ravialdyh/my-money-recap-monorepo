@@ -5,6 +5,11 @@ resource "keycloak_realm" "mmr" {
   registration_allowed        = false
   login_with_email_allowed    = true
   default_signature_algorithm = "RS256"
+
+  offline_session_idle_timeout         = "720h0m0s"
+  offline_session_max_lifespan_enabled = false
+  revoke_refresh_token                 = true
+  refresh_token_max_reuse              = 0
 }
 
 resource "keycloak_openid_client_scope" "login_token" {
@@ -15,18 +20,17 @@ resource "keycloak_openid_client_scope" "login_token" {
 }
 
 resource "keycloak_openid_client" "ios" {
-  realm_id                        = keycloak_realm.mmr.id
-  client_id                       = "ios"
-  name                            = "My Money Recap iOS"
-  enabled                         = true
-  access_type                     = "PUBLIC"
-  standard_flow_enabled           = true
-  direct_access_grants_enabled    = true
-  implicit_flow_enabled           = false
-  pkce_code_challenge_method      = "S256"
-  valid_redirect_uris             = ["mymoneyrecap://auth/callback"]
-  valid_post_logout_redirect_uris = ["mymoneyrecap://auth/logout"]
-  web_origins                     = []
+  realm_id                     = keycloak_realm.mmr.id
+  client_id                    = "ios"
+  name                         = "My Money Recap iOS"
+  enabled                      = true
+  access_type                  = "PUBLIC"
+  standard_flow_enabled        = true
+  direct_access_grants_enabled = true
+  implicit_flow_enabled        = false
+  pkce_code_challenge_method   = "S256"
+  valid_redirect_uris          = ["mymoneyrecap://auth/callback"]
+  web_origins                  = []
 
   authentication_flow_binding_overrides {
     direct_grant_id = keycloak_authentication_flow.ios_direct_grant.id
