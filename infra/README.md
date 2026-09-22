@@ -97,7 +97,7 @@ machine that is not whole:
 
 - **No mail.** `compose.yaml` sets `notify`'s mail host to `mailpit:1025` and its sender to a `.test`
   address for every stack, and the deploy starts no Mailpit, so email sign-in on the machine fails
-  until #87 item 8 gives `notify` a provider, and the SMTP AUTH it does not send yet.
+  until #87 item 8 gives `notify` a provider and the SMTP AUTH it does not send yet.
 - **No TLS.** Nginx serves plain HTTP on port 80; the certificate, the `listen 443` server and the
   reload hook are #87's ([`nginx/README.md`](nginx/README.md), "TLS and the `acme.sh` sidecar").
 - **A placeholder Team ID.** The apple-app-site-association file ships with `TEAMID` in its `appIDs`
