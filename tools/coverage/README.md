@@ -41,9 +41,9 @@ components rather than only calling functions, so the fit-to-width measurement, 
 and every event handler are exercised.
 
 Go's gap is `internal/members` at 83.3%, whose handlers the boundary test reaches in the Compose
-container, outside the profile, and `cmd/bff` and `cmd/members` at 0%. `cmd/members` and `cmd/notify`
-are a handful of lines each now that the start-up moved into `serve.Main`; what is left uncovered
-there is `serve.Main`'s serve path, which needs a listener and a signal rather than a return value.
+container, outside the profile, and `cmd/bff`, `cmd/members` and `cmd/notify` at 0%: their `main`,
+`run` and handler wiring, which only the Compose stack runs. `serve.Main`'s serve path, which needs a
+listener and a signal rather than a return value, is `internal/serve`'s gap.
 `internal/migrate`'s uncovered lines are store errors a live Postgres does not raise, and
 `internal/notify`'s are the STARTTLS upgrade no local mail host offers and write errors a socket
 under a live deadline does not reach.
