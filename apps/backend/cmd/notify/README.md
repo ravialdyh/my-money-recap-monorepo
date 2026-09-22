@@ -8,10 +8,11 @@ the outbox arrive in slice 7.
 `EmailMagicLink` is a pre-authentication procedure: the BFF reaches it on a request that carries no
 token, so it is exempt from the bearer check by procedure name and never by service (§4.2 point 3,
 `internal/auth`). Every other procedure of the same service answers `unauthenticated`
-without a valid token, as `members` does. It sends the link over plain SMTP, and one idempotency key
-sends one message: the row is claimed first and a refused SMTP host rolls it back, so a retried send
-answers success without a second email and a failed one leaves the key free (A14). An empty key is
-`invalid_argument`, because a missing key would dedupe every later send into silence.
+without a valid token, as `members` does. It sends the link over SMTP, upgrading to STARTTLS when
+the host offers it, and one idempotency key sends one message: the row is claimed first and a
+refused SMTP host rolls it back, so a retried send answers success without a second email and a
+failed one leaves the key free (A14). An empty key is `invalid_argument`, because a missing key
+would dedupe every later send into silence.
 
 | Path | Holds |
 | --- | --- |
@@ -28,7 +29,7 @@ answers success without a second email and a failed one leaves the key free (A14
 | --- | --- | --- | --- |
 | `NOTIFY_DATABASE_URL_FILE` | one of the two | one of the two | The file holding the whole connection string, `/run/secrets/notify_database_url` in Compose. Its trimmed contents win over `NOTIFY_DATABASE_URL` and it is never also reported missing (A13). |
 | `NOTIFY_DATABASE_URL` | one of the two | one of the two | `postgres://notify:<password>@postgres:5432/notify`; the `notify` role reaches only this database (A9). The plain form is what a local `go run` uses. |
-| `NOTIFY_SMTP_ADDR` | required | — | The mail host as `host:port`: `mailpit:1025` in Compose, a provider on the VM. |
+| `NOTIFY_SMTP_ADDR` | required | — | The mail host as `host:port`: `mailpit:1025` in Compose on every machine today; a real provider is the follow-up issue's. |
 | `NOTIFY_MAIL_FROM` | required | — | The envelope sender and the `From` header. |
 | `NOTIFY_OIDC_ISSUER` | required | — | As `BFF_OIDC_ISSUER` (`../bff/README.md`). |
 | `NOTIFY_OIDC_JWKS_URL` | required | — | As `BFF_OIDC_JWKS_URL`. |
