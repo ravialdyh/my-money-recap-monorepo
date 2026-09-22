@@ -40,16 +40,22 @@ echo "sign-in kind: $kind (30 days from last use)"
 offline=$(jq -r .refresh_token <"$body")
 
 status=$(redeem "$body")
-[[ $status == 401 && $(jq -r .error "$body") == invalid_grant ]] || fail "second redemption: HTTP $status $(cat "$body")"
+[[ $status == 401 && $(jq -r .error "$body") == invalid_grant ]] || fail "second redemption: HTTP $status $(jq -r '.error // "new tokens issued"' "$body")"
 echo "second redemption refused: HTTP $status $(cat "$body")"
 
 status=$(curl -s -o "$body" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=password -d client_id=ios \
   -d username=test -d "password=$TEST_USER_PASSWORD")
-[[ $status == 200 && $(claim sub <"$body") == "$expected" ]] || fail "password grant on ios: HTTP $status $(cat "$body")"
+[[ $status == 200 && $(claim sub <"$body") == "$expected" ]] || fail "password grant on ios: HTTP $status $(jq -r '.error // "a token for another subject"' "$body")"
 echo "password grant on ios still works"
+first=$(curl -sfS -X POST "$TOKEN" -d grant_type=password -d client_id=ios -d username=test \
+  -d "password=$TEST_USER_PASSWORD" --data-urlencode 'scope=openid offline_access' | jq -r .refresh_token)
+curl -sfS -o /dev/null -X POST "$TOKEN" -d grant_type=refresh_token -d client_id=ios --data-urlencode "refresh_token=$first"
+status=$(curl -s -o "$body" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=refresh_token -d client_id=ios --data-urlencode "refresh_token=$first")
+[[ $status == 400 && $(jq -r .error "$body") == invalid_grant ]] || fail "a used refresh token still renews: HTTP $status $(jq -r '.error // "new tokens issued"' "$body")"
+echo "a used refresh token is refused: $(jq -r .error_description "$body")"
 curl -sfS -o /dev/null -X POST "$REALM/protocol/openid-connect/logout" -d client_id=ios --data-urlencode "refresh_token=$offline"
 status=$(curl -s -o "$body" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=refresh_token -d client_id=ios --data-urlencode "refresh_token=$offline")
-[[ $status == 400 && $(jq -r .error "$body") == invalid_grant ]] || fail "logout left the offline sign-in alive: HTTP $status $(cat "$body")"
+[[ $status == 400 && $(jq -r .error "$body") == invalid_grant ]] || fail "logout left the offline sign-in alive: HTTP $status $(jq -r '.error // "new tokens issued"' "$body")"
 echo "logout ended the offline sign-in"
 rm -f "$body"
 echo "A10 OK on $image"

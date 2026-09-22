@@ -8,6 +8,8 @@ resource "keycloak_realm" "mmr" {
 
   offline_session_idle_timeout         = "720h0m0s"
   offline_session_max_lifespan_enabled = false
+  revoke_refresh_token                 = true
+  refresh_token_max_reuse              = 0
 }
 
 resource "keycloak_openid_client_scope" "login_token" {
