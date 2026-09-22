@@ -27,7 +27,8 @@ message BffServiceSaveProfileRequest {
   // (PRD §6.4); anything else is invalid_argument, checked here, not only on
   // the phone.
   optional string display_name = 1;
-  // One of the six avatar keys (PRD §6.4); any other is invalid_argument.
+  // One of the six keys Profile.avatar_key lists (PRD §6.4); any other is
+  // invalid_argument.
   optional string avatar_key = 2;
   // ISO 4217. Accepted only while ledger holds no amount (step 2, or the
   // §8.9 step 2 shortcut); otherwise ChangeCurrency is the path.

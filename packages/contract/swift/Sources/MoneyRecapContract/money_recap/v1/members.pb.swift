@@ -37,7 +37,8 @@ public nonisolated struct MoneyRecap_V1_Profile: Sendable {
   /// Empty until onboarding sets it.
   public var displayName: String = String()
 
-  /// Empty until onboarding sets it.
+  /// Empty until onboarding sets it; otherwise one of the six Avatar keys, the
+  /// authoritative list: fox, otter, panda, frog, owl, rabbit (PRD D36, §6.4).
   public var avatarKey: String = String()
 
   /// ISO 4217; empty until onboarding sets it.

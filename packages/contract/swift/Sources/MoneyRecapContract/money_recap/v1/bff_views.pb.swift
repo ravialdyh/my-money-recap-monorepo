@@ -317,6 +317,14 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `savingTarget`. Subsequent reads from it will return its default value.
   public mutating func clearSavingTarget() {_uniqueStorage()._savingTarget = nil}
 
+  /// The given_name claim of the Member's own token, which fills step 1's First
+  /// name field; empty when the provider shared none (PRD §6.4). Read by the
+  /// BFF, since the email sign-in path never gives the phone an identity token.
+  public var suggestedName: String {
+    get {_storage._suggestedName}
+    set {_uniqueStorage()._suggestedName = newValue}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -712,13 +720,14 @@ nonisolated extension MoneyRecap_V1_SettingsView: SwiftProtobuf.Message, SwiftPr
 
 nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".OnboardingState"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}next_step\0\u{1}profile\0\u{1}salary\0\u{3}saving_target\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}next_step\0\u{1}profile\0\u{1}salary\0\u{3}saving_target\0\u{3}suggested_name\0")
 
   fileprivate class _StorageClass {
     var _nextStep: Int32 = 0
     var _profile: MoneyRecap_V1_Profile? = nil
     var _salary: MoneyRecap_V1_SalarySetting? = nil
     var _savingTarget: MoneyRecap_V1_SavingTargetSetting? = nil
+    var _suggestedName: String = String()
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -733,6 +742,7 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
       _profile = source._profile
       _salary = source._salary
       _savingTarget = source._savingTarget
+      _suggestedName = source._suggestedName
     }
   }
 
@@ -755,6 +765,7 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
         case 2: try { try decoder.decodeSingularMessageField(value: &_storage._profile) }()
         case 3: try { try decoder.decodeSingularMessageField(value: &_storage._salary) }()
         case 4: try { try decoder.decodeSingularMessageField(value: &_storage._savingTarget) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._suggestedName) }()
         default: break
         }
       }
@@ -779,6 +790,9 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
       try { if let v = _storage._savingTarget {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
       } }()
+      if !_storage._suggestedName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._suggestedName, fieldNumber: 5)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -792,6 +806,7 @@ nonisolated extension MoneyRecap_V1_OnboardingState: SwiftProtobuf.Message, Swif
         if _storage._profile != rhs_storage._profile {return false}
         if _storage._salary != rhs_storage._salary {return false}
         if _storage._savingTarget != rhs_storage._savingTarget {return false}
+        if _storage._suggestedName != rhs_storage._suggestedName {return false}
         return true
       }
       if !storagesAreEqual {return false}

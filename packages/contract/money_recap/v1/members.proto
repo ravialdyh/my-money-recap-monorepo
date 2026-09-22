@@ -16,7 +16,8 @@ message Profile {
   string email = 2;
   // Empty until onboarding sets it.
   string display_name = 3;
-  // Empty until onboarding sets it.
+  // Empty until onboarding sets it; otherwise one of the six Avatar keys, the
+  // authoritative list: fox, otter, panda, frog, owl, rabbit (PRD D36, §6.4).
   string avatar_key = 4;
   // ISO 4217; empty until onboarding sets it.
   string currency_code = 5;
@@ -59,7 +60,12 @@ message SaveProfileRequest {
   // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
+  // 1 to 30 characters after NFC and trimming, counted in code points:
+  // letters in any script with their marks, spaces, hyphens and apostrophes
+  // (PRD §6.4); anything else is invalid_argument.
   optional string display_name = 3;
+  // One of the six keys Profile.avatar_key lists; any other is
+  // invalid_argument.
   optional string avatar_key = 4;
   // ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
   // PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming

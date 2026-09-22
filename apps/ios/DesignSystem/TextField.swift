@@ -11,6 +11,8 @@ struct MMRTextField: View {
     var focused = false
     var keyboard: UIKeyboardType = .default
     var content: UITextContentType?
+    var capitalization: TextInputAutocapitalization = .never
+    var submit: SubmitLabel = .send
     var onSubmit: () -> Void = {}
 
     var body: some View {
@@ -19,11 +21,11 @@ struct MMRTextField: View {
             TextField(placeholder, text: $text)
                 .textStyle(Tokens.TypeRamp.bodyM)
                 .foregroundStyle(Tokens.Text.primary)
-                .textInputAutocapitalization(.never)
+                .textInputAutocapitalization(capitalization)
                 .autocorrectionDisabled()
                 .keyboardType(keyboard)
                 .textContentType(content)
-                .submitLabel(.send)
+                .submitLabel(submit)
                 .onSubmit(onSubmit)
                 .accessibilityLabel(label)
                 .padding(.horizontal, Tokens.Space._6)

@@ -21,4 +21,16 @@ enum BffClient {
         )
         return MoneyRecap_V1_BffServiceClient(client: ProtocolClient(config: config))
     }
+
+    /// Calls once more when the first answer is `unauthenticated` and the session still holds, after the interceptor
+    /// has refreshed the token (IOS I3).
+    @MainActor
+    static func retried<Output>(
+        _ session: AuthSession,
+        _ call: () async -> ResponseMessage<Output>
+    ) async -> ResponseMessage<Output> {
+        let first = await call()
+        guard first.code == .unauthenticated, session.isSignedIn else { return first }
+        return await call()
+    }
 }

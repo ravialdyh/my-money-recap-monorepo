@@ -1,8 +1,8 @@
 # members
 
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
-subject. It serves `GetOrCreateBySubject` and `GetProfile` (#15) and `SetTimezone` (#96); the rest of
-`MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
+subject. It serves `GetOrCreateBySubject` and `GetProfile` (#15), `SetTimezone` (#96) and `SaveProfile`
+(#98); the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
 (`apps/README.md`, "Every service"); it reads no variable of its own.
 
 | Path | Holds |
@@ -44,6 +44,12 @@ local date in that zone, which no later call changes. It needs an `idempotency_k
 `idempotency` table inside the write's own transaction under its `(member_id, idempotency_key)` key:
 the same key again replays the first answer and writes nothing, the same key with a different request
 is `invalid_argument`, and the next write sweeps keys older than 24 hours (A14).
+
+`SaveProfile` writes only the answers a call carries, checked with `internal/answers` as the BFF checks
+them: a Display Name stored in NFC and trimmed, 1 to 30 code points of letters in any script, spaces,
+hyphens and apostrophes; one of the six Avatar keys `Profile.avatar_key` lists; an ISO 4217 Currency. It
+keeps `onboarding_step` at the highest step ever saved, so saving an earlier step again never lowers it,
+and it is keyed like `SetTimezone`.
 
 ## Tests
 

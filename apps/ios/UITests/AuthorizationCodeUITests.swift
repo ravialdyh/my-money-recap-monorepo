@@ -48,7 +48,11 @@ final class AuthorizationCodeUITests: XCTestCase {
         type(password, into: secret, on: page)
         submit(secret, holding: password)
 
-        assertHomeAtZero(app)
+        let field = app.textFields["First name"]
+        XCTAssert(field.waitForExistence(timeout: 30), "the runner cleared the test Member's row, so step 1 opens")
+        XCTAssertEqual(field.value as? String, "Test", "the token's given_name fills the field (PRD §6.4)")
+        answerStepOne(app, avatar: "Fox")
+        assertHomeAtZero(app, greeting: "Hi, Test")
         snapshot("03-home-at-zero-through-the-web-sheet")
     }
 

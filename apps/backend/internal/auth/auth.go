@@ -25,9 +25,9 @@ type ctxKey struct{}
 
 type fetchFailedKey struct{}
 
-// Claims is what a verified token tells the handler: the subject, the standard OIDC email
-// claim, and the raw token so the BFF can forward it unchanged (§4.2 point 3).
-type Claims struct{ Subject, Email, Raw string }
+// Claims is what a verified token tells the handler: the subject, the standard OIDC email and
+// given_name claims, and the raw token so the BFF can forward it unchanged (§4.2 point 3).
+type Claims struct{ Subject, Email, GivenName, Raw string }
 
 // Verifier checks issuer, audience, expiry and signature against the realm JWKS. Keys are cached
 // and refetched on any miss, so while the realm is down a token with a cached key still verifies and
@@ -113,12 +113,13 @@ func (v *Verifier) Interceptor() connect.UnaryInterceptorFunc {
 				return nil, notValid(err)
 			}
 			var extra struct {
-				Email string `json:"email"`
+				Email     string `json:"email"`
+				GivenName string `json:"given_name"`
 			}
 			if err := tok.Claims(&extra); err != nil {
 				return nil, notValid(err)
 			}
-			return next(NewContext(ctx, Claims{Subject: tok.Subject, Email: extra.Email, Raw: raw}), req)
+			return next(NewContext(ctx, Claims{Subject: tok.Subject, Email: extra.Email, GivenName: extra.GivenName, Raw: raw}), req)
 		}
 	}
 }

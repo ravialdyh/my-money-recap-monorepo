@@ -108,6 +108,10 @@ message OnboardingState {
   // Step 4's answer; absent when not yet reached, or skipped or blocked by a
   // skipped Salary (D44), which is absent with profile.onboarding_step at 4.
   optional SavingTargetSetting saving_target = 4;
+  // The given_name claim of the Member's own token, which fills step 1's First
+  // name field; empty when the provider shared none (PRD §6.4). Read by the
+  // BFF, since the email sign-in path never gives the phone an identity token.
+  string suggested_name = 5;
 }
 
 // What the currency confirm sheet draws, or why it does not open (PRD §8.9

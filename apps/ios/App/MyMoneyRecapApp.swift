@@ -21,7 +21,7 @@ struct RootView: View {
     var body: some View {
         Group {
             if session.isSignedIn {
-                HomeView(session: session, context: context)
+                LaunchView(session: session, context: context)
             } else {
                 SignInView(session: session)
             }

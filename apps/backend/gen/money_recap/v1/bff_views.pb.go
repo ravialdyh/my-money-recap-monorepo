@@ -447,7 +447,11 @@ type OnboardingState struct {
 	Salary *SalarySetting `protobuf:"bytes,3,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
 	// Step 4's answer; absent when not yet reached, or skipped or blocked by a
 	// skipped Salary (D44), which is absent with profile.onboarding_step at 4.
-	SavingTarget  *SavingTargetSetting `protobuf:"bytes,4,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	SavingTarget *SavingTargetSetting `protobuf:"bytes,4,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	// The given_name claim of the Member's own token, which fills step 1's First
+	// name field; empty when the provider shared none (PRD §6.4). Read by the
+	// BFF, since the email sign-in path never gives the phone an identity token.
+	SuggestedName string `protobuf:"bytes,5,opt,name=suggested_name,json=suggestedName,proto3" json:"suggested_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -508,6 +512,13 @@ func (x *OnboardingState) GetSavingTarget() *SavingTargetSetting {
 		return x.SavingTarget
 	}
 	return nil
+}
+
+func (x *OnboardingState) GetSuggestedName() string {
+	if x != nil {
+		return x.SuggestedName
+	}
+	return ""
 }
 
 // What the currency confirm sheet draws, or why it does not open (PRD §8.9
@@ -662,12 +673,13 @@ const file_money_recap_v1_bff_views_proto_rawDesc = "" +
 	"\fSettingsView\x121\n" +
 	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\x12G\n" +
 	"\x0fledger_settings\x18\x02 \x01(\v2\x1e.money_recap.v1.LedgerSettingsR\x0eledgerSettings\x12P\n" +
-	"\x12notification_prefs\x18\x03 \x01(\v2!.money_recap.v1.NotificationPrefsR\x11notificationPrefs\"\x89\x02\n" +
+	"\x12notification_prefs\x18\x03 \x01(\v2!.money_recap.v1.NotificationPrefsR\x11notificationPrefs\"\xb0\x02\n" +
 	"\x0fOnboardingState\x12\x1b\n" +
 	"\tnext_step\x18\x01 \x01(\x05R\bnextStep\x121\n" +
 	"\aprofile\x18\x02 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\x12:\n" +
 	"\x06salary\x18\x03 \x01(\v2\x1d.money_recap.v1.SalarySettingH\x00R\x06salary\x88\x01\x01\x12M\n" +
-	"\rsaving_target\x18\x04 \x01(\v2#.money_recap.v1.SavingTargetSettingH\x01R\fsavingTarget\x88\x01\x01B\t\n" +
+	"\rsaving_target\x18\x04 \x01(\v2#.money_recap.v1.SavingTargetSettingH\x01R\fsavingTarget\x88\x01\x01\x12%\n" +
+	"\x0esuggested_name\x18\x05 \x01(\tR\rsuggestedNameB\t\n" +
 	"\a_salaryB\x10\n" +
 	"\x0e_saving_target\"\xdf\x02\n" +
 	"\x15CurrencyChangePreview\x12,\n" +
