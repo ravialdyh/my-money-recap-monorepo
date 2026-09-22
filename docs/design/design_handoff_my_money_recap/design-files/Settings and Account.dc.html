@@ -516,7 +516,7 @@ class Component extends DCLogic {
  setRate: (e) => this.setState({ rate: e.target.value }),
       rateState: s.rate && !rateNum ? 'invalid' : 'default',
       convertState: rateNum > 0 ? 'default' : 'disabled',
-      rateBody: rateNum > 0 ? `All your amounts will be converted at 1 GBP = ${rateNum.toLocaleString('en-GB')} IDR. Your £2,400 salary becomes ${rp(2400 * rateNum)}.` : 'All your amounts will be converted at the rate you enter. Your £2,400 salary becomes Rp —.',
+      rateBody: rateNum > 0 ? `All your amounts will be converted at 1 GBP = ${rateNum.toLocaleString('en-GB')} IDR. Your £2,400 salary becomes ${rp(2400 * rateNum)}.` : 'All your amounts will be converted at the rate you enter.',
       del: s.del,
  setDel: (e) => this.setState({ del: e.target.value }),
       deleteState: s.del === 'DELETE' ? 'default' : 'disabled',

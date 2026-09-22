@@ -22,11 +22,11 @@ final class AuthSessionTests: XCTestCase {
         XCTAssertNil(session.signInMessage)
     }
 
-    func testARefusedRefreshSignsOutWithTheExpiredCopy() async {
+    func testARefusedRefreshSignsOutWithTheRefusedCopy() async {
         let session = signedIn(realm: "refusing.invalid")
         await session.recoverFromUnauthenticated()
         XCTAssertFalse(session.isSignedIn)
-        XCTAssertEqual(session.signInMessage, AuthSession.expiredCopy)
+        XCTAssertEqual(session.signInMessage, AuthSession.refusedCopy)
     }
 
     func testATransientRefreshFailureFailsTheCallAsUnavailable() async throws {
@@ -48,7 +48,7 @@ final class AuthSessionTests: XCTestCase {
         XCTAssertEqual(error.code, .unauthenticated)
         XCTAssertNil(session.authState, "RootView observes authState, so Sign in shows")
         XCTAssertNil(Keychain.read(), "a relaunch must not reload the refused state")
-        XCTAssertEqual(session.signInMessage, AuthSession.expiredCopy)
+        XCTAssertEqual(session.signInMessage, AuthSession.refusedCopy)
     }
 
     func testTheMagicLinkCallGoesOutWithNoHeaderAndWithoutAskingForAToken() async throws {
@@ -82,7 +82,7 @@ final class AuthSessionTests: XCTestCase {
         let recovered = signedIn(realm: "refusing.invalid")
         await respondUnauthenticated(BearerInterceptor(session: recovered))
         XCTAssertFalse(recovered.isSignedIn, "every other path still recovers, and signs out when refused")
-        XCTAssertEqual(recovered.signInMessage, AuthSession.expiredCopy)
+        XCTAssertEqual(recovered.signInMessage, AuthSession.refusedCopy)
     }
 
     func testTheKeychainIsRewrittenOnlyWhenARefreshChangedTheSession() async throws {

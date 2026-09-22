@@ -140,7 +140,8 @@ running `up` is enough to change it.
   Member by email and otherwise creates a second one.
 - `ios`: public client, PKCE S256 required, direct access grants enabled for the test seams, redirect
   URI `mymoneyrecap://auth/callback` (custom scheme until universal links). An
-  audience mapper adds `bff` to its access tokens. Its direct grant is the custom `ios direct grant`
+  audience mapper adds `bff` to its access tokens. Every sign-in asks for `offline_access`, so its
+  refresh token is an offline one the realm keeps 30 days from last use, with no overall cap (PRD D62). Its direct grant is the custom `ios direct grant`
   flow: two conditional branches on the optional `login-token` client scope. A token request with
   `scope=login-token` runs the Login Token authenticator (A10); one without runs the username and
   password validators. The two cannot be plain alternatives, because the Login Token authenticator
@@ -303,7 +304,9 @@ backend, `infra/` or the contract (the `backend` job, after the Go tests, with a
    access token's `sub` is the test Member's id from the admin API and the refresh token is an
    offline one (PRD D62's 30 days);
 3. redeems it again and asserts HTTP 401 `invalid_grant`;
-4. checks the password grant on `ios` still works, and prints the image tag.
+4. checks the password grant on `ios` still works;
+5. posts the offline refresh token to the logout endpoint and asserts a refresh then fails, as Log
+   out will (PRD §9), and prints the image tag.
 
 ```bash
 infra/compose/a10-smoke.sh

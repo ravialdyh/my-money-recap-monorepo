@@ -28,7 +28,7 @@ final class SignInViewModel {
     private(set) var errorMessage: String?
     private let signIn: (SignInButton) async throws -> Void
 
-    /// `initialError` is the expired-session copy when the realm refused a token refresh (I3).
+    /// `initialError` is the A1 "sign-in refused" copy when the realm refused a token refresh (I3).
     init(signIn: @escaping (SignInButton) async throws -> Void, initialError: String? = nil) {
         self.signIn = signIn
         errorMessage = initialError
