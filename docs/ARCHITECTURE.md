@@ -84,7 +84,7 @@ flowchart LR
 
 ### 4.3 Events: RabbitMQ with the outbox pattern (A4, A5)
 
-Planned: A4 and A5 are proposed, no service publishes an event yet, and `compose.yaml` runs no broker until the outbox relay publishes to one.
+Planned: A4 and A5 are proposed and no service publishes an event yet. `compose.yaml` runs the broker (#93), with nothing publishing to it, consuming from it or waiting on it.
 
 RabbitMQ is a queue: it delivers each message to one consumer in a queue and forgets it after the ack. That is what phase 1 needs. Correctness comes from the pattern around it, which is the same for every broker.
 
@@ -383,7 +383,7 @@ One Postgres container, five databases, five roles, each role granted only its o
 | otel-lgtm | grafana/otel-lgtm | 4317 internal, 3000 admin-only | volume |
 | pg-backup | built from `infra/pg-backup` (cron + `pg_dump`) | — | postgres |
 
-Thirteen containers, one `compose.yaml`, a health check on every long-running one but the `acme` sidecar, so `depends_on: condition: service_healthy` starts them in order. `ledger`, `currency`, `rabbitmq`, `otel-lgtm` and `pg-backup` are planned; `infra/compose/README.md` lists what `compose.yaml` runs today. Migrations run as a one-shot step per service before that service starts: the same image with the `migrate` subcommand, which `depends_on: condition: service_completed_successfully` orders (`members-migrate` is the first, #15). The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
+Thirteen containers, one `compose.yaml`, a health check on every long-running one but the `acme` sidecar, so `depends_on: condition: service_healthy` starts them in order. `ledger`, `currency`, `otel-lgtm` and `pg-backup` are planned; `infra/compose/README.md` lists what `compose.yaml` runs today. Migrations run as a one-shot step per service before that service starts: the same image with the `migrate` subcommand, which `depends_on: condition: service_completed_successfully` orders (`members-migrate` is the first, #15). The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
 
 **The thirteen are the VM's.** A laptop runs the same file plus Mailpit, the one container that never reaches the VM: behind the `mail` profile, it is the SMTP host `notify` sends to (#68). The VM's `notify` has no mail host until #87 item 8. `realm-apply`, a one-shot step outside the count like the migration steps, builds the realm on every `up` (#65), and the deploy runs it on the machine too (#73, PR #85). Development-only containers are outside the count on any machine. Nginx and the `acme.sh` sidecar are two of the thirteen already, so joining the laptop stack (#72) changes no number: what changes is that there they serve plain HTTP and the sidecar holds no certificate, because ACME needs a domain.
 
