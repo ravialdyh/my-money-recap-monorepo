@@ -146,15 +146,7 @@ final class AuthSession {
     }
 
     private func discover() async throws -> OIDServiceConfiguration {
-        try await withCheckedThrowingContinuation { continuation in
-            OIDAuthorizationService.discoverConfiguration(forIssuer: AuthConfig.issuer) { configuration, error in
-                if let configuration {
-                    continuation.resume(returning: configuration)
-                } else {
-                    continuation.resume(throwing: error ?? CancellationError())
-                }
-            }
-        }
+        try await OIDAuthorizationService.discoverConfiguration(forIssuer: AuthConfig.issuer)
     }
 
     private static var presenter: UIViewController {
