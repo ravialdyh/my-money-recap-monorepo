@@ -45,7 +45,7 @@ from the server clock in UTC until `SetTimezone` lands (A3).
 | --- | --- |
 | `main.go` | The binary; serves on `BFF_LISTEN` (default `:8080`). No subcommands, and its own start-up rather than `serve.Main` (see below). |
 | `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=bff .` |
-| `../../internal/bff/` | The handlers, the `Ledger` and `Notify` interfaces and their stubs, the magic-link path in `magiclink.go`, the unit tests and the end-to-end test. |
+| `../../internal/bff/` | The handlers, the `Ledger` and `Notify` interfaces and their stubs, the magic-link path in `magiclink.go`, the unit tests and the three end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestEdge`). |
 | `../../internal/auth/` | The JWT interceptor and the token-forwarding client interceptor. |
 
 `members` and `notify` hand their name, their schema step and their handler to `serve.Main`, which

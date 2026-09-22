@@ -32,8 +32,8 @@ docker compose -f infra/compose/compose.yaml --profile mail ps
 **`--profile mail` is part of the command, not an extra.** `notify` is configured to send through
 `mailpit:1025` and has no second mail host, but its health check is the one every Go container
 shares and pings only the database. An `up` without the profile therefore returns a `notify` that
-reports healthy and answers every send with `unavailable`, so every `RequestMagicLink` the BFF
-sends it fails with that code (#69). Leaving the profile out is a way to see what an `up` looks like without
+reports healthy and answers every send with `unavailable`, so every `RequestMagicLink` fails with
+that code, because the BFF's `EmailMagicLink` call to `notify` does (#69). Leaving the profile out is a way to see what an `up` looks like without
 a mail host, never a way to run the stack (see "Mailpit").
 
 Stop with `--profile mail down`; add `-v` to drop the volumes. A `down` takes the profile the `up`
@@ -66,8 +66,8 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | --- | --- | --- | --- |
 | postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members` and `notify` — three of the five A9 plans — one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). |
 | keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). Its file vault reads the two identity-provider secrets from `/run/secrets` (see "Secrets"). |
-| rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
-| redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link limit, §4.4's fifth job and the first one built: five requests per address per hour, counted with `INCR` and `EXPIRE`, failing closed (#69). Published to loopback so a `bff` run on the host has a Redis too. The other four §4.4 jobs arrive with slices 4 and 5. |
+| rabbitmq | `rabbitmq:4-management` | — | Nothing publishes to it or consumes from it yet: the outbox and the broker (A4, A5) are still proposed. |
+| redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link limit, §4.4's fifth job and the first one built: five requests per address per hour, counted with `INCR` and `EXPIRE`, failing closed (#69). Published to loopback so a `bff` run on the host has a Redis too. The other four §4.4 jobs are not built yet; the JWKS is cached in each process's memory (`internal/auth`). |
 | members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. Reads its connection string from `/run/secrets/members_database_url`, as `members` does. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy. |
 | notify-migrate | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | — | One-shot: `notify migrate` applies the embedded SQL migrations to the `notify` database and exits. Reads its connection string from `/run/secrets/notify_database_url`, as `notify` does. |
@@ -86,10 +86,10 @@ than `curl`, because the Keycloak image ships neither `curl` nor `wget`: it open
 Keycloak now starts with no realm and `realm-apply` builds it afterwards. The second hop stays,
 because `/health/ready` answers UP on the management port while a first boot is still bootstrapping
 on 8080, and `realm-apply` then gets `503 Service Unavailable` from the token endpoint.
-Keycloak, the BFF and Nginx
-publish on every interface because the phone reaches them; the Postgres, `members` and `notify`
-ports bind to loopback and exist for the Connect-boundary tests (`apps/README.md`), as does
-Mailpit's, which is where the magic-link test reads the message it caused.
+Keycloak, the BFF and Nginx publish on every interface because the phone reaches them; the Postgres,
+`members` and `notify` ports bind to loopback and exist for the Connect-boundary tests
+(`apps/README.md`), as does Mailpit's, which is where the magic-link test reads the message it
+caused, and Redis's, so a `bff` run on the host has a Redis too.
 
 ## Secrets
 
@@ -133,11 +133,11 @@ Volumes and the `members`, `notify` and `bff` images are named after the project
 ## A phone on the LAN
 
 A physical iPhone cannot reach the Mac as `localhost`, and the token issuer must match the address the
-phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives: `KC_HOSTNAME`, the
-`members` issuer check and the BFF issuer check all derive from it. To sign in from a device:
+phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives: `KC_HOSTNAME`, the issuer
+check in `members`, `notify` and the BFF, and the BFF's magic-link base address all derive from it. To sign in from a device:
 
-1. Set `MMR_HOST=<the Mac's LAN IP>` in `.env` and recreate the stack (`--profile mail up -d --wait`); Keycloak, `members`
-   and `bff` restart with the new issuer `http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr`. The realm is unaffected: it holds no address.
+1. Set `MMR_HOST=<the Mac's LAN IP>` in `.env` and recreate the stack (`--profile mail up -d --wait`); Keycloak, `members`,
+   `notify` and `bff` restart with the new issuer `http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr`. The realm is unaffected: it holds no address.
 2. In Xcode, edit the scheme's Run action and add the environment variables
    `MMR_ISSUER=http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr` and `MMR_BFF_URL=http://<ip>:${BFF_HOST_PORT}`; select
    a signing team, pick the phone, Run (`apps/ios/README.md`, "Run on a physical iPhone").
