@@ -50,7 +50,7 @@ The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.y
 | members | built from `apps/backend` (`Dockerfile`, `CMD=members`) | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect (`apps/backend/cmd/members/README.md`). Starts after its migration step and the realm step completed. |
 | notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect (`apps/backend/cmd/notify/README.md`). Starts after its migration step and the realm step completed. |
 | bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect, what the phone calls (`apps/backend/cmd/bff/README.md`). Starts after `members` and Redis are healthy and the realm step completed. |
-| nginx | `nginx:stable` | `NGINX_HOST_PORT` | The edge (§5, A7), plain HTTP until a certificate exists (see "The edge"). |
+| nginx | `nginx:stable` | `NGINX_HOST_PORT` | The edge (§5, A7), plain HTTP until a certificate exists (see "The edge"). Nginx resolves `bff` and `keycloak` once, at start, so Compose restarts it whenever an `up` recreates either (`restart: true`); otherwise `/api/` and `/auth/` could answer 502 from an old address. |
 | acme | `neilpang/acme.sh`, pinned | — | The certificate sidecar (§5, §10), sharing the `acme-certs` volume with Nginx; what it does with no domain is in [`../nginx/README.md`](../nginx/README.md#tls-and-the-acmesh-sidecar). |
 
 Every long-running container but the `acme` sidecar has a health check, and

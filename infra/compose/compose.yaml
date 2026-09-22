@@ -203,8 +203,10 @@ services:
     depends_on:
       bff:
         condition: service_healthy
+        restart: true
       keycloak:
         condition: service_healthy
+        restart: true
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1/magic"]
       interval: 5s
