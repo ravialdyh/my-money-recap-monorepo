@@ -301,8 +301,8 @@ public nonisolated struct MoneyRecap_V1_EmailMagicLinkRequest: Sendable {
   /// A14; see the package doc in shared.proto. Dedupes a retried send.
   public var idempotencyKey: String = String()
 
-  /// The address as typed, because no Member row may exist yet
-  /// (ARCHITECTURE §7.3).
+  /// The address the BFF parsed from the request, because no Member row may
+  /// exist yet (ARCHITECTURE §7.3).
   public var email: String = String()
 
   /// The full https://…/magic?lt=… link the BFF built (ARCHITECTURE §7.5).

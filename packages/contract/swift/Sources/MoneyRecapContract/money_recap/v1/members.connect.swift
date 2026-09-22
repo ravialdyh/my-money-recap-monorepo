@@ -12,16 +12,17 @@ import SwiftProtobuf
 public protocol MoneyRecap_V1_MembersServiceClientInterface: Sendable {
 
     /// Upsert on the Keycloak subject: creates on first sight, returns the same
-    /// Member on every later call, and refreshes the email each time. A
-    /// tombstoned row (deleted_at set) is treated as absent (§7.1 step 3).
+    /// Member on every later call, and refreshes the email when the token
+    /// carries one. Planned with the deletion worker: a tombstoned row
+    /// (deleted_at set) counts as absent (§7.1 step 3).
     @available(iOS 13, *)
     func `getOrCreateBySubject`(request: MoneyRecap_V1_GetOrCreateBySubjectRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_GetOrCreateBySubjectResponse>
 
     @available(iOS 13, *)
     func `getProfile`(request: MoneyRecap_V1_GetProfileRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_GetProfileResponse>
 
-    /// Display Name, Avatar key and Currency (PRD §6.4, §6.5); publishes
-    /// members.updated.
+    /// Display Name, Avatar key, Currency and the onboarding step just completed
+    /// or skipped, in one write (PRD §6.4, §6.5); publishes members.updated.
     @available(iOS 13, *)
     func `saveProfile`(request: MoneyRecap_V1_SaveProfileRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_SaveProfileResponse>
 

@@ -24,7 +24,7 @@ const (
 // Test-only, carried by no RPC: one PRD §8 scenario as the answer key for
 // the arithmetic only ledger holds (A2, ARCHITECTURE §7.2 "Tests"): one
 // ledger, one "as of" date, the figures ledger must compute. JSON in
-// fixtures/ledger; run in slice 5.
+// fixtures/ledger; run by ledger's tests.
 type LedgerFixture struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The PRD paragraph every expected value below is worked from, for example

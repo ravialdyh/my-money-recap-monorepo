@@ -23,7 +23,7 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
 /// Test-only, carried by no RPC: one PRD §8 scenario as the answer key for
 /// the arithmetic only ledger holds (A2, ARCHITECTURE §7.2 "Tests"): one
 /// ledger, one "as of" date, the figures ledger must compute. JSON in
-/// fixtures/ledger; run in slice 5.
+/// fixtures/ledger; run by ledger's tests.
 public nonisolated struct MoneyRecap_V1_LedgerFixture: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

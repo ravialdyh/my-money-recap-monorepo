@@ -22,13 +22,14 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the slice 1
-// skeleton; 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
+// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the walking
+// skeleton's (#10); 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
 // (PRD §6.18, D60).
 type Profile struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// The token's email claim, refreshed on every GetOrCreateBySubject.
+	// The token's email claim, refreshed by every GetOrCreateBySubject whose
+	// token carries one; an empty claim keeps the stored address.
 	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// Empty until onboarding sets it.
 	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`

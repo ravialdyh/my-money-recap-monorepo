@@ -25,7 +25,8 @@ const (
 // The only RPC sent without a bearer token (PRD §6.2, ARCHITECTURE §7.5).
 type BffServiceRequestMagicLinkRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The address as typed; RFC 5322 syntax is checked on the phone.
+	// The address as typed; RFC 5322 syntax is checked on the phone and again
+	// by the BFF.
 	Email         string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

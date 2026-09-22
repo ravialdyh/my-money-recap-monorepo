@@ -103,8 +103,8 @@ message RegisterDeviceResponse {}
 message EmailMagicLinkRequest {
   // A14; see the package doc in shared.proto. Dedupes a retried send.
   string idempotency_key = 1;
-  // The address as typed, because no Member row may exist yet
-  // (ARCHITECTURE §7.3).
+  // The address the BFF parsed from the request, because no Member row may
+  // exist yet (ARCHITECTURE §7.3).
   string email = 2;
   // The full https://…/magic?lt=… link the BFF built (ARCHITECTURE §7.5).
   string link = 3;
@@ -124,7 +124,8 @@ message EmailExportRequest {
 message EmailExportResponse {}
 
 // Notifications, device tokens, preferences, the Target Warning stamp and
-// every outbound email (ARCHITECTURE §7.3). Optional on every BFF path (A14).
+// every outbound email (ARCHITECTURE §7.3). Optional on every Member path;
+// RequestMagicLink requires it (A14).
 service NotifyService {
   rpc GetWarningState(GetWarningStateRequest) returns (GetWarningStateResponse) {}
   // Stamps month_flag when crossed_line and unstamped, then pushes if the
@@ -135,9 +136,9 @@ service NotifyService {
   rpc SavePrefs(SavePrefsRequest) returns (SavePrefsResponse) {}
   // Upserts the device row on the token (A14).
   rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
-  // Errors (ARCHITECTURE §7.3, §7.5): failed_precondition with EmailBounced
-  // when the address has a recorded hard bounce; unavailable when SMTP
-  // refuses. Both reach the phone as the PRD §6.3 InlineError.
+  // Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
+  // address the mail host permanently refuses; unavailable for any other
+  // send failure.
   rpc EmailMagicLink(EmailMagicLinkRequest) returns (EmailMagicLinkResponse) {}
   // Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
   // failed_precondition with EmailBounced, which the BFF turns into the PRD

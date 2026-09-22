@@ -20,8 +20,8 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the slice 1
-/// skeleton; 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
+/// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the walking
+/// skeleton's (#10); 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
 /// (PRD §6.18, D60).
 public nonisolated struct MoneyRecap_V1_Profile: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -30,7 +30,8 @@ public nonisolated struct MoneyRecap_V1_Profile: Sendable {
 
   public var memberID: String = String()
 
-  /// The token's email claim, refreshed on every GetOrCreateBySubject.
+  /// The token's email claim, refreshed by every GetOrCreateBySubject whose
+  /// token carries one; an empty claim keeps the stored address.
   public var email: String = String()
 
   /// Empty until onboarding sets it.

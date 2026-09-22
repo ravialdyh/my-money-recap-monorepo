@@ -65,9 +65,9 @@ type NotifyServiceClient interface {
 	SavePrefs(context.Context, *connect.Request[v1.SavePrefsRequest]) (*connect.Response[v1.SavePrefsResponse], error)
 	// Upserts the device row on the token (A14).
 	RegisterDevice(context.Context, *connect.Request[v1.RegisterDeviceRequest]) (*connect.Response[v1.RegisterDeviceResponse], error)
-	// Errors (ARCHITECTURE §7.3, §7.5): failed_precondition with EmailBounced
-	// when the address has a recorded hard bounce; unavailable when SMTP
-	// refuses. Both reach the phone as the PRD §6.3 InlineError.
+	// Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
+	// address the mail host permanently refuses; unavailable for any other
+	// send failure.
 	EmailMagicLink(context.Context, *connect.Request[v1.EmailMagicLinkRequest]) (*connect.Response[v1.EmailMagicLinkResponse], error)
 	// Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
 	// failed_precondition with EmailBounced, which the BFF turns into the PRD
@@ -188,9 +188,9 @@ type NotifyServiceHandler interface {
 	SavePrefs(context.Context, *connect.Request[v1.SavePrefsRequest]) (*connect.Response[v1.SavePrefsResponse], error)
 	// Upserts the device row on the token (A14).
 	RegisterDevice(context.Context, *connect.Request[v1.RegisterDeviceRequest]) (*connect.Response[v1.RegisterDeviceResponse], error)
-	// Errors (ARCHITECTURE §7.3, §7.5): failed_precondition with EmailBounced
-	// when the address has a recorded hard bounce; unavailable when SMTP
-	// refuses. Both reach the phone as the PRD §6.3 InlineError.
+	// Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
+	// address the mail host permanently refuses; unavailable for any other
+	// send failure.
 	EmailMagicLink(context.Context, *connect.Request[v1.EmailMagicLinkRequest]) (*connect.Response[v1.EmailMagicLinkResponse], error)
 	// Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
 	// failed_precondition with EmailBounced, which the BFF turns into the PRD

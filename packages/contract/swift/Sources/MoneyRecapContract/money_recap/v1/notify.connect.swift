@@ -10,7 +10,8 @@ import Foundation
 import SwiftProtobuf
 
 /// Notifications, device tokens, preferences, the Target Warning stamp and
-/// every outbound email (ARCHITECTURE §7.3). Optional on every BFF path (A14).
+/// every outbound email (ARCHITECTURE §7.3). Optional on every Member path;
+/// RequestMagicLink requires it (A14).
 public protocol MoneyRecap_V1_NotifyServiceClientInterface: Sendable {
 
     @available(iOS 13, *)
@@ -32,9 +33,9 @@ public protocol MoneyRecap_V1_NotifyServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `registerDevice`(request: MoneyRecap_V1_RegisterDeviceRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_RegisterDeviceResponse>
 
-    /// Errors (ARCHITECTURE §7.3, §7.5): failed_precondition with EmailBounced
-    /// when the address has a recorded hard bounce; unavailable when SMTP
-    /// refuses. Both reach the phone as the PRD §6.3 InlineError.
+    /// Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
+    /// address the mail host permanently refuses; unavailable for any other
+    /// send failure.
     @available(iOS 13, *)
     func `emailMagicLink`(request: MoneyRecap_V1_EmailMagicLinkRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_EmailMagicLinkResponse>
 
