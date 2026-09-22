@@ -97,8 +97,9 @@ type facts struct {
 
 func (f facts) complete() bool { return f.zone != "" && f.signedUp.Valid && f.code != "" }
 
-// fill is the profile-on-a-miss read (ARCHITECTURE §6.2 step 3): members.GetProfile under the caller's token,
-// then the replica row upserted with that token's subject.
+// fill is the profile-on-a-miss read (§6.2 step 3): members.GetProfile under the caller's token, then the row
+// upserted with that token's subject. It fills only facts the row lacks, so a read racing a newer event cannot
+// overwrite it.
 func (s *Service) fill(ctx context.Context, id string) (facts, error) {
 	res, err := s.Members.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: id}))
 	if connect.CodeOf(err) == connect.CodeNotFound {
@@ -116,11 +117,13 @@ func (s *Service) fill(ctx context.Context, id string) (facts, error) {
 	if !f.complete() {
 		return facts{}, connect.NewError(connect.CodeFailedPrecondition, errNoFacts)
 	}
-	_, err = s.DB.Exec(ctx, `
+	err = s.DB.QueryRow(ctx, `
 		INSERT INTO member_facts (member_id, keycloak_subject, timezone, signed_up_on, currency_code) VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (member_id) DO UPDATE SET keycloak_subject = EXCLUDED.keycloak_subject, timezone = EXCLUDED.timezone,
-			signed_up_on = EXCLUDED.signed_up_on, currency_code = EXCLUDED.currency_code`,
-		id, auth.From(ctx).Subject, f.zone, f.signedUp, f.code)
+		ON CONFLICT (member_id) DO UPDATE SET keycloak_subject = EXCLUDED.keycloak_subject,
+			timezone = coalesce(member_facts.timezone, EXCLUDED.timezone), signed_up_on = coalesce(member_facts.signed_up_on, EXCLUDED.signed_up_on),
+			currency_code = coalesce(member_facts.currency_code, EXCLUDED.currency_code)
+		RETURNING timezone, signed_up_on, currency_code`,
+		id, auth.From(ctx).Subject, f.zone, f.signedUp, f.code).Scan(&f.zone, &f.signedUp, &f.code)
 	if err != nil {
 		return facts{}, storeFailed(ctx, err)
 	}

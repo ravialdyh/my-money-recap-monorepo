@@ -44,6 +44,11 @@ what is its own.
   (embedded) in file-name order, each in one transaction, recorded in `schema_migrations`, and exits;
   Compose runs it as a one-shot step the service waits on. Add a new numbered file; never edit an
   applied one.
+- **One events package** (`internal/events`, §4.3, A4, A5). A service that publishes stages each event with
+  `events.Stage` inside the change's own transaction and hands `serve.Main` a worker running `events.Relay`;
+  one that consumes hands it a worker running `events.Consume`, whose handler runs in the transaction that
+  records the message id in its `processed_events`. `serve.Main` builds every worker before it serves, so
+  their variables are reported with the rest, and runs them until shutdown.
 - **One keyed write** (`internal/idempotency`, A14). A service that owns a Member write claims the key in
   an `idempotency` table of its own, inside the write's transaction; a store error answers through
   `serve.StoreFailed`, which never lets driver text reach the caller.

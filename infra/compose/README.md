@@ -43,15 +43,15 @@ The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.y
 | postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members`, `notify` and `ledger`, four of the five A9 plans, one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). A volume made before `ledger` existed (#99) has no `ledger` database, and only `down -v` makes the script run again (see "Chosen once"). |
 | keycloak | `quay.io/phasetwo/phasetwo-keycloak`, one full Phase Two tag pinned in `compose.yaml` | `KEYCLOAK_HOST_PORT` | Never `latest` or a shorter tag (§7.5). Its file vault reads the two identity-provider secrets from `/run/secrets` (see "Secrets"). |
 | redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link rate limit, the one §4.4 job built (`apps/backend/cmd/bff/README.md`); the JWKS is cached in each process's memory (`internal/auth`). |
-| rabbitmq | `rabbitmq:4-management` | — | The broker (§4.3), running so the outbox has somewhere to publish; nothing publishes to it, consumes from it or waits on it yet. It runs as its own `rabbitmq` user: any RabbitMQ command run as root before the server has written its Erlang cookie, such as the health check on a slow first start, wrote that file as root, and the server then died reading it (`eacces`, #93). Its AMQP and management ports stay inside the stack. |
+| rabbitmq | `rabbitmq:4-management` | 127.0.0.1:`RABBITMQ_HOST_PORT` | The broker (§4.3): `members`' outbox relay publishes to it and `ledger` consumes from it (#101), both as the user `mmr` through the `amqp_url` secret. It runs as its own `rabbitmq` user: any RabbitMQ command run as root before the server has written its Erlang cookie, such as the health check on a slow first start, wrote that file as root, and the server then died reading it (`eacces`, #93). Its management port stays inside the stack. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy (see "The `mmr` realm"). |
 | members-migrate | the `members` image, `migrate` command | — | One-shot: applies the `members` migrations and exits, reading its connection string from `/run/secrets/members_database_url` as `members` does. |
 | notify-migrate | the `notify` image, `migrate` command | — | The same for `notify`. |
 | ledger-migrate | the `ledger` image, `migrate` command | — | The same for `ledger`. |
 | mailpit | `axllent/mailpit`, pinned | 127.0.0.1:`MAILPIT_HOST_PORT` and `MAILPIT_SMTP_HOST_PORT` | Behind the `mail` profile: the mail host `notify` sends to (see "Mailpit"). SMTP on 1025, what arrived on 8025. |
-| members | built from `apps/backend` (`Dockerfile`, `CMD=members`) | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect (`apps/backend/cmd/members/README.md`). Starts after its migration step and the realm step completed. |
+| members | built from `apps/backend` (`Dockerfile`, `CMD=members`) | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect (`apps/backend/cmd/members/README.md`), and the relay that publishes its outbox every second. Starts after its migration step and the realm step completed and RabbitMQ is healthy. |
 | notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect (`apps/backend/cmd/notify/README.md`). Starts after its migration step and the realm step completed. |
-| ledger | built from `apps/backend` (`Dockerfile`, `CMD=ledger`) | 127.0.0.1:`LEDGER_HOST_PORT` | `LedgerService` over Connect, the money service (`apps/backend/cmd/ledger/README.md`). Starts after its migration step, the realm step and a healthy `members`, which answers the profile read that fills its replica. The BFF does not call it yet. |
+| ledger | built from `apps/backend` (`Dockerfile`, `CMD=ledger`) | 127.0.0.1:`LEDGER_HOST_PORT` | `LedgerService` over Connect, the money service (`apps/backend/cmd/ledger/README.md`), and the consumer that keeps its replica from `members`' events on `ledger.members`. Starts after its migration step, the realm step, a healthy RabbitMQ and a healthy `members`, which answers the profile read that fills a replica an event has not reached. The BFF does not call it yet. |
 | bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect, what the phone calls (`apps/backend/cmd/bff/README.md`). Starts after `members` and Redis are healthy and the realm step completed. |
 | nginx | `nginx:stable` | `NGINX_HOST_PORT` | The edge (§5, A7), plain HTTP until a certificate exists (see "The edge"). Nginx resolves `bff` and `keycloak` once, at start, so Compose restarts it whenever an `up` recreates either (`restart: true`); otherwise `/api/` and `/auth/` could answer 502 from an old address. |
 | acme | `neilpang/acme.sh`, pinned | — | The certificate sidecar (§5, §10), sharing the `acme-certs` volume with Nginx; what it does with no domain is in [`../nginx/README.md`](../nginx/README.md#tls-and-the-acmesh-sidecar). |
@@ -66,15 +66,16 @@ management port while a first boot is still bootstrapping on 8080, and `realm-ap
 `503 Service Unavailable` from the token endpoint.
 
 Keycloak, the BFF and Nginx publish on every interface because the phone reaches them. The Postgres,
-Redis, `members`, `notify`, `ledger` and Mailpit ports bind to loopback, for the Go tests ("Running the Go tests
-against this stack") and for a service run on the host by hand. RabbitMQ publishes none.
+Redis, RabbitMQ (AMQP only), `members`, `notify`, `ledger` and Mailpit ports bind to loopback, for the Go tests ("Running the Go tests
+against this stack") and for a service run on the host by hand.
 
 ## Secrets
 
 `members` and `members-migrate` read their connection string from
 `/run/secrets/members_database_url`, `notify` and `notify-migrate` theirs from
 `/run/secrets/notify_database_url`, and `ledger` and `ledger-migrate` theirs from
-`/run/secrets/ledger_database_url`, not from the environment, so none is in `docker inspect`
+`/run/secrets/ledger_database_url`, and `members` and `ledger` read the broker's URL, which holds its
+password, from `/run/secrets/amqp_url`, not from the environment, so none is in `docker inspect`
 or the process list (`docs/ARCHITECTURE.md` A13). The shared reader takes any variable in the
 `<NAME>_FILE` form, trims the file and falls back to the plain variable, so a file-backed variable is
 never also reported missing.
@@ -83,17 +84,19 @@ The Compose secret's source differs by machine and the containers cannot tell:
 
 | Where | Source | How |
 | --- | --- | --- |
-| A laptop and CI | `MEMBERS_DATABASE_URL`, `NOTIFY_DATABASE_URL` and `LEDGER_DATABASE_URL` in `.env` | `secrets: members_database_url: {environment: ...}`. Docker materialises the file at mode 0444 with the exact value and no trailing newline, and does not export the variable into the container. |
+| A laptop and CI | `MEMBERS_DATABASE_URL`, `NOTIFY_DATABASE_URL`, `LEDGER_DATABASE_URL` and `AMQP_URL` in `.env` | `secrets: members_database_url: {environment: ...}`. Docker materialises the file at mode 0444 with the exact value and no trailing newline, and does not export the variable into the container. |
 | The machine | `infra/secrets/prod.yaml` | The deploy decrypts it on the runner with `infra/secrets/decrypt.sh`, and `machine-env.sh` writes the values into the machine's `.env`, so the same `environment:` source serves both. See [`../README.md`](../README.md), "Deploying". |
 
-`.env.example` assembles each URL from `MEMBERS_DB_PASSWORD`, `NOTIFY_DB_PASSWORD` and `LEDGER_DB_PASSWORD` in the same
-file, so a password still has one local source; the Postgres init script keeps reading the bare
-passwords, because `CREATE ROLE` needs them by themselves.
+`.env.example` assembles each URL from `MEMBERS_DB_PASSWORD`, `NOTIFY_DB_PASSWORD`, `LEDGER_DB_PASSWORD` and
+`RABBITMQ_PASSWORD` in the same file, so a password still has one local source; the Postgres init script and
+the broker keep reading the bare passwords, because `CREATE ROLE` and the broker's first boot need them by themselves.
 
 **Chosen once.** Postgres runs `postgres/10-databases.sh` only on an empty data directory, and
 `KC_BOOTSTRAP_ADMIN_PASSWORD`, with the literal `admin` username beside it in `compose.yaml`, seeds
-the admin of an empty Keycloak database. A change to that script, to a database password or to the
-admin password therefore reaches the stack only after `down -v`; until then the step or service using
+the admin of an empty Keycloak database. RabbitMQ creates its `mmr` user from `RABBITMQ_PASSWORD` only on
+an empty volume too, and a queue keeps the settings it was first declared with, so a changed limit in
+`internal/events` fails the consumer with `PRECONDITION_FAILED` until that queue is deleted. A change to that
+script, to a database or broker password or to the admin password therefore reaches the stack only after `down -v`; until then the step or service using
 the old value is refused, `realm-apply` and the `kcadm` login under "Admin access" included.
 `BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD` are not chosen once: `realm-apply` re-applies both on
 every `up` (see "The `mmr` realm").
@@ -112,7 +115,7 @@ Compose identifies a stack by project name, so two worktrees that both run this 
 each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
 sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
 `BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `LEDGER_HOST_PORT`, `POSTGRES_HOST_PORT`, `REDIS_HOST_PORT`,
-`MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`); the defaults in `compose.yaml` are the stock
+`RABBITMQ_HOST_PORT`, `MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`); the defaults in `compose.yaml` are the stock
 stack the iOS app signs in against. `KC_HOSTNAME`, and with it the token issuer and the issuer checks in
 `members`, `notify` and the BFF, follow `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
 Volumes and the `members`, `notify`, `ledger` and `bff` images are named after the project, so stacks do not share data either.
@@ -283,8 +286,9 @@ are the facts more than one suite reads; the others belong to one suite.
 | `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all. |
 | `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests and, when `MMR_TEST_MEMBERS_DATABASE_URL` is unset, the shared migration runner's tests. |
 | `NOTIFY_TEST_SMTP` | `localhost:1025` | Mailpit's SMTP port on `MAILPIT_SMTP_HOST_PORT`, for the in-process send. |
-| `LEDGER_TEST_URL` | `http://localhost:8084` | `ledger` on `LEDGER_HOST_PORT`, for its Connect-boundary test, with `MEMBERS_TEST_URL`, `MMR_TEST_KEYCLOAK`, `MMR_TEST_USER_PASSWORD` and both database URLs: the replica filled from `members` under the test Member's token. |
-| `LEDGER_TEST_DATABASE_URL` | `postgres://ledger:$LEDGER_DB_PASSWORD@localhost:5432/ledger` | The `ledger` database. Alone it enables the answer key (every PRD §8 fixture without Spends), the Salary and Saving Target rules, the replica's ownership check and the test that the `ledger` role reaches no other database. |
+| `LEDGER_TEST_URL` | `http://localhost:8084` | `ledger` on `LEDGER_HOST_PORT`, for its Connect-boundary test, with `MEMBERS_TEST_URL`, `MMR_TEST_KEYCLOAK`, `MMR_TEST_USER_PASSWORD` and both database URLs: the replica filled from `members` under the test Member's token. The same set runs `TestMembersEventsReachTheReplica`, where writes to `members` reach the replica through the broker with no call to `ledger`. |
+| `LEDGER_TEST_DATABASE_URL` | `postgres://ledger:$LEDGER_DB_PASSWORD@localhost:5432/ledger` | The `ledger` database. Alone it enables the answer key (every PRD §8 fixture without Spends), the Salary and Saving Target rules, the replica's ownership check, how events update the replica and the test that the `ledger` role reaches no other database. |
+| `MMR_TEST_AMQP_URL` | `amqp://mmr:$RABBITMQ_PASSWORD@localhost:5672/` | RabbitMQ on `RABBITMQ_HOST_PORT`. With `MMR_TEST_MEMBERS_DATABASE_URL` it enables the relay tests, and with `LEDGER_TEST_DATABASE_URL` the consumer tests (`internal/events`): each works in a throwaway schema and on queues of its own, which it drops, so the stack's own relay and consumer never meet its rows. |
 
 Run them with `-p 1`:
 
@@ -292,8 +296,8 @@ Run them with `-p 1`:
 cd apps/backend && go test -p 1 ./...
 ```
 
-**`-p 1` is load-bearing.** The realm has exactly one test Member (`test`), and both `internal/members`
-and `internal/bff` sign in as it and delete its `member` row. Run those two packages at once and they
+**`-p 1` is load-bearing.** The realm has exactly one test Member (`test`), and `internal/members`,
+`internal/bff` and `internal/ledger` all sign in as it and delete its `member` row. Run two of them at once and they
 race: one deletes the row the other just created, and the failures show up as row-count mismatches
 and `not_found` errors far from the cause. CI passes `-p 1` for the same reason, and the step is named
 after it.

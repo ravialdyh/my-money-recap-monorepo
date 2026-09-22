@@ -21,10 +21,14 @@ import (
 // variable of its own from env, which Main reports before it serves.
 type Handler func(env *Env, db *pgxpool.Pool, check connect.Option) (string, http.Handler)
 
+// Worker is a loop beside a service's handler, the outbox relay or a consumer (§4.3): Main builds it before
+// serving, so the variables it reads are reported with the rest, and runs the loop until shutdown.
+type Worker func(env *Env, db *pgxpool.Pool) func(ctx context.Context)
+
 // Main is the whole of a binary that owns a database (ARCHITECTURE §10): `<name> migrate` applies
 // the schema and exits, `<name>` serves handler on <NAME>_LISTEN with /healthz pinging the pool,
 // and any other argument is the usage line.
-func Main(name string, migrate func(context.Context, *pgxpool.Pool) error, handler Handler) error {
+func Main(name string, migrate func(context.Context, *pgxpool.Pool) error, handler Handler, workers ...Worker) error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
@@ -56,8 +60,15 @@ func Main(name string, migrate func(context.Context, *pgxpool.Pool) error, handl
 	verifier := auth.NewVerifier(ctx, issuer, jwks, audience)
 	mux := http.NewServeMux()
 	mux.Handle(handler(&env, db, connect.WithInterceptors(verifier.Interceptor())))
+	loops := make([]func(context.Context), 0, len(workers))
+	for _, w := range workers {
+		loops = append(loops, w(&env, db))
+	}
 	if err := env.Err(); err != nil {
 		return err
+	}
+	for _, loop := range loops {
+		go loop(ctx)
 	}
 	return Run(ctx, name, addr, mux, db.Ping)
 }

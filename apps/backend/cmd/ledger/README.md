@@ -5,22 +5,28 @@ PRD §8 computes from them. Built in slice 4 (#99) for a Member who has no Spend
 log one before slice 5: it serves `SaveSalary`, `SaveTarget`, `GetSettings` and `GetMonthSummary`, and
 the rest of `LedgerService` is planned. The BFF does not call it yet; onboarding's steps 3 and 4 do (#103,
 #104). Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
-"Every service"), plus one of its own.
+"Every service"), plus two of its own.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `LEDGER_MEMBERS_URL` | required | `members`, for the profile read that fills the replica: `http://members:8080` in Compose. |
+| `LEDGER_AMQP_URL` | required | The broker its consumer reads `members`' events from: the `amqp_url` secret in Compose. |
 
 | Path | Holds |
 | --- | --- |
-| `main.go` | The binary: its name, its schema step and its handler, handed to `serve.Main`. |
-| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the two writes), `month.go` (PRD §8 for a month without Spends), `money.go` (a Currency's decimals and an amount inside a sentence) and `migrations/*.sql` (embedded). |
+| `main.go` | The binary: its name, its schema step, its handler and its consumer, handed to `serve.Main`. |
+| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the two writes), `month.go` (PRD §8 for a month without Spends), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
 
 ## What it keeps
 
 - **The replica** (`member_facts`): the Member's zone, sign-up date and Currency, which every figure
-  needs. On a miss it asks `members.GetProfile` once, under the caller's own token, which the service
-  forwards (§6.2 step 3); the events that keep it fresh arrive with #101. The row also keeps the subject
+  needs. `members.created` and `members.updated` keep it fresh from the quorum queue `ledger.members`
+  (#101, §4.3): each message id is recorded in `processed_events` in the transaction that applies it, so a
+  second delivery changes nothing; an event older than the one applied (`facts_at`) is skipped, and an
+  empty fact never clears a stored one. A message that fails five times waits in `ledger.members.dead`
+  for a person. On a miss, a fact no event has brought yet, it asks `members.GetProfile` once, under the
+  caller's own token, which the service forwards (§6.2 step 3), and fills only what the row lacks, so a
+  read racing a newer event cannot overwrite it. The row also keeps the subject
   whose token that read succeeded with, and a call under any other token is a miss, so `members` answers
   it: a token that does not own the Member gets `not_found`, however the row was filled (§4.2 point 3).
   A Member with no zone, sign-up date or Currency yet is `failed_precondition`.
@@ -46,7 +52,7 @@ the rest of `LedgerService` is planned. The BFF does not call it yet; onboarding
 ## Tests
 
 `go test ./internal/ledger/` runs them. The money ones need the stack's `ledger` database, and the
-Connect-boundary one also needs `ledger`, `members` and a real Keycloak token (`infra/compose/README.md`,
+Connect-boundary one and `TestMembersEventsReachTheReplica` also need `ledger`, `members` and a real Keycloak token (`infra/compose/README.md`,
 "Running the Go tests against this stack"). `TestTheAnswerKeyWithoutSpends` runs every file in
 `packages/contract/fixtures/ledger/` that has no Spends, SaveSalary, conversion or Recap: seven today.
 Each goes through the service and its database, its rows seeded and the clock at its `asOf`, and every

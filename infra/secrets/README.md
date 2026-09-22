@@ -12,7 +12,7 @@ it on the runner; what it sends the machine, and how Compose hands each value on
 | `example.yaml` | yes | The key set with placeholder values, the convention `.env.example` already follows. It is what the wizard checks presence against, so the two files cannot drift. |
 | `decrypt.sh` | yes | The deploy's decrypt step: one file per value, mode 0400. |
 | `decrypt-smoke.sh` | yes | Its proof, on a throwaway age key it generates itself. |
-| `keyset.sh` | yes | The one reader of `example.yaml`'s shape: `keys` lists the key set, `value` prints the placeholder one key carries, and `stack` names the ten values the stack itself needs. The smoke, the wizard and `machine-env.sh` all go through it, so a change to the file's shape cannot leave them disagreeing about the key set. |
+| `keyset.sh` | yes | The one reader of `example.yaml`'s shape: `keys` lists the key set, `value` prints the placeholder one key carries, and `stack` names the twelve values the stack itself needs. The smoke, the wizard and `machine-env.sh` all go through it, so a change to the file's shape cannot leave them disagreeing about the key set. |
 | `prod.yaml` | **no** | The real values. Git-ignored until it holds real values; committing it then, with `.sops.yaml`, is the first item of #87. |
 | `.sops.yaml`, at the **repository root** | **no** | The creation rule naming the age recipient. It sits at the root because sops resolves the rule by walking up from the working directory, not from the file it is given, so a copy in this directory is invisible to `sops edit infra/secrets/prod.yaml` run from the root. Git-ignored until `prod.yaml` is committed, and it could not be committed sooner: a rule with an invalid recipient makes `sops edit` fail outright rather than degrade, so it waits for a real key. |
 
@@ -25,10 +25,10 @@ from `example.yaml`.
 
 Seven of the nine human steps (`docs/research/2026-09-14-setup-automation.md` §4) put a value here;
 Apple Developer Program enrolment and `age-keygen` produce none. Which step fills which key, and where
-its value comes from, is `STEPS` in [`../wizard/setup.sh`](../wizard/setup.sh). The last ten keys,
-`keyset.sh stack`, come from no step: six passwords fixed when their volume is first initialised
-([`../compose/README.md`](../compose/README.md#secrets), "Chosen once"), the bff client secret, and the three connection strings
-assembled from three of the passwords. They are what the stack itself needs, and the wizard's check
+its value comes from, is `STEPS` in [`../wizard/setup.sh`](../wizard/setup.sh). The last twelve keys,
+`keyset.sh stack`, come from no step: seven passwords fixed when their volume is first initialised
+([`../compose/README.md`](../compose/README.md#secrets), "Chosen once"), the bff client secret, and the four connection strings
+assembled from four of the passwords. They are what the stack itself needs, and the wizard's check
 mode weighs them alongside the steps.
 
 | Key | Consumed by |
@@ -53,14 +53,16 @@ mode weighs them alongside the steps.
 | `notify_database_url` | `notify` and `notify migrate`, as `NOTIFY_DATABASE_URL_FILE` |
 | `ledger_db_password` | The same init script, which creates the `ledger` role the same way |
 | `ledger_database_url` | `ledger` and `ledger migrate`, as `LEDGER_DATABASE_URL_FILE` |
+| `rabbitmq_password` | RabbitMQ's first boot, which creates the user `mmr` with it (`RABBITMQ_DEFAULT_PASS`) |
+| `amqp_url` | `members`' outbox relay and `ledger`'s consumer, as `MEMBERS_AMQP_URL_FILE` and `LEDGER_AMQP_URL_FILE` |
 | `postgres_password` | The Postgres superuser, `POSTGRES_PASSWORD` |
 | `keycloak_db_password` | The init script's `keycloak` role and Keycloak itself, `KEYCLOAK_DB_PASSWORD` |
 | `kc_bootstrap_admin_password` | Keycloak's first admin, whose username is the literal `admin`, and `realm-apply`'s login |
 | `bff_client_secret` | The `bff` client in the realm and the BFF, `BFF_CLIENT_SECRET` |
 
 Each pair holds the same password twice on purpose: `members`, `notify` and `ledger` each read one
-whole connection string rather than a password of their own, and `postgres/10-databases.sh` reads the bare
-password. Keep a pair in step when either half changes.
+whole connection string rather than a password of their own, and `postgres/10-databases.sh` and the broker's
+first boot read the bare password. Keep a pair in step when either half changes.
 
 ## Decrypting
 

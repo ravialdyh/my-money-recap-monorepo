@@ -79,6 +79,9 @@ func TestConcurrentFirstCallsCreateOneRow(t *testing.T) {
 	if rows != 1 {
 		t.Fatalf("%d rows for one subject, want 1", rows)
 	}
+	if staged := outbox(t, db, ids[0]); len(staged) != 1 || staged[0].key != "members.created" {
+		t.Fatalf("%d concurrent first calls staged %v, want one members.created", n, staged)
+	}
 	t.Logf("%d concurrent first calls → 1 row, every call returned member id %s", n, ids[0])
 }
 

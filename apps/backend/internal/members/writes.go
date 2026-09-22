@@ -35,10 +35,17 @@ func (s *Service) SetTimezone(ctx context.Context, req *connect.Request[moneyrec
 		if err := tx.QueryRow(ctx, `SELECT created_at FROM member WHERE id = $1`, m.ID).Scan(&created); err != nil {
 			return err
 		}
-		row, err := scanRow(tx.QueryRow(ctx, `UPDATE member SET timezone = $2, signed_up_on = coalesce(signed_up_on, $3::date) WHERE id = $1 RETURNING `+rowColumns,
+		before, err := locked(ctx, tx, m.ID)
+		if err != nil {
+			return err
+		}
+		after, err := scanRow(tx.QueryRow(ctx, `UPDATE member SET timezone = $2, signed_up_on = coalesce(signed_up_on, $3::date) WHERE id = $1 RETURNING `+rowColumns,
 			m.ID, req.Msg.Timezone, created.In(loc).Format(time.DateOnly)))
-		answer.Profile = profile(row)
-		return err
+		if err != nil {
+			return err
+		}
+		answer.Profile = profile(after)
+		return announce(ctx, tx, before, after)
 	})
 	if errors.Is(err, idempotency.ErrReused) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
@@ -75,12 +82,19 @@ func (s *Service) SaveProfile(ctx context.Context, req *connect.Request[moneyrec
 	}
 	answer := &moneyrecapv1.SaveProfileResponse{}
 	err = idempotency.Write(ctx, s.DB, m.ID, msg.IdempotencyKey, msg, answer, func(tx pgx.Tx) error {
-		row, err := scanRow(tx.QueryRow(ctx, `
+		before, err := locked(ctx, tx, m.ID)
+		if err != nil {
+			return err
+		}
+		after, err := scanRow(tx.QueryRow(ctx, `
 			UPDATE member SET display_name = coalesce($2, display_name), avatar_key = coalesce($3, avatar_key),
 				currency_code = coalesce($4, currency_code), onboarding_step = greatest(onboarding_step, $5)
 			WHERE id = $1 RETURNING `+rowColumns, m.ID, name, msg.AvatarKey, msg.CurrencyCode, msg.OnboardingStep))
-		answer.Profile = profile(row)
-		return err
+		if err != nil {
+			return err
+		}
+		answer.Profile = profile(after)
+		return announce(ctx, tx, before, after)
 	})
 	if errors.Is(err, idempotency.ErrReused) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)

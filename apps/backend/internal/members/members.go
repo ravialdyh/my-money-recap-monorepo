@@ -43,14 +43,31 @@ func scanRow(r pgx.Row) (Row, error) {
 	return m, err
 }
 
-// Upsert is the one statement behind GetOrCreateBySubject: creates on first sight, refreshes the email
-// on every call that carries one (an empty one keeps the stored address), and under two concurrent
-// first calls the unique index makes the loser update.
+// Upsert backs GetOrCreateBySubject: a first call creates the Member (members.created); a later one stores a
+// new email claim (members.updated), and an empty claim keeps the address. Concurrent first calls meet on the
+// unique index.
 func Upsert(ctx context.Context, db *pgxpool.Pool, subject, email string) (Row, error) {
-	return scanRow(db.QueryRow(ctx, `
-		INSERT INTO member (keycloak_subject, email) VALUES ($1, $2)
-		ON CONFLICT (keycloak_subject) DO UPDATE SET email = coalesce(nullif(EXCLUDED.email, ''), member.email)
-		RETURNING `+rowColumns, subject, email))
+	var m Row
+	err := pgx.BeginFunc(ctx, db, func(tx pgx.Tx) error {
+		created, err := scanRow(tx.QueryRow(ctx, `INSERT INTO member (keycloak_subject, email) VALUES ($1, $2) ON CONFLICT (keycloak_subject) DO NOTHING RETURNING `+rowColumns, subject, email))
+		if err == nil {
+			m = created
+			return stage(ctx, tx, "members.created", created)
+		}
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return err
+		}
+		before, err := scanRow(tx.QueryRow(ctx, `SELECT `+rowColumns+` FROM member WHERE keycloak_subject = $1 FOR UPDATE`, subject))
+		m = before
+		if err != nil || email == "" || email == before.Email {
+			return err
+		}
+		if m, err = scanRow(tx.QueryRow(ctx, `UPDATE member SET email = $2 WHERE id = $1 RETURNING `+rowColumns, before.ID, email)); err != nil {
+			return err
+		}
+		return announce(ctx, tx, before, m)
+	})
+	return m, err
 }
 
 // Get returns pgx.ErrNoRows for an unknown or malformed id.
