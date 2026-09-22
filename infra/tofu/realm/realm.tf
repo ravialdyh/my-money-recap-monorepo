@@ -5,6 +5,9 @@ resource "keycloak_realm" "mmr" {
   registration_allowed        = false
   login_with_email_allowed    = true
   default_signature_algorithm = "RS256"
+
+  offline_session_idle_timeout         = "720h0m0s"
+  offline_session_max_lifespan_enabled = false
 }
 
 resource "keycloak_openid_client_scope" "login_token" {

@@ -51,7 +51,7 @@ enum MagicLink {
             redirectURL: nil,
             clientID: AuthConfig.clientID,
             clientSecret: nil,
-            scopes: [AuthConfig.loginTokenScope],
+            scopes: [AuthConfig.loginTokenScope, AuthConfig.offlineScope],
             refreshToken: nil,
             codeVerifier: nil,
             additionalParameters: [AuthConfig.loginTokenParameter: loginToken]

@@ -299,8 +299,9 @@ backend, `infra/` or the contract (the `backend` job, after the Go tests, with a
    Member's email with `expiration_seconds` 900, `reusable` false, `force_create` true and
    `set_email_verified` true;
 2. redeems the `lt:` token on `ios` at the token endpoint with `grant_type=password`,
-   `scope=login-token` and the `login_token` field, and asserts the access token's `sub` is the test
-   Member's id from the admin API;
+   `scope=login-token offline_access` and the `login_token` field, as the app does, and asserts the
+   access token's `sub` is the test Member's id from the admin API and the refresh token is an
+   offline one (PRD D62's 30 days);
 3. redeems it again and asserts HTTP 401 `invalid_grant`;
 4. checks the password grant on `ios` still works, and prints the image tag.
 

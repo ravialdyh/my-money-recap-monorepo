@@ -27,13 +27,16 @@ lt=$(curl -sfS -X POST "$REALM/login-token" -H "Authorization: Bearer $sa" -H 'C
 [[ $lt == lt:* ]] || fail "login-token endpoint returned '$lt'"
 echo "issued: ${lt:0:11}…"
 
-redeem() { curl -s -o "$1" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=password -d client_id=ios -d scope=login-token -d "login_token=$lt"; }
+redeem() { curl -s -o "$1" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=password -d client_id=ios --data-urlencode 'scope=login-token offline_access' -d "login_token=$lt"; }
 body=$(mktemp)
 status=$(redeem "$body")
 [[ $status == 200 ]] || fail "first redemption: HTTP $status $(cat "$body")"
 sub=$(claim sub <"$body")
 [[ $sub == "$expected" ]] || fail "subject $sub is not the test Member $expected"
 echo "redeemed: sub=$sub username=$(claim preferred_username <"$body") aud=$(claim aud <"$body") email_verified=$(claim email_verified <"$body")"
+kind=$(jq -r '.refresh_token | split(".")[1] | @base64d | fromjson | .typ' <"$body")
+[[ $kind == Offline ]] || fail "the redeemed sign-in is a $kind one, not the offline one PRD D62's 30 days needs"
+echo "sign-in kind: $kind (30 days from last use)"
 
 status=$(redeem "$body")
 [[ $status == 401 && $(jq -r .error "$body") == invalid_grant ]] || fail "second redemption: HTTP $status $(cat "$body")"

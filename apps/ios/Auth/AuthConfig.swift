@@ -11,7 +11,10 @@ enum AuthConfig {
     /// The custom scheme carries the authorization callback and, today, the magic link; a universal link
     /// joins it once a domain exists. Registered in App/Info.plist.
     static let redirectURL = URL(string: "mymoneyrecap://auth/callback")!
-    static let scopes = ["openid", "profile", "email"]
+    /// Makes the refresh token an offline one, which the realm keeps for 30 days from last use (PRD D62), not the SSO
+    /// session's 30 idle minutes. Both ways in ask for it: this request and the magic link's direct grant.
+    static let offlineScope = "offline_access"
+    static let scopes = ["openid", "profile", "email", offlineScope]
     /// A10's direct grant: the optional client scope that selects the login-token authenticator, and the
     /// field the opaque `lt:<uuid>` travels in (ARCHITECTURE §7.5).
     static let loginTokenScope = "login-token"
