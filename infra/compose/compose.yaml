@@ -93,6 +93,11 @@ services:
   rabbitmq:
     image: rabbitmq:4-management
     user: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: mmr
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?set in .env}
+    ports:
+      - "127.0.0.1:${RABBITMQ_HOST_PORT:-5672}:5672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
@@ -108,7 +113,7 @@ services:
     command: ["migrate"]
     environment:
       MEMBERS_DATABASE_URL_FILE: &members-db-file /run/secrets/members_database_url
-    secrets: &members-db-secret [members_database_url]
+    secrets: [members_database_url]
     depends_on:
       postgres:
         condition: service_healthy
@@ -122,10 +127,13 @@ services:
       MEMBERS_DATABASE_URL_FILE: *members-db-file
       MEMBERS_OIDC_ISSUER: &issuer http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}/realms/mmr
       MEMBERS_OIDC_JWKS_URL: &jwks http://keycloak:8080/realms/mmr/protocol/openid-connect/certs
+      MEMBERS_AMQP_URL_FILE: &amqp-file /run/secrets/amqp_url
     ports:
       - "127.0.0.1:${MEMBERS_HOST_PORT:-8081}:8080"
-    secrets: *members-db-secret
+    secrets: [members_database_url, amqp_url]
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       members-migrate:
         condition: service_completed_successfully
       realm-apply:
@@ -186,7 +194,7 @@ services:
     command: ["migrate"]
     environment:
       LEDGER_DATABASE_URL_FILE: &ledger-db-file /run/secrets/ledger_database_url
-    secrets: &ledger-db-secret [ledger_database_url]
+    secrets: [ledger_database_url]
     depends_on:
       postgres:
         condition: service_healthy
@@ -201,10 +209,13 @@ services:
       LEDGER_OIDC_ISSUER: *issuer
       LEDGER_OIDC_JWKS_URL: *jwks
       LEDGER_MEMBERS_URL: http://members:8080
+      LEDGER_AMQP_URL_FILE: *amqp-file
     ports:
       - "127.0.0.1:${LEDGER_HOST_PORT:-8084}:8080"
-    secrets: *ledger-db-secret
+    secrets: [ledger_database_url, amqp_url]
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       ledger-migrate:
         condition: service_completed_successfully
       realm-apply:
@@ -273,6 +284,8 @@ secrets:
     environment: NOTIFY_DATABASE_URL
   ledger_database_url:
     environment: LEDGER_DATABASE_URL
+  amqp_url:
+    environment: AMQP_URL
   google_client_secret:
     file: vault/google_client_secret
   apple_sign_in_key:

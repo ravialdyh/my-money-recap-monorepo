@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/ledger"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/serve"
 )
@@ -21,12 +23,20 @@ func main() {
 }
 
 // run is the start-up every database-backed binary shares (internal/serve), given this service's
-// name, its schema step and its handler.
-func run() error { return serve.Main("ledger", ledger.Migrate, handler) }
+// name, its schema step, its handler and its consumer.
+func run() error { return serve.Main("ledger", ledger.Migrate, handler, consumer) }
 
 // handler is LedgerService behind the bearer check. LEDGER_MEMBERS_URL is where the profile read that
 // fills the replica goes, carrying the caller's token (ARCHITECTURE §6.2 step 3).
 func handler(env *serve.Env, db *pgxpool.Pool, check connect.Option) (string, http.Handler) {
 	members := moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, env.Get("LEDGER_MEMBERS_URL", ""), connect.WithInterceptors(auth.Forward()))
 	return moneyrecapv1connect.NewLedgerServiceHandler(&ledger.Service{DB: db, Members: members}, check)
+}
+
+// consumer keeps the replica fresh from members' events on the broker LEDGER_AMQP_URL names (§4.3, §7.2).
+func consumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
+	url := env.Get("LEDGER_AMQP_URL", "")
+	return func(ctx context.Context) {
+		events.Consume(ctx, db, url, ledger.Queue, ledger.Keys, ledger.ApplyMemberFacts)
+	}
 }

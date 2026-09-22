@@ -9,7 +9,7 @@ RULES=${WIZARD_RULES_FILE:-.sops.yaml}
 KEYSET=infra/secrets/keyset.sh
 KEY_FILE=${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}
 STACK_KEYS=$("$KEYSET" stack)
-STACK_TITLE="Values the stack itself needs: its passwords, the bff client secret and three connection strings"
+STACK_TITLE="Values the stack itself needs: its passwords, the bff client secret and four connection strings"
 PLAIN=
 
 STEPS=(
