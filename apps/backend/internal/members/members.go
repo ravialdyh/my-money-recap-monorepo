@@ -84,14 +84,24 @@ func (s *Service) GetOrCreateBySubject(ctx context.Context, req *connect.Request
 }
 
 func (s *Service) GetProfile(ctx context.Context, req *connect.Request[moneyrecapv1.GetProfileRequest]) (*connect.Response[moneyrecapv1.GetProfileResponse], error) {
-	m, err := Get(ctx, s.DB, req.Msg.MemberId)
-	if errors.Is(err, pgx.ErrNoRows) || (err == nil && m.Subject != auth.From(ctx).Subject) {
-		return nil, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
-	}
+	m, err := s.own(ctx, req.Msg.MemberId)
 	if err != nil {
-		return nil, storeFailed(ctx, err)
+		return nil, err
 	}
 	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: profile(m)}), nil
+}
+
+// own reads the Member id names, answering not_found for an unknown or malformed id and for one another
+// token owns, so no caller learns whether someone else's Member exists.
+func (s *Service) own(ctx context.Context, id string) (Row, error) {
+	m, err := Get(ctx, s.DB, id)
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && m.Subject != auth.From(ctx).Subject) {
+		return Row{}, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
+	}
+	if err != nil {
+		return Row{}, storeFailed(ctx, err)
+	}
+	return m, nil
 }
 
 // storeFailed answers the caller's own expired deadline or cancel with its code, unlogged; any other

@@ -1,8 +1,8 @@
 # members
 
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
-subject. It serves `GetOrCreateBySubject` and `GetProfile` (#15); the rest of `MembersService` is
-planned. Its image, bearer check, start-up, migrations and variables are every service's
+subject. It serves `GetOrCreateBySubject` and `GetProfile` (#15) and `SetTimezone` (#96); the rest of
+`MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
 (`apps/README.md`, "Every service"); it reads no variable of its own.
 
 | Path | Holds |
@@ -37,6 +37,13 @@ Member the token does not name. A store failure is `unavailable` with a generic 
 driver's text, which names the database role, the database and its address, goes to the log. A call
 whose own deadline passes, or that its caller cancels, is not a store failure: it answers
 `deadline_exceeded` or `canceled` and is not logged, since the caller logs its own.
+
+`SetTimezone` checks the zone against the zone data Go links into the binary (`time/tzdata`, because
+the image has no zone files), stores it, and on the first call stamps `signed_up_on`: `created_at`'s
+local date in that zone, which no later call changes. It needs an `idempotency_key`, claimed in the
+`idempotency` table inside the write's own transaction under its `(member_id, idempotency_key)` key:
+the same key again replays the first answer and writes nothing, the same key with a different request
+is `invalid_argument`, and the next write sweeps keys older than 24 hours (A14).
 
 ## Tests
 

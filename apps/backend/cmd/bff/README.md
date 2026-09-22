@@ -1,7 +1,7 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
-serves `GetHome` and `RequestMagicLink`; the rest of `BffService` is planned. Every RPC but
+serves `GetHome`, `SetTimezone` and `RequestMagicLink`; the rest of `BffService` is planned. Every RPC but
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
 
@@ -12,6 +12,12 @@ the Phase Two extension's `login-token` endpoint, builds `BFF_MAGIC_LINK_BASE_UR
 hands the address and the link to `notify.EmailMagicLink` (§7.5), exempt on the same rule (#68). The
 `Idempotency-Key` header is copied when the caller sends one and is a fresh version 4 UUID when it
 does not, because `notify` rejects an empty key (A14).
+
+`SetTimezone` (#96), which the app sends on every launch, is the first Member write, and a Member write
+never gets a minted key: one without the `Idempotency-Key` header is `invalid_argument` before any
+service is called, since a key minted per call would make every retry a new write (A14). It creates the
+Member through `members.GetOrCreateBySubject`, as `GetHome` does, then hands the key, that Member's id
+and the zone to `members.SetTimezone`, and answers the Profile it returns.
 
 Before any of that, the request is counted against its address in Redis, `ml:<address>:<hour>` with
 the address lower-cased: §4.4's magic-link rate limit, five per address per hour (PRD §11), which
@@ -27,7 +33,7 @@ text, which can hold a host or a database name, goes to the log. `ledger` and `n
 in-process stubs `internal/bff/bff.go` describes, returning zeros and "no warning". The
 join fills `currency_code` with `GBP` and leaves `display_name` empty for a Member who has not
 onboarded, the two skeleton-only states spec #10 records; `days_remaining` and `first_recap_on` come
-from the server clock in UTC until `SetTimezone` lands (A3).
+from the server clock in UTC until `ledger` computes them in the Member's zone (A3).
 
 | Path | Holds |
 | --- | --- |
