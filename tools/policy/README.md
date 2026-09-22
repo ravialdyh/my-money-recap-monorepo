@@ -1,6 +1,6 @@
 # Size and comment policy
 
-`check_policy.py` is the custom hook behind the repo's two house rules. It runs on every commit
+`check_policy.py` is the custom hook behind the repo's three house rules. It runs on every commit
 (`.pre-commit-config.yaml`) and again over every tracked file in CI.
 
 ```
