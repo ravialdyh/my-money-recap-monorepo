@@ -16,7 +16,8 @@ ds() {
   npm run --silent build:tokens >/dev/null
   npm run --silent build:swift-tokens >/dev/null
   npm run --silent build:assets >/dev/null
-  check my-money-recap-ds/src/tokens my-money-recap-ds/src/styles my-money-recap-ds/src/assets apps/ios/DesignSystem
+  check my-money-recap-ds/src/tokens/tokens.css my-money-recap-ds/src/styles/css.generated.ts \
+    my-money-recap-ds/src/assets/illustrations.ts apps/ios/DesignSystem/Tokens.swift
 }
 
 contract() {
