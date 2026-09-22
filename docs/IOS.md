@@ -47,5 +47,5 @@ the same in both codebases.
 ## 4. Open items
 
 - Dependency versions are pinned in the Xcode project (`apps/ios/README.md`, "Open"); `swift-snapshot-testing` is pinned when the first snapshot proof lands (X3, the IDR Home).
-- Simulator runtimes for I9 are chosen when the tests run, newest and oldest installed (`apps/ios/README.md`, "The UI tests against Compose"); the iOS 17 run needs a Mac whose Xcode still offers that runtime.
+- Simulator runtimes for I9 are chosen when the tests run, newest and oldest installed (`apps/ios/README.md`, "The UI tests against Compose"). The oldest is iOS 26.0: Xcode 27 offers no iOS 17 or 18 runtime for download, so nothing is proved on either (2026-09-23, #95).
 - Mac CI runner: GitHub-hosted macOS runners are the default; the cost is measured after the first month.

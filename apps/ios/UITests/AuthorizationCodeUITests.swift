@@ -40,11 +40,12 @@ final class AuthorizationCodeUITests: XCTestCase {
         }
         snapshot("02-keycloak-login-page")
         let sheet = try XCTUnwrap(hosts.first { $0.webViews.firstMatch.exists })
+        let page = sheet.webViews.firstMatch
         if !isReauthenticating(sheet) {
-            type("test", into: username)
+            type("test", into: username, on: page)
         }
         let secret = sheet.webViews.secureTextFields.firstMatch
-        type(password, into: secret)
+        type(password, into: secret, on: page)
         submit(secret, holding: password)
 
         assertHomeAtZero(app)
@@ -64,8 +65,8 @@ final class AuthorizationCodeUITests: XCTestCase {
 
     /// The web sheet drops keys typed while its software keyboard slides away, silently. Each attempt clears the field
     /// with ⌘A and ⌫, which also spend that slide, then types and waits for the field to read the text back.
-    private func type(_ text: String, into field: XCUIElement) {
-        field.tap()
+    private func type(_ text: String, into field: XCUIElement, on page: XCUIElement) {
+        focus(field, on: page)
         for attempt in 1 ... 3 {
             field.typeKey("a", modifierFlags: .command)
             field.typeKey(XCUIKeyboardKey.delete.rawValue, modifierFlags: [])
@@ -77,6 +78,23 @@ final class AuthorizationCodeUITests: XCTestCase {
             XCTContext.runActivity(named: "attempt \(attempt) read back \(typed) of \(text.count)") { _ in }
         }
         XCTFail("\(field) never read back what was typed")
+    }
+
+    /// On iOS 26.0 the keyboard's toolbar covers the password field once the username is typed, so a tap there never
+    /// focuses it. A tap that leaves the field unfocused is followed by one on the top of the page, putting the
+    /// keyboard away.
+    private func focus(_ field: XCUIElement, on page: XCUIElement) {
+        let focused = NSPredicate(format: "hasKeyboardFocus == true")
+        for attempt in 1 ... 3 {
+            field.tap()
+            let settled = XCTNSPredicateExpectation(predicate: focused, object: field)
+            if XCTWaiter().wait(for: [settled], timeout: 5) == .completed {
+                return
+            }
+            XCTContext.runActivity(named: "tap \(attempt) left the field unfocused; keyboard put away") { _ in }
+            page.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.15)).tap()
+        }
+        XCTFail("\(field) never took the keyboard focus")
     }
 
     /// A lone Return is dropped the same way, and the Sign In button can sit under the keyboard's toolbar. So Return

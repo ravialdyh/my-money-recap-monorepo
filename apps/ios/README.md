@@ -95,9 +95,9 @@ nor may assert as a round-trip (#71), so the hint the app sends is a unit test
 (`Tests/AuthConfigTests.swift`) and the sheet on the provider's host was checked by hand.
 
 The same section asks for two simulator runtimes, both chosen when the script runs and never written
-down: the newest installed iOS runtime and the oldest (the deployment target's floor, iOS 17, when Xcode
-offers that runtime; on a Mac whose Xcode no longer lists it, the oldest it does; Xcode 27 no longer
-offers iOS 17 or 18 for download, so on such a Mac the floor is iOS 26.0).
+down: the newest installed iOS runtime and the oldest. The oldest is iOS 26.0, not the deployment target's
+iOS 17: Xcode 27, which builds this app, offers no iOS 17 or 18 runtime for download, so 26.0 is the
+oldest that can be installed, and nothing here is proved on iOS 17 or 18 (#95).
 `scripts/ui-test.sh` builds once, then runs both UI tests on each against the stack
 `infra/compose/.env` describes: its `COMPOSE_PROJECT_NAME` and its Keycloak, BFF and Mailpit host ports,
 each falling back to the default, and each overridden by `MMR_ISSUER`, `MMR_BFF_URL` or
@@ -116,8 +116,9 @@ exported next to them; `scripts/ui-test.sh oldest` (or `newest`) runs one destin
 that has none), and with no argument it keeps the booted-or-first behaviour of the `ios` job's
 unit-test step.
 
-Install an older runtime through Xcode > Settings > Components where your Xcode still offers one; the
-script picks it up on the next run.
+Install iOS 26.0 with `xcodebuild -downloadPlatform iOS -buildVersion 26.0` (about 7.5 GB); the script
+picks it up on the next run and names both simulators as it runs. With one runtime installed it says so
+and runs once.
 
 ## Layout
 
