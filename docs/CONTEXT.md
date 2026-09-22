@@ -43,7 +43,7 @@ The once-a-month alert raised the first time a month's Spends exceed the **warni
 _Avoid_: Budget alert, overspend alert
 
 **Payday**:
-The day of the month on which the Salary is counted as received. Stored as 1 to 31, or the token `Last day`. A stored 29, 30 or 31 slides to the month's last day in a shorter month; the picker shows the three real dates that follow the selection rather than explaining the rule (PRD D51).
+The day of the month on which the Salary is counted as received. Stored as 1 to 31, or the token `last`, which the picker shows as `Last day`. A stored 29, 30 or 31 slides to the month's last day in a shorter month; the picker shows the three real dates that follow the selection rather than explaining the rule (PRD D51).
 _Avoid_: Pay date, salary date
 
 **Money In**:
