@@ -31,12 +31,12 @@ round trip, with the address lower-cased so a capital letter cannot buy five mor
 
 `GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim (PRD
 §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
-it again, with the same one-second timeout. Then the §6.1 fan-out runs in parallel with a one-second
-timeout each: `members.GetProfile` (required), `ledger.GetMonthSummary` and `notify.GetWarningState`
-(optional). A failed `members` call reaches the phone with its own Connect code, a failed `ledger`
-call as `unavailable`, each with a message naming only the call; the upstream text, which can hold a
-host or a database name, goes to the log. `ledger` and `notify` are Go interfaces with in-process
-stubs (`internal/bff`) returning zeros and "no warning"; slices 5 and 7 swap in Connect clients. The
+it again, with a one-second timeout; the Profile it answers is the one the HomeView shows. Then the
+§6.1 fan-out runs in parallel with a one-second timeout each: `ledger.GetMonthSummary` (required) and
+`notify.GetWarningState` (optional). A failed `members` call reaches the phone with its own Connect
+code, a failed `ledger` call as `unavailable`, each with a message naming only the call; the upstream
+text, which can hold a host or a database name, goes to the log. `ledger` and `notify` are the
+in-process stubs `internal/bff/bff.go` describes, returning zeros and "no warning". The
 join fills `currency_code` with `GBP` and leaves `display_name` empty for a Member who has not
 onboarded, the two skeleton-only states spec #10 records; `days_remaining` and `first_recap_on` come
 from the server clock in UTC until `SetTimezone` lands (A3).
@@ -89,8 +89,8 @@ A token for the realm's test user and the `GetHome` call are in `infra/compose/R
 ## Tests
 
 `go test ./internal/bff/` runs the unit tests: the zero HomeView, the caller's token forwarded to
-`members`, a `notify` timeout still answering, a `members` timeout failing (on `GetProfile` and on
-`GetOrCreateBySubject`), a failed upstream call keeping its code and dropping its text,
+`members`, a `notify` timeout still answering, a `members` timeout failing, the HomeView built
+from the Profile `GetOrCreateBySubject` answers, a failed upstream call keeping its code and dropping its text,
 `days_remaining` on the last day of a month; and for `RequestMagicLink`, the login-token request
 carrying A10's four settings and the service account's own token, the address coming from the
 request while the context holds a different Member's claims, a fresh key per request when the header

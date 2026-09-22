@@ -81,16 +81,16 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	if err != nil {
 		return nil, requiredCallFailed("members.GetOrCreateBySubject", connect.CodeOf(err), err)
 	}
-	memberID := created.Msg.Profile.MemberId
+	profile := created.Msg.Profile
+	memberID := profile.MemberId
 	now := nowFn().UTC()
 	month := now.Format(monthLayout)
 
 	var (
-		wg                            sync.WaitGroup
-		profile                       *moneyrecapv1.Profile
-		ledgerRes                     *connect.Response[moneyrecapv1.GetMonthSummaryResponse]
-		notifyRes                     *connect.Response[moneyrecapv1.GetWarningStateResponse]
-		profErr, ledgerErr, notifyErr error
+		wg                   sync.WaitGroup
+		ledgerRes            *connect.Response[moneyrecapv1.GetMonthSummaryResponse]
+		notifyRes            *connect.Response[moneyrecapv1.GetWarningStateResponse]
+		ledgerErr, notifyErr error
 	)
 	call := func(f func(ctx context.Context)) {
 		wg.Add(1)
@@ -102,21 +102,12 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		}()
 	}
 	call(func(ctx context.Context) {
-		var res *connect.Response[moneyrecapv1.GetProfileResponse]
-		if res, profErr = s.Members.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: memberID})); profErr == nil {
-			profile = res.Msg.Profile
-		}
-	})
-	call(func(ctx context.Context) {
 		ledgerRes, ledgerErr = s.Ledger.GetMonthSummary(ctx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: memberID, Month: month}))
 	})
 	call(func(ctx context.Context) {
 		notifyRes, notifyErr = s.Notify.GetWarningState(ctx, connect.NewRequest(&moneyrecapv1.GetWarningStateRequest{MemberId: memberID, Month: month}))
 	})
 	wg.Wait()
-	if profErr != nil {
-		return nil, requiredCallFailed("members.GetProfile", connect.CodeOf(profErr), profErr)
-	}
 	if ledgerErr != nil {
 		return nil, requiredCallFailed("ledger.GetMonthSummary", connect.CodeUnavailable, ledgerErr)
 	}
