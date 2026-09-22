@@ -195,12 +195,13 @@ def check(paths):
         except (UnicodeDecodeError, OSError):
             continue
         style = style_for(rel)
-        if style is None or _generated(text, style):
+        if style is not None and _generated(text, style):
             continue
         _check_length(rel, text, problems)
         if rel.endswith(".py"):
             _check_python(rel, text, problems)
-        _check_comments(rel, text, style, problems)
+        if style is not None:
+            _check_comments(rel, text, style, problems)
     return problems
 
 
