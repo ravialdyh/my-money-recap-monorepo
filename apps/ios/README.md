@@ -113,14 +113,9 @@ scripts/ui-test.sh
 ```
 
 Result bundles land in `build/ui-newest.xcresult` and `build/ui-oldest.xcresult`, with the screenshots
-exported next to them. `scripts/simulator-udid.sh newest|oldest` is the selection on its own (it
-creates an iPhone on a runtime that has none), and with no argument it keeps the booted-or-first
-behaviour the unit-test command uses. To run one destination by hand:
-
-```bash
-TEST_RUNNER_MMR_MAILPIT_URL=http://localhost:8025 TEST_RUNNER_MMR_TEST_USER_PASSWORD="$(docker inspect mmr-realm-apply-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^TF_VAR_test_user_password=//p')" xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap -destination "id=$(scripts/simulator-udid.sh oldest)" -derivedDataPath build -only-testing:MyMoneyRecapUITests -resultBundlePath build/ui.xcresult
-xcrun xcresulttool export attachments --path build/ui.xcresult --output-path build/ui-screenshots
-```
+exported next to them; `scripts/ui-test.sh oldest` (or `newest`) runs one destination.
+`scripts/simulator-udid.sh newest|oldest` is the selection on its own (it creates an iPhone on a runtime
+that has none), and with no argument it keeps the booted-or-first behaviour the unit-test command uses.
 
 Install an older runtime through Xcode > Settings > Components (or `xcodebuild -downloadPlatform iOS
 -buildVersion 17.5`); the script picks it up on the next run without any change.

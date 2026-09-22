@@ -18,7 +18,7 @@ xcodebuild build-for-testing -project MyMoneyRecap.xcodeproj -scheme MyMoneyReca
   -destination 'generic/platform=iOS Simulator' -derivedDataPath build -quiet
 
 seen=""
-for which in newest oldest; do
+for which in ${1:-newest oldest}; do
   udid="$(scripts/simulator-udid.sh "$which")"
   case " $seen " in *" $udid "*) echo "only one iOS runtime is installed; $which is the same simulator"; continue;; esac
   seen="$seen $udid"
