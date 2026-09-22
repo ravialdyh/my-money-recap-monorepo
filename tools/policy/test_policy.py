@@ -139,6 +139,18 @@ class Comments(unittest.TestCase):
         self.assertEqual(found, ["comment attached to no declaration; delete it"])
 
 
+class EmDash(unittest.TestCase):
+    def test_an_em_dash_in_a_string_is_rejected(self):
+        found = problems("a.swift", 'let copy = "It\'s been a while \u2014 sign in again."\n')
+        self.assertEqual(found, ["em dash in a string or a page; the app never shows one to a Member, use a full stop or a comma"])
+
+    def test_an_em_dash_in_a_comment_is_allowed(self):
+        self.assertEqual(problems("a.swift", "/// Signs in \u2014 or says why not.\nfunc signIn() {}\n"), [])
+
+    def test_an_em_dash_on_a_page_is_rejected(self):
+        self.assertEqual(problems("a.html", "<p>Open the app \u2014 then sign in.</p>\n"), ["em dash in a string or a page; the app never shows one to a Member, use a full stop or a comma"])
+
+
 class Directives(unittest.TestCase):
     def test_load_bearing_directives_survive(self):
         def in_body(line):

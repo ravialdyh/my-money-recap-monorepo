@@ -29,6 +29,8 @@ DIRECTIVE = re.compile(
     r")"
 )
 
+EM_DASH = "\u2014"
+
 PIN = re.compile(r"^v?\d+(?:\.\d+)*$")
 TRACKER_TAG = re.compile(r"\b(?:TODO|FIXME|XXX|HACK|WIP)\b")
 
@@ -149,6 +151,17 @@ def _check_comments(rel, text, style, problems):
             )
 
 
+def _check_em_dash(rel, text, style, problems):
+    masked = {}
+    for comment in scan(text, style) if style is C_FAMILY else ():
+        for number in range(comment.line, comment.end_line + 1):
+            start = comment.column if number == comment.line else 0
+            masked[number] = min(masked.get(number, start), start)
+    for number, line in enumerate(text.split("\n"), 1):
+        if EM_DASH in line[: masked.get(number, len(line))]:
+            problems.append(f"{rel}:{number} em dash in a string or a page; the app never shows one to a Member, use a full stop or a comma")
+
+
 def _check_python(rel, text, problems):
     try:
         tree = ast.parse(text)
@@ -202,6 +215,8 @@ def check(paths):
             _check_python(rel, text, problems)
         if style is not None:
             _check_comments(rel, text, style, problems)
+        if style is C_FAMILY or rel.endswith(".html"):
+            _check_em_dash(rel, text, style, problems)
     return problems
 
 

@@ -14,10 +14,11 @@ A session that opens on a generated branch, `claude/confident-hypatia-bssrd9` an
 
 ## House rules the hooks enforce
 
-`pre-commit run --all-files` is the gate. Two rules are this repo's own, in
+`pre-commit run --all-files` is the gate. Three rules are this repo's own, in
 `tools/policy/README.md`:
 
 - **A line cap on every text file** outside the exclusions the policy README lists.
+- **No em dash in text a Member can read**: string literals and HTML pages; copy uses a full stop or a comma.
 - **A comment either states a contract or is a directive.** Doc comments on a package, type or
   member are how code cites a `D*`, `A*` or `I*` decision, and their length is capped. Comments
   inside a function body are rejected: name the code instead. `TODO` and commented-out code are
