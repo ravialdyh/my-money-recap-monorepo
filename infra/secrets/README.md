@@ -16,7 +16,7 @@ vault files. Compose writes the two connection strings from that `.env` into fil
 | `decrypt.sh` | yes | The deploy's decrypt step: one file per value, mode 0400. |
 | `decrypt-smoke.sh` | yes | Its proof, on a throwaway age key it generates itself. |
 | `keyset.sh` | yes | The one reader of `example.yaml`'s shape: `keys` lists the key set, `value` prints the placeholder one key carries. The smoke and the wizard both go through it, so a change to the file's shape cannot leave the two disagreeing about the key set. |
-| `prod.yaml` | **no** | The real values. Git-ignored until the nine human steps have been done; committing it is the first item of #74's follow-up issue. |
+| `prod.yaml` | **no** | The real values. Git-ignored until the nine human steps have been done; committing it is the first item of #87. |
 | `.sops.yaml`, at the **repository root** | **no** | The creation rule naming the age recipient. It sits at the root because sops resolves the rule by walking up from the working directory, not from the file it is given, so a copy in this directory is invisible to `sops edit infra/secrets/prod.yaml` run from the root. Git-ignored for the same reason as `prod.yaml`: a rule with an invalid recipient makes `sops edit` fail outright rather than degrade, so it cannot be committed before a key exists. |
 
 No age key has been generated yet, so the repository holds the shape and nothing else (#66, PR
@@ -32,7 +32,7 @@ stack itself needs, and the wizard's check mode weighs them alongside the steps.
 
 | Key | Comes from | Consumed by |
 | --- | --- | --- |
-| `app_store_connect_api_key` | App Store Connect, Users and Access > Integrations | The TestFlight half of the tag deploy (A15), which the follow-up issue #74 opens still owes |
+| `app_store_connect_api_key` | App Store Connect, Users and Access > Integrations | The TestFlight half of the tag deploy (A15), which #87 still owes |
 | `apple_services_id` | Apple Developer, Identifiers | The Keycloak Apple identity provider's client id, an OpenTofu variable (#71) |
 | `apple_team_id` | Apple Developer, Membership details | The same provider's `teamId`, the issuer of the client-secret JWT it signs |
 | `apple_sign_in_key_id` | Apple Developer, Keys — the Key ID of the Sign in with Apple `.p8` | The same provider's `keyId`, the JWT's `kid` |
@@ -41,7 +41,7 @@ stack itself needs, and the wizard's check mode weighs them alongside the steps.
 | `google_client_id` | Google Auth Platform > Clients | The Keycloak Google identity provider's client id, an OpenTofu variable (#71) |
 | `google_client_secret` | the same client | The same provider, through Keycloak's file vault as `${vault.google_client_secret}` |
 | `open_exchange_rates_app_id` | Open Exchange Rates | `currency`, slice 7 |
-| `smtp_token` | the SMTP provider's first account-level token | `notify`'s SMTP login on the machine, owed by the follow-up issue #74 opens (`notify` sends no AUTH yet); Mailpit needs none locally |
+| `smtp_token` | the SMTP provider's first account-level token | `notify`'s SMTP login on the machine, owed by #87 (`notify` sends no AUTH yet); Mailpit needs none locally |
 | `domain` | the domain bought in the same step | The deploy workflow's SSH host, and the machine's `MMR_HOST` |
 | `registrar_token` | the registrar, scoped to one zone | OpenTofu's DNS records |
 | `cloud_api_token` | the cloud account | OpenTofu's VM, firewall and cloud-init |

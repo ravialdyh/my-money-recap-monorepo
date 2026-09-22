@@ -70,7 +70,7 @@ creation rules by walking up from the working directory rather than from the fil
 command line. `sops edit infra/secrets/prod.yaml`, the command `docs/ARCHITECTURE.md` §10 and
 `infra/secrets/README.md` both quote, is run from the root, so that is where the rule has to be. It
 stays git-ignored along with `prod.yaml` until a real age key exists; committing both is the first
-item of #74's follow-up issue (A13, `infra/secrets/README.md`).
+item of #87 (A13, `infra/secrets/README.md`).
 
 ## Proving it
 

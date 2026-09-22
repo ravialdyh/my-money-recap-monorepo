@@ -18,7 +18,7 @@ Planned, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
 ## Deploying
 
 `.github/workflows/deploy.yml` is the only way anything deploys (A15). It is written, `actionlint` is
-its only gate, and it has never run: the first tag push is the follow-up issue's, not #73's.
+its only gate, and it has never run: the first tag push is #87's, not #73's.
 
 **Trigger.** A tag matching `v[0-9]+.[0-9]+.[0-9]+`: `v1.2.3` and `v10.20.30`, never `v1.2`,
 `v1.2.3-rc.1` or a branch name. The `push` trigger names `tags` and nothing else, so GitHub runs it
@@ -91,6 +91,6 @@ value, so the migration steps, Keycloak or `realm-apply` fail to sign in, and a 
 `down -v`, the laptop's answer, deletes the data there.
 
 **Not in the repository yet.** `infra/secrets/prod.yaml` is git-ignored and does not exist, and the
-workflow reads it anyway: committing it is the follow-up issue's first item. Nor do the `production`
+workflow reads it anyway: committing it is #87's first item. Nor do the `production`
 environment and its `SOPS_AGE_KEY` exist yet, or the machine, which needs Docker, its Compose plugin
 and the deploy key's public half from cloud-init.
