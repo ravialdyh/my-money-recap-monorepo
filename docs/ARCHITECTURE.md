@@ -374,7 +374,7 @@ One Postgres container, five databases, five roles, each role granted only its o
 | nginx | nginx:stable | 443, 80 | bff, keycloak |
 | acme | neilpang/acme.sh | — | shares the cert volume with nginx; deploy hook reloads nginx |
 | bff | built from the one Go module `apps/backend`, command `cmd/bff` (the one `Dockerfile`, `CMD=bff`) | 8080 internal | members, redis, and `ledger` and `currency` once built; it calls `notify` without waiting on it (A14) |
-| members, ledger, notify, currency | built from the one Go module `apps/backend`, command `cmd/<service>` (the one `Dockerfile`, `CMD=<service>`) | 8080 internal each | postgres, rabbitmq, and redis where §4.4 lists it |
+| members, ledger, notify, currency | built from the one Go module `apps/backend`, command `cmd/<service>` (the one `Dockerfile`, `CMD=<service>`) | 8080 internal each | postgres; rabbitmq once the outbox relay is built (A4, A5); redis where §4.4 lists it |
 | keycloak | quay.io/phasetwo/phasetwo-keycloak, pinned tag (§7.5) | 8080 internal | postgres |
 | postgres | postgres:17 | 5432 internal | volume |
 | rabbitmq | rabbitmq:4-management | 5672, 15672 internal | volume |
