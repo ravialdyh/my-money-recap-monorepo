@@ -88,15 +88,7 @@ A token for the realm's test user and the `GetHome` call are in `infra/compose/R
 
 ## Tests
 
-`go test ./internal/bff/` runs the unit tests: the zero HomeView, the caller's token forwarded to
-`members`, a `notify` timeout still answering, a `members` timeout failing, the HomeView built
-from the Profile `GetOrCreateBySubject` answers, a failed upstream call keeping its code and dropping its text,
-`days_remaining` on the last day of a month; and for `RequestMagicLink`, the login-token request
-carrying A10's four settings and the service account's own token, the address coming from the
-request while the context holds a different Member's claims, a fresh key per request when the header
-is absent, each way the realm or `notify` can refuse, the sixth request for an address refused
-before the realm is called even when it changes case, and the closed door — a Redis that answers
-nothing returns `resource_exhausted` rather than sending, which the end-to-end sixth request
-would pass either way. The end-to-end tests `TestEndToEnd`, `TestMagicLinkEndToEnd` and `TestEdge`
-need the stack and the `BFF_TEST_*` variables `infra/compose/README.md` lists ("Running the Go tests
-against this stack"); CI runs them in the `backend` job.
+`go test ./internal/bff/` runs the unit tests, which need nothing; each test's name and doc comment
+say what it proves. `TestEndToEnd`, `TestMagicLinkEndToEnd` and `TestEdge` drive the running stack at
+the BFF's HTTP boundary and through the edge; their variables are in `infra/compose/README.md`,
+"Running the Go tests against this stack".

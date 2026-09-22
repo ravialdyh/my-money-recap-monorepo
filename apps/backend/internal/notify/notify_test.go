@@ -63,9 +63,9 @@ func testPool(t *testing.T, maxConns int32) *pgxpool.Pool {
 // TestMagicLinkAtTheConnectBoundary drives the running service the way the BFF will: no bearer token
 // at all, which only the EmailMagicLink exemption lets through (ARCHITECTURE §4.2 point 3).
 func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
-	base, mailpit := os.Getenv("NOTIFY_TEST_URL"), os.Getenv("NOTIFY_TEST_MAILPIT")
+	base, mailpit := os.Getenv("NOTIFY_TEST_URL"), os.Getenv("MMR_TEST_MAILPIT")
 	if base == "" || mailpit == "" {
-		t.Skip("NOTIFY_TEST_URL and NOTIFY_TEST_MAILPIT not both set")
+		t.Skip("NOTIFY_TEST_URL and MMR_TEST_MAILPIT not both set")
 	}
 	db := testDB(t)
 	ctx := t.Context()
@@ -133,9 +133,9 @@ func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 // unique on the pair, overriding the "unique index is on the key alone" of #68 and #61: A14's
 // member_id has no Member here, the address is what is deduped.
 func TestOneKeyToTwoAddressesSendsToBoth(t *testing.T) {
-	host, mailpit := os.Getenv("NOTIFY_TEST_SMTP"), os.Getenv("NOTIFY_TEST_MAILPIT")
+	host, mailpit := os.Getenv("NOTIFY_TEST_SMTP"), os.Getenv("MMR_TEST_MAILPIT")
 	if host == "" || mailpit == "" {
-		t.Skip("NOTIFY_TEST_SMTP and NOTIFY_TEST_MAILPIT not both set")
+		t.Skip("NOTIFY_TEST_SMTP and MMR_TEST_MAILPIT not both set")
 	}
 	db := testDB(t)
 	ctx := t.Context()

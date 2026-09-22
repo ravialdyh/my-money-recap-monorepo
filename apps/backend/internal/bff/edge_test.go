@@ -31,9 +31,9 @@ const fallbackCopy = "Open My Money Recap on your phone to finish signing in."
 // BFF_TEST_EDGE is set beside three of TestEndToEnd's variables; infra/compose/README.md lists them.
 func TestEdge(t *testing.T) {
 	edge, base := os.Getenv("BFF_TEST_EDGE"), os.Getenv("BFF_TEST_URL")
-	kc, pw := os.Getenv("BFF_TEST_KEYCLOAK"), os.Getenv("BFF_TEST_USER_PASSWORD")
+	kc, pw := os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
 	if edge == "" || base == "" || kc == "" || pw == "" {
-		t.Skip("BFF_TEST_EDGE, BFF_TEST_URL, BFF_TEST_KEYCLOAK and BFF_TEST_USER_PASSWORD not all set")
+		t.Skip("BFF_TEST_EDGE, BFF_TEST_URL, MMR_TEST_KEYCLOAK and MMR_TEST_USER_PASSWORD not all set")
 	}
 	ctx := t.Context()
 	token := testauth.UserToken(t, kc, pw)

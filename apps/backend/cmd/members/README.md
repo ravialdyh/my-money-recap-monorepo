@@ -66,9 +66,7 @@ recorded in `schema_migrations`. Add a new numbered file; never edit an applied 
 
 ## Tests
 
-`go test ./...` runs the unit tests (JWT verification against a local JWKS, a store failure
-answering `unavailable` without the driver's text, and the caller's own deadline or cancel keeping
-its code). The boundary tests need the stack and the
-`MEMBERS_TEST_*` variables listed at the top of `internal/members/members_test.go`: the
-concurrent-upsert and empty-email-claim tests against the real Postgres, and the Connect calls through
-a real Keycloak token. CI runs them in the `backend` job.
+`go test ./internal/members/` runs them; each test's name and doc comment say what it proves. The
+store-failure and caller-deadline tests need nothing; the rest need the stack's Postgres, and the
+Connect-boundary test a real Keycloak token too. The variables are in `infra/compose/README.md`,
+"Running the Go tests against this stack".

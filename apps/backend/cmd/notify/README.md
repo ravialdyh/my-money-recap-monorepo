@@ -73,12 +73,7 @@ bound off slice 7's scheduler.
 
 ## Tests
 
-`go test ./internal/notify/` runs the empty-key test, which needs nothing. The rest need the stack, Mailpit and the `NOTIFY_TEST_*` variables listed in
-`infra/compose/README.md`. The boundary test calls `EmailMagicLink` with no bearer token, reads the
-message through Mailpit's HTTP interface, and asserts that the same key twice sends one message and
-that `GetPrefs` is still `unauthenticated`. The rest drive the SMTP client against fake mail hosts
-on a free port: one that accepts and then says nothing, which must not outlive the caller's deadline
-or block the pool's `Close`; one refusing the recipient with a permanent 5xx, which is
-`invalid_argument` while every other SMTP failure stays `unavailable`; and one that would accept an
-address holding CR or LF, which `net/smtp` refuses before any recipient. CI runs them all in the
-`backend` job.
+`go test ./internal/notify/` runs them; each test's name and doc comment say what it proves. Only the
+empty-key test needs nothing: the tests against fake mail hosts need the `notify` database, and the
+rest also send through Mailpit. The variables are in `infra/compose/README.md`, "Running the Go tests
+against this stack".

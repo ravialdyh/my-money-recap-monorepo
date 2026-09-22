@@ -19,12 +19,12 @@ import (
 )
 
 // TestEndToEnd drives the BFF's HTTP boundary against the real Compose stack (#17, spec #10).
-// It skips unless BFF_TEST_URL, BFF_TEST_KEYCLOAK, BFF_TEST_USER_PASSWORD and
-// BFF_TEST_DATABASE_URL are all set; infra/compose/README.md lists their values.
+// It skips unless BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_USER_PASSWORD and
+// MMR_TEST_MEMBERS_DATABASE_URL are all set; infra/compose/README.md lists their values.
 func TestEndToEnd(t *testing.T) {
-	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("BFF_TEST_KEYCLOAK"), os.Getenv("BFF_TEST_USER_PASSWORD"), os.Getenv("BFF_TEST_DATABASE_URL")
+	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
-		t.Skip("BFF_TEST_URL, BFF_TEST_KEYCLOAK, BFF_TEST_USER_PASSWORD and BFF_TEST_DATABASE_URL not all set")
+		t.Skip("BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_USER_PASSWORD and MMR_TEST_MEMBERS_DATABASE_URL not all set")
 	}
 	ctx := context.Background()
 	db, err := pgxpool.New(ctx, dsn)

@@ -21,13 +21,13 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// testDB opens the Compose stack's Postgres, skipping unless the MEMBERS_TEST_* variables
-// infra/compose/README.md lists are set.
+// testDB opens the Compose stack's members database and applies the schema, skipping unless
+// MMR_TEST_MEMBERS_DATABASE_URL is set (infra/compose/README.md).
 func testDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
-	dsn := os.Getenv("MEMBERS_TEST_DATABASE_URL")
+	dsn := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if dsn == "" {
-		t.Skip("MEMBERS_TEST_DATABASE_URL not set")
+		t.Skip("MMR_TEST_MEMBERS_DATABASE_URL not set")
 	}
 	db, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
@@ -155,13 +155,13 @@ func TestTheCallersDeadlineOrCancelIsNotAStoreFailure(t *testing.T) {
 
 func TestConnectBoundary(t *testing.T) {
 	base := os.Getenv("MEMBERS_TEST_URL")
-	if base == "" || os.Getenv("MEMBERS_TEST_KEYCLOAK") == "" || os.Getenv("MEMBERS_TEST_USER_PASSWORD") == "" {
-		t.Skip("MEMBERS_TEST_URL, MEMBERS_TEST_KEYCLOAK and MEMBERS_TEST_USER_PASSWORD not all set")
+	if base == "" || os.Getenv("MMR_TEST_KEYCLOAK") == "" || os.Getenv("MMR_TEST_USER_PASSWORD") == "" {
+		t.Skip("MEMBERS_TEST_URL, MMR_TEST_KEYCLOAK and MMR_TEST_USER_PASSWORD not all set")
 	}
 	db := testDB(t)
 	ctx := context.Background()
-	kc := os.Getenv("MEMBERS_TEST_KEYCLOAK")
-	tok := testauth.UserToken(t, kc, os.Getenv("MEMBERS_TEST_USER_PASSWORD"))
+	kc := os.Getenv("MMR_TEST_KEYCLOAK")
+	tok := testauth.UserToken(t, kc, os.Getenv("MMR_TEST_USER_PASSWORD"))
 	claims := testauth.Decode(t, tok)
 	sub, email := claims.Sub, claims.Email
 	if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, sub); err != nil {

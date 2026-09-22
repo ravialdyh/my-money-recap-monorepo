@@ -19,25 +19,9 @@ From `apps/backend`:
 go vet ./... && go test ./...
 ```
 
-`go test ./...` alone runs the unit tests. The tests against the Compose stack skip unless it is up
-and their variables are set; the CI job `backend` runs them that way:
-
-- the `members` Connect-boundary tests, `MEMBERS_TEST_*` listed at the top of
-  `internal/members/members_test.go`;
-- the `notify` magic-link test, `NOTIFY_TEST_*`, which also needs Mailpit
-  (`infra/compose/README.md`, "Mailpit");
-- the magic-link end-to-end test (`TestMagicLinkEndToEnd`, #69), which also needs Mailpit, and the
-  edge test through Nginx (`TestEdge`, #72), `BFF_TEST_*` listed in `infra/compose/README.md`,
-  "Running the Go tests against this stack";
-- the backend end-to-end test at the BFF's HTTP boundary (`TestEndToEnd`), `BFF_TEST_*` listed at
-  the top of `internal/bff/e2e_test.go`. With the stock `.env`:
-
-```bash
-BFF_TEST_URL=http://localhost:8082 BFF_TEST_KEYCLOAK=http://localhost:8080 BFF_TEST_USER_PASSWORD=$TEST_USER_PASSWORD BFF_TEST_DATABASE_URL=postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members go test -v -run TestEndToEnd ./internal/bff/
-```
-
-A worktree running its own stack substitutes its `.env` ports (`infra/compose/README.md`,
-"Parallel worktrees").
+That runs the unit tests. The tests against the Compose stack skip unless it is up and their
+variables are set: `infra/compose/README.md`, "Running the Go tests against this stack", lists them
+and runs them with `-p 1`, as the CI job `backend` does.
 
 Each service is one binary that serves by default and applies its embedded SQL migrations with the
 `migrate` subcommand; Compose runs `migrate` as a one-shot step the service waits on

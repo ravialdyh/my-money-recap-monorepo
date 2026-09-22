@@ -18,13 +18,13 @@ import (
 )
 
 // TestMagicLinkEndToEnd drives the magic-link chain at the BFF's HTTP boundary against the real
-// Compose stack (#69, spec #61). It skips unless the four BFF_TEST_* variables that
-// infra/compose/README.md lists are all set.
+// Compose stack (#69, spec #61). It skips unless the four variables it reads are all
+// set; infra/compose/README.md lists them.
 func TestMagicLinkEndToEnd(t *testing.T) {
-	base, kc := os.Getenv("BFF_TEST_URL"), os.Getenv("BFF_TEST_KEYCLOAK")
-	mailpit, dsn := os.Getenv("BFF_TEST_MAILPIT"), os.Getenv("BFF_TEST_DATABASE_URL")
+	base, kc := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK")
+	mailpit, dsn := os.Getenv("MMR_TEST_MAILPIT"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || mailpit == "" || dsn == "" {
-		t.Skip("BFF_TEST_URL, BFF_TEST_KEYCLOAK, BFF_TEST_MAILPIT and BFF_TEST_DATABASE_URL not all set")
+		t.Skip("BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_MAILPIT and MMR_TEST_MEMBERS_DATABASE_URL not all set")
 	}
 	ctx := t.Context()
 	db, err := pgxpool.New(ctx, dsn)

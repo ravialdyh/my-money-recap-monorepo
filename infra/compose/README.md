@@ -88,7 +88,7 @@ because `/health/ready` answers UP on the management port while a first boot is 
 on 8080, and `realm-apply` then gets `503 Service Unavailable` from the token endpoint.
 Keycloak, the BFF and Nginx publish on every interface because the phone reaches them; the Postgres,
 `members` and `notify` ports bind to loopback and exist for the Connect-boundary tests
-(`apps/README.md`), as does Mailpit's, which is where the magic-link test reads the message it
+("Running the Go tests against this stack"), as does Mailpit's, which is where the magic-link test reads the message it
 caused, and Redis's, so a `bff` run on the host has a Redis too.
 
 ## Secrets
@@ -275,30 +275,25 @@ The same key twice sends one message and answers `{}` both times; an empty key i
 
 ## Running the Go tests against this stack
 
-The `internal/members`, `internal/notify` and `internal/migrate` tests and `internal/bff`'s
-`TestEndToEnd`, `TestMagicLinkEndToEnd` and `TestEdge` skip unless their variables are set (`internal/members`' store-failure and
-caller-deadline tests, `internal/notify`'s empty-key test and `internal/bff`'s other tests need
-nothing); with the stack up, Mailpit started and the stock `.env` they are the values below. A
+The tests that reach the stack skip unless their variables are set; every other test needs nothing.
+With the stack up, Mailpit started and the stock `.env` they are the values below. A
 non-default `.env` substitutes its own `*_HOST_PORT`s. Either way the `members` database password is
 the value `.env` held when the volumes were created; the test Member's password and the `bff` client secret are
-whatever `.env` holds now, because `realm-apply` re-applies both on every `up`.
+whatever `.env` holds now, because `realm-apply` re-applies both on every `up`. The `MMR_TEST_*` names
+are the facts more than one suite reads; the others belong to one suite.
 
 | Variable | Stock value | What it is |
 | --- | --- | --- |
-| `MEMBERS_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The `members` database on `POSTGRES_HOST_PORT`. Alone it enables the migration, concurrency and empty-email-claim tests, and the shared migration runner's own tests, which take this or `NOTIFY_TEST_DATABASE_URL`, whichever is set, and work in a throwaway schema they drop. |
-| `MEMBERS_TEST_URL` | `http://localhost:8081` | `members` on `MEMBERS_HOST_PORT`, for the Connect-boundary tests. |
-| `MEMBERS_TEST_KEYCLOAK` | `http://localhost:8080` | Keycloak on `KEYCLOAK_HOST_PORT`, where the suite mints the test user's token. |
-| `MEMBERS_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | The `test` user's password, for the password grant on the `ios` client. |
+| `MMR_TEST_MEMBERS_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The `members` database on `POSTGRES_HOST_PORT`. Alone it enables the migration, concurrency and empty-email-claim tests, and the shared migration runner's own tests, which take this or `NOTIFY_TEST_DATABASE_URL`, whichever is set, and work in a throwaway schema they drop. `TestEndToEnd` clears its own row before it runs, and `TestMagicLinkEndToEnd` counts and then drops the row its fresh address makes. |
+| `MMR_TEST_KEYCLOAK` | `http://localhost:8080` | Keycloak on `KEYCLOAK_HOST_PORT`, where the suites mint the test user's token and `TestMagicLinkEndToEnd` redeems its login token. |
+| `MMR_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | The `test` user's password, for the password grant on the `ios` client. |
+| `MMR_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where the `notify` tests and `TestMagicLinkEndToEnd` read the message they caused; the last pulls the login token out of the link. |
+| `MEMBERS_TEST_URL` | `http://localhost:8081` | `members` on `MEMBERS_HOST_PORT`, for the Connect-boundary test, with `MMR_TEST_KEYCLOAK` and `MMR_TEST_USER_PASSWORD`. |
 | `MEMBERS_TEST_BFF_CLIENT_SECRET` | `$BFF_CLIENT_SECRET` | **Optional.** Set it and the suite adds the wrong-audience case: a `bff` service-account token, which `members` must reject as unauthenticated. Unset, that assertion silently does not run. |
-| `BFF_TEST_URL` | `http://localhost:8082` | The BFF on `BFF_HOST_PORT`, the HTTP boundary `TestEndToEnd` drives. |
-| `BFF_TEST_KEYCLOAK` | `http://localhost:8080` | As `MEMBERS_TEST_KEYCLOAK`. |
-| `BFF_TEST_USER_PASSWORD` | `$TEST_USER_PASSWORD` | As `MEMBERS_TEST_USER_PASSWORD`. |
-| `BFF_TEST_DATABASE_URL` | `postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members` | The same `members` database; `TestEndToEnd` clears its own row before it runs, and `TestMagicLinkEndToEnd` counts and then drops the row its fresh address makes. |
-| `BFF_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where `TestMagicLinkEndToEnd` reads the message it caused and pulls the login token out of the link. With `BFF_TEST_URL`, `BFF_TEST_KEYCLOAK` and `BFF_TEST_DATABASE_URL` it is that test's whole set; it needs no `BFF_TEST_USER_PASSWORD`, because it spends a fresh address and never signs in as `test`. |
-| `BFF_TEST_EDGE` | `http://localhost:8090` | Nginx on `NGINX_HOST_PORT`, the edge `TestEdge` drives. With `BFF_TEST_URL`, `BFF_TEST_KEYCLOAK` and `BFF_TEST_USER_PASSWORD` it is that test's whole set: it compares one `GetHome` through the edge with the same call straight to the BFF, fetches the `/magic` page and the association file, and proves the stricter limit zone matches the `RequestMagicLink` path and nothing else (#72). |
+| `BFF_TEST_URL` | `http://localhost:8082` | The BFF on `BFF_HOST_PORT`, the HTTP boundary the three end-to-end tests drive. `TestEndToEnd` adds `MMR_TEST_KEYCLOAK`, `MMR_TEST_USER_PASSWORD` and `MMR_TEST_MEMBERS_DATABASE_URL`; `TestMagicLinkEndToEnd` takes `MMR_TEST_MAILPIT` in place of the password, because it spends a fresh address and never signs in as `test`. |
+| `BFF_TEST_EDGE` | `http://localhost:8090` | Nginx on `NGINX_HOST_PORT`, the edge `TestEdge` drives. With `BFF_TEST_URL`, `MMR_TEST_KEYCLOAK` and `MMR_TEST_USER_PASSWORD` it is that test's whole set: it compares one `GetHome` through the edge with the same call straight to the BFF, fetches the `/magic` page and the association file, and proves the stricter limit zone matches the `RequestMagicLink` path and nothing else (#72). |
 | `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all. |
-| `NOTIFY_TEST_MAILPIT` | `http://localhost:8025` | Mailpit's HTTP interface on `MAILPIT_HOST_PORT`, where that test reads the message it caused. |
-| `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests and, when `MEMBERS_TEST_DATABASE_URL` is unset, the shared migration runner's tests. |
+| `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests and, when `MMR_TEST_MEMBERS_DATABASE_URL` is unset, the shared migration runner's tests. |
 | `NOTIFY_TEST_SMTP` | `localhost:1025` | Mailpit's SMTP port on `MAILPIT_SMTP_HOST_PORT`, for the in-process send. |
 
 Run them with `-p 1`:
