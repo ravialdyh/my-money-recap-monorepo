@@ -9,12 +9,12 @@ This repository is the monorepo for it: product docs and design record, illustra
 
 | Path | What lives here |
 | --- | --- |
-| `docs/` | Product-level docs: the PRD, the screen-state contract, the domain glossary, the backend architecture, the iOS design and the design handoff (all 111 artboards) |
+| `docs/` | Product-level docs: the PRD, the screen-state contract, the domain glossary, the backend architecture, the iOS design and the design handoff |
 | `my-money-recap/` | Illustration source: the WebP artwork, the app icon, and the scripts and prompts that produce them |
 | `my-money-recap-ds/` | `@my-money-recap/ui` — the React design system: tokens, components, the four Recap screens |
 | `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members` and `notify` services) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
 | `packages/` | `packages/contract`, the Buf module every client is generated from |
-| `infra/` | `infra/compose`, the phase-1 Compose stack (Keycloak, Postgres, Redis, `members`, `notify`, the BFF, Nginx and its `acme.sh` sidecar, and Mailpit on a laptop); `infra/tofu/realm`, the Keycloak realm in OpenTofu; `infra/nginx`, the edge's configuration and static files; `infra/secrets`, the SOPS-encrypted secret set, committed as its shape; `infra/wizard`, the nine setup steps only a human can do. See `infra/README.md` |
+| `infra/` | `infra/compose`, the phase-1 Compose stack; `infra/tofu/realm`, the Keycloak realm in OpenTofu; `infra/nginx`, the edge's configuration and static files; `infra/secrets`, the SOPS-encrypted secret set, committed as its shape; `infra/wizard`, the nine setup steps only a human can do. See `infra/README.md` |
 
 It is an npm workspace with one member today, `my-money-recap-ds` (`apps/*` and `packages/*` are
 declared for later JavaScript packages; nothing there has a `package.json`), so one `npm install` at
@@ -23,15 +23,11 @@ age are separate toolchains; each area's README says what it needs.
 
 ## How the pieces connect
 
-```
-docs/PRD.md + docs/SCREEN-STATES.md ──rules──►  docs/design/design_handoff_my_money_recap/  (the drawings)
-my-money-recap/assets/illustrations/ ──build:assets──►  my-money-recap-ds/src/assets/illustrations.ts
-my-money-recap-ds/src/tokens/tokens.json ──build:tokens──►  tokens.css, styles/css.generated.ts, dist/mmr.css
-my-money-recap-ds/src/tokens/tokens.json ──build:swift-tokens──►  apps/ios/DesignSystem/Tokens.swift
-```
-
-The design system reads the WebP artwork straight out of `my-money-recap/assets/illustrations/`
-via a relative path, so the two folders must stay siblings inside this repo.
+`docs/PRD.md` and `docs/SCREEN-STATES.md` hold the rules the design handoff
+(`docs/design/design_handoff_my_money_recap/`) draws. Every other link is a generator; "Single source
+of truth" below lists each source, the command and what it writes. The design system reads the WebP
+artwork straight out of `my-money-recap/assets/illustrations/` via a relative path, so the two folders
+must stay siblings inside this repo.
 
 ## Common commands
 
@@ -53,11 +49,9 @@ npm run build:tokens && npm run typecheck
 npm run build:swift-tokens
 ```
 
-`build:assets` re-inlines `my-money-recap/assets/illustrations/*.webp` into the design system;
-`build:tokens` regenerates `tokens.css`, `css.generated.ts` and `dist/mmr.css` from `tokens.json`;
-`build:swift-tokens` regenerates `apps/ios/DesignSystem/Tokens.swift` from the same `tokens.json` (`docs/IOS.md` I5).
-The `design-system` CI job runs all three and fails if any output is stale, so generated files can never
-drift from source. The other CI jobs (`contract`, `backend`, `ios`) are listed under Delivery in `docs/ARCHITECTURE.md` §10.
+The three `build:` commands write what "Single source of truth" lists. The `design-system` CI job runs
+all three and fails if any output is stale, so generated files can never drift from source. The other
+CI jobs (`contract`, `backend`, `ios`) are listed under Delivery in `docs/ARCHITECTURE.md` §10.
 
 ## Checks
 
@@ -111,7 +105,8 @@ this repo's history. SwiftFormat needs no install on either image.
 
 Coverage gates on a floor per language that only ever rises; `tools/coverage/README.md` has today's
 floors and where each came from. The `Security` workflow runs govulncheck, OSV-Scanner (Go, npm and
-Swift together), Semgrep, Trivy and a full-tree gitleaks scan on every pull request and every Monday.
+Swift together), Semgrep, Trivy and a full-tree gitleaks scan on every pull request, every push to
+`main` and every Monday.
 OSV reads the same GHSA advisories `npm audit` would, so the npm tree is covered once, without a
 second `npm ci`.
 
@@ -149,6 +144,8 @@ The configs carry no comments, so the reasoning lives here.
   binary `security.yml` downloads by URL and sha256: a hooks pull request that bumps gitleaks must
   also update that URL and sha256. `tools/hooks/check-pins.sh` fails until the URL carries the
   hook's version; it does not read the sha256, which only the `secrets` job's `sha256sum -c` checks.
+  No ecosystem sees the `sops`, `age`, hadolint or OpenTofu downloads either; the same script holds
+  the two copies of `sops` and of OpenTofu to one version.
 - **Actions are pinned to a commit, never a tag.** A tag is mutable, and whoever owns the action can
   repoint it at code that runs with this job's token. The trailing `# vN` is Dependabot's, and
   `tools/policy` exempts it for that reason.
@@ -157,31 +154,13 @@ The configs carry no comments, so the reasoning lives here.
 
 ### What CI costs, and why jobs are skipped
 
-This repository is private, so Actions minutes are billed, and macOS bills at **ten times** the
-Linux rate. Each job of the `CI` workflow is therefore gated on whether the files it builds or
-checks changed. `docs/ARCHITECTURE.md` A15 records that design, and why `all green` is the job to
-require rather than any single one. The `Security` workflow's jobs are not gated: they all run on
-Linux, so gating saves little, and govulncheck reports only the advisories the Go code reaches, so a
-change to Go code alone can make it fail while `go.mod` stays the same.
-
-What the gating saves. These figures are **estimates**: they were measured from real runs while the
-`Security` workflow was still gated, then adjusted for its ungated jobs by counting each job as one
-billed minute, and nothing can be re-measured while GitHub refuses to start the jobs (`AGENTS.md`).
-They also predate everything the `backend` job has gained from PR #75 on — the OpenTofu, `sops` and
-`age` steps, Mailpit, `notify`, and the magic-link and edge tests — so no figure here includes it.
-The `dependencies` job compiles govulncheck and may round up to two minutes.
-
-| A change touching | Billable minutes (estimated) |
-| --- | --- |
-| Documentation only | 8 |
-| One config file | 8 |
-| The design system only | 10 |
-| Everything, iOS included | 45–55 |
-
-The `ios` job is 30 to 40 of that full run on its own. It takes about three minutes of wall clock,
-but every job is billed rounded up to the whole minute and macOS bills at ten times the Linux rate,
-so a run that crosses three minutes costs ten more than one that does not — the two full runs
-measured here came to 45 and 54. Everything else in a full run costs about 15 between them.
+This repository is private, so Actions minutes are billed: macOS at **ten times** the Linux rate, and
+every job rounded up to the whole minute. Each job of the `CI` workflow therefore runs only when the
+files it builds or checks changed, so a change that touches no Swift never starts the macOS job.
+`docs/ARCHITECTURE.md` A15 records that design, and why `all green` is the job to require rather than
+any single one. The `Security` workflow's jobs are not gated: they all run on Linux, so gating saves
+little, and govulncheck reports only the advisories the Go code reaches, so a change to Go code alone
+can make it fail while `go.mod` stays the same.
 
 To move the iOS job onto your own Mac and stop paying for it entirely, register a self-hosted runner
 (repository → Settings → Actions → Runners → New self-hosted runner, macOS), then set a repository
@@ -197,23 +176,24 @@ one — on a public repo a fork's pull request could run its own code on your ma
 - [`docs/CONTEXT.md`](docs/CONTEXT.md) — domain glossary (Member, Salary, Spend, Recap, Archetype…). Read this before naming anything.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the backend design: Nginx, the Go BFF, the four services, RabbitMQ, Redis, Postgres, Keycloak, and the numbered `A*` decisions
 - [`docs/IOS.md`](docs/IOS.md) — the iOS app's internals: sign-in, session, networking, the SwiftData cache, generated tokens, and the numbered `I*` decisions
-- [`docs/design/design_handoff_my_money_recap/README.md`](docs/design/design_handoff_my_money_recap/README.md) — the design handoff: eleven canvases, 111 artboards
+- [`docs/design/design_handoff_my_money_recap/README.md`](docs/design/design_handoff_my_money_recap/README.md) — the design handoff: every canvas and artboard
 - [`my-money-recap-ds/README.md`](my-money-recap-ds/README.md) — the design system: visual rules and component API
 - [`my-money-recap/README.md`](my-money-recap/README.md) — how a rendered illustration becomes a shipped asset
 - [`apps/README.md`](apps/README.md) — the Go backend and the iOS app: build, test, run
-- [`infra/compose/README.md`](infra/compose/README.md) — the local stack: ports, the `mmr` realm, a phone on the LAN
+- [`infra/compose/README.md`](infra/compose/README.md) — the Compose stack: its containers and ports, the `mmr` realm, a phone on the LAN
 - [`packages/contract/README.md`](packages/contract/README.md) — the contract: what is generated where, and the breaking-change rule
 
 ## Single source of truth
 
 | Thing | Lives in | Everything else is generated |
 | --- | --- | --- |
-| Design tokens | `my-money-recap-ds/src/tokens/tokens.json` | `tokens.css`, `css.generated.ts`, `dist/mmr.css`, `apps/ios/DesignSystem/Tokens.swift` |
-| Illustration artwork | `my-money-recap/assets/illustrations/*.webp` | `my-money-recap-ds/src/assets/illustrations.ts` |
+| Design tokens | `my-money-recap-ds/src/tokens/tokens.json` | `build:tokens`: `tokens.css`, `styles/css.generated.ts`, `dist/mmr.css`; `build:swift-tokens`: `apps/ios/DesignSystem/Tokens.swift` (`docs/IOS.md` I5) |
+| Illustration artwork | `my-money-recap/assets/illustrations/*.webp` | `build:assets`: `my-money-recap-ds/src/assets/illustrations.ts`. The iOS asset catalog's PNGs are copied by hand (`docs/IOS.md` I5) |
+| The API contract | `packages/contract/money_recap/v1/*.proto` | `buf generate`: `apps/backend/gen/`, `packages/contract/swift/Sources/` (`packages/contract/README.md`) |
 | Product and design decisions | `docs/PRD.md` (numbered `D*` decisions) | — |
 | Backend architecture decisions | `docs/ARCHITECTURE.md` (numbered `A*` decisions) | — |
 | iOS app decisions | `docs/IOS.md` (numbered `I*` decisions) | — |
 | Visual rules | `my-money-recap-ds/README.md` § Design rules | — |
 | Screens | `docs/design/design_handoff_my_money_recap/` | renders (not in git) |
 | Domain vocabulary | `docs/CONTEXT.md` | — |
-| Sample ledger | the prop defaults in `my-money-recap-ds/src/screens/` (one file per Recap screen) | stories and design-sync previews |
+| Sample ledger | `docs/PRD.md` §8, and its answer key in `packages/contract/fixtures/ledger/` | not generated: the prop defaults in `my-money-recap-ds/src/screens/` copy Maya's September by hand for the stories and design-sync previews, and PRD §8 wins where they differ |
