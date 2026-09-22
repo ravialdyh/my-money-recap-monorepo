@@ -25,6 +25,12 @@ type fakeMembers struct {
 	profile     *moneyrecapv1.Profile
 	gotToken    string
 	gotZone     *moneyrecapv1.SetTimezoneRequest
+	gotProfile  *moneyrecapv1.SaveProfileRequest
+}
+
+func (f *fakeMembers) SaveProfile(_ context.Context, req *connect.Request[moneyrecapv1.SaveProfileRequest]) (*connect.Response[moneyrecapv1.SaveProfileResponse], error) {
+	f.gotProfile = req.Msg
+	return connect.NewResponse(&moneyrecapv1.SaveProfileResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId, DisplayName: req.Msg.GetDisplayName(), AvatarKey: req.Msg.GetAvatarKey()}}), nil
 }
 
 func (f *fakeMembers) SetTimezone(_ context.Context, req *connect.Request[moneyrecapv1.SetTimezoneRequest]) (*connect.Response[moneyrecapv1.SetTimezoneResponse], error) {

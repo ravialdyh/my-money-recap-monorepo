@@ -1,7 +1,8 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
-serves `GetHome`, `SetTimezone` and `RequestMagicLink`; the rest of `BffService` is planned. Every RPC but
+serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile` and `RequestMagicLink`; the rest of
+`BffService` is planned. Every RPC but
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
 
@@ -18,6 +19,14 @@ never gets a minted key: one without the `Idempotency-Key` header is `invalid_ar
 service is called, since a key minted per call would make every retry a new write (A14). It creates the
 Member through `members.GetOrCreateBySubject`, as `GetHome` does, then hands the key, that Member's id
 and the zone to `members.SetTimezone`, and answers the Profile it returns.
+
+`GetOnboardingState` (#98) answers where onboarding resumes: step 1 until the Display Name and Avatar are
+saved, step 2 until the Currency is, then, since steps 3 and 4 can be skipped, the highest step saved; 0
+once none is left. It carries the Profile so far and the `given_name` claim of the caller's own token as
+`suggested_name`, which fills step 1's First name field: the email sign-in path never gives the phone an
+identity token, so the BFF reads the claim. `SaveProfile` checks the answers with `internal/answers`, the
+rules `members` applies again, before any service call, then hands them and the step to
+`members.SaveProfile` under the phone's key, one write for both (A14).
 
 Before any of that, the request is counted against its address in Redis, `ml:<address>:<hour>` with
 the address lower-cased: §4.4's magic-link rate limit, five per address per hour (PRD §11), which

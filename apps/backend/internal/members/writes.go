@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/answers"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 )
 
@@ -55,4 +56,37 @@ func zone(name string) (*time.Location, error) {
 		return nil, errors.New("timezone is not an IANA zone name")
 	}
 	return loc, nil
+}
+
+// SaveProfile saves step 1's and step 2's answers with the step just done, in one keyed write (A14). Only the
+// answers sent change, and onboarding_step keeps the highest step saved (spec #92).
+func (s *Service) SaveProfile(ctx context.Context, req *connect.Request[moneyrecapv1.SaveProfileRequest]) (*connect.Response[moneyrecapv1.SaveProfileResponse], error) {
+	msg := req.Msg
+	if msg.IdempotencyKey == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
+	}
+	name, err := answers.Check(msg.DisplayName, msg.AvatarKey, msg.CurrencyCode, msg.OnboardingStep)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	m, err := s.own(ctx, msg.MemberId)
+	if err != nil {
+		return nil, err
+	}
+	answer := &moneyrecapv1.SaveProfileResponse{}
+	err = idempotency.Write(ctx, s.DB, m.ID, msg.IdempotencyKey, msg, answer, func(tx pgx.Tx) error {
+		row, err := scanRow(tx.QueryRow(ctx, `
+			UPDATE member SET display_name = coalesce($2, display_name), avatar_key = coalesce($3, avatar_key),
+				currency_code = coalesce($4, currency_code), onboarding_step = greatest(onboarding_step, $5)
+			WHERE id = $1 RETURNING `+rowColumns, m.ID, name, msg.AvatarKey, msg.CurrencyCode, msg.OnboardingStep))
+		answer.Profile = profile(row)
+		return err
+	})
+	if errors.Is(err, idempotency.ErrReused) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	if err != nil {
+		return nil, storeFailed(ctx, err)
+	}
+	return connect.NewResponse(answer), nil
 }

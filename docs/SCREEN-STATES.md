@@ -31,8 +31,9 @@ Violet ground throughout.
 | A3 | link already used | `InlineError`: `That link has already been used. We can send another.` |
 | A3 | rate limited | `InlineError`: `That's five links in an hour. Try again later.` Send disabled. |
 | A3 | web fallback page | Not an app screen. A single web page: `Open My Money Recap on your phone to finish signing in.` Violet ground, envelope illustration, no controls. |
-| A4 | Name and avatar | `TextField` + `AvatarGrid`, Next disabled until both valid. |
+| A4 | Name and avatar | `Chip` label `Step 1 of 4`, no back chevron. `TextField` `First name`, which drops digits, emoji and other punctuation as they are typed and stops at 30 characters, and `AvatarGrid` under `Pick your avatar`, each Avatar named beneath it. Next disabled until both valid. |
 | A4 | empty | Apple/Google shared no name. |
+| A4 | prefilled | The name the provider shared, the token's `given_name`, already in `First name`; no Avatar chosen. |
 | A5 | Currency | Searchable ISO list as `ListRow trailing="check"`, device locale preselected. |
 | A5 | empty search | `No currency matches "{query}".` plus a `Clear search` link. |
 | A6 | Salary and payday | D51. `DayPicker` with a `Last day` option after 31 and a computed helper below it: `Next paydays: 25 Sep · 25 Oct · 25 Nov`, updating on every tap. No other helper line. |

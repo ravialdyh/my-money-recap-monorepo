@@ -33,7 +33,8 @@ type Profile struct {
 	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// Empty until onboarding sets it.
 	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// Empty until onboarding sets it.
+	// Empty until onboarding sets it; otherwise one of the six Avatar keys, the
+	// authoritative list: fox, otter, panda, frog, owl, rabbit (PRD D36, §6.4).
 	AvatarKey string `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3" json:"avatar_key,omitempty"`
 	// ISO 4217; empty until onboarding sets it.
 	CurrencyCode string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
@@ -337,10 +338,15 @@ func (x *GetProfileResponse) GetProfile() *Profile {
 type SaveProfileRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// A14; see the package doc in shared.proto.
-	IdempotencyKey string  `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string  `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	DisplayName    *string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	AvatarKey      *string `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	// 1 to 30 characters after NFC and trimming, counted in code points:
+	// letters in any script with their marks, spaces, hyphens and apostrophes
+	// (PRD §6.4); anything else is invalid_argument.
+	DisplayName *string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	// One of the six keys Profile.avatar_key lists; any other is
+	// invalid_argument.
+	AvatarKey *string `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
 	// ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
 	// PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
 	// ledger.currency.converted (§7.1), never by this write.

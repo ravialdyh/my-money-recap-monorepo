@@ -116,7 +116,8 @@ type BffServiceSaveProfileRequest struct {
 	// (PRD §6.4); anything else is invalid_argument, checked here, not only on
 	// the phone.
 	DisplayName *string `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	// One of the six avatar keys (PRD §6.4); any other is invalid_argument.
+	// One of the six keys Profile.avatar_key lists (PRD §6.4); any other is
+	// invalid_argument.
 	AvatarKey *string `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
 	// ISO 4217. Accepted only while ledger holds no amount (step 2, or the
 	// §8.9 step 2 shortcut); otherwise ChangeCurrency is the path.

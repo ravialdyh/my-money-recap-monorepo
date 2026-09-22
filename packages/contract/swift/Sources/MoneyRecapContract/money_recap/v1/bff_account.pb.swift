@@ -67,7 +67,8 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   /// Clears the value of `displayName`. Subsequent reads from it will return its default value.
   public mutating func clearDisplayName() {self._displayName = nil}
 
-  /// One of the six avatar keys (PRD §6.4); any other is invalid_argument.
+  /// One of the six keys Profile.avatar_key lists (PRD §6.4); any other is
+  /// invalid_argument.
   public var avatarKey: String {
     get {_avatarKey ?? String()}
     set {_avatarKey = newValue}

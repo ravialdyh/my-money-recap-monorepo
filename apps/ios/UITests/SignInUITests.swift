@@ -44,10 +44,22 @@ final class SignInUITests: XCTestCase {
         app.terminate()
         app.launchArguments = ["--magic-link", link]
         app.launch()
-        assertHomeAtZero(app)
+        XCTAssert(
+            app.staticTexts["What should we call you?"].waitForExistence(timeout: 30),
+            "a new Member meets step 1"
+        )
+        app.launchArguments = []
+        app.terminate()
+        app.launch()
+        let nameField = app.textFields["First name"]
+        XCTAssert(nameField.waitForExistence(timeout: 30), "a force-quit on step 1 reopens step 1")
+        nameField.tap()
+        nameField.typeText("Maya2")
+        XCTAssertEqual(nameField.value as? String, "Maya", "the field refuses a digit (PRD §6.4)")
+        answerStepOne(app, avatar: "Otter")
+        assertHomeAtZero(app, greeting: "Hi, Maya")
         snapshot("05-home-at-zero-signed-in-by-link")
 
-        app.launchArguments = []
         app.terminate()
         app.launch()
         XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
@@ -91,9 +103,23 @@ extension XCTestCase {
         Decimal(0).formatted(.currency(code: "GBP").precision(.fractionLength(0)))
     }
 
-    /// Home at zero, the B1 "no salary set" layout (PRD §6.8): a new Member and the realm test Member alike.
+    /// Onboarding step 1 (PRD §6.4), its name already in the field: no Next without an Avatar, then the Avatar and
+    /// Next.
     @MainActor
-    func assertHomeAtZero(_ app: XCUIApplication) {
+    func answerStepOne(_ app: XCUIApplication, avatar: String) {
+        XCTAssert(app.staticTexts["What should we call you?"].waitForExistence(timeout: 30), "step 1 (PRD §6.4)")
+        XCTAssert(app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Step 1 of 4'")).firstMatch.exists)
+        XCTAssertFalse(app.buttons["Next"].isEnabled, "Next stays off until an Avatar is picked")
+        app.buttons[avatar].tap()
+        XCTAssert(app.buttons[avatar].isSelected, "the picked Avatar reads as selected")
+        XCTAssert(app.buttons["Next"].isEnabled)
+        snapshot("step-1-answered")
+        app.buttons["Next"].tap()
+    }
+
+    /// Home at zero, the B1 "no salary set" layout (PRD §6.8), greeting the Member once step 1 is saved.
+    @MainActor
+    func assertHomeAtZero(_ app: XCUIApplication, greeting: String) {
         XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 30), "Home at zero (PRD §6.8)")
         XCTAssert(app.staticTexts[Self.zero].exists, "the hero shows Spent at \(Self.zero)")
         XCTAssert(app.staticTexts["Money in \(Self.zero)"].exists)
@@ -108,10 +134,7 @@ extension XCTestCase {
         XCTAssertFalse(app.buttons["See last month"].isEnabled)
         XCTAssert(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on'")).firstMatch
             .exists)
-        XCTAssertFalse(
-            app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Hi,'")).firstMatch.exists,
-            "no greeting while display_name is empty"
-        )
+        XCTAssert(app.staticTexts[greeting].exists, "Home greets the Member by name (PRD §6.8)")
     }
 
     @MainActor

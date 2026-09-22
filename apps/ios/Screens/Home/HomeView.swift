@@ -7,23 +7,12 @@ import SwiftUI
 struct HomeView: View {
     @State private var model: HomeViewModel
 
-    /// Every launch sends the device's zone (ARCHITECTURE A3) under one key, then asks for Home. The interceptor
-    /// refreshes the token on `unauthenticated`, so each call is retried once while signed in (IOS I3); the zone's
-    /// retry reuses its key.
+    /// The launch sends the zone (`LaunchView`); Home asks only for itself, once more after the interceptor refreshes
+    /// the token on `unauthenticated` (IOS I3).
     init(session: AuthSession, context: ModelContext) {
         let client = BffClient.make(session: session)
-        let zone = SaveAttempt(TimeZone.current.identifier)
-        let request = MoneyRecap_V1_BffServiceSetTimezoneRequest.with { $0.timezone = zone.values }
         _model = State(initialValue: HomeViewModel(fetch: {
-            let setZone = { await client.setTimezone(request: request, headers: zone.headers) }
-            if await setZone().code == .unauthenticated, session.isSignedIn {
-                _ = await setZone()
-            }
-            var response = await client.getHome(request: .init())
-            if response.code == .unauthenticated, session.isSignedIn {
-                response = await client.getHome(request: .init())
-            }
-            return try response.result.get().home
+            try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
         }, context: context))
     }
 
