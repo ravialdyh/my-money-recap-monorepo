@@ -19,8 +19,8 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// Mailer is the slice of moneyrecapv1connect.NotifyServiceClient that RequestMagicLink needs (§7.3).
-// notify is real for this one RPC since #68, while Notify stays a stub until slice 7.
+// Mailer is the part of moneyrecapv1connect.NotifyServiceClient RequestMagicLink needs (§7.3): the
+// real notify (#68), where GetHome's Notify is still a stub.
 type Mailer interface {
 	EmailMagicLink(ctx context.Context, req *connect.Request[moneyrecapv1.EmailMagicLinkRequest]) (*connect.Response[moneyrecapv1.EmailMagicLinkResponse], error)
 }
@@ -55,7 +55,7 @@ type MagicLink struct {
 	ClientSecret string
 	// LinkBase is the configured address the link is built on; the login token is its lt query.
 	LinkBase string
-	// Limit counts §4.4's fifth Redis job, five requests per address per hour (PRD §11, A6).
+	// Limit counts §4.4's magic-link rate limit, five requests per address per hour (PRD §11, A6).
 	Limit Limiter
 	// Mail is notify, reached on a request carrying no token (§4.2 point 3, #68).
 	Mail Mailer

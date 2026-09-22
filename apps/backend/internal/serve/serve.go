@@ -55,7 +55,7 @@ func (e *Env) fromFile(key string) string {
 // Err is the first required variable that was missing or unreadable, or nil.
 func (e *Env) Err() error { return e.err }
 
-// Run adds /healthz to mux (ready, when set, must succeed for "ok"; members pings its database) and
+// Run adds /healthz to mux (ready, when set, must succeed for "ok"; Main passes the pool's Ping) and
 // serves until ctx is done, then drains in-flight requests for up to five seconds before it returns
 // nil. A listen error returns at once.
 func Run(ctx context.Context, name, addr string, mux *http.ServeMux, ready func(context.Context) error) error {

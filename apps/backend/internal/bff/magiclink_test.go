@@ -127,8 +127,8 @@ func TestRequestMagicLinkAsksTheRealmOnA10sTermsAndMailsTheLink(t *testing.T) {
 	}
 }
 
-// Nothing sets Idempotency-Key until slice 4, and notify rejects an empty key, so an absent header
-// mints a fresh UUID per accepted request rather than deduping every later send into silence (A14).
+// An absent Idempotency-Key header, which the app sends none of until its key interceptor (IOS I3),
+// mints a fresh UUID per accepted request, because notify rejects an empty key (A14).
 func TestRequestMagicLinkMintsAFreshKeyWhenTheHeaderIsAbsent(t *testing.T) {
 	mailer := &fakeMailer{}
 	s := newMagicLinkService(t, &fakeRealm{}, mailer)

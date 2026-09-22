@@ -1,5 +1,5 @@
-// Package bff is the API the phone talks to (ARCHITECTURE §6). Slice 1 (#17) answers GetHome
-// with a HomeView of zeros: members is real, ledger and notify are in-process stubs.
+// Package bff is the API the phone talks to (ARCHITECTURE §6): GetHome joins members with the
+// in-process ledger and notify stubs; RequestMagicLink (magiclink.go) calls the realm and the real notify.
 package bff
 
 import (
@@ -16,14 +16,14 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Ledger is the slice of moneyrecapv1connect.LedgerServiceClient that GetHome needs (§7.2); the
-// generated client replaces the stub in slice 5. Money with an empty currency code is stamped by GetHome.
+// Ledger is the part of moneyrecapv1connect.LedgerServiceClient GetHome needs (§7.2), StubLedger until
+// the ledger service is built. Money with an empty currency code is stamped by GetHome.
 type Ledger interface {
 	GetMonthSummary(ctx context.Context, req *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error)
 }
 
-// Notify is the slice of moneyrecapv1connect.NotifyServiceClient that GetHome needs (§7.3); the
-// generated client replaces the stub in slice 7.
+// Notify is the part of moneyrecapv1connect.NotifyServiceClient GetHome needs (§7.3), StubNotify until
+// notify serves GetWarningState.
 type Notify interface {
 	GetWarningState(ctx context.Context, req *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error)
 }
@@ -60,7 +60,7 @@ type Service struct {
 }
 
 // The fallback currency while a Member has none: the currency every artboard is drawn in.
-// A skeleton-only state; slice 4 removes it (#10).
+// A skeleton-only state (#10): once onboarding saves a Currency, every Member has one.
 const fallbackCurrency = "GBP"
 
 // The server's calendar strings (PRD §6.8): a Recap Month and a date.
@@ -156,13 +156,13 @@ func requiredCallFailed(call string, code connect.Code, err error) error {
 }
 
 // logOptionalCallDegraded records that an optional fan-out call failed and the HomeView went out
-// without it. A log line stands in for the §6.1 metric until OpenTelemetry lands (slice 8, A11).
+// without it. A log line stands in for the §6.1 metric until OpenTelemetry lands (A11).
 func logOptionalCallDegraded(call, consequence string, err error) {
 	log.Printf("%s: %v (%s)", call, err, consequence)
 }
 
 // daysRemainingInclusive counts today as one, so the last day of the month answers 1 (PRD §8.7).
-// Slice 5 reads MonthSummary.days_remaining, computed by ledger in the Member's zone (A2, A3), instead.
+// Once ledger is built, GetHome reads MonthSummary.days_remaining, computed in the Member's zone (A2, A3).
 func daysRemainingInclusive(now, firstOfNext time.Time) int32 {
 	return int32(firstOfNext.AddDate(0, 0, -1).Day() - now.Day() + 1)
 }
