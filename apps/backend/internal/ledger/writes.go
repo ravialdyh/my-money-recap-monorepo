@@ -1,0 +1,130 @@
+package ledger
+
+import (
+	"context"
+	"errors"
+	"math/big"
+	"regexp"
+
+	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5"
+
+	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
+)
+
+// amountPattern is PRD D57, a decimal string with at most 11 digits before the separator; paydayPattern is
+// D51's 1 to 31, beside which only the token "last" is a Payday.
+var (
+	amountPattern = regexp.MustCompile(`^\d{1,11}(\.\d+)?$`)
+	paydayPattern = regexp.MustCompile(`^([1-9]|[12]\d|3[01])$`)
+)
+
+// SaveSalary appends a salary_setting row. The first takes effect in the sign-up month (spec #92); after
+// it, per D56 and §8.10, a new Payday or a next-month answer starts next month, this month's applies now.
+func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyrecapv1.SaveSalaryRequest]) (*connect.Response[moneyrecapv1.SaveSalaryResponse], error) {
+	if req.Msg.IdempotencyKey == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
+	}
+	l, err := s.load(ctx, req.Msg.MemberId)
+	if err != nil {
+		return nil, err
+	}
+	amount, err := l.amount(req.Msg.Amount)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	payday := req.Msg.Payday
+	if payday != "last" && !paydayPattern.MatchString(payday) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New(`payday is 1 to 31 or "last"`))
+	}
+	from, err := l.salaryStarts(payday, req.Msg.AppliesFrom)
+	if err != nil {
+		return nil, err
+	}
+	answer := &moneyrecapv1.SaveSalaryResponse{}
+	err = idempotency.Write(ctx, s.DB, l.id, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `INSERT INTO salary_setting (member_id, amount, original_amount, original_currency, payday, effective_from) VALUES ($1, $2, $2, $3, $4, $5)`,
+			l.id, amount.FloatString(l.cash.scale), l.cash.code, payday, from.day(1)); err != nil {
+			return err
+		}
+		l.salaries = append(l.salaries, salaryRow{amount: amount, original: amount, originalCurrency: l.cash.code, payday: payday, from: from})
+		answer.Settings, answer.Month = l.settings(l.today), l.summary(monthOf(l.today), l.today)
+		return nil
+	})
+	if err != nil {
+		return nil, writeFailed(ctx, err)
+	}
+	return connect.NewResponse(answer), nil
+}
+
+// amount is the Salary as sent: in the Member's Currency, above zero, D57's 11 digits at most before the
+// separator and no more decimals than the Currency has.
+func (l ledgerOf) amount(m *moneyrecapv1.Money) (*big.Rat, error) {
+	if m.GetCurrencyCode() != l.cash.code || !amountPattern.MatchString(m.GetAmount()) {
+		return nil, errors.New("amount is not a D57 decimal in the Member's currency")
+	}
+	r, _ := new(big.Rat).SetString(m.GetAmount())
+	if r.Sign() <= 0 || l.cash.rounded(r).Cmp(r) != 0 {
+		return nil, errors.New("amount is not above zero with the currency's decimals")
+	}
+	return r, nil
+}
+
+// salaryStarts is the month a new row takes effect from. An unspecified answer applies now before this
+// month's Payday and is failed_precondition from it on, which the phone answers with the D56 sheet.
+func (l member) salaryStarts(payday string, applies moneyrecapv1.SalaryAppliesFrom) (month, error) {
+	now := monthOf(l.today)
+	current, ok := inForce(l.salaries, salaryFrom, now)
+	switch {
+	case len(l.salaries) == 0:
+		return monthOf(l.signedUp), nil
+	case ok && current.payday != payday, applies == moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_NEXT_MONTH:
+		return now.next(), nil
+	case applies == moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_UNSPECIFIED && ok && !l.today.Before(now.day(effectivePayday(current.payday, now))):
+		return month{}, connect.NewError(connect.CodeFailedPrecondition, errors.New("this month's Payday has come: say which month the Salary applies from"))
+	}
+	return now, nil
+}
+
+// SaveTarget appends a saving_target_setting row: the first takes effect in the sign-up month (spec #92),
+// every later one next month (D65). No Target can be set without a Salary (D44).
+func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyrecapv1.SaveTargetRequest]) (*connect.Response[moneyrecapv1.SaveTargetResponse], error) {
+	if req.Msg.IdempotencyKey == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
+	}
+	if req.Msg.Percent < 0 || req.Msg.Percent > 100 {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("percent is 0 to 100"))
+	}
+	l, err := s.load(ctx, req.Msg.MemberId)
+	if err != nil {
+		return nil, err
+	}
+	if len(l.salaries) == 0 {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("no Saving Target without a Salary (D44)"))
+	}
+	from := monthOf(l.today).next()
+	if len(l.targets) == 0 {
+		from = monthOf(l.signedUp)
+	}
+	answer := &moneyrecapv1.SaveTargetResponse{}
+	err = idempotency.Write(ctx, s.DB, l.id, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `INSERT INTO saving_target_setting (member_id, percent, effective_from) VALUES ($1, $2, $3)`, l.id, req.Msg.Percent, from.day(1)); err != nil {
+			return err
+		}
+		l.targets = append(l.targets, targetRow{percent: req.Msg.Percent, from: from})
+		answer.Settings, answer.Month = l.settings(l.today), l.summary(monthOf(l.today), l.today)
+		return nil
+	})
+	if err != nil {
+		return nil, writeFailed(ctx, err)
+	}
+	return connect.NewResponse(answer), nil
+}
+
+func writeFailed(ctx context.Context, err error) error {
+	if errors.Is(err, idempotency.ErrReused) {
+		return connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	return storeFailed(ctx, err)
+}

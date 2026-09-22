@@ -1,12 +1,15 @@
 package serve
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -84,5 +87,27 @@ func TestMainAFailedMigrationIsTheError(t *testing.T) {
 	err := Main("mmrtest", func(context.Context, *pgxpool.Pool) error { return broken }, neverHandler(t))
 	if !errors.Is(err, broken) {
 		t.Fatalf("a failed migration: %v, want %v", err, broken)
+	}
+}
+
+// StoreFailed answers the caller's own deadline and cancel with their codes, and any other store error as
+// unavailable, logged under the service's name and never carrying the driver's text to the caller.
+func TestStoreFailedHidesTheDriverText(t *testing.T) {
+	expired, stop := context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
+	defer stop()
+	cancelled, cancel := context.WithCancel(context.Background())
+	cancel()
+	var logged bytes.Buffer
+	prev := log.Writer()
+	log.SetOutput(&logged)
+	t.Cleanup(func() { log.SetOutput(prev) })
+	driver := errors.New("dial tcp 172.18.0.5:5432: connection refused")
+	for ctx, want := range map[context.Context]connect.Code{expired: connect.CodeDeadlineExceeded, cancelled: connect.CodeCanceled, context.Background(): connect.CodeUnavailable} {
+		if err := StoreFailed(ctx, "ledger", driver); connect.CodeOf(err) != want || strings.Contains(err.Error(), "172.18.0.5") {
+			t.Errorf("StoreFailed: %v, want %v without the driver's text", err, want)
+		}
+	}
+	if n := strings.Count(logged.String(), "ledger store: "+driver.Error()); n != 1 {
+		t.Errorf("logged %q, want the one store failure under the service's name", logged.String())
 	}
 }

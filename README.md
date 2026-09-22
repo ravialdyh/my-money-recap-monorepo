@@ -12,7 +12,7 @@ This repository is the monorepo for it: product docs and design record, illustra
 | `docs/` | Product-level docs: the PRD, the screen-state contract, the domain glossary, the backend architecture, the iOS design and the design handoff |
 | `my-money-recap/` | Illustration source: the WebP artwork, the app icon, and the scripts and prompts that produce them |
 | `my-money-recap-ds/` | `@my-money-recap/ui` — the React design system: tokens, components, the four Recap screens |
-| `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members` and `notify` services) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
+| `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members`, `notify` and `ledger` services) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
 | `packages/` | `packages/contract`, the Buf module every client is generated from |
 | `infra/` | `infra/compose`, the phase-1 Compose stack; `infra/tofu/realm`, the Keycloak realm in OpenTofu; `infra/nginx`, the edge's configuration and static files; `infra/secrets`, the SOPS-encrypted secret set, committed as its shape; `infra/wizard`, the nine setup steps only a human can do. See `infra/README.md` |
 

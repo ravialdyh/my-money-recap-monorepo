@@ -127,10 +127,13 @@ service LedgerService {
   // Soft-deletes; the row leaves every computation (PRD §7).
   rpc DeleteSpend(DeleteSpendRequest) returns (DeleteSpendResponse) {}
   rpc GetSettings(GetSettingsRequest) returns (GetSettingsResponse) {}
-  // Appends a salary_setting row effective from the month applies_from names
-  // (PRD D56, §8.10); a Payday change always starts next month.
+  // Appends a salary_setting row. The first takes effect in the sign-up month,
+  // as a first save is no edit (spec #92); later ones from the month
+  // applies_from names (PRD D56, §8.10), a Payday change always next month.
   rpc SaveSalary(SaveSalaryRequest) returns (SaveSalaryResponse) {}
-  // Appends a saving_target_setting row effective from next month (PRD D65).
+  // Appends a saving_target_setting row: the first takes effect in the sign-up
+  // month (spec #92), later ones next month (PRD D65); failed_precondition
+  // without a Salary (D44).
   rpc SaveTarget(SaveTargetRequest) returns (SaveTargetResponse) {}
   // The before-and-after values for the confirm sheet; nothing is written.
   rpc PreviewConversion(PreviewConversionRequest) returns (PreviewConversionResponse) {}

@@ -26,7 +26,7 @@ and runs them with `-p 1`, as the CI job `backend` does.
 
 ### Every service
 
-What `members`, `notify` and the BFF share, stated once here; each `cmd/<name>/README.md` holds only
+What `members`, `notify`, `ledger` and the BFF share, stated once here; each `cmd/<name>/README.md` holds only
 what is its own.
 
 - **One image.** `apps/backend/Dockerfile` builds any binary from the module root:
@@ -44,6 +44,9 @@ what is its own.
   (embedded) in file-name order, each in one transaction, recorded in `schema_migrations`, and exits;
   Compose runs it as a one-shot step the service waits on. Add a new numbered file; never edit an
   applied one.
+- **One keyed write** (`internal/idempotency`, A14). A service that owns a Member write claims the key in
+  an `idempotency` table of its own, inside the write's transaction; a store error answers through
+  `serve.StoreFailed`, which never lets driver text reach the caller.
 - **One set of variables** for that start-up, `<NAME>` being the name upper-cased. Every variable, these
   and a service's own (the BFF's too), can instead name a file in `<VARIABLE>_FILE`, whose trimmed
   contents win over the plain variable, so a file-backed one is never also reported missing (A13).

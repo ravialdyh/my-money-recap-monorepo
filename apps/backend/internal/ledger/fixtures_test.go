@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -47,9 +46,6 @@ var manifest = []string{
 	"prd-8.8-maya-27-october-after-payday",
 	"prd-8.9-maya-gbp-to-idr",
 }
-
-// amountPattern is PRD D57: a decimal string with at most 11 digits before the separator.
-var amountPattern = regexp.MustCompile(`^\d{1,11}(\.\d+)?$`)
 
 func fixtureNames(t *testing.T, dir string) []string {
 	t.Helper()
