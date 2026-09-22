@@ -46,8 +46,8 @@ service BffService {
   // ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
   // included; failed_precondition when the D56 sheet should have opened.
   rpc SaveSalary(BffServiceSaveSalaryRequest) returns (BffServiceSaveSalaryResponse) {}
-  // ledger.SaveTarget; effective from next month (D65). failed_precondition
-  // without a Salary (D44).
+  // ledger.SaveTarget: the first takes effect in the sign-up month, later ones
+  // next month (D65); failed_precondition without a Salary (D44).
   rpc SaveTarget(BffServiceSaveTargetRequest) returns (BffServiceSaveTargetResponse) {}
   // currency.Quote then ledger.PreviewConversion; unavailable when the rate
   // fetch fails, the Retry InlineError (PRD §8.9 step 1).

@@ -90,10 +90,13 @@ type LedgerServiceClient interface {
 	// Soft-deletes; the row leaves every computation (PRD §7).
 	DeleteSpend(context.Context, *connect.Request[v1.DeleteSpendRequest]) (*connect.Response[v1.DeleteSpendResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
-	// Appends a salary_setting row effective from the month applies_from names
-	// (PRD D56, §8.10); a Payday change always starts next month.
+	// Appends a salary_setting row. The first takes effect in the sign-up month,
+	// as a first save is no edit (spec #92); later ones from the month
+	// applies_from names (PRD D56, §8.10), a Payday change always next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
-	// Appends a saving_target_setting row effective from next month (PRD D65).
+	// Appends a saving_target_setting row: the first takes effect in the sign-up
+	// month (spec #92), later ones next month (PRD D65); failed_precondition
+	// without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error)
 	// The before-and-after values for the confirm sheet; nothing is written.
 	PreviewConversion(context.Context, *connect.Request[v1.PreviewConversionRequest]) (*connect.Response[v1.PreviewConversionResponse], error)
@@ -308,10 +311,13 @@ type LedgerServiceHandler interface {
 	// Soft-deletes; the row leaves every computation (PRD §7).
 	DeleteSpend(context.Context, *connect.Request[v1.DeleteSpendRequest]) (*connect.Response[v1.DeleteSpendResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
-	// Appends a salary_setting row effective from the month applies_from names
-	// (PRD D56, §8.10); a Payday change always starts next month.
+	// Appends a salary_setting row. The first takes effect in the sign-up month,
+	// as a first save is no edit (spec #92); later ones from the month
+	// applies_from names (PRD D56, §8.10), a Payday change always next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
-	// Appends a saving_target_setting row effective from next month (PRD D65).
+	// Appends a saving_target_setting row: the first takes effect in the sign-up
+	// month (spec #92), later ones next month (PRD D65); failed_precondition
+	// without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error)
 	// The before-and-after values for the confirm sheet; nothing is written.
 	PreviewConversion(context.Context, *connect.Request[v1.PreviewConversionRequest]) (*connect.Response[v1.PreviewConversionResponse], error)

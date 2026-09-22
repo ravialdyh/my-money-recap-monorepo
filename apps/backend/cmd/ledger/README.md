@@ -1,0 +1,53 @@
+# ledger
+
+The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary and Saving Target and every figure
+PRD §8 computes from them. Built in slice 4 (#99) for a Member who has no Spends yet, since nothing can
+log one before slice 5: it serves `SaveSalary`, `SaveTarget`, `GetSettings` and `GetMonthSummary`, and
+the rest of `LedgerService` is planned. The BFF does not call it yet; onboarding's steps 3 and 4 do (#103,
+#104). Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
+"Every service"), plus one of its own.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `LEDGER_MEMBERS_URL` | required | `members`, for the profile read that fills the replica: `http://members:8080` in Compose. |
+
+| Path | Holds |
+| --- | --- |
+| `main.go` | The binary: its name, its schema step and its handler, handed to `serve.Main`. |
+| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the two writes), `month.go` (PRD §8 for a month without Spends), `money.go` (a Currency's decimals and an amount inside a sentence) and `migrations/*.sql` (embedded). |
+
+## What it keeps
+
+- **The replica** (`member_facts`): the Member's zone, sign-up date and Currency, which every figure
+  needs. On a miss it asks `members.GetProfile` once, under the caller's own token, which the service
+  forwards (§6.2 step 3); the events that keep it fresh arrive with #101. The row also keeps the subject
+  whose token that read succeeded with, and a call under any other token is a miss, so `members` answers
+  it: a token that does not own the Member gets `not_found`, however the row was filled (§4.2 point 3).
+  A Member with no zone, sign-up date or Currency yet is `failed_precondition`.
+- **The rows** (`salary_setting`, `saving_target_setting`), append-only (PRD §7). The row in force for a
+  month is the one with the latest effective month not after it, and of two sharing that month the newer
+  wins, which makes a step 3 save repeated after a crash safe.
+
+## The rules
+
+- The **first** Salary and the **first** Saving Target take effect in the sign-up month: a first save is not
+  an edit (spec #92), so D56 and D65 do not apply to it, even when onboarding ends in a later month.
+- After it, a Salary follows D56 and §8.10: a new Payday starts next month, and so does an amount sent as
+  next month's; one sent as this month's applies now; one sent with no answer applies now before this
+  month's Payday and is `failed_precondition` from it on, which the phone answers with the D56 sheet.
+- A later Saving Target starts next month (D65), and none can be set without a Salary (D44).
+- An amount is in the Member's Currency, above zero, D57's 11 digits at most before the separator, and no
+  more decimals than the Currency has. Every amount answered carries that Currency's CLDR decimals
+  (`golang.org/x/text/currency`, the data the phone's formatter reads): GBP `2400.00`, IDR `3000000`.
+  The target amount rounds half up.
+- Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
+  (`internal/idempotency`, A14), as `members` does.
+
+## Tests
+
+`go test ./internal/ledger/` runs them. The money ones need the stack's `ledger` database, and the
+Connect-boundary one also needs `ledger`, `members` and a real Keycloak token (`infra/compose/README.md`,
+"Running the Go tests against this stack"). `TestTheAnswerKeyWithoutSpends` runs every file in
+`packages/contract/fixtures/ledger/` that has no Spends, SaveSalary, conversion or Recap: seven today.
+Each goes through the service and its database, its rows seeded and the clock at its `asOf`, and every
+listed month and the settings are compared whole.

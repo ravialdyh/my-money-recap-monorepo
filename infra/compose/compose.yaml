@@ -8,6 +8,7 @@ services:
       KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set in .env}
       MEMBERS_DB_PASSWORD: ${MEMBERS_DB_PASSWORD:?set in .env}
       NOTIFY_DB_PASSWORD: ${NOTIFY_DB_PASSWORD:?set in .env}
+      LEDGER_DB_PASSWORD: ${LEDGER_DB_PASSWORD:?set in .env}
     ports:
       - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
@@ -179,6 +180,39 @@ services:
         condition: service_completed_successfully
     healthcheck: *go-healthcheck
 
+  ledger-migrate:
+    image: ${COMPOSE_PROJECT_NAME:-mmr}-ledger
+    pull_policy: never
+    command: ["migrate"]
+    environment:
+      LEDGER_DATABASE_URL_FILE: &ledger-db-file /run/secrets/ledger_database_url
+    secrets: &ledger-db-secret [ledger_database_url]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ledger:
+    build:
+      context: ../../apps/backend
+      args: { CMD: ledger }
+    image: ${COMPOSE_PROJECT_NAME:-mmr}-ledger
+    environment:
+      LEDGER_DATABASE_URL_FILE: *ledger-db-file
+      LEDGER_OIDC_ISSUER: *issuer
+      LEDGER_OIDC_JWKS_URL: *jwks
+      LEDGER_MEMBERS_URL: http://members:8080
+    ports:
+      - "127.0.0.1:${LEDGER_HOST_PORT:-8084}:8080"
+    secrets: *ledger-db-secret
+    depends_on:
+      ledger-migrate:
+        condition: service_completed_successfully
+      realm-apply:
+        condition: service_completed_successfully
+      members:
+        condition: service_healthy
+    healthcheck: *go-healthcheck
+
   bff:
     build:
       context: ../../apps/backend
@@ -237,6 +271,8 @@ secrets:
     environment: MEMBERS_DATABASE_URL
   notify_database_url:
     environment: NOTIFY_DATABASE_URL
+  ledger_database_url:
+    environment: LEDGER_DATABASE_URL
   google_client_secret:
     file: vault/google_client_secret
   apple_sign_in_key:

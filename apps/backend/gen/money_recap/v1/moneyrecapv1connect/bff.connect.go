@@ -116,8 +116,8 @@ type BffServiceClient interface {
 	// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
 	// included; failed_precondition when the D56 sheet should have opened.
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
-	// ledger.SaveTarget; effective from next month (D65). failed_precondition
-	// without a Salary (D44).
+	// ledger.SaveTarget: the first takes effect in the sign-up month, later ones
+	// next month (D65); failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
 	// currency.Quote then ledger.PreviewConversion; unavailable when the rate
 	// fetch fails, the Retry InlineError (PRD §8.9 step 1).
@@ -435,8 +435,8 @@ type BffServiceHandler interface {
 	// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
 	// included; failed_precondition when the D56 sheet should have opened.
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
-	// ledger.SaveTarget; effective from next month (D65). failed_precondition
-	// without a Salary (D44).
+	// ledger.SaveTarget: the first takes effect in the sign-up month, later ones
+	// next month (D65); failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
 	// currency.Quote then ledger.PreviewConversion; unavailable when the rate
 	// fetch fails, the Retry InlineError (PRD §8.9 step 1).

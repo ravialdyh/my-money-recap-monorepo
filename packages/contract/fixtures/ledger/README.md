@@ -5,10 +5,11 @@ The answer key for PRD §8. Every worked example in §8 and every numeric accept
 the arithmetic that only `ledger` implements (ARCHITECTURE A2, §7.2) is checked against numbers
 the PRD wrote down, not numbers the implementation produced.
 
-Written in #42, #48 and #49. Once `ledger` is built, its tests load each file's rows, set the clock
-to `asOf` in `timezone`, apply `saveSalary` or `convert` if present, and compare what its RPCs answer
-to the expected fields. Until then, `apps/backend/internal/ledger/fixtures_test.go` decodes every
-file in the backend CI job.
+Written in #42, #48 and #49. `apps/backend/internal/ledger/fixtures_test.go` decodes every file, and
+`ledger`'s `TestTheAnswerKeyWithoutSpends` (#99) runs every file without Spends, `saveSalary`, `convert`
+or Recap through the service: it seeds the file's rows, sets the clock to `asOf` in `timezone` and
+compares what `GetMonthSummary` and `GetSettings` answer to the expected fields. The rest run once
+slice 5 builds Spends.
 
 ## What a fixture is
 
@@ -59,6 +60,6 @@ are the same assertion; only a message or `optional` field can be "absent".
 
 `manifest` in `fixtures_test.go` is the list, and each file's `doc` says what it proves.
 
-Two files carry an assumption `ledger`'s tests may revisit: the past months of the Payday 31 and `Last day`
-files assert `daysRemaining` 1, the §8.7 clamp applied literally to a month already over, and
-`streakDay` equal to the month's length, the no-Spends rule over a full window.
+The past months of the Payday 31 and `Last day` files assert `daysRemaining` 1, the §8.7 clamp applied
+literally to a month already over, and `streakDay` equal to the month's length, the no-Spends rule
+over a full window. `ledger` answers both that way (#99), so the reading stands.

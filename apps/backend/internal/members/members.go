@@ -5,7 +5,6 @@ import (
 	"context"
 	"embed"
 	"errors"
-	"log"
 	"time"
 
 	"connectrpc.com/connect"
@@ -18,6 +17,7 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/migrate"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/serve"
 )
 
 //go:embed migrations/*.sql
@@ -104,19 +104,8 @@ func (s *Service) own(ctx context.Context, id string) (Row, error) {
 	return m, nil
 }
 
-// storeFailed answers the caller's own expired deadline or cancel with its code, unlogged; any other
-// store error is logged and answers unavailable, so no driver text (database role and name, an
-// address) reaches the caller.
-func storeFailed(ctx context.Context, err error) error {
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-		return connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
-	}
-	if ctx.Err() != nil {
-		return connect.NewError(connect.CodeCanceled, ctx.Err())
-	}
-	log.Printf("members store: %v", err)
-	return connect.NewError(connect.CodeUnavailable, errors.New("the members store is unavailable"))
-}
+// storeFailed is serve.StoreFailed for this service.
+func storeFailed(ctx context.Context, err error) error { return serve.StoreFailed(ctx, "members", err) }
 
 func profile(m Row) *moneyrecapv1.Profile {
 	p := &moneyrecapv1.Profile{

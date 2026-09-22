@@ -2,6 +2,7 @@ package serve
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -59,4 +60,18 @@ func Main(name string, migrate func(context.Context, *pgxpool.Pool) error, handl
 		return err
 	}
 	return Run(ctx, name, addr, mux, db.Ping)
+}
+
+// StoreFailed answers a failed store call: the caller's own expired deadline or cancel with its code,
+// unlogged; anything else logged and unavailable, so no driver text (a role, a database, an address) reaches
+// the caller.
+func StoreFailed(ctx context.Context, name string, err error) error {
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return connect.NewError(connect.CodeDeadlineExceeded, ctx.Err())
+	}
+	if ctx.Err() != nil {
+		return connect.NewError(connect.CodeCanceled, ctx.Err())
+	}
+	log.Printf("%s store: %v", name, err)
+	return connect.NewError(connect.CodeUnavailable, fmt.Errorf("the %s store is unavailable", name))
 }

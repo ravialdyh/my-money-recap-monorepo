@@ -21,8 +21,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The replica facts ledger and notify keep in member_facts from events alone
-// (ARCHITECTURE §7.1 "Why separate", §7.2, §7.3).
+// The replica facts ledger and notify keep in member_facts: from these events,
+// or from one members.GetProfile under the Member's own token on a miss
+// (ARCHITECTURE §6.2 step 3, §7.1 "Why separate", §7.2, §7.3).
 type MemberFacts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// IANA zone name (A3). Empty on members.created, since the zone arrives with

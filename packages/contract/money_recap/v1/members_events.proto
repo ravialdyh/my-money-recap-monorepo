@@ -6,8 +6,9 @@ option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/g
 
 import "money_recap/v1/shared.proto";
 
-// The replica facts ledger and notify keep in member_facts from events alone
-// (ARCHITECTURE §7.1 "Why separate", §7.2, §7.3).
+// The replica facts ledger and notify keep in member_facts: from these events,
+// or from one members.GetProfile under the Member's own token on a miss
+// (ARCHITECTURE §6.2 step 3, §7.1 "Why separate", §7.2, §7.3).
 message MemberFacts {
   // IANA zone name (A3). Empty on members.created, since the zone arrives with
   // the first SetTimezone; the members.updated that follows carries it.
