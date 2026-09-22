@@ -19,7 +19,7 @@
 	<!-- Local Compose is plain HTTP: on localhost from the simulator, and on the Mac's LAN address from a
 	     physical device (MMR_ISSUER / MMR_BFF_URL). NSAllowsLocalNetworking covers both (unqualified hosts
 	     and private addresses). The laptop stack keeps plain HTTP and TLS arrives only on the VM, where
-	     Nginx terminates it (ARCHITECTURE A9), so this exception stays for the development stack. -->
+	     Nginx terminates it (ARCHITECTURE A7), so this exception stays for the development stack. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

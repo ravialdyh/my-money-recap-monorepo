@@ -38,8 +38,8 @@ enum AuthConfig {
 
     #if DEBUG
         /// The UI test's seam onto the authorization-code flow (spec #61 seam 6): the PKCE request, the web
-        /// sheet and the state-from-authorization-response path keep a test once Continue with email stops
-        /// opening a browser.
+        /// sheet and the state-from-authorization-response path keep a test now that Continue with email opens
+        /// no browser.
         static var usesAuthorizationCodeFlow: Bool {
             CommandLine.arguments.contains("--authorization-code-flow")
         }
