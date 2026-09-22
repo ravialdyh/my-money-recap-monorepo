@@ -42,12 +42,11 @@ final class AuthorizationCodeUITests: XCTestCase {
         snapshot("02-keycloak-login-page")
         let sheet = try XCTUnwrap(hosts.first { $0.webViews.firstMatch.exists })
         if !isReauthenticating(sheet) {
-            username.tap()
-            username.typeText("test")
+            type("test", into: username)
         }
         let secret = sheet.webViews.secureTextFields.firstMatch
-        secret.tap()
-        secret.typeText(password + "\n")
+        type(password, into: secret)
+        submit(secret, holding: password)
 
         assertHomeAtZero(app)
         snapshot("03-home-at-zero-through-the-web-sheet")
@@ -64,6 +63,39 @@ final class AuthorizationCodeUITests: XCTestCase {
         sheet.webViews.buttons["Restart login"].waitForExistence(timeout: 2)
     }
 
+    /// The web sheet drops keys typed while its software keyboard slides away, silently. Each attempt clears the field
+    /// with ⌘A and ⌫, which also spend that slide, then types and waits for the field to read the text back.
+    private func type(_ text: String, into field: XCUIElement) {
+        field.tap()
+        for attempt in 1 ... 3 {
+            field.typeKey("a", modifierFlags: .command)
+            field.typeKey(XCUIKeyboardKey.delete.rawValue, modifierFlags: [])
+            field.typeText(text)
+            if field.settles(on: text) {
+                return
+            }
+            let typed = (field.value as? String ?? "").count
+            XCTContext.runActivity(named: "attempt \(attempt) read back \(typed) of \(text.count)") { _ in }
+        }
+        XCTFail("\(field) never read back what was typed")
+    }
+
+    /// A lone Return is dropped the same way, and the Sign In button can sit under the keyboard's toolbar. So Return
+    /// is sent again while the form, still holding the whole text, has not gone after ten seconds.
+    private func submit(_ field: XCUIElement, holding text: String) {
+        for attempt in 1 ... 3 {
+            field.typeText("\n")
+            let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: field)
+            if XCTWaiter().wait(for: [gone], timeout: 10) == .completed {
+                return
+            }
+            guard (field.value as? String ?? "").count == text.count else {
+                return
+            }
+            XCTContext.runActivity(named: "Return \(attempt) left the form in place") { _ in }
+        }
+    }
+
     private func systemButton(_ title: String, in _: XCUIApplication) throws -> XCUIElement {
         try XCTUnwrap(first(hosts.map { $0.buttons[title] }, attempts: 6), "no system button titled \(title)")
     }
@@ -76,5 +108,17 @@ final class AuthorizationCodeUITests: XCTestCase {
             }
         }
         return nil
+    }
+}
+
+private extension XCUIElement {
+    /// WebKit applies keys after `typeText` returns, so this polls for up to ten seconds. A password field reads back
+    /// as one bullet per character, so only its length can be checked.
+    func settles(on text: String) -> Bool {
+        let predicate = elementType == .secureTextField
+            ? NSPredicate(format: "value.length == %d", text.count)
+            : NSPredicate(format: "value == %@", text)
+        let settled = XCTNSPredicateExpectation(predicate: predicate, object: self)
+        return XCTWaiter().wait(for: [settled], timeout: 10) == .completed
     }
 }
