@@ -47,7 +47,7 @@ listener and a signal rather than a return value, is `internal/serve`'s gap.
 `internal/migrate`'s uncovered lines are store errors a live Postgres does not raise, and
 `internal/notify`'s are the STARTTLS upgrade no local mail host offers and write errors a socket
 under a live deadline does not reach.
-`internal/ledger` holds only the fixture decoding test until slice 5.
+`internal/ledger` holds only the fixture decoding test until `ledger` is built.
 iOS at 43.2% is unit tests over the view models (Sign in, Enter email, Check your inbox, Home),
 the authorization request Apple and Google ride on, the magic-link handler and session against a stub
 realm, the Keychain, money formatting and the token refresh (`AuthSession`, `BearerInterceptor`), with
