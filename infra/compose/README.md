@@ -43,6 +43,7 @@ The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.y
 | postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members` and `notify` — three of the five A9 plans — one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). |
 | keycloak | `quay.io/phasetwo/phasetwo-keycloak`, one full Phase Two tag pinned in `compose.yaml` | `KEYCLOAK_HOST_PORT` | Never `latest` or a shorter tag (§7.5). Its file vault reads the two identity-provider secrets from `/run/secrets` (see "Secrets"). |
 | redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link rate limit, the one §4.4 job built (`apps/backend/cmd/bff/README.md`); the JWKS is cached in each process's memory (`internal/auth`). |
+| rabbitmq | `rabbitmq:4-management` | — | The broker (§4.3), running so the outbox has somewhere to publish; nothing publishes to it, consumes from it or waits on it yet. It runs as its own `rabbitmq` user: any RabbitMQ command run as root before the server has written its Erlang cookie, such as the health check on a slow first start, wrote that file as root, and the server then died reading it (`eacces`, #93). Its AMQP and management ports stay inside the stack. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy (see "The `mmr` realm"). |
 | members-migrate | the `members` image, `migrate` command | — | One-shot: applies the `members` migrations and exits, reading its connection string from `/run/secrets/members_database_url` as `members` does. |
 | notify-migrate | the `notify` image, `migrate` command | — | The same for `notify`. |
@@ -64,7 +65,7 @@ management port while a first boot is still bootstrapping on 8080, and `realm-ap
 
 Keycloak, the BFF and Nginx publish on every interface because the phone reaches them. The Postgres,
 Redis, `members`, `notify` and Mailpit ports bind to loopback, for the Go tests ("Running the Go tests
-against this stack") and for a service run on the host by hand.
+against this stack") and for a service run on the host by hand. RabbitMQ publishes none.
 
 ## Secrets
 
