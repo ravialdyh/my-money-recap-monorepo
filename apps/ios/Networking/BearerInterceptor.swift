@@ -1,14 +1,14 @@
 import Connect
 import Foundation
+import MoneyRecapContract
 
 /// IOS I3's one interceptor: adds the bearer token and forces a refresh on `unauthenticated`; only a refresh the
 /// realm refuses signs the Member out. A call with no fresh token fails: `unavailable` while the session holds (PRD
 /// D61), else `unauthenticated`.
 final class BearerInterceptor: UnaryInterceptor {
-    /// Sent with no `Authorization` header and no token asked of the session. Both halves key off this path,
-    /// not off having a session, which would swallow a refused refresh and leave the expired copy behind Enter
-    /// email (spec #61).
-    static let unauthenticatedPath = "/money_recap.v1.BffService/RequestMagicLink"
+    /// Sent with no `Authorization` header or token asked for; a suffix, so the edge's `/api/` prefix matches.
+    /// Keyed off the path, not a session, which would leave a refused refresh's copy behind Enter email (#61).
+    static let unauthenticatedPath = "/" + MoneyRecap_V1_BffServiceClient.Metadata.Methods.requestMagicLink.path
 
     private let session: AuthSession
     /// An interceptor is built once per request, so the request half tells the response half which path
@@ -23,7 +23,7 @@ final class BearerInterceptor: UnaryInterceptor {
         _ request: HTTPRequest<Data?>,
         proceed: @escaping @Sendable (Result<HTTPRequest<Data?>, ConnectError>) -> Void
     ) {
-        isUnauthenticatedPath = request.url.path == Self.unauthenticatedPath
+        isUnauthenticatedPath = request.url.path.hasSuffix(Self.unauthenticatedPath)
         guard !isUnauthenticatedPath else { return proceed(.success(request)) }
         Task { @MainActor in
             do {

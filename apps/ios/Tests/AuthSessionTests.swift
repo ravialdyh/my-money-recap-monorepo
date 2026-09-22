@@ -61,6 +61,16 @@ final class AuthSessionTests: XCTestCase {
         XCTAssertTrue(session.isSignedIn, "the session was never asked for a token, so nothing refused it")
     }
 
+    func testTheMagicLinkCallBehindTheEdgesAPIPrefixStillGoesOutWithNoHeader() async throws {
+        let session = expiredSession(realm: "refusing.invalid")
+        let edge = "https://mymoneyrecap.test/api"
+        let sent = try await intercept(session, base: edge, path: BearerInterceptor.unauthenticatedPath)
+        guard case let .success(request) = sent else {
+            return XCTFail("behind the edge's /api/ route, RequestMagicLink asked a signed-out session for a token")
+        }
+        XCTAssertNil(request.headers["Authorization"], "ARCHITECTURE §5 routes /api/ to the BFF")
+    }
+
     func testOnlyTheMagicLinkPathSkipsTheRecoverStepOnAnUnauthenticatedAnswer() async throws {
         let skipped = expiredSession(realm: "refusing.invalid")
         let onTheEmailPath = BearerInterceptor(session: skipped)
@@ -78,11 +88,12 @@ final class AuthSessionTests: XCTestCase {
     /// Runs `BearerInterceptor`'s request step alone, where no response interceptor follows a failure.
     private func intercept(
         _ session: AuthSession,
+        base: String = BffClient.baseURL,
         path: String = "/money_recap.v1.BffService/GetHome",
         through interceptor: BearerInterceptor? = nil
     ) async throws -> Result<HTTPRequest<Data?>, ConnectError> {
         let request = try HTTPRequest<Data?>(
-            url: XCTUnwrap(URL(string: BffClient.baseURL + path)), headers: [:], message: nil, method: .post,
+            url: XCTUnwrap(URL(string: base + path)), headers: [:], message: nil, method: .post,
             trailers: nil, idempotencyLevel: .unknown
         )
         let bearer = interceptor ?? BearerInterceptor(session: session)
