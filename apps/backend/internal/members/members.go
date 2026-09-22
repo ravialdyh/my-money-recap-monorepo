@@ -6,11 +6,13 @@ import (
 	"embed"
 	"errors"
 	"log"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
@@ -24,16 +26,20 @@ var migrations embed.FS
 // Migrate applies this service's embedded migrations to the members database (internal/migrate).
 func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
-// Row is one member row's profile columns; nullable columns read as empty strings.
+// Row is one member row's profile columns: a null text or date column reads as an empty string, a null
+// onboarding step as 0 and a null deletion stamp as nil, so no unset column is an error.
 type Row struct {
-	ID, Subject, Email, DisplayName, AvatarKey, CurrencyCode, Timezone string
+	ID, Subject, Email, DisplayName, AvatarKey, CurrencyCode, Timezone, SignedUpOn string
+	OnboardingStep                                                                 int32
+	DeletionRequestedAt                                                            *time.Time
 }
 
-const rowColumns = `id, keycloak_subject, email, coalesce(display_name, ''), coalesce(avatar_key, ''), coalesce(currency_code, ''), coalesce(timezone, '')`
+const rowColumns = `id, keycloak_subject, email, coalesce(display_name, ''), coalesce(avatar_key, ''), coalesce(currency_code, ''),
+	coalesce(timezone, ''), coalesce(to_char(signed_up_on, 'YYYY-MM-DD'), ''), coalesce(onboarding_step, 0), deletion_requested_at`
 
 func scanRow(r pgx.Row) (Row, error) {
 	var m Row
-	err := r.Scan(&m.ID, &m.Subject, &m.Email, &m.DisplayName, &m.AvatarKey, &m.CurrencyCode, &m.Timezone)
+	err := r.Scan(&m.ID, &m.Subject, &m.Email, &m.DisplayName, &m.AvatarKey, &m.CurrencyCode, &m.Timezone, &m.SignedUpOn, &m.OnboardingStep, &m.DeletionRequestedAt)
 	return m, err
 }
 
@@ -103,5 +109,12 @@ func storeFailed(ctx context.Context, err error) error {
 }
 
 func profile(m Row) *moneyrecapv1.Profile {
-	return &moneyrecapv1.Profile{MemberId: m.ID, Email: m.Email, DisplayName: m.DisplayName, AvatarKey: m.AvatarKey, CurrencyCode: m.CurrencyCode, Timezone: m.Timezone}
+	p := &moneyrecapv1.Profile{
+		MemberId: m.ID, Email: m.Email, DisplayName: m.DisplayName, AvatarKey: m.AvatarKey, CurrencyCode: m.CurrencyCode,
+		Timezone: m.Timezone, OnboardingStep: m.OnboardingStep, SignedUpOn: m.SignedUpOn,
+	}
+	if m.DeletionRequestedAt != nil {
+		p.DeletionRequestedAt = timestamppb.New(*m.DeletionRequestedAt)
+	}
+	return p
 }
