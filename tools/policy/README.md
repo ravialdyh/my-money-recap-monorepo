@@ -19,9 +19,10 @@ and `/* */` for CSS.
 **A file is at most 300 lines.** Every text file outside `exclude` (below), whether or not the
 scanner knows its comment syntax.
 
-**No em dash in anything a Member can read.** A `—` inside a string literal of a Swift, Go, TypeScript,
-JavaScript or protobuf file, or anywhere in an HTML page, is rejected: it reads as unprofessional in the
-app (owner, 2026-09-22). Comments may still use one; copy uses a full stop or a comma instead.
+**No em dash in anything a Member can read.** A `—`, or an escaped one (`&mdash;`, `\u{2014}`), outside
+the comments of a Swift, Go, TypeScript, JavaScript or protobuf file, or anywhere in an HTML page, a
+`.plist`, a `.strings` or a `.xcstrings` file, is rejected: it reads as unprofessional in the app
+(owner, 2026-09-22). Comments may still use one; copy uses a full stop or a comma instead.
 
 **A comment is either a directive or a docstring on a declaration. Nothing else survives.**
 
