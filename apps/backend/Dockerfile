@@ -1,9 +1,9 @@
 FROM golang:1.27-alpine AS build
-ARG CMD
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+ARG CMD
 RUN CGO_ENABLED=0 go build -trimpath -o /app ./cmd/$CMD
 
 FROM alpine:3
