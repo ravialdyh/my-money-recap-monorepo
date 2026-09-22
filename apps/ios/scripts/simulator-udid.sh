@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-xcrun simctl list -j devices devicetypes runtimes | python3 -c '
+xcrun simctl list -j devices runtimes | python3 -c '
 import json, subprocess, sys
 
 want = sys.argv[1] if len(sys.argv) > 1 else ""

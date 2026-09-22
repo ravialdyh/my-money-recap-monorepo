@@ -11,7 +11,6 @@ final class CheckInboxViewModel {
     let email: String
     private(set) var secondsLeft = resendDelay
     private(set) var isSending = false
-    private(set) var failure: MagicLinkFailure?
     private var isCountingDown = false
     private let send: (String) async -> MagicLinkFailure?
     private let tick: () async -> Void
@@ -51,14 +50,12 @@ final class CheckInboxViewModel {
         }
     }
 
-    /// True when the link went out again; a failure is the copy Enter email shows on the way back.
-    func resend() async -> Bool {
-        guard canResend else { return false }
+    /// A link that went out again restarts the countdown; a refused one leaves it spent.
+    func resend() async {
+        guard canResend else { return }
         isSending = true
         defer { isSending = false }
-        failure = await send(email)
-        guard failure == nil else { return false }
+        guard await send(email) == nil else { return }
         secondsLeft = Self.resendDelay
-        return true
     }
 }

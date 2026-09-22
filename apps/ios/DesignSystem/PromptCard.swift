@@ -5,8 +5,6 @@ import SwiftUI
 /// preview card (D47), drawn as an outline on the ground.
 struct PromptCard: View {
     let title: String
-    var eyebrow: String?
-    var helper: String?
     var height: CGFloat?
     var dashed = false
     var action: () -> Void = {}
@@ -14,16 +12,8 @@ struct PromptCard: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    if let eyebrow {
-                        Eyebrow(text: eyebrow)
-                    }
-                    CardTitle(text: title)
-                    if let helper {
-                        HelperText(text: helper)
-                    }
-                }
-                .multilineTextAlignment(.leading)
+                CardTitle(text: title)
+                    .multilineTextAlignment(.leading)
                 Spacer(minLength: 0)
                 Circle()
                     .fill(dashed ? Tokens.Surface.chipOnGround.opacity(0.2) : Tokens.Surface.wellViolet)

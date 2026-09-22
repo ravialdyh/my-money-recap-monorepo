@@ -9,7 +9,6 @@ import SwiftData
 @MainActor
 final class HomeViewModel {
     private(set) var home: MoneyRecap_V1_HomeView?
-    private(set) var updatedAt: Date?
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
     private let context: ModelContext
     /// Dates print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot change the
@@ -26,7 +25,6 @@ final class HomeViewModel {
         dates = ISODate.style(locale: locale)
         if let snapshot = HomeSnapshot.load(from: context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
-            updatedAt = snapshot.updatedAt
         }
     }
 
@@ -37,7 +35,6 @@ final class HomeViewModel {
             let fresh = try await fetch()
             try HomeSnapshot.replace(with: fresh, in: context)
             home = fresh
-            updatedAt = .now
         } catch {
             return
         }

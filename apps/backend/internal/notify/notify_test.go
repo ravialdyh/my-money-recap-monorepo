@@ -3,9 +3,7 @@ package notify
 import (
 	"context"
 	"crypto/rand"
-	"encoding/json"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -16,6 +14,7 @@ import (
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
 // A missing key would dedupe every later send into silence, so it is refused before the store is
@@ -29,28 +28,44 @@ func TestAnEmptyIdempotencyKeyIsRefused(t *testing.T) {
 	}
 }
 
-// testDB opens the Compose stack's notify database, skipping unless the NOTIFY_TEST_* variables
-// infra/compose/README.md lists are set.
+// testDB is testPool at pgx's default size.
 func testDB(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	return testPool(t, 0)
+}
+
+// testPool opens the Compose stack's notify database and applies the schema, skipping unless
+// NOTIFY_TEST_DATABASE_URL is set. A maxConns above zero caps the pool, so a test can run it dry.
+func testPool(t *testing.T, maxConns int32) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("NOTIFY_TEST_DATABASE_URL")
 	if dsn == "" {
 		t.Skip("NOTIFY_TEST_DATABASE_URL not set")
 	}
-	db, err := pgxpool.New(t.Context(), dsn)
+	config, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if maxConns > 0 {
+		config.MaxConns = maxConns
+	}
+	db, err := pgxpool.NewWithConfig(t.Context(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(db.Close)
+	if err := Migrate(t.Context(), db); err != nil {
+		t.Fatal(err)
+	}
 	return db
 }
 
 // TestMagicLinkAtTheConnectBoundary drives the running service the way the BFF will: no bearer token
 // at all, which only the EmailMagicLink exemption lets through (ARCHITECTURE §4.2 point 3).
 func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
-	base, mailpit := os.Getenv("NOTIFY_TEST_URL"), os.Getenv("NOTIFY_TEST_MAILPIT")
+	base, mailpit := os.Getenv("NOTIFY_TEST_URL"), os.Getenv("MMR_TEST_MAILPIT")
 	if base == "" || mailpit == "" {
-		t.Skip("NOTIFY_TEST_URL and NOTIFY_TEST_MAILPIT not both set")
+		t.Skip("NOTIFY_TEST_URL and MMR_TEST_MAILPIT not both set")
 	}
 	db := testDB(t)
 	ctx := t.Context()
@@ -77,11 +92,11 @@ func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 		t.Fatalf("second call with the same key: %v, want success", err)
 	}
 
-	inbox := waitForMail(t, mailpit, address, 1)
+	inbox := testauth.Inbox(t, mailpit, address, 1)
 	if len(inbox) != 1 {
 		t.Fatalf("%d messages for one idempotency key, want 1", len(inbox))
 	}
-	if body := messageText(t, mailpit, inbox[0]); !strings.Contains(body, link) {
+	if body := testauth.MessageText(t, mailpit, inbox[0]); !strings.Contains(body, link) {
 		t.Fatalf("message body %q carries no %q", body, link)
 	}
 	t.Logf("two calls, one key → 1 message in Mailpit, carrying %s", link)
@@ -99,7 +114,7 @@ func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 	if err := send(second, link+"-again"); err != nil {
 		t.Fatalf("a second key to the same address: %v", err)
 	}
-	if inbox := waitForMail(t, mailpit, address, 2); len(inbox) != 2 {
+	if inbox := testauth.Inbox(t, mailpit, address, 2); len(inbox) != 2 {
 		t.Fatalf("%d messages after a second key, want 2: the key dedupes, not the address", len(inbox))
 	}
 	t.Logf("a second key to %s → 2 messages", address)
@@ -118,15 +133,12 @@ func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 // unique on the pair, overriding the "unique index is on the key alone" of #68 and #61: A14's
 // member_id has no Member here, the address is what is deduped.
 func TestOneKeyToTwoAddressesSendsToBoth(t *testing.T) {
-	host, mailpit := os.Getenv("NOTIFY_TEST_SMTP"), os.Getenv("NOTIFY_TEST_MAILPIT")
+	host, mailpit := os.Getenv("NOTIFY_TEST_SMTP"), os.Getenv("MMR_TEST_MAILPIT")
 	if host == "" || mailpit == "" {
-		t.Skip("NOTIFY_TEST_SMTP and NOTIFY_TEST_MAILPIT not both set")
+		t.Skip("NOTIFY_TEST_SMTP and MMR_TEST_MAILPIT not both set")
 	}
 	db := testDB(t)
 	ctx := t.Context()
-	if err := Migrate(ctx, db); err != nil {
-		t.Fatal(err)
-	}
 	key := strings.ToLower(rand.Text())
 	first := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
 	second := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
@@ -148,60 +160,11 @@ func TestOneKeyToTwoAddressesSendsToBoth(t *testing.T) {
 		}
 	}
 	for _, address := range []string{first, second} {
-		if inbox := waitForMail(t, mailpit, address, 1); len(inbox) != 1 {
+		if inbox := testauth.Inbox(t, mailpit, address, 1); len(inbox) != 1 {
 			t.Fatalf("%d messages for %s, want 1: the pair dedupes, not the key alone", len(inbox), address)
 		}
 	}
 	t.Logf("key %s → one message each to %s and %s, and the repeat to %s sent nothing", key, first, second, first)
-}
-
-// waitForMail is every message Mailpit holds for address, polled for three seconds until it holds at
-// least want of them, so an assertion on two waits for the second rather than reading whatever had
-// arrived by the first poll.
-func waitForMail(t *testing.T, mailpit, address string, want int) []string {
-	t.Helper()
-	deadline := time.Now().Add(3 * time.Second)
-	for {
-		var found struct {
-			Messages []struct{ ID string }
-		}
-		get(t, mailpit+"/api/v1/search?query="+url.QueryEscape("to:"+address), &found)
-		ids := make([]string, 0, len(found.Messages))
-		for _, m := range found.Messages {
-			ids = append(ids, m.ID)
-		}
-		if len(ids) >= want || time.Now().After(deadline) {
-			return ids
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-}
-
-func messageText(t *testing.T, mailpit, id string) string {
-	t.Helper()
-	var message struct{ Text string }
-	get(t, mailpit+"/api/v1/message/"+id, &message)
-	return message.Text
-}
-
-// get decodes Mailpit's answer into out, failing the test on anything but a 200 of JSON.
-func get(t *testing.T, address string, out any) {
-	t.Helper()
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, address, http.NoBody)
-	if err != nil {
-		t.Fatal(err)
-	}
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("%s: status %d", address, res.StatusCode)
-	}
-	if err := json.NewDecoder(res.Body).Decode(out); err != nil {
-		t.Fatal(err)
-	}
 }
 
 // The row is claimed before the send and a refused SMTP host rolls it back, so a retry of the same
@@ -213,9 +176,6 @@ func TestAClaimedKeySendsOnceAndAFailedSendFreesIt(t *testing.T) {
 	}
 	db := testDB(t)
 	ctx := t.Context()
-	if err := Migrate(ctx, db); err != nil {
-		t.Fatal(err)
-	}
 	address := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
 	sent, refused := strings.ToLower(rand.Text()), strings.ToLower(rand.Text())
 	t.Cleanup(func() {

@@ -89,8 +89,10 @@ const (
 
 // BffServiceClient is a client for the money_recap.v1.BffService service.
 type BffServiceClient interface {
-	// Sent without a bearer token; 5 per email per hour, then resource_exhausted
-	// (PRD §11, §6.3); unavailable when the email cannot be sent (§7.5).
+	// Sent without a bearer token. resource_exhausted past 5 per email per hour
+	// or when the count fails (PRD §11, §6.3); invalid_argument for an address
+	// that does not parse or the mail host refuses; unavailable when the realm or
+	// the send fails (§7.5).
 	RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error)
 	// Home always shows the current month (PRD §6.8, D59), so no month argument.
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
@@ -406,8 +408,10 @@ func (c *bffServiceClient) CancelDeletion(ctx context.Context, req *connect.Requ
 
 // BffServiceHandler is an implementation of the money_recap.v1.BffService service.
 type BffServiceHandler interface {
-	// Sent without a bearer token; 5 per email per hour, then resource_exhausted
-	// (PRD §11, §6.3); unavailable when the email cannot be sent (§7.5).
+	// Sent without a bearer token. resource_exhausted past 5 per email per hour
+	// or when the count fails (PRD §11, §6.3); invalid_argument for an address
+	// that does not parse or the mail host refuses; unavailable when the realm or
+	// the send fails (§7.5).
 	RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error)
 	// Home always shows the current month (PRD §6.8, D59), so no month argument.
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)

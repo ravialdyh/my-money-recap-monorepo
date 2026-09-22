@@ -20,8 +20,8 @@ Violet ground throughout.
 | A0b | Unlock | D61/D62. A saved session exists: cover illustration plus a Face ID prompt. Fallback copy when biometrics are unavailable: `Enter your passcode to open My Money Recap.` Works with no network. Failure three times → A1. |
 | A1 | Sign in | Three buttons, Apple first. |
 | A1 | loading | Tapped button swaps its glyph for a spinner; others at 40%. |
-| A1 | error | `InlineError` inside the card. |
-| A1 | session expired | After 30 days of no use. Same as A1 plus one line above the buttons: `It's been a while — sign in again to pick up where you left off.` |
+| A1 | error | `InlineError` inside the card: `We couldn't sign you in. Try again.` |
+| A1 | session expired | The realm refused the token refresh (D62). Same as A1 plus `InlineError` inside the card: `Your session expired. Sign in again.` |
 | A2 | Enter email | `TextField`, Send disabled until valid. |
 | A2 | invalid | Coral border and helper, only after blur or Send. |
 | A3 | Check your inbox | Envelope 240pt, 15-minute line, Resend countdown. |

@@ -59,7 +59,7 @@ STYLES = {
     ".swiftformat": HASH,
 }
 
-NAMED = {"Dockerfile": HASH, ".gitignore": HASH, ".dockerignore": HASH}
+NAMED = {"Dockerfile": HASH}
 
 
 def style_for(path):

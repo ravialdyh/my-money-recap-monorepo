@@ -705,8 +705,8 @@ type EmailMagicLinkRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// A14; see the package doc in shared.proto. Dedupes a retried send.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	// The address as typed, because no Member row may exist yet
-	// (ARCHITECTURE §7.3).
+	// The address the BFF parsed from the request, because no Member row may
+	// exist yet (ARCHITECTURE §7.3).
 	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	// The full https://…/magic?lt=… link the BFF built (ARCHITECTURE §7.5).
 	Link          string `protobuf:"bytes,3,opt,name=link,proto3" json:"link,omitempty"`

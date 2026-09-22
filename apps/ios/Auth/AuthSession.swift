@@ -6,7 +6,8 @@ import SwiftUI
 @Observable
 @MainActor
 final class AuthSession {
-    /// Copy Sign in shows after the realm refused a token refresh (IOS I3): the session is gone, not the tap.
+    /// SCREEN-STATES A1 "session expired": the realm refused a token refresh (IOS I3), so the session is gone,
+    /// not the tap.
     static let expiredCopy = "Your session expired. Sign in again."
 
     private(set) var authState: OIDAuthState?
@@ -88,6 +89,7 @@ final class AuthSession {
     /// check keeps the session (PRD D61).
     func freshAccessToken() async throws -> String {
         guard let authState else { throw CancellationError() }
+        let held = authState.lastTokenResponse
         do {
             let token: String = try await withCheckedThrowingContinuation { continuation in
                 authState.performAction { accessToken, _, error in
@@ -100,7 +102,9 @@ final class AuthSession {
                     }
                 }
             }
-            persist()
+            if authState.lastTokenResponse !== held {
+                persist()
+            }
             return token
         } catch {
             if !isSignedIn {
@@ -145,15 +149,7 @@ final class AuthSession {
     }
 
     private func discover() async throws -> OIDServiceConfiguration {
-        try await withCheckedThrowingContinuation { continuation in
-            OIDAuthorizationService.discoverConfiguration(forIssuer: AuthConfig.issuer) { configuration, error in
-                if let configuration {
-                    continuation.resume(returning: configuration)
-                } else {
-                    continuation.resume(throwing: error ?? CancellationError())
-                }
-            }
-        }
+        try await OIDAuthorizationService.discoverConfiguration(forIssuer: AuthConfig.issuer)
     }
 
     private static var presenter: UIViewController {

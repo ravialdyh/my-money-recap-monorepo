@@ -44,11 +44,12 @@ var errAddressRefused = errors.New("the mail host refused the address")
 func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
 // Service implements NotifyService. It serves EmailMagicLink alone (#68), which is the one procedure
-// outside the bearer check (internal/auth); every other RPC arrives in slice 7 behind it.
+// outside the bearer check (internal/auth); every other RPC is planned (§7.3) and sits behind it.
 type Service struct {
 	moneyrecapv1connect.UnimplementedNotifyServiceHandler
 	DB *pgxpool.Pool
-	// SMTP is the mail host as host:port: Mailpit on a laptop and in CI, a provider on the VM (§7.5).
+	// SMTP is the mail host as host:port: Mailpit on a laptop and in CI. The machine has none until
+	// #87's provider, which also needs SMTP AUTH (§7.3).
 	SMTP string
 	// From is the envelope sender and the From header.
 	From string

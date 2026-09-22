@@ -24,7 +24,7 @@ struct CheckInboxView: View {
             SubCopy(text: model.subCopy).padding(.top, Tokens.Space._4)
             VStack(alignment: .leading, spacing: Tokens.Space._1) {
                 Button(model.resendTitle) {
-                    Task { _ = await model.resend() }
+                    Task { await model.resend() }
                 }
                 .disabled(!model.canResend)
                 Button("Use a different email", action: useAnotherEmail)
@@ -40,7 +40,7 @@ struct CheckInboxView: View {
         .task { await model.countDown() }
     }
 
-    /// A3's own exit and the way a refused resend returns: back to A2, address still in the field.
+    /// A3's own exit: back to A2, address still in the field.
     private func useAnotherEmail() {
         path = [.enterEmail]
     }

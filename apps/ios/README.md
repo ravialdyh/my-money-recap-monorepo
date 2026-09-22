@@ -16,10 +16,11 @@ behind the chips, cards and buttons arrive with their own tickets.
 open apps/ios/MyMoneyRecap.xcodeproj
 ```
 
-Xcode resolves AppAuth-iOS (pinned to 3.0.0), the local contract package `MoneyRecapContract`
-(`packages/contract/swift`, the `connect-swift` client `buf generate` writes) and, at the same exact
-versions that package pins, `connect-swift` 1.2.3 and `swift-protobuf` 1.38.1, which the app links
-directly for the interceptor and the snapshot bytes. `Package.resolved` is committed. No signing team
+Xcode resolves AppAuth-iOS, the local contract package `MoneyRecapContract` (`packages/contract/swift`,
+the `connect-swift` client `buf generate` writes) and `connect-swift` and `swift-protobuf`, which the app
+also links directly for the interceptor, `Message.with` and the snapshot bytes, at the exact versions that
+package pins. The pins live in the Xcode project and `packages/contract/swift/Package.swift` (a plugin
+bump moves both, `packages/contract/README.md`), and `Package.resolved` is committed. No signing team
 is needed for the simulator, but the build must stay signed ("Sign to Run Locally"): with
 `CODE_SIGNING_ALLOWED=NO` the app has no application-identifier entitlement and every Keychain call
 fails with `errSecMissingEntitlement`, so a relaunch shows Sign in again.
@@ -49,34 +50,30 @@ fails with `errSecMissingEntitlement`, so a relaunch shows Sign in again.
 Seams, all read at launch: argument `--reset-session` erases the stored session, `--reset-snapshot`
 empties the SwiftData store, `--magic-link <link>` hands the app a link as the custom scheme would, and
 in a debug build `--authorization-code-flow` makes Continue with email open Keycloak's login page in the
-system web sheet, the flow Apple and Google use (sign in as the test user; cancel it to see the
+system web sheet, the flow Apple and Google use (sign in as the test Member; cancel it to see the
 `InlineError` inside the card). The environment variables `MMR_ISSUER` (default
 `http://localhost:8080/realms/mmr`) and `MMR_BFF_URL` (default `http://localhost:8082`) point the app at
-another Keycloak and BFF. The UI test uses the last one with an unreachable port to prove Home still
-renders offline.
+another Keycloak and BFF. The magic-link UI test (`UITests/SignInUITests.swift`) points `MMR_BFF_URL` at
+an unreachable port to prove Home still renders offline.
 
 ## Run on a physical iPhone
 
 The phone reaches the Mac by its LAN address, and the token issuer must be that same address. The three
 steps (the `MMR_HOST` variable in `.env`, the `MMR_ISSUER` and `MMR_BFF_URL` Run-action variables, and
 setting it back) are in `infra/compose/README.md`, "A phone on the LAN". Sign in by email, opening
-`mymoneyrecap://magic?lt=<value>` from Mailpit's message in the phone's Safari, or as the test user with
+`mymoneyrecap://magic?lt=<value>` from Mailpit's message in the phone's Safari, or as the test Member with
 `--authorization-code-flow` among the Run action's arguments; Home at zero appears, and a relaunch draws
-it from the snapshot. App Transport Security in `App/Info.plist` permits local-network HTTP for this
-development stack, which stays plain HTTP: TLS arrives only on the VM, where Nginx terminates it.
-Nothing needs to be edited for a device build.
+it from the snapshot. `App/Info.plist` already allows local-network HTTP, so nothing needs to be edited
+for a device build.
 
 ## Build and test from the command line
 
-The same two commands CI runs. Nothing names a simulator device or OS version (the "Device and OS
-coverage" section of issues #16 and #18): the build uses the generic simulator destination and
-`scripts/simulator-udid.sh` picks a booted or available iPhone simulator through `simctl`.
-
-```bash
-cd apps/ios
-xcodebuild build-for-testing -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap -destination 'generic/platform=iOS Simulator' -derivedDataPath build
-xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap -destination "id=$(scripts/simulator-udid.sh)" -derivedDataPath build -only-testing:MyMoneyRecapTests
-```
+Run the build and unit-test steps of the `ios` job in `.github/workflows/ci.yml` from `apps/ios`; they
+carry the coverage flags `tools/coverage/README.md` measures with. Delete `build/MyMoneyRecap.xcresult`
+before a rerun: xcodebuild refuses an existing result bundle and runs no test. Nothing names a
+simulator device or OS version (the "Device and OS coverage" section of issues #16 and #18): the build
+uses the generic simulator destination and `scripts/simulator-udid.sh` picks a booted or available
+iPhone simulator through `simctl`.
 
 ## The UI tests against Compose
 
@@ -88,13 +85,14 @@ handler the custom scheme and a universal link reach. It then asserts Home at ze
 Home renders from the snapshot, relaunches with `MMR_BFF_URL` pointing at a closed port to prove the
 snapshot survives an unreachable BFF, and relaunches with `--reset-snapshot` to prove the first load is
 the skeleton. `UITests/AuthorizationCodeUITests.swift` keeps the flow every Apple and Google Member will
-use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test user
+use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test Member
 through Keycloak's login page, which covers the PKCE request, the sheet and the state built from its
 authorization response. The first skips itself unless the runner names Mailpit (`MMR_MAILPIT_URL`), the
-second unless it carries the test user's password, so CI's `ios` job runs only the unit tests. No UI
-test opens Apple's or Google's page: with placeholder client ids each answers with its own error page,
-which the repository neither controls nor may assert as a round-trip (#71), so the hint the app sends
-is a unit test (`Tests/AuthConfigTests.swift`) and the sheet on the provider's host was checked by hand.
+second unless it carries the test Member's password; CI's `ios` job passes
+`-only-testing:MyMoneyRecapTests`, so it never runs them. No UI test opens Apple's or Google's page:
+with placeholder client ids each answers with its own error page, which the repository neither controls
+nor may assert as a round-trip (#71), so the hint the app sends is a unit test
+(`Tests/AuthConfigTests.swift`) and the sheet on the provider's host was checked by hand.
 
 The same section asks for two simulator runtimes, both chosen when the script runs and never written
 down: the newest installed iOS runtime and the oldest (the deployment target's floor, iOS 17, when Xcode
@@ -113,30 +111,26 @@ scripts/ui-test.sh
 ```
 
 Result bundles land in `build/ui-newest.xcresult` and `build/ui-oldest.xcresult`, with the screenshots
-exported next to them. `scripts/simulator-udid.sh newest|oldest` is the selection on its own (it
-creates an iPhone on a runtime that has none), and with no argument it keeps the booted-or-first
-behaviour the unit-test command uses. To run one destination by hand:
+exported next to them; `scripts/ui-test.sh oldest` (or `newest`) runs one destination.
+`scripts/simulator-udid.sh newest|oldest` is the selection on its own (it creates an iPhone on a runtime
+that has none), and with no argument it keeps the booted-or-first behaviour of the `ios` job's
+unit-test step.
 
-```bash
-TEST_RUNNER_MMR_MAILPIT_URL=http://localhost:8025 TEST_RUNNER_MMR_TEST_USER_PASSWORD="$(docker inspect mmr-realm-apply-1 --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^TF_VAR_test_user_password=//p')" xcodebuild test-without-building -project MyMoneyRecap.xcodeproj -scheme MyMoneyRecap -destination "id=$(scripts/simulator-udid.sh oldest)" -derivedDataPath build -only-testing:MyMoneyRecapUITests -resultBundlePath build/ui.xcresult
-xcrun xcresulttool export attachments --path build/ui.xcresult --output-path build/ui-screenshots
-```
-
-Install an older runtime through Xcode > Settings > Components (or `xcodebuild -downloadPlatform iOS
--buildVersion 17.5`); the script picks it up on the next run without any change.
+Install an older runtime through Xcode > Settings > Components where your Xcode still offers one; the
+script picks it up on the next run.
 
 ## Layout
 
 | Folder | What lives here |
 | --- | --- |
 | `App/` | Entry point, the SwiftData container, root switch between Sign in and Home (sign-out deletes the cache), `Info.plist` (URL scheme, the ATS local-networking allowance). |
-| `Auth/` | `AuthConfig` (issuer, client id, redirect, the login-token grant; no secret exists in the target), `AuthSession` (AppAuth discovery, PKCE authorization, `OIDAuthState`, the incoming magic link, fresh tokens, and a sign-out only when the realm refuses a refresh), `MagicLink` (the login token from any of the three sources, the direct grant, the state synthesized around the authorization request, and the failure codes behind the A3 copies), `Keychain`. |
+| `Auth/` | `AuthConfig` (issuer, client id, redirect, the login-token grant; no secret exists in the target), `AuthSession` (AppAuth discovery, PKCE authorization, `OIDAuthState`, the incoming magic link, fresh tokens, and a sign-out only when the realm refuses a refresh), `MagicLink` (the login token from any of the three sources, the direct grant, the state synthesized around the authorization request, and the failure codes behind the A3 copies and A1's error copy), `Keychain`. |
 | `Networking/` | `BffClient` builds the generated `MoneyRecap_V1_BffServiceClient` (proto codec, `MMR_BFF_URL` or its default); `BearerInterceptor` is the one interceptor of I3 so far, and sends `RequestMagicLink` with no token, keyed by its path in both halves. No request or response type is written here. |
 | `Snapshots/` | `HomeSnapshot`, the one SwiftData model of I4: the `HomeView` bytes plus `updatedAt`, replaced whole on every success. |
 | `Screens/` | One folder per SCREEN-STATES group, each screen a view plus an `@Observable` view model (I6): `SignIn/` holds A1 Sign in, A2 Enter email and A3 Check your inbox on one navigation stack; `Home/`. |
-| `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `Money` (the platform currency formatter, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen`, `Headline` (+ `SubCopy`, `Eyebrow`, `HelperText`), `Illustration`, `Avatar`, `Card` (+ `CardTitle`), `Chip`, `StatHero`, `StatChip`, `PromptCard`, `ListRow`, `MMRButton`, `MMRTextField`, `InlineError`. Colours, radii and type come only from the tokens. The React row wrappers (`ChipRow`, `StatChipRow`) are a plain `HStack` here, and `PromptCard` has a `dashed` variant (the D47 outline card) the React one draws by hand. |
+| `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `TextStyle+Font` (applies a type-ramp entry to a view), `Money` (the platform currency formatter, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen`, `Headline` (+ `SubCopy`, `Eyebrow`), `Illustration`, `Avatar`, `Card` (+ `CardTitle`), `Chip`, `StatHero`, `StatChip`, `PromptCard`, `ListRow`, `MMRButton`, `MMRTextField`, `InlineError`. Colours, radii and type come only from the tokens. The React row wrappers (`ChipRow`, `StatChipRow`) are a plain `HStack` here, and `PromptCard` has a `dashed` variant (the D47 outline card) the React one draws by hand. |
 | `Resources/` | Asset catalog with the cover and envelope illustrations (PNGs from `my-money-recap/assets/illustrations/`, `ill-cover.webp` and `ill-envelope.webp`). |
-| `Tests/`, `UITests/` | XCTest unit tests on the view models, the magic-link handler and session (against a stub realm), the Keychain and the token refresh, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test user; the two UI tests above. |
+| `Tests/`, `UITests/` | XCTest unit tests on the view models, the magic-link handler and session (against a stub realm), the Keychain and the token refresh, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test Member; the two UI tests above. |
 | `scripts/` | `simulator-udid.sh`, `ui-test.sh`. |
 
 Not yet here: the Fredoka and Nunito font files are not bundled, so the type ramp renders in the system

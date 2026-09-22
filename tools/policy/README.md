@@ -35,7 +35,7 @@ Concretely, all of these are rejected:
 
 Two things survive.
 
-**Docstrings on a declaration**, under 255 characters: Go package docs (`// Package bff …`), Go doc
+**Docstrings on a declaration**, at most 255 characters: Go package docs (`// Package bff …`), Go doc
 comments on a `func`/`type`/`var`/`const`, Swift `///` on a type or member, TSDoc on an export, and
 a comment on a field inside a struct or class body. This is where a `D*`, `A*`, `I*` or `§` citation
 lives, which is the only machine-greppable link from code back to the decision that caused it
@@ -84,7 +84,7 @@ so a generated one of those goes in `exclude`.
 - Files a tool rewrites and nobody can shorten by hand: `package-lock.json`, `*/go.sum`,
   `*/.terraform.lock.hcl`, and `*.xcodeproj/*` (the Xcode project, its scheme and
   `Package.resolved`). The lockfiles grow with every dependency bump.
-- `*.md`: the cap is for source (`AGENTS.md`), and prose is not held to it.
+- `*.md`: the cap is for code and configuration, and prose is not held to it.
 
 `.pre-commit-config.yaml` carries a longer list, written once as a YAML anchor and shared by the seven
 hooks that format or lint generated output. That is not a copy of this one: those hooks touch JSON, CSS

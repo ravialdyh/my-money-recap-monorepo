@@ -24,12 +24,12 @@ var probeFiles = fstest.MapFS{
 // ledger row nor a probe table in a service's schema.
 func probePool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
-	dsn := os.Getenv("MEMBERS_TEST_DATABASE_URL")
+	dsn := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if dsn == "" {
 		dsn = os.Getenv("NOTIFY_TEST_DATABASE_URL")
 	}
 	if dsn == "" {
-		t.Skip("neither MEMBERS_TEST_DATABASE_URL nor NOTIFY_TEST_DATABASE_URL is set")
+		t.Skip("neither MMR_TEST_MEMBERS_DATABASE_URL nor NOTIFY_TEST_DATABASE_URL is set")
 	}
 	cfg, err := pgxpool.ParseConfig(dsn)
 	if err != nil {

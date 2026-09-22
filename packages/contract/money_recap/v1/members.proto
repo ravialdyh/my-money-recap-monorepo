@@ -6,12 +6,13 @@ option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/g
 
 import "google/protobuf/timestamp.proto";
 
-// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the slice 1
-// skeleton; 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
+// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the walking
+// skeleton's (#10); 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
 // (PRD §6.18, D60).
 message Profile {
   string member_id = 1;
-  // The token's email claim, refreshed on every GetOrCreateBySubject.
+  // The token's email claim, refreshed by every GetOrCreateBySubject whose
+  // token carries one; an empty claim keeps the stored address.
   string email = 2;
   // Empty until onboarding sets it.
   string display_name = 3;
@@ -108,12 +109,13 @@ message CancelDeletionResponse {
 
 service MembersService {
   // Upsert on the Keycloak subject: creates on first sight, returns the same
-  // Member on every later call, and refreshes the email each time. A
-  // tombstoned row (deleted_at set) is treated as absent (§7.1 step 3).
+  // Member on every later call, and refreshes the email when the token
+  // carries one. Planned with the deletion worker: a tombstoned row
+  // (deleted_at set) counts as absent (§7.1 step 3).
   rpc GetOrCreateBySubject(GetOrCreateBySubjectRequest) returns (GetOrCreateBySubjectResponse) {}
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
-  // Display Name, Avatar key and Currency (PRD §6.4, §6.5); publishes
-  // members.updated.
+  // Display Name, Avatar key, Currency and the onboarding step just completed
+  // or skipped, in one write (PRD §6.4, §6.5); publishes members.updated.
   rpc SaveProfile(SaveProfileRequest) returns (SaveProfileResponse) {}
   // Called on every launch (A3); publishes members.updated on change.
   rpc SetTimezone(SetTimezoneRequest) returns (SetTimezoneResponse) {}

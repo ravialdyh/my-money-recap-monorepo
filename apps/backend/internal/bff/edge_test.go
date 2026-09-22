@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"slices"
 	"strings"
@@ -32,12 +31,12 @@ const fallbackCopy = "Open My Money Recap on your phone to finish signing in."
 // BFF_TEST_EDGE is set beside three of TestEndToEnd's variables; infra/compose/README.md lists them.
 func TestEdge(t *testing.T) {
 	edge, base := os.Getenv("BFF_TEST_EDGE"), os.Getenv("BFF_TEST_URL")
-	kc, pw := os.Getenv("BFF_TEST_KEYCLOAK"), os.Getenv("BFF_TEST_USER_PASSWORD")
+	kc, pw := os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
 	if edge == "" || base == "" || kc == "" || pw == "" {
-		t.Skip("BFF_TEST_EDGE, BFF_TEST_URL, BFF_TEST_KEYCLOAK and BFF_TEST_USER_PASSWORD not all set")
+		t.Skip("BFF_TEST_EDGE, BFF_TEST_URL, MMR_TEST_KEYCLOAK and MMR_TEST_USER_PASSWORD not all set")
 	}
 	ctx := t.Context()
-	token := testauth.Token(t, kc, url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "username": {"test"}, "password": {pw}})
+	token := testauth.UserToken(t, kc, pw)
 
 	t.Run("GetHome through the edge answers what the BFF answers", func(t *testing.T) {
 		direct, through := home(ctx, t, base, token), home(ctx, t, edge+"/api", token)

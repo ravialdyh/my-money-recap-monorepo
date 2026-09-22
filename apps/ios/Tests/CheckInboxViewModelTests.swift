@@ -45,26 +45,27 @@ final class CheckInboxViewModelTests: XCTestCase {
             sent.append($0)
             return nil
         }, tick: {})
-        var resent = await model.resend()
-        XCTAssertFalse(resent, "Resend sleeps for the first 30 seconds")
-        XCTAssertEqual(sent, [])
+        await model.resend()
+        XCTAssertEqual(sent, [], "Resend sleeps for the first 30 seconds")
         await model.countDown()
-        resent = await model.resend()
-        XCTAssertTrue(resent)
+        await model.resend()
         XCTAssertEqual(sent, ["maya@example.com"], "the address is not retyped")
         XCTAssertEqual(model.secondsLeft, CheckInboxViewModel.resendDelay)
         XCTAssertFalse(model.canResend)
     }
 
-    func testEachResendFailureKeepsItsOwnCopyAndTheCountdownSpent() async {
+    func testARefusedResendLeavesTheCountdownSpent() async {
         for failure in [MagicLinkFailure.rateLimited, .generic] {
-            let model = CheckInboxViewModel(email: "maya@example.com", send: { _ in failure }, tick: {})
+            var sent = 0
+            let model = CheckInboxViewModel(email: "maya@example.com", send: { _ in
+                sent += 1
+                return failure
+            }, tick: {})
             await model.countDown()
-            let resent = await model.resend()
-            XCTAssertFalse(resent)
-            XCTAssertEqual(model.failure, failure)
-            XCTAssertEqual(model.failure?.copy, failure.copy)
+            await model.resend()
+            XCTAssertEqual(sent, 1)
             XCTAssertEqual(model.secondsLeft, 0, "a link that never went out starts no new 30 seconds")
+            XCTAssertTrue(model.canResend)
         }
     }
 }

@@ -17,7 +17,7 @@ variable "ssl_required" {
 }
 
 variable "bff_client_secret" {
-  description = "The bff client's secret. Explicit rather than generated, because a10-smoke.sh and the members wrong-audience test authenticate as that client and must know it in advance (A10)."
+  description = "The bff client's secret. Explicit rather than generated, because the BFF signs in as this client for the Login Token endpoint (BFF_CLIENT_SECRET), and so do a10-smoke.sh and the members wrong-audience test (A10)."
   type        = string
   sensitive   = true
 }

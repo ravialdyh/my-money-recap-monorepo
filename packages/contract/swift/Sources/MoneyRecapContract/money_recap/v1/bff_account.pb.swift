@@ -26,7 +26,8 @@ public nonisolated struct MoneyRecap_V1_BffServiceRequestMagicLinkRequest: Senda
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The address as typed; RFC 5322 syntax is checked on the phone.
+  /// The address as typed; RFC 5322 syntax is checked on the phone and again
+  /// by the BFF.
   public var email: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

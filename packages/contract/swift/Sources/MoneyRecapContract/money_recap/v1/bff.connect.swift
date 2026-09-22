@@ -10,12 +10,14 @@ import Foundation
 import SwiftProtobuf
 
 /// The only service the phone talks to (ARCHITECTURE §6); answers are stored
-/// whole (I4). No request carries a key: every write sends an Idempotency-Key
-/// header (I3, §6.2 step 1), which the BFF copies into the service field (A14).
+/// whole (I4). No request carries an idempotency key: shared.proto's package
+/// doc says where the BFF gets one.
 public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
 
-    /// Sent without a bearer token; 5 per email per hour, then resource_exhausted
-    /// (PRD §11, §6.3); unavailable when the email cannot be sent (§7.5).
+    /// Sent without a bearer token. resource_exhausted past 5 per email per hour
+    /// or when the count fails (PRD §11, §6.3); invalid_argument for an address
+    /// that does not parse or the mail host refuses; unavailable when the realm or
+    /// the send fails (§7.5).
     @available(iOS 13, *)
     func `requestMagicLink`(request: MoneyRecap_V1_BffServiceRequestMagicLinkRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestMagicLinkResponse>
 

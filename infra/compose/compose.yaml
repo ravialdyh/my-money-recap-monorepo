@@ -20,7 +20,7 @@ services:
       retries: 12
 
   keycloak:
-    image: quay.io/phasetwo/phasetwo-keycloak:${KEYCLOAK_TAG:-26.6.6.1789466980}
+    image: quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980
     command: ["start"]
     environment:
       KC_DB: postgres
@@ -79,17 +79,6 @@ services:
       keycloak:
         condition: service_healthy
 
-  rabbitmq:
-    image: rabbitmq:4-management
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 20s
-
   redis:
     image: redis:8
     ports:
@@ -120,7 +109,6 @@ services:
       MEMBERS_DATABASE_URL_FILE: *members-db-file
       MEMBERS_OIDC_ISSUER: &issuer http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}/realms/mmr
       MEMBERS_OIDC_JWKS_URL: &jwks http://keycloak:8080/realms/mmr/protocol/openid-connect/certs
-      MEMBERS_OIDC_AUDIENCE: bff
     ports:
       - "127.0.0.1:${MEMBERS_HOST_PORT:-8081}:8080"
     secrets: *members-db-secret
@@ -167,7 +155,6 @@ services:
       NOTIFY_DATABASE_URL_FILE: *notify-db-file
       NOTIFY_OIDC_ISSUER: *issuer
       NOTIFY_OIDC_JWKS_URL: *jwks
-      NOTIFY_OIDC_AUDIENCE: bff
       NOTIFY_SMTP_ADDR: mailpit:1025
       NOTIFY_MAIL_FROM: no-reply@mymoneyrecap.test
     ports:
@@ -188,7 +175,6 @@ services:
     environment:
       BFF_OIDC_ISSUER: *issuer
       BFF_OIDC_JWKS_URL: *jwks
-      BFF_OIDC_AUDIENCE: bff
       BFF_MEMBERS_URL: http://members:8080
       BFF_NOTIFY_URL: http://notify:8080
       BFF_REALM_URL: http://keycloak:8080/realms/mmr
@@ -217,8 +203,10 @@ services:
     depends_on:
       bff:
         condition: service_healthy
+        restart: true
       keycloak:
         condition: service_healthy
+        restart: true
     healthcheck:
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1/magic"]
       interval: 5s
@@ -244,7 +232,6 @@ secrets:
 
 volumes:
   postgres-data:
-  rabbitmq-data:
   realm-state:
   acme-certs:
   acme-config:

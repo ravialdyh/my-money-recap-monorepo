@@ -6,13 +6,10 @@ import (
 	"crypto/rand"
 	"io"
 	"net"
-	"net/http"
-	"net/http/httptest"
 	"os"
 	"slices"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -56,27 +53,6 @@ func serveFakeSMTP(conn net.Conn, replies []string) {
 		}
 	}
 	_, _ = io.Copy(io.Discard, reader)
-}
-
-// testPool is the Compose stack's notify database on a pool of maxConns, so a test can run the pool
-// out of connections the way two wedged sends do.
-func testPool(t *testing.T, maxConns int32) *pgxpool.Pool {
-	t.Helper()
-	dsn := os.Getenv("NOTIFY_TEST_DATABASE_URL")
-	if dsn == "" {
-		t.Skip("NOTIFY_TEST_DATABASE_URL not set")
-	}
-	config, err := pgxpool.ParseConfig(dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	config.MaxConns = maxConns
-	db, err := pgxpool.NewWithConfig(t.Context(), config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(db.Close)
-	return db
 }
 
 // A mail host that accepts and then goes silent must not outlive the caller's deadline: it holds a
@@ -223,9 +199,6 @@ func TestSendsOlderThanTheRetentionWindowAreSwept(t *testing.T) {
 	}
 	db := testDB(t)
 	ctx := t.Context()
-	if err := Migrate(ctx, db); err != nil {
-		t.Fatal(err)
-	}
 	address := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
 	stale, fresh, now := strings.ToLower(rand.Text()), strings.ToLower(rand.Text()), strings.ToLower(rand.Text())
 	t.Cleanup(func() {
@@ -255,23 +228,4 @@ func TestSendsOlderThanTheRetentionWindowAreSwept(t *testing.T) {
 		t.Fatalf("rows %v, want %v: the %s-old key %s should be swept", kept, want, retention+time.Hour, stale)
 	}
 	t.Logf("a row %s old was swept by the next send; the fresh one stayed", retention+time.Hour)
-}
-
-// waitForMail must wait for the count its caller asks for: it returned on the first message it saw,
-// so the two-message assertion in TestMagicLinkAtTheConnectBoundary did no waiting at all.
-func TestWaitForMailWaitsForTheCountItIsGiven(t *testing.T) {
-	var polls atomic.Int32
-	stub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		found := `{"messages":[{"ID":"one"}]}`
-		if polls.Add(1) > 2 {
-			found = `{"messages":[{"ID":"one"},{"ID":"two"}]}`
-		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(found))
-	}))
-	t.Cleanup(stub.Close)
-	if inbox := waitForMail(t, stub.URL, "someone@example.test", 2); len(inbox) != 2 {
-		t.Fatalf("%d messages, want 2: the helper answered before the stub held them both", len(inbox))
-	}
-	t.Logf("waitForMail polled %d times for 2 messages", polls.Load())
 }

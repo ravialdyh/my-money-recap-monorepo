@@ -4,9 +4,10 @@
 // 	protoc        (unknown)
 // source: money_recap/v1/shared.proto
 
-// Idempotency (A14, ARCHITECTURE §6.2, I3): the phone sends every write with
-// an Idempotency-Key header; the BFF copies it into the service request's
-// idempotency_key field, always field 1, and the owning service enforces it.
+// Idempotency (A14, ARCHITECTURE §6.2, I3): a write's service request carries
+// idempotency_key, always field 1, which the owning service enforces. The BFF
+// copies the Idempotency-Key header into it; RequestMagicLink mints one, as
+// the phone sends none yet.
 
 package moneyrecapv1
 

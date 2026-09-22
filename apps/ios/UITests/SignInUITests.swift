@@ -1,7 +1,7 @@
 import XCTest
 
-/// The sign-in-to-Home path against local Compose (IOS I9), by magic link (spec #61 seam 6). Runs only when
-/// the runner names the stack's Mailpit: `TEST_RUNNER_MMR_MAILPIT_URL=… xcodebuild test …`. CI skips it.
+/// The sign-in-to-Home path against local Compose (IOS I9), by magic link (spec #61 seam 6). Skips unless the
+/// runner names the stack's Mailpit, as `scripts/ui-test.sh` does.
 @MainActor
 final class SignInUITests: XCTestCase {
     override func setUp() {
@@ -13,7 +13,7 @@ final class SignInUITests: XCTestCase {
         let stack = try Stack()
         let address = "mmr-test-\(UUID().uuidString.lowercased())@example.test"
         let app = XCUIApplication()
-        app.launchEnvironment = stack.appEnvironment
+        app.launchEnvironment = Self.appEnvironment
         app.launchArguments = ["--reset-session", "--reset-snapshot"]
         app.launch()
         XCTAssert(app.staticTexts["Your month in money."].waitForExistence(timeout: 10))
@@ -82,11 +82,16 @@ final class SignInUITests: XCTestCase {
 }
 
 extension XCTestCase {
+    /// The runner's `MMR_BFF_URL` and `MMR_ISSUER`, the two the app reads, handed on at launch.
+    static var appEnvironment: [String: String] {
+        ProcessInfo.processInfo.environment.filter { ["MMR_BFF_URL", "MMR_ISSUER"].contains($0.key) }
+    }
+
     static var zero: String {
         Decimal(0).formatted(.currency(code: "GBP").precision(.fractionLength(0)))
     }
 
-    /// Home at zero, the B1 "no salary set" layout (PRD §6.8): a new Member and the realm test user alike.
+    /// Home at zero, the B1 "no salary set" layout (PRD §6.8): a new Member and the realm test Member alike.
     @MainActor
     func assertHomeAtZero(_ app: XCUIApplication) {
         XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 30), "Home at zero (PRD §6.8)")
@@ -122,15 +127,12 @@ extension XCTestCase {
 /// app gets the BFF and the issuer; Mailpit is read from this process, never from the app.
 struct Stack {
     let mailpit: Mailpit
-    let appEnvironment: [String: String]
 
     init() throws {
-        let environment = ProcessInfo.processInfo.environment
-        guard let mailpit = environment["MMR_MAILPIT_URL"].flatMap(URL.init(string:)) else {
+        guard let mailpit = ProcessInfo.processInfo.environment["MMR_MAILPIT_URL"].flatMap(URL.init(string:)) else {
             throw XCTSkip("set MMR_MAILPIT_URL (the stack's Mailpit, infra/compose/README.md) to run against Compose")
         }
         self.mailpit = Mailpit(base: mailpit)
-        appEnvironment = environment.filter { ["MMR_BFF_URL", "MMR_ISSUER"].contains($0.key) }
     }
 }
 

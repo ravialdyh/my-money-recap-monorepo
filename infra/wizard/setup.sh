@@ -8,16 +8,15 @@ SECRETS=$SECRETS_DIR/prod.yaml
 RULES=${WIZARD_RULES_FILE:-.sops.yaml}
 KEYSET=infra/secrets/keyset.sh
 KEY_FILE=${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}
-STACK_KEYS="members_db_password members_database_url notify_db_password notify_database_url
-postgres_password keycloak_db_password kc_bootstrap_admin_password bff_client_secret"
-STACK_TITLE="Values the stack itself needs, chosen once and assembled"
+STACK_KEYS=$("$KEYSET" stack)
+STACK_TITLE="Values the stack itself needs: its passwords, the bff client secret and two connection strings"
 PLAIN=
 
 STEPS=(
 "@decrypt|One age key pair, the only secret a human holds|age-keygen here, free and local"
 "@byhand|Apple Developer Program enrolment|developer.apple.com, USD 99 a year"
 "app_store_connect_api_key|App Store Connect API key|App Store Connect > Users and Access > Integrations"
-"apple_services_id apple_team_id apple_sign_in_key_id apple_sign_in_key apple_push_key|Apple Services ID and the two .p8 keys|Apple Developer > Membership details, Identifiers, then Keys"
+"apple_services_id apple_team_id apple_sign_in_key_id apple_sign_in_key apple_push_key|Apple Services ID and the two .p8 keys|Apple Developer > Identifiers (the Services ID), Membership details (the Team ID), then Keys (the Sign in with Apple .p8 and its Key ID, then the APNs .p8)"
 "google_client_id google_client_secret|Google OAuth client|Google Auth Platform > Clients"
 "open_exchange_rates_app_id|Open Exchange Rates App ID|the Open Exchange Rates account dashboard"
 "smtp_token|SMTP provider account and its first token|the provider's dashboard"

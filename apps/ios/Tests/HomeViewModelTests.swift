@@ -3,7 +3,7 @@ import SwiftData
 import XCTest
 @testable import MyMoneyRecap
 
-/// The recorded BFF answer for the test user (`Fixtures/home-zero.json`, IOS I9) drives every case.
+/// The recorded BFF answer for the test Member (`Fixtures/home-zero.json`, IOS I9) drives every case.
 @MainActor
 final class HomeViewModelTests: XCTestCase {
     private func recordedHome() throws -> MoneyRecap_V1_HomeView {

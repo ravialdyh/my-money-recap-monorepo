@@ -16,13 +16,14 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// fakeMembers is a MembersService that answers one fixed Member; createDelay and profileDelay slow
-// GetOrCreateBySubject and GetProfile, createErr and profileErr fail them.
+// fakeMembers is a MembersService serving GetOrCreateBySubject alone, so a second members call fails
+// GetHome. It answers profile, or a new Member with no answers; createDelay slows it, createErr fails it.
 type fakeMembers struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
-	createDelay, profileDelay time.Duration
-	createErr, profileErr     error
-	gotToken                  string
+	createDelay time.Duration
+	createErr   error
+	profile     *moneyrecapv1.Profile
+	gotToken    string
 }
 
 func (f *fakeMembers) GetOrCreateBySubject(ctx context.Context, req *connect.Request[moneyrecapv1.GetOrCreateBySubjectRequest]) (*connect.Response[moneyrecapv1.GetOrCreateBySubjectResponse], error) {
@@ -35,19 +36,11 @@ func (f *fakeMembers) GetOrCreateBySubject(ctx context.Context, req *connect.Req
 	if f.createErr != nil {
 		return nil, f.createErr
 	}
-	return connect.NewResponse(&moneyrecapv1.GetOrCreateBySubjectResponse{Profile: &moneyrecapv1.Profile{MemberId: "m-1", Email: req.Msg.Email}}), nil
-}
-
-func (f *fakeMembers) GetProfile(ctx context.Context, _ *connect.Request[moneyrecapv1.GetProfileRequest]) (*connect.Response[moneyrecapv1.GetProfileResponse], error) {
-	select {
-	case <-time.After(f.profileDelay):
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	profile := f.profile
+	if profile == nil {
+		profile = &moneyrecapv1.Profile{MemberId: "m-1", Email: req.Msg.Email}
 	}
-	if f.profileErr != nil {
-		return nil, f.profileErr
-	}
-	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: &moneyrecapv1.Profile{MemberId: "m-1", Email: "test@example.com"}}), nil
+	return connect.NewResponse(&moneyrecapv1.GetOrCreateBySubjectResponse{Profile: profile}), nil
 }
 
 // hangingNotify never answers, like a notify container that is stopped.
@@ -116,6 +109,18 @@ func TestGetHomeZeros(t *testing.T) {
 	}
 }
 
+// GetHome builds the HomeView from the Profile GetOrCreateBySubject answers, with no second members read.
+func TestGetHomeReadsTheProfileGetOrCreateReturned(t *testing.T) {
+	members := &fakeMembers{profile: &moneyrecapv1.Profile{MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox", CurrencyCode: "IDR"}}
+	res, err := newService(t, members, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if h := res.Msg.Home; h.DisplayName != "Maya" || h.AvatarKey != "fox" || h.CurrencyCode != "IDR" || h.Spent.CurrencyCode != "IDR" {
+		t.Fatalf("HomeView: %v", h)
+	}
+}
+
 func TestGetHomeNotifyTimeoutStillAnswers(t *testing.T) {
 	res, err := newService(t, &fakeMembers{}, hangingNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
@@ -144,14 +149,6 @@ func TestGetHomeBannerOnlyWhenNotifySaysFired(t *testing.T) {
 	}
 }
 
-func TestGetHomeMembersTimeoutIsAnError(t *testing.T) {
-	_, err := newService(t, &fakeMembers{profileDelay: time.Second}, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
-	if connect.CodeOf(err) != connect.CodeDeadlineExceeded {
-		t.Fatalf("members timeout: %v, want deadline_exceeded", err)
-	}
-	t.Logf("members timeout: %v", err)
-}
-
 func TestGetHomeGetOrCreateTimeoutIsAnError(t *testing.T) {
 	start := time.Now()
 	_, err := newService(t, &fakeMembers{createDelay: 2 * time.Second}, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
@@ -168,7 +165,6 @@ func TestGetHomeKeepsTheCodeAndDropsTheUpstreamText(t *testing.T) {
 		want    connect.Code
 	}{
 		"GetOrCreateBySubject": {&fakeMembers{createErr: connect.NewError(connect.CodeUnauthenticated, errors.New("fetching keys: dial tcp 172.18.0.2:8080: connection refused"))}, StubLedger{}, connect.CodeUnauthenticated},
-		"GetProfile":           {&fakeMembers{profileErr: connect.NewError(connect.CodeUnavailable, errors.New("failed to connect to `user=members database=members`: 172.18.0.3:5432"))}, StubLedger{}, connect.CodeUnavailable},
 		"GetMonthSummary":      {&fakeMembers{}, failingLedger{}, connect.CodeUnavailable},
 	}
 	for name, c := range cases {

@@ -10,7 +10,8 @@ import "money_recap/v1/notify.proto";
 
 // The only RPC sent without a bearer token (PRD §6.2, ARCHITECTURE §7.5).
 message BffServiceRequestMagicLinkRequest {
-  // The address as typed; RFC 5322 syntax is checked on the phone.
+  // The address as typed; RFC 5322 syntax is checked on the phone and again
+  // by the BFF.
   string email = 1;
 }
 
