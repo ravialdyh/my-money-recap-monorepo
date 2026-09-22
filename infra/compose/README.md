@@ -165,13 +165,13 @@ check in `members`, `notify` and the BFF, and the BFF's magic-link base address 
   so access tokens carry `sub`; the realm attribute the JSON import needed for that is gone.
 - `bff`: confidential client with a service account holding `realm-management` `manage-users`, which
   the Login Token endpoint needs (A10). Its secret is a variable rather than a generated value,
-  because `a10-smoke.sh` and the `members` wrong-audience test authenticate as this client.
+  because the BFF signs in as this client for that endpoint (`BFF_CLIENT_SECRET`), and so do
+  `a10-smoke.sh` and the `members` wrong-audience test.
 - Test Member `test` / `test@example.com`, created only when `TEST_USER_PASSWORD` is non-empty. The
   machine's `.env` carries no such line, so no account with a known password exists there. On a
   laptop an empty value is refused by the realm root itself, which requires the password whenever
   `ssl_required` is `none`, so `realm-apply` exits 1 with `TEST_USER_PASSWORD is empty` and the
-  `up` fails. The test Member's address in the OpenTofu state is `keycloak_user.test[0]`, and a
-  `moved` block carries a stack built before that change across without re-creating the test Member.
+  `up` fails.
 - Identity providers `google` (Keycloak's built-in Google provider, "Store tokens" off) and
   `apple` (the image's Apple extension through the generic OIDC resource with
   `provider_id = "apple"`, the Team ID and Key ID in `extra_config`), both with "Trust email" on

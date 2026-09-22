@@ -105,8 +105,3 @@ resource "keycloak_user" "test" {
     temporary = false
   }
 }
-
-moved {
-  from = keycloak_user.test
-  to   = keycloak_user.test[0]
-}
