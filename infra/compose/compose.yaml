@@ -20,7 +20,7 @@ services:
       retries: 12
 
   keycloak:
-    image: quay.io/phasetwo/phasetwo-keycloak:${KEYCLOAK_TAG:-26.6.6.1789466980}
+    image: quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980
     command: ["start"]
     environment:
       KC_DB: postgres
