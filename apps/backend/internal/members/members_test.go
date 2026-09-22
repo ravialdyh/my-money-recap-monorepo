@@ -161,7 +161,7 @@ func TestConnectBoundary(t *testing.T) {
 	db := testDB(t)
 	ctx := context.Background()
 	kc := os.Getenv("MEMBERS_TEST_KEYCLOAK")
-	tok := testauth.Token(t, kc, url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "username": {"test"}, "password": {os.Getenv("MEMBERS_TEST_USER_PASSWORD")}})
+	tok := testauth.UserToken(t, kc, os.Getenv("MEMBERS_TEST_USER_PASSWORD"))
 	claims := testauth.Decode(t, tok)
 	sub, email := claims.Sub, claims.Email
 	if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, sub); err != nil {

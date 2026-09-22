@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"net/http"
-	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -34,7 +33,7 @@ func TestEndToEnd(t *testing.T) {
 	}
 	t.Cleanup(db.Close)
 
-	accessToken := testauth.Token(t, kc, url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "username": {"test"}, "password": {pw}})
+	accessToken := testauth.UserToken(t, kc, pw)
 	claims := testauth.Decode(t, accessToken)
 	if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, claims.Sub); err != nil {
 		t.Fatal(err)

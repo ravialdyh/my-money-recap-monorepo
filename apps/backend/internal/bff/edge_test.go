@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"slices"
 	"strings"
@@ -37,7 +36,7 @@ func TestEdge(t *testing.T) {
 		t.Skip("BFF_TEST_EDGE, BFF_TEST_URL, BFF_TEST_KEYCLOAK and BFF_TEST_USER_PASSWORD not all set")
 	}
 	ctx := t.Context()
-	token := testauth.Token(t, kc, url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "username": {"test"}, "password": {pw}})
+	token := testauth.UserToken(t, kc, pw)
 
 	t.Run("GetHome through the edge answers what the BFF answers", func(t *testing.T) {
 		direct, through := home(ctx, t, base, token), home(ctx, t, edge+"/api", token)

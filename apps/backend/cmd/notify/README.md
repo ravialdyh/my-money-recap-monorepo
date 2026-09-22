@@ -73,8 +73,7 @@ bound off slice 7's scheduler.
 
 ## Tests
 
-`go test ./internal/notify/` runs the empty-key test and the Mailpit-polling helper's own test,
-which need nothing. The rest need the stack, Mailpit and the `NOTIFY_TEST_*` variables listed in
+`go test ./internal/notify/` runs the empty-key test, which needs nothing. The rest need the stack, Mailpit and the `NOTIFY_TEST_*` variables listed in
 `infra/compose/README.md`. The boundary test calls `EmailMagicLink` with no bearer token, reads the
 message through Mailpit's HTTP interface, and asserts that the same key twice sends one message and
 that `GetPrefs` is still `unauthenticated`. The rest drive the SMTP client against fake mail hosts

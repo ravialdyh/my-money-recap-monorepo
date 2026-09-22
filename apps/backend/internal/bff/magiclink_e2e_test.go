@@ -2,13 +2,11 @@ package bff
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
-	"time"
 	"uuid"
 
 	"connectrpc.com/connect"
@@ -88,7 +86,7 @@ func TestMagicLinkEndToEnd(t *testing.T) {
 				t.Fatalf("request %d carrying %s: %v", i+1, key, err)
 			}
 		}
-		if inbox := mailpitInbox(t, mailpit, address, 2); len(inbox) != 1 {
+		if inbox := testauth.Inbox(t, mailpit, address, 2); len(inbox) != 1 {
 			t.Fatalf("%d messages for two requests carrying %s, want 1", len(inbox), key)
 		}
 		t.Logf("two requests carrying %s → 1 message for %s", key, address)
@@ -124,90 +122,28 @@ func forgetMember(t *testing.T, db *pgxpool.Pool, address string) {
 }
 
 // redeem is the direct-grant exchange the app makes with a link it was handed (A10): the login token
-// on the ios client under the login-token scope. It answers the access token, or "" and the realm's
-// refusal, which is what a token already spent gets.
+// on the ios client under the login-token scope. A token already spent answers "" and the refusal.
 func redeem(t *testing.T, kc, loginToken string) (access, refusal string) {
 	t.Helper()
-	form := url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "scope": {"login-token"}, "login_token": {loginToken}}
-	endpoint := kc + "/realms/mmr/protocol/openid-connect/token"
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, endpoint, strings.NewReader(form.Encode()))
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer res.Body.Close()
-	var body struct {
-		AccessToken      string `json:"access_token"`
-		ErrorDescription string `json:"error_description"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
-		t.Fatal(err)
-	}
-	return body.AccessToken, res.Status + " " + body.ErrorDescription
+	return testauth.Exchange(t, kc, url.Values{"grant_type": {"password"}, "client_id": {"ios"}, "scope": {"login-token"}, "login_token": {loginToken}})
 }
 
 // loginTokenFromMail is the lt:<uuid> inside the one message Mailpit holds for address. The link is
 // {base}?lt={token} and the token is percent-encoded in the body, which Query decodes.
 func loginTokenFromMail(t *testing.T, mailpit, address string) string {
 	t.Helper()
-	inbox := mailpitInbox(t, mailpit, address, 1)
+	inbox := testauth.Inbox(t, mailpit, address, 1)
 	if len(inbox) != 1 {
 		t.Fatalf("%d messages for %s, want 1", len(inbox), address)
 	}
-	var message struct{ Text string }
-	mailpitJSON(t, mailpit+"/api/v1/message/"+inbox[0], &message)
-	for _, field := range strings.Fields(message.Text) {
+	text := testauth.MessageText(t, mailpit, inbox[0])
+	for _, field := range strings.Fields(text) {
 		link, err := url.Parse(field)
 		if err != nil || !strings.HasPrefix(link.Query().Get("lt"), "lt:") {
 			continue
 		}
 		return link.Query().Get("lt")
 	}
-	t.Fatalf("no magic link in %q", message.Text)
+	t.Fatalf("no magic link in %q", text)
 	return ""
-}
-
-// mailpitInbox is every message Mailpit holds for address, polled until it holds at least want of
-// them, so asserting one waits for a second that never comes rather than reading the inbox early.
-func mailpitInbox(t *testing.T, mailpit, address string, want int) []string {
-	t.Helper()
-	deadline := time.Now().Add(3 * time.Second)
-	for {
-		var found struct {
-			Messages []struct{ ID string }
-		}
-		mailpitJSON(t, mailpit+"/api/v1/search?query="+url.QueryEscape("to:"+address), &found)
-		ids := make([]string, 0, len(found.Messages))
-		for _, m := range found.Messages {
-			ids = append(ids, m.ID)
-		}
-		if len(ids) >= want || time.Now().After(deadline) {
-			return ids
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-}
-
-// mailpitJSON decodes Mailpit's answer into out, failing the test on anything but a 200 of JSON.
-func mailpitJSON(t *testing.T, address string, out any) {
-	t.Helper()
-	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, address, http.NoBody)
-	if err != nil {
-		t.Fatal(err)
-	}
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("%s: status %d", address, res.StatusCode)
-	}
-	if err := json.NewDecoder(res.Body).Decode(out); err != nil {
-		t.Fatal(err)
-	}
 }
