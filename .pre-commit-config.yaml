@@ -77,11 +77,11 @@ repos:
         always_run: true
         require_serial: true
 
-      - id: gitleaks-pins
-        name: gitleaks pins agree
+      - id: tool-pins
+        name: gitleaks, sops and OpenTofu pins agree
         entry: tools/hooks/check-pins.sh
         language: script
-        files: ^(\.pre-commit-config\.yaml|\.github/workflows/security\.yml)$
+        files: ^(\.pre-commit-config\.yaml|\.github/workflows/(security|ci|deploy)\.yml|infra/compose/compose\.yaml)$
         pass_filenames: false
 
       - id: biome

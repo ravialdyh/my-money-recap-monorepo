@@ -120,7 +120,7 @@ deploy runs, and asserts one file per key with mode 0400 and the value intact. I
 `.env` carries the stack values intact, `ssl_required` `external`, no test Member password and no
 deploy key, and that a value holding a quote stops it rather than reaching Compose. Nothing secret is
 committed and no GitHub secret is needed. CI runs it in the `backend` job, which installs `sops`
-3.13.3 and `age` 1.3.2 pinned to a checksum.
+and `age` pinned to a checksum in `.github/workflows/ci.yml`.
 
 The ciphertext is safe to commit: the pinned gitleaks and the `detect-private-key` hook were both run
 against a real SOPS-and-age file and neither flags it, so no allowlist exists. If Semgrep or Trivy's
