@@ -156,7 +156,7 @@ The configs carry no comments, so the reasoning lives here.
 
 This repository is private, so Actions minutes are billed: macOS at **ten times** the Linux rate, and
 every job rounded up to the whole minute. Each job of the `CI` workflow therefore runs only when the
-files it builds or checks changed, so a change that touches no Swift never starts the macOS job.
+files it builds or checks changed, so a change outside the `ios` job's paths never starts the macOS job.
 `docs/ARCHITECTURE.md` A15 records that design, and why `all green` is the job to require rather than
 any single one. The `Security` workflow's jobs are not gated: they all run on Linux, so gating saves
 little, and govulncheck reports only the advisories the Go code reaches, so a change to Go code alone
