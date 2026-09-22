@@ -10,9 +10,8 @@ import Foundation
 import SwiftProtobuf
 
 /// The only service the phone talks to (ARCHITECTURE §6); answers are stored
-/// whole (I4). No request carries a key: the BFF copies a write's
-/// Idempotency-Key header (I3, §6.2 step 1) into the service field (A14);
-/// RequestMagicLink mints one if absent.
+/// whole (I4). No request carries an idempotency key: shared.proto's package
+/// doc says where the BFF gets one.
 public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
 
     /// Sent without a bearer token. resource_exhausted past 5 per email per hour
