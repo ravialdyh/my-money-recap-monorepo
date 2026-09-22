@@ -2,7 +2,7 @@ import XCTest
 
 /// The authorization-code flow Apple and Google Members use, through Continue with email under the debug
 /// launch argument: the PKCE request, the web sheet, the state from its authorization response (spec #61
-/// seam 6). Needs the test user's password.
+/// seam 6). Needs the test Member's password.
 @MainActor
 final class AuthorizationCodeUITests: XCTestCase {
     override func setUp() {
@@ -57,7 +57,7 @@ final class AuthorizationCodeUITests: XCTestCase {
         .map(XCUIApplication.init(bundleIdentifier:)) + [XCUIApplication()]
 
     /// Keycloak's SSO cookie outlives a run, and under `prompt=login` the next run inside its idle window gets the
-    /// re-authentication form: the username fixed to the test user, the focus already in the password field.
+    /// re-authentication form: the username fixed to the test Member, the focus already in the password field.
     private func isReauthenticating(_ sheet: XCUIApplication) -> Bool {
         sheet.webViews.buttons["Restart login"].waitForExistence(timeout: 2)
     }

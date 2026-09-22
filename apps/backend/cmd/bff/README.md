@@ -69,7 +69,7 @@ cd apps/backend
 BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_NOTIFY_URL=http://localhost:8083 BFF_REALM_URL=http://localhost:8080/realms/mmr BFF_CLIENT_SECRET="$BFF_CLIENT_SECRET" BFF_MAGIC_LINK_BASE_URL=http://localhost:8090/magic BFF_REDIS_ADDR=localhost:6379 BFF_LISTEN=:8084 go run ./cmd/bff
 ```
 
-A token for the realm's test user and the `GetHome` call are in `infra/compose/README.md`, "Try it".
+A token for the realm's test Member and the `GetHome` call are in `infra/compose/README.md`, "Try it".
 
 ## Tests
 

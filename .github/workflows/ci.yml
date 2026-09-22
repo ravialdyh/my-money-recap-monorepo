@@ -192,7 +192,7 @@ jobs:
         run: |
           sed 's/=$/=ci-throwaway/' .env.example > .env
           docker compose --profile mail up -d --build --wait
-      - name: Go tests; -p 1 because members and bff both sign in as the realm's one test user
+      - name: Go tests; -p 1 because members and bff both sign in as the realm's one test Member
         run: |
           go vet ./...
           go test -v -p 1 -covermode=atomic -coverprofile=cover.out ./...

@@ -19,7 +19,7 @@ echo "image: $image"
 sa=$(curl -sfS -X POST "$TOKEN" -d grant_type=client_credentials -d client_id=bff \
   -d "client_secret=$BFF_CLIENT_SECRET" | jq -r .access_token)
 expected=$(curl -sfS "$KC/admin/realms/mmr/users?email=$EMAIL&exact=true" -H "Authorization: Bearer $sa" | jq -r '.[0].id')
-[[ $expected != null ]] || fail "test user $EMAIL not found"
+[[ $expected != null ]] || fail "test Member $EMAIL not found"
 
 lt=$(curl -sfS -X POST "$REALM/login-token" -H "Authorization: Bearer $sa" -H 'Content-Type: application/json' \
   -d "{\"email\":\"$EMAIL\",\"client_id\":\"ios\",\"expiration_seconds\":900,\"reusable\":false,\"force_create\":true,\"set_email_verified\":true}" \
@@ -32,7 +32,7 @@ body=$(mktemp)
 status=$(redeem "$body")
 [[ $status == 200 ]] || fail "first redemption: HTTP $status $(cat "$body")"
 sub=$(claim sub <"$body")
-[[ $sub == "$expected" ]] || fail "subject $sub is not the test user $expected"
+[[ $sub == "$expected" ]] || fail "subject $sub is not the test Member $expected"
 echo "redeemed: sub=$sub username=$(claim preferred_username <"$body") aud=$(claim aud <"$body") email_verified=$(claim email_verified <"$body")"
 
 status=$(redeem "$body")

@@ -29,7 +29,7 @@ func Token(t *testing.T, keycloak string, form url.Values) string {
 	return access
 }
 
-// UserToken is the access token of the realm's one test user, `test`, by the password grant on the
+// UserToken is the access token of the realm's one test Member, `test`, by the password grant on the
 // ios client.
 func UserToken(t *testing.T, keycloak, password string) string {
 	t.Helper()

@@ -24,7 +24,7 @@ go run ./cmd/members migrate
 MEMBERS_OIDC_ISSUER=http://localhost:8080/realms/mmr MEMBERS_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs MEMBERS_LISTEN=:8086 go run ./cmd/members
 ```
 
-Call it with a token for the realm's test user (`infra/compose/README.md`, "Try it"):
+Call it with a token for the realm's test Member (`infra/compose/README.md`, "Try it"):
 
 ```bash
 curl -s http://localhost:8086/money_recap.v1.MembersService/GetOrCreateBySubject -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{"subject":"<the token sub>","email":"test@example.com"}'

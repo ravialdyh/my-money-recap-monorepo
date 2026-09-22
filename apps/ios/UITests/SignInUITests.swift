@@ -91,7 +91,7 @@ extension XCTestCase {
         Decimal(0).formatted(.currency(code: "GBP").precision(.fractionLength(0)))
     }
 
-    /// Home at zero, the B1 "no salary set" layout (PRD §6.8): a new Member and the realm test user alike.
+    /// Home at zero, the B1 "no salary set" layout (PRD §6.8): a new Member and the realm test Member alike.
     @MainActor
     func assertHomeAtZero(_ app: XCUIApplication) {
         XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 30), "Home at zero (PRD §6.8)")

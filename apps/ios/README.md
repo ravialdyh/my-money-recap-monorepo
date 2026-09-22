@@ -50,7 +50,7 @@ fails with `errSecMissingEntitlement`, so a relaunch shows Sign in again.
 Seams, all read at launch: argument `--reset-session` erases the stored session, `--reset-snapshot`
 empties the SwiftData store, `--magic-link <link>` hands the app a link as the custom scheme would, and
 in a debug build `--authorization-code-flow` makes Continue with email open Keycloak's login page in the
-system web sheet, the flow Apple and Google use (sign in as the test user; cancel it to see the
+system web sheet, the flow Apple and Google use (sign in as the test Member; cancel it to see the
 `InlineError` inside the card). The environment variables `MMR_ISSUER` (default
 `http://localhost:8080/realms/mmr`) and `MMR_BFF_URL` (default `http://localhost:8082`) point the app at
 another Keycloak and BFF. The magic-link UI test (`UITests/SignInUITests.swift`) points `MMR_BFF_URL` at
@@ -61,7 +61,7 @@ an unreachable port to prove Home still renders offline.
 The phone reaches the Mac by its LAN address, and the token issuer must be that same address. The three
 steps (the `MMR_HOST` variable in `.env`, the `MMR_ISSUER` and `MMR_BFF_URL` Run-action variables, and
 setting it back) are in `infra/compose/README.md`, "A phone on the LAN". Sign in by email, opening
-`mymoneyrecap://magic?lt=<value>` from Mailpit's message in the phone's Safari, or as the test user with
+`mymoneyrecap://magic?lt=<value>` from Mailpit's message in the phone's Safari, or as the test Member with
 `--authorization-code-flow` among the Run action's arguments; Home at zero appears, and a relaunch draws
 it from the snapshot. `App/Info.plist` already allows local-network HTTP, so nothing needs to be edited
 for a device build.
@@ -84,10 +84,10 @@ handler the custom scheme and a universal link reach. It then asserts Home at ze
 Home renders from the snapshot, relaunches with `MMR_BFF_URL` pointing at a closed port to prove the
 snapshot survives an unreachable BFF, and relaunches with `--reset-snapshot` to prove the first load is
 the skeleton. `UITests/AuthorizationCodeUITests.swift` keeps the flow every Apple and Google Member will
-use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test user
+use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test Member
 through Keycloak's login page, which covers the PKCE request, the sheet and the state built from its
 authorization response. The first skips itself unless the runner names Mailpit (`MMR_MAILPIT_URL`), the
-second unless it carries the test user's password; CI's `ios` job passes
+second unless it carries the test Member's password; CI's `ios` job passes
 `-only-testing:MyMoneyRecapTests`, so it never runs them. No UI test opens Apple's or Google's page:
 with placeholder client ids each answers with its own error page, which the repository neither controls
 nor may assert as a round-trip (#71), so the hint the app sends is a unit test
@@ -128,7 +128,7 @@ script picks it up on the next run.
 | `Screens/` | One folder per SCREEN-STATES group, each screen a view plus an `@Observable` view model (I6): `SignIn/` holds A1 Sign in, A2 Enter email and A3 Check your inbox on one navigation stack; `Home/`. |
 | `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `Money` (the platform currency formatter, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen`, `Headline` (+ `SubCopy`, `Eyebrow`), `Illustration`, `Avatar`, `Card` (+ `CardTitle`), `Chip`, `StatHero`, `StatChip`, `PromptCard`, `ListRow`, `MMRButton`, `MMRTextField`, `InlineError`. Colours, radii and type come only from the tokens. The React row wrappers (`ChipRow`, `StatChipRow`) are a plain `HStack` here, and `PromptCard` has a `dashed` variant (the D47 outline card) the React one draws by hand. |
 | `Resources/` | Asset catalog with the cover and envelope illustrations (PNGs from `my-money-recap/assets/illustrations/`, `ill-cover.webp` and `ill-envelope.webp`). |
-| `Tests/`, `UITests/` | XCTest unit tests on the view models, the magic-link handler and session (against a stub realm), the Keychain and the token refresh, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test user; the two UI tests above. |
+| `Tests/`, `UITests/` | XCTest unit tests on the view models, the magic-link handler and session (against a stub realm), the Keychain and the token refresh, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test Member; the two UI tests above. |
 | `scripts/` | `simulator-udid.sh`, `ui-test.sh`. |
 
 Not yet here: the Fredoka and Nunito font files are not bundled, so the type ramp renders in the system
