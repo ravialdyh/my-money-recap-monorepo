@@ -10,13 +10,14 @@ python3 tools/policy/check_policy.py path/to/file.go # just these
 
 `policy.json` holds the numbers and the exclusions. `scanner.py` is a tokeniser that knows string
 literals, so `"http://localhost:8080"` is never mistaken for a comment, and knows four comment
-syntaxes: `// /// /* */` for Go, Swift, TypeScript, JavaScript and protobuf, `#` for YAML, shell,
-Python, Dockerfile, `.conf` and the ignore files, `--` for SQL, and `/* */` for CSS.
+syntaxes: `// /// /* */` for Go, Swift, TypeScript, JavaScript and protobuf, `#` for YAML, TOML,
+shell, Python, Dockerfile, `.conf`, the ignore files and the other dotfile configs, `--` for SQL,
+and `/* */` for CSS.
 
 ## The rules
 
-**A file is at most 300 lines.** Every text file, whether or not the scanner knows its comment
-syntax.
+**A file is at most 300 lines.** Every text file outside `exclude` (below), whether or not the
+scanner knows its comment syntax.
 
 **A comment is either a directive or a docstring on a declaration. Nothing else survives.**
 
