@@ -84,6 +84,8 @@ flowchart LR
 
 ### 4.3 Events: RabbitMQ with the outbox pattern (A4, A5)
 
+Planned: A4 and A5 are proposed, no service publishes an event yet, and `compose.yaml` runs no broker until the outbox relay publishes to one.
+
 RabbitMQ is a queue: it delivers each message to one consumer in a queue and forgets it after the ack. That is what phase 1 needs. Correctness comes from the pattern around it, which is the same for every broker.
 
 | Element | Setting | Why |
@@ -375,7 +377,7 @@ One Postgres container, five databases, five roles, each role granted only its o
 | members, ledger, notify, currency | built from the one Go module `apps/backend`, command `cmd/<service>` (the one `Dockerfile`, `CMD=<service>`) | 8080 internal each | postgres, rabbitmq, and redis where §4.4 lists it |
 | keycloak | quay.io/phasetwo/phasetwo-keycloak, pinned tag (§7.5) | 8080 internal | postgres |
 | postgres | postgres:17 | 5432 internal | volume |
-| rabbitmq | rabbitmq:4-management | 5672, 15672 internal | volume |
+| rabbitmq (planned, A5) | rabbitmq:4-management | 5672, 15672 internal | volume |
 | redis | redis:8 | 6379 internal | — |
 | otel-lgtm | grafana/otel-lgtm | 4317 internal, 3000 admin-only | volume |
 | pg-backup | built from `infra/pg-backup` (cron + `pg_dump`) | — | postgres |

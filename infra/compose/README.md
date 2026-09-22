@@ -1,7 +1,7 @@
 # infra/compose
 
 The phase-1 stack on a laptop (`docs/ARCHITECTURE.md` §10, A9). It runs Keycloak (Phase Two
-image, pinned), Postgres, RabbitMQ, Redis, the `members` and `notify` migration steps, the OpenTofu
+image, pinned), Postgres, Redis, the `members` and `notify` migration steps, the OpenTofu
 step that builds the `mmr` realm, the `members` service, `notify`, the BFF, Nginx and its `acme.sh`
 sidecar. Mailpit catches the mail `notify` sends and is dev-only, behind the `mail` profile, which
 every command here takes because `notify` has no other mail host on a laptop (see "Mailpit").
@@ -66,7 +66,6 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | --- | --- | --- | --- |
 | postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members` and `notify` — three of the five A9 plans — one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). |
 | keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). Its file vault reads the two identity-provider secrets from `/run/secrets` (see "Secrets"). |
-| rabbitmq | `rabbitmq:4-management` | — | Nothing publishes to it or consumes from it yet: the outbox and the broker (A4, A5) are still proposed. |
 | redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link rate limit, the first §4.4 job built (`apps/backend/cmd/bff/README.md`). Published to loopback so a `bff` run on the host has a Redis too. The other four §4.4 jobs are not built yet; the JWKS is cached in each process's memory (`internal/auth`). |
 | members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. Reads its connection string from `/run/secrets/members_database_url`, as `members` does. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy. |

@@ -14,7 +14,7 @@ This repository is the monorepo for it: product docs and design record, illustra
 | `my-money-recap-ds/` | `@my-money-recap/ui` — the React design system: tokens, components, the four Recap screens |
 | `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members` and `notify` services) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
 | `packages/` | `packages/contract`, the Buf module every client is generated from |
-| `infra/` | `infra/compose`, the phase-1 Compose stack (Keycloak, Postgres, RabbitMQ, Redis, `members`, `notify`, the BFF, Nginx and its `acme.sh` sidecar, and Mailpit on a laptop); `infra/tofu/realm`, the Keycloak realm in OpenTofu; `infra/nginx`, the edge's configuration and static files; `infra/secrets`, the SOPS-encrypted secret set, committed as its shape; `infra/wizard`, the nine setup steps only a human can do. See `infra/README.md` |
+| `infra/` | `infra/compose`, the phase-1 Compose stack (Keycloak, Postgres, Redis, `members`, `notify`, the BFF, Nginx and its `acme.sh` sidecar, and Mailpit on a laptop); `infra/tofu/realm`, the Keycloak realm in OpenTofu; `infra/nginx`, the edge's configuration and static files; `infra/secrets`, the SOPS-encrypted secret set, committed as its shape; `infra/wizard`, the nine setup steps only a human can do. See `infra/README.md` |
 
 It is an npm workspace with one member today, `my-money-recap-ds` (`apps/*` and `packages/*` are
 declared for later JavaScript packages; nothing there has a `package.json`), so one `npm install` at
