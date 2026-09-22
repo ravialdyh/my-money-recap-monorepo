@@ -69,10 +69,11 @@ for a device build.
 ## Build and test from the command line
 
 Run the build and unit-test steps of the `ios` job in `.github/workflows/ci.yml` from `apps/ios`; they
-carry the coverage flags `tools/coverage/README.md` measures with. Nothing names a simulator device or OS
-version (the "Device and OS coverage" section of issues #16 and #18): the build uses the generic
-simulator destination and `scripts/simulator-udid.sh` picks a booted or available iPhone simulator
-through `simctl`.
+carry the coverage flags `tools/coverage/README.md` measures with. Delete `build/MyMoneyRecap.xcresult`
+before a rerun: xcodebuild refuses an existing result bundle and runs no test. Nothing names a
+simulator device or OS version (the "Device and OS coverage" section of issues #16 and #18): the build
+uses the generic simulator destination and `scripts/simulator-udid.sh` picks a booted or available
+iPhone simulator through `simctl`.
 
 ## The UI tests against Compose
 
@@ -112,7 +113,8 @@ scripts/ui-test.sh
 Result bundles land in `build/ui-newest.xcresult` and `build/ui-oldest.xcresult`, with the screenshots
 exported next to them; `scripts/ui-test.sh oldest` (or `newest`) runs one destination.
 `scripts/simulator-udid.sh newest|oldest` is the selection on its own (it creates an iPhone on a runtime
-that has none), and with no argument it keeps the booted-or-first behaviour the unit-test command uses.
+that has none), and with no argument it keeps the booted-or-first behaviour of the `ios` job's
+unit-test step.
 
 Install an older runtime through Xcode > Settings > Components where your Xcode still offers one; the
 script picks it up on the next run.
