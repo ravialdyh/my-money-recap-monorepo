@@ -1,9 +1,9 @@
 # notify
 
 The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and every outbound email.
-Slice 3 (#68) serves `EmailMagicLink` and nothing else; the Target Warning state, preferences,
-device registration, the CSV export email, the schedulers, the RabbitMQ consumers and the outbox
-arrive in slice 7.
+It serves `EmailMagicLink` and nothing else, since #68 (PR #77); the Target Warning state,
+preferences, device registration, the CSV export email, the schedulers, the RabbitMQ consumers and
+the outbox arrive in slice 7.
 
 `EmailMagicLink` is a pre-authentication procedure: the BFF reaches it on a request that carries no
 token, so it is exempt from the bearer check by procedure name and never by service (§4.2 point 3,

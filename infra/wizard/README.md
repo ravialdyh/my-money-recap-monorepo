@@ -53,8 +53,7 @@ and the same attempt is what makes the seven value steps readable, so an absent 
 `prod.yaml` reports all eight checkable steps missing.
 
 **Apple Developer Program enrolment produces no value**, so there is nothing on this machine to look
-at. It is reported by hand and never counts toward the exit status (slice 3 spec #61, testing
-decision 9).
+at. It is reported by hand and never counts toward the exit status (spec #61, testing decision 9).
 
 **The values the stack assembles for itself are checked too.** `members_db_password`,
 `members_database_url`, `notify_db_password`, `notify_database_url`, `postgres_password`,
@@ -70,7 +69,8 @@ row, below the nine, and they count toward the exit status.
 creation rules by walking up from the working directory rather than from the file named on the
 command line. `sops edit infra/secrets/prod.yaml`, the command `docs/ARCHITECTURE.md` §10 and
 `infra/secrets/README.md` both quote, is run from the root, so that is where the rule has to be. It
-stays git-ignored this slice along with `prod.yaml` (A13, `infra/secrets/README.md`).
+stays git-ignored along with `prod.yaml` until a real age key exists; committing both is the first
+item of #74's follow-up issue (A13, `infra/secrets/README.md`).
 
 ## Proving it
 
