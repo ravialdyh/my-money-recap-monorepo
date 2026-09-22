@@ -42,7 +42,7 @@ By hand, against that stack's Postgres and Keycloak, on a port the stack does no
 cd apps/backend
 export MEMBERS_DATABASE_URL="postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members"
 go run ./cmd/members migrate
-MEMBERS_OIDC_ISSUER=http://localhost:8080/realms/mmr MEMBERS_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs MEMBERS_LISTEN=:8083 go run ./cmd/members
+MEMBERS_OIDC_ISSUER=http://localhost:8080/realms/mmr MEMBERS_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs MEMBERS_LISTEN=:8086 go run ./cmd/members
 ```
 
 Call it with a token for the realm's test user (`infra/compose/README.md`, "Try it"):
