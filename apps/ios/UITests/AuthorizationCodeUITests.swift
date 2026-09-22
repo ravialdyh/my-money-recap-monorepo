@@ -46,7 +46,7 @@ final class AuthorizationCodeUITests: XCTestCase {
         }
         let secret = sheet.webViews.secureTextFields.firstMatch
         type(password, into: secret)
-        secret.typeText("\n")
+        submit(secret, holding: password)
 
         assertHomeAtZero(app)
         snapshot("03-home-at-zero-through-the-web-sheet")
@@ -78,6 +78,22 @@ final class AuthorizationCodeUITests: XCTestCase {
             XCTContext.runActivity(named: "attempt \(attempt) read back \(typed) of \(text.count)") { _ in }
         }
         XCTFail("\(field) never read back what was typed")
+    }
+
+    /// A lone Return is dropped the same way, and the Sign In button can sit under the keyboard's toolbar. So Return
+    /// is sent again while the form, still holding the whole text, has not gone after ten seconds.
+    private func submit(_ field: XCUIElement, holding text: String) {
+        for attempt in 1 ... 3 {
+            field.typeText("\n")
+            let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: field)
+            if XCTWaiter().wait(for: [gone], timeout: 10) == .completed {
+                return
+            }
+            guard (field.value as? String ?? "").count == text.count else {
+                return
+            }
+            XCTContext.runActivity(named: "Return \(attempt) left the form in place") { _ in }
+        }
     }
 
     private func systemButton(_ title: String, in _: XCUIApplication) throws -> XCUIElement {
