@@ -34,8 +34,8 @@ envelope, one sentence, no control. It is one self-contained file with no script
 its own, so tapping the link on a laptop cannot spend the login token — the token is only ever
 consumed by the app's own POST to the token endpoint (PRD §11, A10). `/magic` and `/magic?lt=…`
 answer the same bytes, which `TestEdge` asserts. The envelope is drawn inline rather than served
-from `my-money-recap/assets/illustrations/`, because the deploy copies the Compose file and this
-directory and nothing else.
+from `my-money-recap/assets/illustrations/`, because the deploy copies only what `compose.yaml`
+mounts ([`../README.md`](../README.md), "Deploying", step 5), and `my-money-recap/` is not among it.
 
 ## The limits
 
@@ -61,8 +61,8 @@ inside a request body, so the BFF enforces that limit itself in Redis, fail clos
 
 ## TLS and the `acme.sh` sidecar
 
-On a laptop nginx serves plain HTTP on port 80, published as `NGINX_HOST_PORT`, and holds no
-certificate. The `acme` container runs the image's `daemon` command, which is supercronic over a
+Nginx serves plain HTTP on port 80, published as `NGINX_HOST_PORT` (80 itself on the machine), and
+holds no certificate on any stack yet. The `acme` container runs the image's `daemon` command, which is supercronic over a
 crontab that calls `acme.sh --cron`; with no domain it has nothing registered and renews nothing.
 Both containers mount the `acme-certs` volume, nginx read-only, so the wiring §10 describes exists
 before there is anything to put in it. Issuing a certificate, the `listen 443` server and the deploy

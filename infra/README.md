@@ -2,16 +2,16 @@
 
 Deployment and infrastructure-as-code.
 
-- `infra/compose/` — the phase-1 `compose.yaml`: Keycloak (Phase Two image, pinned), Postgres, Redis, the `members` and `notify` migration steps, the OpenTofu step that builds the `mmr` realm, `members`, `notify`, the BFF, Nginx with its `acme.sh` sidecar, and Mailpit behind a dev-only profile. See [`compose/README.md`](compose/README.md) for how to start it.
+- `infra/compose/` — the phase-1 `compose.yaml` that a laptop, CI and the machine all run. [`compose/README.md`](compose/README.md) lists its containers and how to start it.
 - `infra/tofu/realm/` — the `mmr` realm in OpenTofu (official `keycloak/keycloak` provider, A13): the realm, the `ios` and `bff` clients, the `login-token` scope, the custom `ios direct grant` flow, the test Member, and the Google and Apple identity providers with their secrets as Keycloak vault references. The Compose stack applies it on every `up`; the lock file covers `linux_amd64`, `linux_arm64` and `darwin_arm64`, which are CI, the one-shot container and a Mac running pre-commit.
-- `infra/secrets/` — every secret, encrypted with SOPS and an age key (A13). Decrypted on the deploy runner into one directory as one file per value; the machine receives its `.env` and Keycloak's two vault files from it, never the age key (see "Deploying"). See [`secrets/README.md`](secrets/README.md). The repository holds the shape and no real value: the key set, the decrypt step and its proof (#66, PR #76).
-- `infra/nginx/` — the edge (§5, A7): one configuration file with the four routes and the per-IP limits, the static `/magic` fallback page and the apple-app-site-association file. Compose mounts both read-only into `nginx:stable`, beside an `acme.sh` sidecar that is written and inert until there is a domain. See [`nginx/README.md`](nginx/README.md).
-- `.github/workflows/deploy.yml` — the deploy (A15), written and never run; see "Deploying" below.
+- `infra/secrets/` — every secret, encrypted with SOPS and an age key (A13). The repository holds the shape and no real value: the key set, the decrypt step and its proof (#66, PR #76). See [`secrets/README.md`](secrets/README.md), and "Deploying" below for what reaches the machine.
+- `infra/nginx/` — the edge (§5, A7): one configuration file with the four routes and the per-IP limits, the static `/magic` fallback page and the apple-app-site-association file. Compose mounts both read-only into `nginx:stable`, beside the `acme.sh` certificate sidecar. See [`nginx/README.md`](nginx/README.md).
+- `.github/workflows/deploy.yml` — the deploy (A15); see "Deploying" below.
 - `infra/wizard/` — the one-time script for the nine steps only a human can do (`docs/research/2026-09-14-setup-automation.md` §4), with a non-interactive check mode that reports which are done. See [`wizard/README.md`](wizard/README.md).
 
 Planned, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
 
-- `infra/tofu/` — a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root, written and never applied. It is #74's, and is not written while the hosting company is still to be chosen. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/` (#72).
+- `infra/tofu/` — a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root. It is #74's, and is not written while the hosting company is still to be chosen. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/` (#72).
 - `infra/compose/` grows to the full §10 set: `ledger`, `currency`, `rabbitmq` once the outbox relay publishes to it (A4, A5), `otel-lgtm`, `pg-backup`.
 - `infra/pg-backup/` — the nightly `pg_dump` image.
 
@@ -55,12 +55,12 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
    uid 2000 in the Phase Two image and `ubuntu` is uid 1000, so a file only its owner can read would be
    unreadable to Keycloak, while the directory keeps every other account on the machine out.
 6. Log the machine in to GHCR with the job's token, pull the three images, tag them `mmr-members`,
-   `mmr-notify` and `mmr-bff` (the names Compose gives the images it builds on a laptop), log out,
-   and `docker compose up -d --wait`. Compose finds its images present and builds nothing; the
+   `mmr-notify` and `mmr-bff` (the names Compose gives the images it builds on a laptop), and
+   `docker compose up -d --wait`. Compose finds its images present and builds nothing; the
    `build:` sections stay for the laptop. `realm-apply` builds the realm and the migration steps run
    in the order `service_completed_successfully` already gives them. `nginx` is restarted last,
    because a running container keeps serving the files it was started with after the copy replaces
-   them.
+   them. The GHCR login is removed when that script exits, whether or not it succeeded.
 
 **The machine's `.env`** is the laptop's with four differences: `MMR_HOST` is the domain,
 `REALM_SSL_REQUIRED=external` sets the realm's `ssl_required` (spec #61: never the laptop's `none`),
@@ -83,14 +83,23 @@ who can run `docker inspect` on the machine can already read any file there, and
 holds the age key.
 
 **Chosen once, not rotated by a tag.** The other seven stack values are fixed when their volume is
-first initialised: `postgres/10-databases.sh` sets the three database passwords on an empty Postgres
-(the two connection strings carry two of them), and `kc_bootstrap_admin_password` seeds the admin of
-an empty Keycloak database. A tag that changes one leaves the running role or admin on the old
-value, so the migration steps, Keycloak or `realm-apply` fail to sign in, and a changed
+first initialised ([`compose/README.md`](compose/README.md), "Secrets"; the two connection strings
+carry two of the database passwords). A tag that changes one leaves the running role or admin on the
+old value, so the migration steps, Keycloak or `realm-apply` fail to sign in, and a changed
 `postgres_password` changes nothing. Change one by hand on the machine first, then in `prod.yaml`;
 `down -v`, the laptop's answer, deletes the data there.
 
 **Not in the repository yet.** `infra/secrets/prod.yaml` is git-ignored and does not exist, and the
-workflow reads it anyway: committing it is #87's first item. Nor do the `production`
-environment and its `SOPS_AGE_KEY` exist yet, or the machine, which needs Docker, its Compose plugin
-and the deploy key's public half from cloud-init.
+workflow reads it anyway; when it is committed is in [`secrets/README.md`](secrets/README.md). Nor do
+the `production` environment and its `SOPS_AGE_KEY` exist yet, or the machine, which needs Docker,
+its Compose plugin and the deploy key's public half from cloud-init. And a deploy today would start a
+machine that is not whole:
+
+- **No mail.** `compose.yaml` sets `notify`'s mail host to `mailpit:1025` and its sender to a `.test`
+  address for every stack, and the deploy starts no Mailpit, so email sign-in on the machine fails
+  until #87 item 8 gives `notify` a provider, and the SMTP AUTH it does not send yet.
+- **No TLS.** Nginx serves plain HTTP on port 80; the certificate, the `listen 443` server and the
+  reload hook are #87's ([`nginx/README.md`](nginx/README.md), "TLS and the `acme.sh` sidecar").
+- **A placeholder Team ID.** The apple-app-site-association file ships with `TEAMID` in its `appIDs`
+  entry, because nothing writes `apple_team_id` into it yet
+  ([`nginx/README.md`](nginx/README.md), "The two static files").
