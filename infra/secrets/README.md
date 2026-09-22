@@ -2,9 +2,11 @@
 
 Every secret, encrypted with SOPS and an age key (`docs/ARCHITECTURE.md` A13, §7.5). One age private
 key is the only secret a human ever holds; everything else is ciphertext in git. The deploy decrypts
-it on the runner: `members` and `notify` read their connection strings, and Keycloak its two
-identity-provider secrets, as files, while the other stack values reach Compose through the
-machine's `.env` and their containers as environment variables (`../README.md`, "Deploying").
+it on the runner and sends the machine a `.env` of the domain, the eight stack values and the four
+identity-provider ids (`../compose/machine-env.sh`), and Keycloak's two identity-provider secrets as
+vault files. Compose writes the two connection strings from that `.env` into files `members` and
+`notify` read, and hands the other values to their containers as environment variables
+(`../README.md`, "Deploying").
 
 ## What is here, and what is not
 
