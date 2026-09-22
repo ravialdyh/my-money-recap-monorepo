@@ -1,8 +1,9 @@
 # infra/wizard
 
 The nine setup steps only a human can do (`docs/research/2026-09-14-setup-automation.md` §4), in
-order, in one script. Everything downstream of them is `tofu apply` and `docker compose up`, so this
-is where the setup stops living in the developer's head and starts living in the repository.
+order, in one script. Everything downstream of them is the planned machine root's `tofu apply` (#74)
+and the deploy's `docker compose up`, so this is where the setup stops living in the developer's head
+and starts living in the repository.
 
 ```bash
 infra/wizard/setup.sh            # walk the nine steps
@@ -13,17 +14,19 @@ Check mode is non-interactive and touches nothing, so the developer can stop hal
 
 ## The nine steps
 
-| # | Step | Produces | Checked by |
-| --- | --- | --- | --- |
-| 1 | One age key pair | `.sops.yaml` and `infra/secrets/prod.yaml` | attempting a decrypt |
-| 2 | Apple Developer Program enrolment | nothing | nothing: reported by hand |
-| 3 | App Store Connect API key | `app_store_connect_api_key` | key presence |
-| 4 | Apple Services ID and the two `.p8` keys | `apple_services_id`, `apple_team_id`, `apple_sign_in_key_id`, `apple_sign_in_key`, `apple_push_key` | key presence |
-| 5 | Google OAuth client | `google_client_id`, `google_client_secret` | key presence |
-| 6 | Open Exchange Rates App ID | `open_exchange_rates_app_id` | key presence |
-| 7 | SMTP provider account and its first token | `smtp_token` | key presence |
-| 8 | Domain, and a registrar token scoped to its zone | `domain`, `registrar_token` | key presence |
-| 9 | Cloud account, its API token and a deploy key | `cloud_api_token`, `deploy_ssh_private_key` | key presence |
+1. One age key pair
+2. Apple Developer Program enrolment
+3. App Store Connect API key
+4. Apple Services ID and the two `.p8` keys
+5. Google OAuth client
+6. Open Exchange Rates App ID
+7. SMTP provider account and its first token
+8. Domain, and a registrar token scoped to its zone
+9. Cloud account, its API token and a deploy key
+
+The keys each step fills in `infra/secrets/prod.yaml`, and where its value comes from, are `STEPS` in
+`setup.sh`; step 1 fills no key but creates the file itself and `.sops.yaml`, and step 2 produces
+nothing at all.
 
 Step 1 is first because every other step pastes into the file it creates, and it is `age-keygen`:
 free, local, and not a purchase. Step 9 also runs `ssh-keygen`, so the deploy workflow's transport
@@ -63,12 +66,8 @@ count toward the exit status.
 
 ## Where the creation rule goes
 
-`.sops.yaml` is written at the repository root, not beside `prod.yaml`, because `sops` resolves
-creation rules by walking up from the working directory rather than from the file named on the
-command line. `sops edit infra/secrets/prod.yaml`, the command `docs/ARCHITECTURE.md` §10 and
-`infra/secrets/README.md` both quote, is run from the root, so that is where the rule has to be. It
-stays git-ignored along with `prod.yaml` until a real age key exists; committing both is the first
-item of #87 (A13, `infra/secrets/README.md`).
+Step 1 writes `.sops.yaml` at the repository root, not beside `prod.yaml`. Why, and when the two are
+committed, is in [`../secrets/README.md`](../secrets/README.md), "What is here, and what is not".
 
 ## Proving it
 
