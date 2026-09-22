@@ -44,9 +44,9 @@ mode weighs them alongside the steps.
 | `open_exchange_rates_app_id` | The planned `currency` service's rate fetch |
 | `smtp_token` | `notify`'s SMTP login on the machine, owed by #87 (`notify` sends no AUTH yet); Mailpit needs none locally |
 | `domain` | The deploy workflow's SSH host, and the machine's `MMR_HOST` |
-| `registrar_token` | The DNS records of the machine root (#74), not written yet |
-| `cloud_api_token` | The VM, firewall and cloud-init of the machine root (#74), not written yet |
-| `deploy_ssh_private_key` | The deploy workflow's transport to the machine; the machine root (#74), not written yet, is to hand the public half to cloud-init |
+| `registrar_token` | The DNS records of the machine root (#87), not written yet |
+| `cloud_api_token` | The VM, firewall and cloud-init of the machine root (#87), not written yet |
+| `deploy_ssh_private_key` | The deploy workflow's transport to the machine; the machine root (#87), not written yet, is to hand the public half to cloud-init |
 | `members_db_password` | The Postgres init script, which needs the password by itself to create the role |
 | `members_database_url` | `members` and `members migrate`, as `MEMBERS_DATABASE_URL_FILE` |
 | `notify_db_password` | The same init script, which creates the `notify` role the same way |

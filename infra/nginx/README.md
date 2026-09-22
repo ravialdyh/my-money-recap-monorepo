@@ -66,5 +66,5 @@ holds no certificate on any stack yet. The `acme` container runs the image's `da
 crontab that calls `acme.sh --cron`; with no domain it has nothing registered and renews nothing.
 Both containers mount the `acme-certs` volume, nginx read-only, so the wiring §10 describes exists
 before there is anything to put in it. Issuing a certificate, the `listen 443` server and the deploy
-hook that runs `nginx -s reload` all need a public name and are #87's, once #74 names the
-machine.
+hook that runs `nginx -s reload` all need a public name, so they
+belong to #87, which also names the machine.

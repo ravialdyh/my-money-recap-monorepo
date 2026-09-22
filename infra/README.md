@@ -11,7 +11,7 @@ Deployment and infrastructure-as-code.
 
 Planned, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
 
-- `infra/tofu/` — a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root. It is #74's, and is not written while the hosting company is still to be chosen. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/` (#72).
+- `infra/tofu/` — a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root. It is #87's, and is not written until the hosting company is chosen there. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/` (#72).
 - `infra/compose/` grows to the full §10 set: `ledger`, `currency`, `rabbitmq` once the outbox relay publishes to it (A4, A5), `otel-lgtm`, `pg-backup`.
 - `infra/pg-backup/` — the nightly `pg_dump` image.
 
@@ -42,7 +42,7 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
    the value ends in one; OpenSSH refuses a key without it as `invalid format`. **`accept-new` checks
    nothing here**: a hosted runner starts with an empty `known_hosts` every run, so every deploy trusts
    whichever host answers at the domain and then sends it the machine's `.env`. Pinning the machine's
-   host key through cloud-init, and checking it strictly here, belongs to the machine root (#74).
+   host key through cloud-init, and checking it strictly here, belongs to the machine root (#87).
 4. Build `members`, `notify` and `bff` from the one `apps/backend/Dockerfile`, one `CMD` build
    argument each, and push them to GHCR as `ghcr.io/<owner>/<repository>/<service>:<tag>`. GHCR
    needs no account beyond the repository's own.
