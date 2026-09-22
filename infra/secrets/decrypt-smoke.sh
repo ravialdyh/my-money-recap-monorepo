@@ -35,8 +35,7 @@ echo "$want values, each its own file, mode 0400, contents intact"
 
 env=$work/machine.env
 ../compose/machine-env.sh "$work/out" >"$env"
-stack=$(bash -c "$(sed -n '/^STACK_KEYS=/,/"$/p' ../wizard/setup.sh)"'; echo $STACK_KEYS')
-[ -n "$stack" ] || fail "no STACK_KEYS found in the wizard"
+stack=$(./keyset.sh stack)
 for key in $stack; do
   grep -qxF "$(tr '[:lower:]' '[:upper:]' <<<"$key")='$(expected "$key")'" "$env" || fail "the machine's .env lost $key"
 done

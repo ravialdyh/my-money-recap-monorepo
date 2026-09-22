@@ -15,7 +15,7 @@ vault files. Compose writes the two connection strings from that `.env` into fil
 | `example.yaml` | yes | The key set with placeholder values, the convention `.env.example` already follows. It is what the wizard checks presence against, so the two files cannot drift. |
 | `decrypt.sh` | yes | The deploy's decrypt step: one file per value, mode 0400. |
 | `decrypt-smoke.sh` | yes | Its proof, on a throwaway age key it generates itself. |
-| `keyset.sh` | yes | The one reader of `example.yaml`'s shape: `keys` lists the key set, `value` prints the placeholder one key carries. The smoke and the wizard both go through it, so a change to the file's shape cannot leave the two disagreeing about the key set. |
+| `keyset.sh` | yes | The one reader of `example.yaml`'s shape: `keys` lists the key set, `value` prints the placeholder one key carries, and `stack` names the eight values the stack itself needs. The smoke, the wizard and `machine-env.sh` all go through it, so a change to the file's shape cannot leave them disagreeing about the key set. |
 | `prod.yaml` | **no** | The real values. Git-ignored until the nine human steps have been done; committing it is the first item of #87. |
 | `.sops.yaml`, at the **repository root** | **no** | The creation rule naming the age recipient. It sits at the root because sops resolves the rule by walking up from the working directory, not from the file it is given, so a copy in this directory is invisible to `sops edit infra/secrets/prod.yaml` run from the root. Git-ignored for the same reason as `prod.yaml`: a rule with an invalid recipient makes `sops edit` fail outright rather than degrade, so it cannot be committed before a key exists. |
 

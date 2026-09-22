@@ -8,8 +8,7 @@ SECRETS=$SECRETS_DIR/prod.yaml
 RULES=${WIZARD_RULES_FILE:-.sops.yaml}
 KEYSET=infra/secrets/keyset.sh
 KEY_FILE=${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}
-STACK_KEYS="members_db_password members_database_url notify_db_password notify_database_url
-postgres_password keycloak_db_password kc_bootstrap_admin_password bff_client_secret"
+STACK_KEYS=$("$KEYSET" stack)
 STACK_TITLE="Values the stack itself needs, chosen once and assembled"
 PLAIN=
 
