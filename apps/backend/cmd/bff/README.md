@@ -1,33 +1,21 @@
 # bff
 
-The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. Slice 1
-(#17) answers `GetHome` with a HomeView of zeros. Every RPC but `RequestMagicLink` verifies the
-bearer JWT against the realm JWKS (issuer, audience `bff`, expiry, signature; keys cached in memory
-and refetched on an unknown key id) and returns `unauthenticated` before any service is called
-(§4.2, A6), or `unavailable` when the keys it needs cannot be fetched or arrive as a 200 that is not
-JSON, so the phone keeps its session (PRD D61). Either answer carries a generic message; the
-verifier's reason, which can quote the realm's answer, goes to the log.
+The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
+serves `GetHome` and `RequestMagicLink`; the rest of `BffService` is planned. Every RPC but
+`RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
+service") before any service is called, and the token is then forwarded unchanged (§4.2).
 
-`RequestMagicLink` (#69) is the one procedure outside that check, exempted by procedure name in
-`internal/auth` because it is sent before a Member has a token — which is the whole point of it — so
-the handler reads the address from the request and never from the context's claims. It asks the
-realm for a service-account token as the `bff` client, calls the Phase Two extension's `login-token`
-endpoint on A10's terms (`expiration_seconds` 900, `reusable: false`, `force_create: true`,
-`set_email_verified: true`), builds `BFF_MAGIC_LINK_BASE_URL?lt=…` from the `lt:<uuid>` it gets back,
-and hands the address and the link to `notify.EmailMagicLink` (§7.5). That call carries no token
-either, and reaches `notify` only because `EmailMagicLink` is exempt on the same rule (#68). The
-`Idempotency-Key` header is copied when the caller sends one and is a fresh version 4 UUID per
-accepted request when it does not: nothing sets that header until slice 4, and `notify` rejects an
-empty key, so a missing one would dedupe every later send into silence (A14).
+`RequestMagicLink` (#69) is exempt from that check by procedure name, because it is sent before a
+Member has a token, so the handler reads the address from the request and never from the context's
+claims. It gets a login token from the realm on A10's terms, as the `bff` service account through
+the Phase Two extension's `login-token` endpoint, builds `BFF_MAGIC_LINK_BASE_URL?lt=…` from it, and
+hands the address and the link to `notify.EmailMagicLink` (§7.5), exempt on the same rule (#68). The
+`Idempotency-Key` header is copied when the caller sends one and is a fresh version 4 UUID when it
+does not, because `notify` rejects an empty key (A14).
 
-Before any of that, the request is counted against its address in Redis — §4.4's fifth job and the
-BFF's first Redis client. PRD §11's five per address per hour is a security requirement, and the
-key is the address rather than the token subject because this procedure carries no token. It
-**fails closed**: a Redis that cannot be reached answers `resource_exhausted` rather than letting
-the send through, unlike §4.4's fail-open per-Member limit, because A6 sets the rule per job and
-the edge cannot stand behind this one — `limit_req` keys on an IP address and cannot see an email
-address inside a request body. The counter is `INCR` and `EXPIRE` on `ml:<address>:<hour>`, one
-round trip, with the address lower-cased so a capital letter cannot buy five more.
+Before any of that, the request is counted against its address in Redis, `ml:<address>:<hour>` with
+the address lower-cased: §4.4's magic-link rate limit, five per address per hour (PRD §11), which
+fails closed with `resource_exhausted` (§4.4, A6). It is the BFF's one Redis client.
 
 `GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim (PRD
 §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
@@ -44,15 +32,12 @@ from the server clock in UTC until `SetTimezone` lands (A3).
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary; serves on `BFF_LISTEN` (default `:8080`). No subcommands, and its own start-up rather than `serve.Main` (see below). |
-| `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=bff .` |
 | `../../internal/bff/` | The handlers, the `Ledger` and `Notify` interfaces and their stubs, the magic-link path in `magiclink.go`, the unit tests and the three end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestEdge`). |
 | `../../internal/auth/` | The JWT interceptor and the token-forwarding client interceptor. |
 
-`members` and `notify` hand their name, their schema step and their handler to `serve.Main`, which
-is their whole start-up: the connection pool, the `migrate` subcommand, the bearer check and the
-shutdown, in one place, so `ledger` and `currency` add a service rather than a fourth copy of it.
-The BFF keeps its own `main.go` because it has none of the three things that body is: no database
-URL, no pool to open, no schema to apply, and a `/healthz` with nothing to ping (§6). Putting it
+The BFF keeps its own `main.go` rather than `serve.Main` (`apps/README.md`, "Every service") because
+it has none of the three things that body is: no database URL, no pool to open, no schema to apply,
+and a `/healthz` with nothing to ping (§6). Putting it
 through the same call would mean a nil pool and a nil migration step threaded through every
 service's start-up, which is a silent breakage away from a stack that does not come up.
 
@@ -66,7 +51,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_MEMBERS_URL` | required | The `members` service: `http://members:8080` in Compose. |
 | `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. Only `RequestMagicLink` calls it; `GetHome`'s `notify` is still the in-process stub. |
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
-| `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads from the environment; `BFF_CLIENT_SECRET_FILE` works like every other. |
+| `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
 | `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `http://<domain>:80/magic` on the machine today and `https://<domain>/magic` once TLS arrives (#87), `http://localhost:8090/magic` on a laptop, where Nginx serves the fallback page on `NGINX_HOST_PORT` (#72). |
 | `BFF_REDIS_ADDR` | required | Redis for the magic-link limit: `redis:6379` in Compose, `localhost:REDIS_HOST_PORT` from the host. No default, because a BFF that cannot find Redis refuses every magic-link request (§4.4). |
 | `BFF_LISTEN` | `:8080` | Listen address. |

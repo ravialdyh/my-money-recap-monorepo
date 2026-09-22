@@ -1,49 +1,36 @@
 # notify
 
 The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and every outbound email.
-It serves `EmailMagicLink` and nothing else, since #68 (PR #77); the Target Warning state,
-preferences, device registration, the CSV export email, the schedulers, the RabbitMQ consumers and
-the outbox arrive in slice 7.
+It serves `EmailMagicLink` alone (#68, PR #77); the Target Warning state, preferences, device
+registration, the CSV export email, the schedulers, the RabbitMQ consumers and the outbox are
+planned. Its image, bearer check, start-up, migrations and shared variables are every service's
+(`apps/README.md`, "Every service").
 
-`EmailMagicLink` is a pre-authentication procedure: the BFF reaches it on a request that carries no
-token, so it is exempt from the bearer check by procedure name and never by service (§4.2 point 3,
-`internal/auth`). Every other procedure of the same service answers `unauthenticated`
-without a valid token, as `members` does. It sends the link over SMTP, upgrading to STARTTLS when
-the host offers it, and one idempotency key sends one message: the row is claimed first and a
-refused SMTP host rolls it back, so a retried send answers success without a second email and a
-failed one leaves the key free (A14). An empty key is `invalid_argument`, because a missing key
-would dedupe every later send into silence.
+`EmailMagicLink` is exempt from the bearer check by procedure name, never by service, because the
+BFF calls it for a request that carries no token (§4.2 point 3); every other procedure answers
+`unauthenticated` without one. It sends the link over SMTP, upgrading to STARTTLS when the host
+offers it, once per address and idempotency key (A14): the row is claimed first and a refused SMTP
+host rolls it back. An empty key is `invalid_argument`.
 
 | Path | Holds |
 | --- | --- |
-| `main.go` | The binary: this service's name, its schema step and its handler, handed to `serve.Main`. `notify` serves on `NOTIFY_LISTEN` (default `:8080`); `notify migrate` applies the schema and exits. |
-| `../../Dockerfile` | The one Dockerfile for every binary, built with the module root as context: `docker build --build-arg CMD=notify .` |
+| `main.go` | The binary: its name, its schema step and its handler, handed to `serve.Main`. |
 | `../../internal/notify/` | The store, the SMTP client, the Connect handler and `migrations/*.sql` (embedded). |
-| `../../internal/serve/` | `serve.Main`: the start-up, the `migrate` subcommand and the shutdown `members` also uses. |
-| `../../internal/migrate/` | The migration runner `members` also uses. |
-| `../../internal/auth/` | The JWT interceptor and its pre-authentication exemption. |
 
 ## Environment
 
+Its own two, besides the shared `NOTIFY_*` set:
+
 | Variable | Serve | Migrate | Meaning |
 | --- | --- | --- | --- |
-| `NOTIFY_DATABASE_URL_FILE` | one of the two | one of the two | The file holding the whole connection string, `/run/secrets/notify_database_url` in Compose. Its trimmed contents win over `NOTIFY_DATABASE_URL` and it is never also reported missing (A13). |
-| `NOTIFY_DATABASE_URL` | one of the two | one of the two | `postgres://notify:<password>@postgres:5432/notify`; the `notify` role reaches only this database (A9). The plain form is what a local `go run` uses. |
-| `NOTIFY_SMTP_ADDR` | required | — | The mail host as `host:port`: `mailpit:1025` in Compose on every machine today; a real provider is #87's. |
+| `NOTIFY_SMTP_ADDR` | required | — | The mail host as `host:port`: `mailpit:1025` in Compose. Mailpit runs only on a laptop and in CI, behind the `mail` profile the deploy never passes, so the machine has no mail host until #87 item 8's provider, which also needs SMTP AUTH `notify` does not send yet. |
 | `NOTIFY_MAIL_FROM` | required | — | The envelope sender and the `From` header. |
-| `NOTIFY_OIDC_ISSUER` | required | — | As `BFF_OIDC_ISSUER` (`../bff/README.md`). |
-| `NOTIFY_OIDC_JWKS_URL` | required | — | As `BFF_OIDC_JWKS_URL`. |
-| `NOTIFY_OIDC_AUDIENCE` | `bff` | — | The `aud` a token must carry. |
-| `NOTIFY_LISTEN` | `:8080` | — | Listen address. |
 
 ## Run
 
 The normal way is the whole stack (`infra/compose/README.md`, "Run it"), which runs `notify-migrate`
-to completion and then starts `notify`. That command carries `--profile mail`, and it has to:
-`NOTIFY_SMTP_ADDR` is `mailpit:1025` and Mailpit is behind that profile, so an `up` without it
-leaves `notify` reporting healthy — `/healthz` pings only the database — while every send answers
-`unavailable` with `dial tcp: lookup mailpit ... no such host` in the log
-(`infra/compose/README.md`, "Mailpit").
+to completion and then starts `notify`. That command carries `--profile mail`, without which
+`notify` has no mail host (`infra/compose/README.md`, "Mailpit").
 
 By hand, against that stack's Postgres, Keycloak and Mailpit, on a port the stack does not publish:
 
@@ -56,11 +43,9 @@ NOTIFY_OIDC_ISSUER=http://localhost:8080/realms/mmr NOTIFY_OIDC_JWKS_URL=http://
 
 The call and the message it produces are in `infra/compose/README.md`, "Mailpit".
 
-## Migrations
+## The table
 
-`internal/notify/migrations/NNNN_name.sql`, applied in file-name order, each in one transaction,
-recorded in `schema_migrations`. Add a new numbered file; never edit an applied one. The one table
-is `magic_link_send`, unique on `(email, idempotency_key)` (§8). A14's `(member_id,
+The one table is `magic_link_send`, unique on `(email, idempotency_key)` (§8). A14's `(member_id,
 idempotency_key)` has no Member on this path, and the key alone was worse than no dedupe at all: a
 key already claimed for one address answered success for a different address and sent nothing, so
 `0002` moved the primary key onto the pair.
@@ -69,7 +54,7 @@ Every send first deletes rows older than the `retention` constant in `internal/n
 in the same transaction. Nothing else would ever delete them: the row holds a raw address typed at
 sign-in with no `member_id`, so ARCHITECTURE §7.3's `members.deleted` purge cannot reach it, and the
 link it dedupes dies after fifteen minutes (PRD D32). Sweeping on the write path keeps the retention
-bound off slice 7's scheduler.
+bound off notify's planned scheduler.
 
 ## Tests
 

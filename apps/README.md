@@ -23,10 +23,34 @@ That runs the unit tests. The tests against the Compose stack skip unless it is 
 variables are set: `infra/compose/README.md`, "Running the Go tests against this stack", lists them
 and runs them with `-p 1`, as the CI job `backend` does.
 
-Each service is one binary that serves by default and applies its embedded SQL migrations with the
-`migrate` subcommand; Compose runs `migrate` as a one-shot step the service waits on
-(`infra/compose/README.md`). To run one on the host against the stack's Postgres:
+### Every service
 
-```bash
-MEMBERS_DATABASE_URL=postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members go run ./cmd/members migrate
-```
+What `members`, `notify` and the BFF share, stated once here; each `cmd/<name>/README.md` holds only
+what is its own.
+
+- **One image.** `apps/backend/Dockerfile` builds any binary from the module root:
+  `docker build --build-arg CMD=<name> .` (ARCHITECTURE §10).
+- **One bearer check** (`internal/auth`, §4.2). Every RPC verifies the bearer JWT against the realm
+  JWKS: issuer, audience, expiry and signature, with the keys cached in memory and refetched on an
+  unknown key id. A bad or missing token is `unauthenticated`; keys that cannot be fetched, or arrive
+  as a 200 that is not JSON, are `unavailable`, so the phone keeps its session (PRD D61). Either
+  answer carries a generic message; the verifier's reason, which can quote the realm's answer, goes
+  to the log. `RequestMagicLink` and `EmailMagicLink` are exempt by procedure name, because they are
+  sent before a Member has a token (§4.2 point 3).
+- **One start-up for a service with a database.** `cmd/<name>/main.go` hands its name, its schema step
+  and its handler to `serve.Main` (`internal/serve`): the pool, the bearer check, a `/healthz` that
+  pings the pool, and the shutdown. `<name> migrate` applies `internal/<name>/migrations/NNNN_name.sql`
+  (embedded) in file-name order, each in one transaction, recorded in `schema_migrations`, and exits;
+  Compose runs it as a one-shot step the service waits on. Add a new numbered file; never edit an
+  applied one.
+- **One set of variables** for that start-up, `<NAME>` being the name upper-cased. Every variable, these
+  and a service's own (the BFF's too), can instead name a file in `<VARIABLE>_FILE`, whose trimmed
+  contents win over the plain variable, so a file-backed one is never also reported missing (A13).
+
+| Variable | Serve | Migrate | Meaning |
+| --- | --- | --- | --- |
+| `<NAME>_DATABASE_URL` | required | required | `postgres://<name>:<password>@postgres:5432/<name>`; each role reaches only its own database (A9). Compose passes it as `<NAME>_DATABASE_URL_FILE`, `/run/secrets/<name>_database_url`; the plain form is what a local `go run` uses. |
+| `<NAME>_OIDC_ISSUER` | required | — | The `iss` Keycloak stamps into tokens, as `BFF_OIDC_ISSUER` (`backend/cmd/bff/README.md`). |
+| `<NAME>_OIDC_JWKS_URL` | required | — | Where this process fetches the signing keys, as `BFF_OIDC_JWKS_URL`. |
+| `<NAME>_OIDC_AUDIENCE` | `bff` | — | The `aud` a token must carry. |
+| `<NAME>_LISTEN` | `:8080` | — | Listen address. |
