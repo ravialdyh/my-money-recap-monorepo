@@ -279,37 +279,6 @@ public nonisolated struct MoneyRecap_V1_Spend: Sendable {
   fileprivate var _updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
 }
 
-/// What every event carries (ARCHITECTURE §4.3, A4): the outbox row id as the
-/// message id, which processed_events dedupes on; when it occurred; the Member
-/// it concerns; and the routing key, so a consumer can log it.
-public nonisolated struct MoneyRecap_V1_EventEnvelope: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var messageID: String = String()
-
-  public var occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp {
-    get {_occurredAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
-    set {_occurredAt = newValue}
-  }
-  /// Returns true if `occurredAt` has been explicitly set.
-  public var hasOccurredAt: Bool {self._occurredAt != nil}
-  /// Clears the value of `occurredAt`. Subsequent reads from it will return its default value.
-  public mutating func clearOccurredAt() {self._occurredAt = nil}
-
-  public var memberID: String = String()
-
-  /// For example "ledger.spend.logged".
-  public var routingKey: String = String()
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-
-  fileprivate var _occurredAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
-}
-
 /// The Salary as Home needs it: the hero eyebrow's countdown (PRD §6.8).
 public nonisolated struct MoneyRecap_V1_SalaryFacts: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -479,55 +448,6 @@ nonisolated extension MoneyRecap_V1_Spend: SwiftProtobuf.Message, SwiftProtobuf.
     if lhs.note != rhs.note {return false}
     if lhs._createdAt != rhs._createdAt {return false}
     if lhs._updatedAt != rhs._updatedAt {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension MoneyRecap_V1_EventEnvelope: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".EventEnvelope"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}message_id\0\u{3}occurred_at\0\u{3}member_id\0\u{3}routing_key\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.messageID) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._occurredAt) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.memberID) }()
-      case 4: try { try decoder.decodeSingularStringField(value: &self.routingKey) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.messageID.isEmpty {
-      try visitor.visitSingularStringField(value: self.messageID, fieldNumber: 1)
-    }
-    try { if let v = self._occurredAt {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    if !self.memberID.isEmpty {
-      try visitor.visitSingularStringField(value: self.memberID, fieldNumber: 3)
-    }
-    if !self.routingKey.isEmpty {
-      try visitor.visitSingularStringField(value: self.routingKey, fieldNumber: 4)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: MoneyRecap_V1_EventEnvelope, rhs: MoneyRecap_V1_EventEnvelope) -> Bool {
-    if lhs.messageID != rhs.messageID {return false}
-    if lhs._occurredAt != rhs._occurredAt {return false}
-    if lhs.memberID != rhs.memberID {return false}
-    if lhs.routingKey != rhs.routingKey {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

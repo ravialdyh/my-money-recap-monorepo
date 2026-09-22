@@ -11,9 +11,11 @@ plugins:
     opt: paths=source_relative
   - remote: buf.build/apple/swift:v1.38.1
     out: swift/Sources/MoneyRecapContract
+    types: [money_recap.v1.BffService, money_recap.v1.EmailBounced]
     opt: Visibility=Public
   - remote: buf.build/connectrpc/swift:v1.2.3
     out: swift/Sources/MoneyRecapContract
+    types: [money_recap.v1.BffService, money_recap.v1.EmailBounced]
     opt:
       - Visibility=Public
       - GenerateAsyncMethods=true

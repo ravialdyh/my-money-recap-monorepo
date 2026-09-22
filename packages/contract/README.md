@@ -31,7 +31,7 @@ Slice 1 defined what the walking skeleton calls (#10); slice 2 (#42) added every
 | Output | Where | Consumer |
 | --- | --- | --- |
 | Go messages and Connect stubs/clients | `apps/backend/gen/money_recap/v1/` | the BFF and the services (one Go module at `apps/backend`) |
-| Swift messages and `connect-swift` client | `swift/Sources/MoneyRecapContract/` (local Swift package `MoneyRecapContract`) | the iOS app (`docs/IOS.md` I3) |
+| Swift: the `BffService` client and the messages it reaches, plus `EmailBounced` (`types:` in `buf.gen.yaml`); the service-to-service RPCs, events and fixture schema are Go only | `swift/Sources/MoneyRecapContract/` (local Swift package `MoneyRecapContract`) | the iOS app (`docs/IOS.md` I3), which talks to the BFF alone (§6) |
 
 Nothing under those paths is edited by hand. Plugin versions are pinned in `buf.gen.yaml`
 so the output is reproducible; the Swift package pins the matching runtime versions.
