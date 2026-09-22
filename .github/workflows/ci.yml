@@ -53,7 +53,7 @@ jobs:
               - '.swiftformat'
               - '.swiftlint.yml'
               - 'apps/ios/**'
-              - 'packages/contract/**'
+              - 'packages/contract/swift/**'
               - 'tools/coverage/**'
 
   quality:
