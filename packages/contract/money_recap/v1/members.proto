@@ -109,8 +109,8 @@ message CancelDeletionResponse {
 
 service MembersService {
   // Upsert on the Keycloak subject: creates on first sight, else returns the
-  // Member, refreshing the email when the token has one and publishing
-  // members.updated if it changed. Planned: a tombstoned row (deleted_at set)
+  // Member, refreshing the email when the token has one. Planned: members.updated
+  // when the email changed (outbox, §4.3); a tombstoned row (deleted_at set)
   // counts as absent (§7.1 step 3).
   rpc GetOrCreateBySubject(GetOrCreateBySubjectRequest) returns (GetOrCreateBySubjectResponse) {}
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
