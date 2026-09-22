@@ -53,9 +53,10 @@ type Service struct {
 	Notify  Notify
 	// MagicLink is the realm and the notify client RequestMagicLink needs (magiclink.go, A10).
 	MagicLink MagicLink
-	// Timeout bounds GetOrCreateBySubject and each fan-out call; zero means the §6.1 one second.
+	// Timeout bounds each call to a service; zero means the §6.1 one second.
 	Timeout time.Duration
-	// Now is the server clock; nil means time.Now. UTC until SetTimezone lands (#10, A3).
+	// Now is the server clock; nil means time.Now. GetHome's dates are UTC until ledger computes them in
+	// the Member's zone (A3).
 	Now func() time.Time
 }
 
@@ -66,22 +67,36 @@ const fallbackCurrency = "GBP"
 // The server's calendar strings (PRD §6.8): a Recap Month and a date.
 const monthLayout, dateLayout = "2006-01", "2006-01-02"
 
-func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
-	nowFn, timeout := s.Now, s.Timeout
-	if nowFn == nil {
-		nowFn = time.Now
+// timeout is Timeout with its default applied.
+func (s *Service) timeout() time.Duration {
+	if s.Timeout == 0 {
+		return time.Second
 	}
-	if timeout == 0 {
-		timeout = time.Second
-	}
-	claims := auth.From(ctx)
-	createCtx, cancel := context.WithTimeout(ctx, timeout)
+	return s.Timeout
+}
+
+// member creates the Member on first sight and answers their Profile: members.GetOrCreateBySubject with
+// the token's subject and email claim (PRD §5 step 5), which forwards the caller's token unchanged.
+func (s *Service) member(ctx context.Context) (*moneyrecapv1.Profile, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
 	defer cancel()
-	created, err := s.Members.GetOrCreateBySubject(createCtx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: claims.Subject, Email: claims.Email}))
+	claims := auth.From(ctx)
+	created, err := s.Members.GetOrCreateBySubject(ctx, connect.NewRequest(&moneyrecapv1.GetOrCreateBySubjectRequest{Subject: claims.Subject, Email: claims.Email}))
 	if err != nil {
 		return nil, requiredCallFailed("members.GetOrCreateBySubject", connect.CodeOf(err), err)
 	}
-	profile := created.Msg.Profile
+	return created.Msg.Profile, nil
+}
+
+func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
+	nowFn, timeout := s.Now, s.timeout()
+	if nowFn == nil {
+		nowFn = time.Now
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
 	memberID := profile.MemberId
 	now := nowFn().UTC()
 	month := now.Format(monthLayout)

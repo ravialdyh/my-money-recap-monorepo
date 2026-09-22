@@ -24,6 +24,12 @@ type fakeMembers struct {
 	createErr   error
 	profile     *moneyrecapv1.Profile
 	gotToken    string
+	gotZone     *moneyrecapv1.SetTimezoneRequest
+}
+
+func (f *fakeMembers) SetTimezone(_ context.Context, req *connect.Request[moneyrecapv1.SetTimezoneRequest]) (*connect.Response[moneyrecapv1.SetTimezoneResponse], error) {
+	f.gotZone = req.Msg
+	return connect.NewResponse(&moneyrecapv1.SetTimezoneResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId, Timezone: req.Msg.Timezone}}), nil
 }
 
 func (f *fakeMembers) GetOrCreateBySubject(ctx context.Context, req *connect.Request[moneyrecapv1.GetOrCreateBySubjectRequest]) (*connect.Response[moneyrecapv1.GetOrCreateBySubjectResponse], error) {
@@ -186,5 +192,24 @@ func TestDaysRemainingOnTheLastDay(t *testing.T) {
 	}
 	if h := res.Msg.Home; h.DaysRemaining != 1 || h.FirstRecapOn != "2026-03-01" {
 		t.Fatalf("days_remaining %d, first_recap_on %s", h.DaysRemaining, h.FirstRecapOn)
+	}
+}
+
+// SetTimezone refuses a call without an Idempotency-Key before reaching members, and otherwise creates the
+// Member first and hands members the phone's key, that Member's id and the zone (A14, #96).
+func TestSetTimezoneNeedsTheKeyAndCreatesTheMemberFirst(t *testing.T) {
+	members := &fakeMembers{}
+	s := newService(t, members, StubNotify{})
+	req := connect.NewRequest(&moneyrecapv1.BffServiceSetTimezoneRequest{Timezone: "Asia/Jakarta"})
+	if _, err := s.SetTimezone(ctx, req); connect.CodeOf(err) != connect.CodeInvalidArgument || members.gotToken != "" || members.gotZone != nil {
+		t.Fatalf("no key: %v, members reached: %v; want invalid_argument and no members call", err, members.gotToken != "" || members.gotZone != nil)
+	}
+	req.Header().Set("Idempotency-Key", "key-1")
+	res, err := s.SetTimezone(ctx, req)
+	if err != nil || res.Msg.Profile.Timezone != "Asia/Jakarta" {
+		t.Fatalf("SetTimezone: %v, %v", res, err)
+	}
+	if got := members.gotZone; members.gotToken != "Bearer tok" || got.IdempotencyKey != "key-1" || got.MemberId != "m-1" || got.Timezone != "Asia/Jakarta" {
+		t.Fatalf("members got token %q and %v, want the caller's token, key-1, m-1 and Asia/Jakarta", members.gotToken, got)
 	}
 }

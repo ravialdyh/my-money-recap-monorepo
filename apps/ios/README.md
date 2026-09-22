@@ -5,7 +5,8 @@ Enter email and Check your inbox (§6.2, §6.3) to a link that opens the app sig
 (I1), Sign in with Apple and Continue with Google handing the system web sheet straight to their
 provider (#71), and the authorization-code flow through Keycloak's login page behind a debug-only launch
 argument;
-the session in the Keychain (I2), the generated Connect client calling `GetHome` (I3), the
+the session in the Keychain (I2), the generated Connect client calling `SetTimezone` with the device's
+zone on every launch, under one `Idempotency-Key` (A3, A14), and then `GetHome` (I3), the
 `HomeSnapshot` cache in SwiftData (I4) and Home drawn at zero in the B1 "no salary set" layout (PRD §6.8,
 D54, D69). Nothing on Home navigates yet; the sheets and screens
 behind the chips, cards and buttons arrive with their own tickets.
@@ -126,7 +127,7 @@ and runs once.
 | --- | --- |
 | `App/` | Entry point, the SwiftData container, root switch between Sign in and Home (sign-out deletes the cache), `Info.plist` (URL scheme, the ATS local-networking allowance). |
 | `Auth/` | `AuthConfig` (issuer, client id, redirect, the login-token grant; no secret exists in the target), `AuthSession` (AppAuth discovery, PKCE authorization, `OIDAuthState`, the incoming magic link, fresh tokens, and a sign-out only when the realm refuses a refresh), `MagicLink` (the login token from any of the three sources, the direct grant, the state synthesized around the authorization request, and the failure codes behind the A3 copies and A1's error copy), `Keychain`. |
-| `Networking/` | `BffClient` builds the generated `MoneyRecap_V1_BffServiceClient` (proto codec, `MMR_BFF_URL` or its default); `BearerInterceptor` is the one interceptor of I3 so far, and sends `RequestMagicLink` with no token, keyed by its path in both halves. No request or response type is written here. |
+| `Networking/` | `BffClient` builds the generated `MoneyRecap_V1_BffServiceClient` (proto codec, `MMR_BFF_URL` or its default); `BearerInterceptor` is the one interceptor of I3, and sends `RequestMagicLink` with no token, keyed by its path in both halves. `SaveAttempt` holds one save attempt's `Idempotency-Key`, the same across its retries and new when the values change, which a write passes as a per-call header. No request or response type is written here. |
 | `Snapshots/` | `HomeSnapshot`, the one SwiftData model of I4: the `HomeView` bytes plus `updatedAt`, replaced whole on every success. |
 | `Screens/` | One folder per SCREEN-STATES group, each screen a view plus an `@Observable` view model (I6): `SignIn/` holds A1 Sign in, A2 Enter email and A3 Check your inbox on one navigation stack; `Home/`. |
 | `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `TextStyle+Font` (applies a type-ramp entry to a view), `Money` (the platform currency formatter, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen`, `Headline` (+ `SubCopy`, `Eyebrow`), `Illustration`, `Avatar`, `Card` (+ `CardTitle`), `Chip`, `StatHero`, `StatChip`, `PromptCard`, `ListRow`, `MMRButton`, `MMRTextField`, `InlineError`. Colours, radii and type come only from the tokens. The React row wrappers (`ChipRow`, `StatChipRow`) are a plain `HStack` here, and `PromptCard` has a `dashed` variant (the D47 outline card) the React one draws by hand. |
