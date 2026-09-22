@@ -89,6 +89,7 @@ final class AuthSession {
     /// check keeps the session (PRD D61).
     func freshAccessToken() async throws -> String {
         guard let authState else { throw CancellationError() }
+        let held = authState.lastTokenResponse
         do {
             let token: String = try await withCheckedThrowingContinuation { continuation in
                 authState.performAction { accessToken, _, error in
@@ -101,7 +102,9 @@ final class AuthSession {
                     }
                 }
             }
-            persist()
+            if authState.lastTokenResponse !== held {
+                persist()
+            }
             return token
         } catch {
             if !isSignedIn {

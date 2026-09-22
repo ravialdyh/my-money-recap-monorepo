@@ -10,9 +10,7 @@ final class MagicLinkSessionTests: XCTestCase {
         super.setUp()
         Keychain.delete()
         StubLoginTokenRealm.refused = []
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [StubLoginTokenRealm.self]
-        OIDURLSessionProvider.setSession(URLSession(configuration: configuration))
+        StubLoginTokenRealm.install()
     }
 
     override func tearDown() {
@@ -81,29 +79,14 @@ final class MagicLinkSessionTests: XCTestCase {
 /// Keycloak for `AuthConfig.issuer`: discovery, then each login token redeemed once and `invalid_grant` after,
 /// as for the `refused` ones a test marks expired. Any other grant, like the test host's own refresh, is
 /// refused and spends nothing.
-final class StubLoginTokenRealm: URLProtocol {
+final class StubLoginTokenRealm: StubURLProtocol {
     nonisolated(unsafe) static var refused: Set<String> = []
-
-    override static func canInit(with _: URLRequest) -> Bool {
-        true
-    }
-
-    override static func canonicalRequest(for request: URLRequest) -> URLRequest {
-        request
-    }
 
     override func startLoading() {
         guard let url = request.url else { return }
         let (status, body) = answer(for: url)
-        guard let response = HTTPURLResponse(
-            url: url, statusCode: status, httpVersion: nil, headerFields: ["Content-Type": "application/json"]
-        ) else { return }
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(body.utf8))
-        client?.urlProtocolDidFinishLoading(self)
+        respond(status, body)
     }
-
-    override func stopLoading() {}
 
     private func answer(for url: URL) -> (Int, String) {
         let issuer = AuthConfig.issuer.absoluteString

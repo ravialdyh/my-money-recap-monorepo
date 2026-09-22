@@ -12,7 +12,7 @@ final class AuthSessionTests: XCTestCase {
     }
 
     func testATransientRefreshFailureThrowsAndKeepsTheSession() async {
-        let session = expiredSession(realm: "unreachable.invalid")
+        let session = signedIn(realm: "unreachable.invalid")
         do {
             let token = try await session.freshAccessToken()
             XCTFail("freshAccessToken returned \(token) alongside the refresh error")
@@ -23,14 +23,14 @@ final class AuthSessionTests: XCTestCase {
     }
 
     func testARefusedRefreshSignsOutWithTheExpiredCopy() async {
-        let session = expiredSession(realm: "refusing.invalid")
+        let session = signedIn(realm: "refusing.invalid")
         await session.recoverFromUnauthenticated()
         XCTAssertFalse(session.isSignedIn)
         XCTAssertEqual(session.signInMessage, AuthSession.expiredCopy)
     }
 
     func testATransientRefreshFailureFailsTheCallAsUnavailable() async throws {
-        let session = expiredSession(realm: "unreachable.invalid")
+        let session = signedIn(realm: "unreachable.invalid")
         guard case let .failure(error) = try await intercept(session) else {
             return XCTFail("the call went out with the stale token")
         }
@@ -38,7 +38,7 @@ final class AuthSessionTests: XCTestCase {
     }
 
     func testARefusedRefreshOnTheRequestPathSignsOut() async throws {
-        let session = expiredSession(realm: "refusing.invalid")
+        let session = signedIn(realm: "refusing.invalid")
         try Keychain.write(NSKeyedArchiver.archivedData(
             withRootObject: XCTUnwrap(session.authState), requiringSecureCoding: true
         ))
@@ -52,7 +52,7 @@ final class AuthSessionTests: XCTestCase {
     }
 
     func testTheMagicLinkCallGoesOutWithNoHeaderAndWithoutAskingForAToken() async throws {
-        let session = expiredSession(realm: "refusing.invalid")
+        let session = signedIn(realm: "refusing.invalid")
         let sent = try await intercept(session, path: BearerInterceptor.unauthenticatedPath)
         guard case let .success(request) = sent else {
             return XCTFail("RequestMagicLink was failed before it was sent, so email sign-in cannot start")
@@ -62,7 +62,7 @@ final class AuthSessionTests: XCTestCase {
     }
 
     func testTheMagicLinkCallBehindTheEdgesAPIPrefixStillGoesOutWithNoHeader() async throws {
-        let session = expiredSession(realm: "refusing.invalid")
+        let session = signedIn(realm: "refusing.invalid")
         let edge = "https://mymoneyrecap.test/api"
         let sent = try await intercept(session, base: edge, path: BearerInterceptor.unauthenticatedPath)
         guard case let .success(request) = sent else {
@@ -72,17 +72,30 @@ final class AuthSessionTests: XCTestCase {
     }
 
     func testOnlyTheMagicLinkPathSkipsTheRecoverStepOnAnUnauthenticatedAnswer() async throws {
-        let skipped = expiredSession(realm: "refusing.invalid")
+        let skipped = signedIn(realm: "refusing.invalid")
         let onTheEmailPath = BearerInterceptor(session: skipped)
         _ = try await intercept(skipped, path: BearerInterceptor.unauthenticatedPath, through: onTheEmailPath)
         await respondUnauthenticated(onTheEmailPath)
         XCTAssertTrue(skipped.isSignedIn, "a tokenless call's refusal is not a refused refresh")
         XCTAssertNil(skipped.signInMessage, "else the expired copy waits on Sign in behind Enter email")
 
-        let recovered = expiredSession(realm: "refusing.invalid")
+        let recovered = signedIn(realm: "refusing.invalid")
         await respondUnauthenticated(BearerInterceptor(session: recovered))
         XCTAssertFalse(recovered.isSignedIn, "every other path still recovers, and signs out when refused")
         XCTAssertEqual(recovered.signInMessage, AuthSession.expiredCopy)
+    }
+
+    func testTheKeychainIsRewrittenOnlyWhenARefreshChangedTheSession() async throws {
+        Keychain.delete()
+        let held = try await signedIn(realm: "unreachable.invalid", expiresIn: 300).freshAccessToken()
+        XCTAssertEqual(held, "stale")
+        XCTAssertNil(Keychain.read(), "AppAuth handed back the token it held, so there was nothing to write")
+
+        let refreshed = try await signedIn(realm: "refreshing.invalid").freshAccessToken()
+        XCTAssertEqual(refreshed, "refreshed")
+        let stored = try XCTUnwrap(Keychain.read(), "else a relaunch reloads the spent token")
+        let reloaded = try NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: stored)
+        XCTAssertEqual(reloaded?.lastTokenResponse?.accessToken, "refreshed")
     }
 
     /// Runs `BearerInterceptor`'s request step alone, where no response interceptor follows a failure.
@@ -112,11 +125,10 @@ final class AuthSessionTests: XCTestCase {
         }
     }
 
-    /// A signed-in state whose access token has expired, so the next action refreshes against `realm`.
-    private func expiredSession(realm: String) -> AuthSession {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [StubRealm.self]
-        OIDURLSessionProvider.setSession(URLSession(configuration: configuration))
+    /// A signed-in state whose access token expires in `expiresIn` seconds; once it has, the next action refreshes
+    /// against `realm`.
+    private func signedIn(realm: String, expiresIn: Int = 0) -> AuthSession {
+        StubRealm.install()
         let endpoint = URL(string: "https://\(realm)/token")!
         let request = OIDAuthorizationRequest(
             configuration: OIDServiceConfiguration(authorizationEndpoint: endpoint, tokenEndpoint: endpoint),
@@ -125,7 +137,7 @@ final class AuthSessionTests: XCTestCase {
         )
         let authorization = OIDAuthorizationResponse(request: request, parameters: ["code": "code" as NSString])
         let token = OIDTokenResponse(request: authorization.tokenExchangeRequest()!, parameters: [
-            "access_token": "stale" as NSString, "expires_in": 0 as NSNumber,
+            "access_token": "stale" as NSString, "expires_in": expiresIn as NSNumber,
             "refresh_token": "refresh" as NSString, "token_type": "Bearer" as NSString,
         ])
         return AuthSession(authState: OIDAuthState(
@@ -134,9 +146,20 @@ final class AuthSessionTests: XCTestCase {
     }
 }
 
-/// The realm's token endpoint: `refusing.invalid` refuses the refresh token (RFC 6749 §5.2), any other host
-/// fails in transit, as with no signal.
-final class StubRealm: URLProtocol {
+/// The realm's token endpoint: `refusing.invalid` refuses the refresh token (RFC 6749 §5.2), `refreshing.invalid`
+/// answers it with the access token `refreshed`, and any other host fails in transit, as with no signal.
+final class StubRealm: StubURLProtocol {
+    override func startLoading() {
+        switch request.url?.host {
+        case "refusing.invalid": respond(400, #"{"error":"invalid_grant"}"#)
+        case "refreshing.invalid": respond(200, #"{"access_token":"refreshed","expires_in":300,"token_type":"Bearer"}"#)
+        default: client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
+        }
+    }
+}
+
+/// A realm answered from memory: `install()` routes AppAuth's requests to the subclass's `startLoading`.
+class StubURLProtocol: URLProtocol {
     override static func canInit(with _: URLRequest) -> Bool {
         true
     }
@@ -145,17 +168,20 @@ final class StubRealm: URLProtocol {
         request
     }
 
-    override func startLoading() {
-        guard let url = request.url, url.host == "refusing.invalid", let response = HTTPURLResponse(
-            url: url, statusCode: 400, httpVersion: nil, headerFields: ["Content-Type": "application/json"]
-        ) else {
-            client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
-            return
-        }
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(#"{"error":"invalid_grant"}"#.utf8))
-        client?.urlProtocolDidFinishLoading(self)
+    override func stopLoading() {}
+
+    static func install() {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [self]
+        OIDURLSessionProvider.setSession(URLSession(configuration: configuration))
     }
 
-    override func stopLoading() {}
+    func respond(_ status: Int, _ json: String) {
+        guard let url = request.url, let response = HTTPURLResponse(
+            url: url, statusCode: status, httpVersion: nil, headerFields: ["Content-Type": "application/json"]
+        ) else { return }
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: Data(json.utf8))
+        client?.urlProtocolDidFinishLoading(self)
+    }
 }
