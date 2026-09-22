@@ -12,14 +12,14 @@ This repository is the monorepo for it: product docs and design record, illustra
 | `docs/` | Product-level docs: the PRD, the screen-state contract, the domain glossary, the backend architecture, the iOS design and the design handoff (all 111 artboards) |
 | `my-money-recap/` | Illustration source: the WebP artwork, the app icon, and the scripts and prompts that produce them |
 | `my-money-recap-ds/` | `@my-money-recap/ui` — the React design system: tokens, components, the four Recap screens |
-| `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members` service) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
+| `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members` and `notify` services) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
 | `packages/` | `packages/contract`, the Buf module every client is generated from |
-| `infra/` | `infra/compose`, the phase-1 Compose stack (Keycloak, Postgres, RabbitMQ, Redis, `members`, the BFF), and `infra/tofu/realm`, the Keycloak realm in OpenTofu |
+| `infra/` | `infra/compose`, the phase-1 Compose stack (Keycloak, Postgres, RabbitMQ, Redis, `members`, `notify`, the BFF, Nginx and its `acme.sh` sidecar, and Mailpit on a laptop); `infra/tofu/realm`, the Keycloak realm in OpenTofu; `infra/nginx`, the edge's configuration and static files; `infra/secrets`, the SOPS-encrypted secret set, committed as its shape; `infra/wizard`, the nine setup steps only a human can do. See `infra/README.md` |
 
 It is an npm workspace with one member today, `my-money-recap-ds` (`apps/*` and `packages/*` are
 declared for later JavaScript packages; nothing there has a `package.json`), so one `npm install` at
-the root wires it up and there is a single `package-lock.json`. Go, Buf and Xcode are separate
-toolchains; each area's README says what it needs.
+the root wires it up and there is a single `package-lock.json`. Go, Buf, Xcode, OpenTofu, SOPS and
+age are separate toolchains; each area's README says what it needs.
 
 ## How the pieces connect
 
@@ -92,6 +92,9 @@ pre-commit run --hook-stage pre-push    # also regenerates and diffs the generat
 golangci-lint, SwiftLint, SwiftFormat, hadolint, buf and OpenTofu are per-language toolchains. The hooks skip
 with a note where the binary is missing, so a contributor touching only the design system does not
 have to install all of them; CI installs every one and runs the same commands as hard gates.
+SOPS and age have no hook. The wizard needs them, and so do `infra/secrets/decrypt-smoke.sh` and
+`infra/wizard/check-smoke.sh`, which CI's `backend` job runs after installing both, pinned to a
+checksum.
 
 SwiftFormat and SwiftLint only exist on macOS, so run them on a Mac before pushing Swift:
 
@@ -164,6 +167,8 @@ change to Go code alone can make it fail while `go.mod` stays the same.
 What the gating saves. These figures are **estimates**: they were measured from real runs while the
 `Security` workflow was still gated, then adjusted for its ungated jobs by counting each job as one
 billed minute, and nothing can be re-measured while GitHub refuses to start the jobs (`AGENTS.md`).
+They also predate everything the `backend` job has gained from PR #75 on — the OpenTofu, `sops` and
+`age` steps, Mailpit, `notify`, and the magic-link and edge tests — so no figure here includes it.
 The `dependencies` job compiles govulncheck and may round up to two minutes.
 
 | A change touching | Billable minutes (estimated) |
