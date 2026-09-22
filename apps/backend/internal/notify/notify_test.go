@@ -28,19 +28,35 @@ func TestAnEmptyIdempotencyKeyIsRefused(t *testing.T) {
 	}
 }
 
-// testDB opens the Compose stack's notify database, skipping unless the NOTIFY_TEST_* variables
-// infra/compose/README.md lists are set.
+// testDB is testPool at pgx's default size.
 func testDB(t *testing.T) *pgxpool.Pool {
+	t.Helper()
+	return testPool(t, 0)
+}
+
+// testPool opens the Compose stack's notify database and applies the schema, skipping unless
+// NOTIFY_TEST_DATABASE_URL is set. A maxConns above zero caps the pool, so a test can run it dry.
+func testPool(t *testing.T, maxConns int32) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("NOTIFY_TEST_DATABASE_URL")
 	if dsn == "" {
 		t.Skip("NOTIFY_TEST_DATABASE_URL not set")
 	}
-	db, err := pgxpool.New(t.Context(), dsn)
+	config, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if maxConns > 0 {
+		config.MaxConns = maxConns
+	}
+	db, err := pgxpool.NewWithConfig(t.Context(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(db.Close)
+	if err := Migrate(t.Context(), db); err != nil {
+		t.Fatal(err)
+	}
 	return db
 }
 
@@ -123,9 +139,6 @@ func TestOneKeyToTwoAddressesSendsToBoth(t *testing.T) {
 	}
 	db := testDB(t)
 	ctx := t.Context()
-	if err := Migrate(ctx, db); err != nil {
-		t.Fatal(err)
-	}
 	key := strings.ToLower(rand.Text())
 	first := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
 	second := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
@@ -163,9 +176,6 @@ func TestAClaimedKeySendsOnceAndAFailedSendFreesIt(t *testing.T) {
 	}
 	db := testDB(t)
 	ctx := t.Context()
-	if err := Migrate(ctx, db); err != nil {
-		t.Fatal(err)
-	}
 	address := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
 	sent, refused := strings.ToLower(rand.Text()), strings.ToLower(rand.Text())
 	t.Cleanup(func() {

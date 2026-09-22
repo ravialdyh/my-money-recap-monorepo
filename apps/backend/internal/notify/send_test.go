@@ -55,27 +55,6 @@ func serveFakeSMTP(conn net.Conn, replies []string) {
 	_, _ = io.Copy(io.Discard, reader)
 }
 
-// testPool is the Compose stack's notify database on a pool of maxConns, so a test can run the pool
-// out of connections the way two wedged sends do.
-func testPool(t *testing.T, maxConns int32) *pgxpool.Pool {
-	t.Helper()
-	dsn := os.Getenv("NOTIFY_TEST_DATABASE_URL")
-	if dsn == "" {
-		t.Skip("NOTIFY_TEST_DATABASE_URL not set")
-	}
-	config, err := pgxpool.ParseConfig(dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	config.MaxConns = maxConns
-	db, err := pgxpool.NewWithConfig(t.Context(), config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(db.Close)
-	return db
-}
-
 // A mail host that accepts and then goes silent must not outlive the caller's deadline: it holds a
 // pool connection idle in transaction, which starves the db.Ping behind /healthz and blocks the
 // db.Close cmd/notify defers.
@@ -220,9 +199,6 @@ func TestSendsOlderThanTheRetentionWindowAreSwept(t *testing.T) {
 	}
 	db := testDB(t)
 	ctx := t.Context()
-	if err := Migrate(ctx, db); err != nil {
-		t.Fatal(err)
-	}
 	address := "mmr-test-" + strings.ToLower(rand.Text()) + "@example.test"
 	stale, fresh, now := strings.ToLower(rand.Text()), strings.ToLower(rand.Text()), strings.ToLower(rand.Text())
 	t.Cleanup(func() {
