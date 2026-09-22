@@ -33,15 +33,3 @@ struct Eyebrow: View {
         Text(text).textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)
     }
 }
-
-/// One sentence under a title inside a card (`HelperText` in Headline.tsx).
-struct HelperText: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .textStyle(Tokens.TypeRamp.bodyS)
-            .foregroundStyle(Tokens.Text.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-}

@@ -2,8 +2,8 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// PRD §6.8 / SCREEN-STATES B1, drawn with the design-system components by name. This slice draws the
-/// "no salary set" layout at zero (D54, D69); the chips, Log a spend and the cards are not yet wired to screens.
+/// PRD §6.8 / SCREEN-STATES B1 at zero, the "no salary set" layout (D54, D69). The filled salary and target cards
+/// arrive with the screens that set them; the chips, Log a spend and the cards navigate nowhere yet.
 struct HomeView: View {
     @State private var model: HomeViewModel
 
@@ -72,17 +72,7 @@ struct HomeView: View {
         if !home.hasSalary {
             PromptCard(title: "Set your monthly salary", height: Tokens.Size.homeHeroCard)
         }
-        if home.hasSavingTarget {
-            Card(minHeight: Tokens.Size.homeTargetCard) {
-                HStack {
-                    CardTitle(text: "Saving target")
-                    Spacer()
-                    Text(Money.format(home.savingTarget.amount.amount, currency: home.currencyCode))
-                        .textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)
-                }
-                HelperText(text: home.savingTarget.progressSentence)
-            }
-        } else {
+        if !home.hasSavingTarget {
             PromptCard(title: "Set a saving target", height: Tokens.Size.homeTargetCard)
         }
         MMRButton(title: "Log a spend", icon: "plus") {}
