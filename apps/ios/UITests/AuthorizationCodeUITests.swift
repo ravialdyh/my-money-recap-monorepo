@@ -17,20 +17,19 @@ final class AuthorizationCodeUITests: XCTestCase {
             )
         }
         let app = XCUIApplication()
-        app.launchEnvironment = ProcessInfo.processInfo.environment
-            .filter { ["MMR_BFF_URL", "MMR_ISSUER"].contains($0.key) }
+        app.launchEnvironment = Self.appEnvironment
         app.launchArguments = ["--reset-session", "--reset-snapshot", "--authorization-code-flow"]
         app.launch()
         XCTAssert(app.staticTexts["Your month in money."].waitForExistence(timeout: 10))
 
         app.buttons["Continue with email"].tap()
-        try systemButton("Cancel", in: app).tap()
+        try systemButton("Cancel").tap()
         XCTAssert(app.staticTexts["We couldn't sign you in. Try again."].waitForExistence(timeout: 5))
         XCTAssert(app.buttons["Continue with email"].isEnabled, "cancelling the web sheet re-enables the buttons")
         snapshot("01-cancelled-inline-error")
 
         app.buttons["Continue with email"].tap()
-        try systemButton("Continue", in: app).tap()
+        try systemButton("Continue").tap()
         XCTAssertFalse(
             app.staticTexts["We couldn't sign you in. Try again."].exists,
             "the next tap clears the inline error"
@@ -96,7 +95,7 @@ final class AuthorizationCodeUITests: XCTestCase {
         }
     }
 
-    private func systemButton(_ title: String, in _: XCUIApplication) throws -> XCUIElement {
+    private func systemButton(_ title: String) throws -> XCUIElement {
         try XCTUnwrap(first(hosts.map { $0.buttons[title] }, attempts: 6), "no system button titled \(title)")
     }
 

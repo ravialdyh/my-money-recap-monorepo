@@ -12,7 +12,7 @@ final class MagicLinkTests: XCTestCase {
         let query = "?lt=lt%3Af891f3fb-dc63-4e62-92e3-cd0b948b93b8"
         let universal = try XCTUnwrap(URL(string: "https://mymoneyrecap.example/magic" + query))
         let scheme = try XCTUnwrap(URL(string: "mymoneyrecap://magic" + query))
-        let local = try XCTUnwrap(URL(string: "http://localhost:20082/magic" + query))
+        let local = try XCTUnwrap(URL(string: "http://localhost:8090/magic" + query))
         XCTAssertEqual(MagicLink.loginToken(in: universal), token)
         XCTAssertEqual(MagicLink.loginToken(in: scheme), token, "the custom scheme runs the same code")
         XCTAssertEqual(MagicLink.loginToken(in: local), token, "the launch argument hands over this one")
