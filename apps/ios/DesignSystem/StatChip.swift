@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Tinted pill with an 8pt status dot: "Money in £2,400", "Saved £640", "Spent £1,760".
+/// Tinted pill with an 8pt status dot: "Money in £2,400", "Saved £640".
 struct StatChip: View {
-    enum Tone { case earned, saved, spent }
+    enum Tone { case earned, saved }
     let tone: Tone
     let text: String
 
@@ -21,7 +21,6 @@ struct StatChip: View {
         switch tone {
         case .earned: Tokens.Data.chipEarned
         case .saved: Tokens.Data.chipSaved
-        case .spent: Tokens.Data.chipSpent
         }
     }
 
@@ -29,7 +28,6 @@ struct StatChip: View {
         switch tone {
         case .earned: Tokens.Text.primary
         case .saved: Tokens.Data.saved
-        case .spent: Tokens.Data.spent
         }
     }
 }

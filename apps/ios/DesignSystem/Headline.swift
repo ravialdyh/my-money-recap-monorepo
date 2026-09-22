@@ -13,6 +13,18 @@ struct Headline: View {
     }
 }
 
+/// Nunito body line under a headline, muted on the ground (`SubCopy` in Headline.tsx).
+struct SubCopy: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .textStyle(Tokens.TypeRamp.bodyM)
+            .foregroundStyle(Tokens.Text.onGroundMuted)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 /// Small label above a stat (`Eyebrow` in Headline.tsx): Nunito label, secondary ink.
 struct Eyebrow: View {
     let text: String
