@@ -3,7 +3,6 @@ package bff
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +11,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"uuid"
 
 	"connectrpc.com/connect"
 	"github.com/redis/go-redis/v9"
@@ -91,9 +91,7 @@ func (s *Service) RequestMagicLink(ctx context.Context, req *connect.Request[mon
 	}
 	key := req.Header().Get("Idempotency-Key")
 	if key == "" {
-		if key, err = newIdempotencyKey(); err != nil {
-			return nil, requiredCallFailed("bff.newIdempotencyKey", connect.CodeInternal, err)
-		}
+		key = uuid.NewV4().String()
 	}
 	token, err := s.MagicLink.loginToken(ctx, addr.Address)
 	if err != nil {
@@ -125,18 +123,6 @@ func (m MagicLink) withinLimit(ctx context.Context, addr string) error {
 		return connect.NewError(connect.CodeResourceExhausted, errors.New("too many magic-link requests for this address"))
 	}
 	return nil
-}
-
-// newIdempotencyKey is the fresh version 4 UUID a request carrying no Idempotency-Key header sends
-// to notify, which rejects an empty key. Nothing sets the header until slice 4, and one empty key
-// would dedupe every later send into silence (A14).
-func newIdempotencyKey() (string, error) {
-	var b [16]byte
-	if _, err := rand.Read(b[:]); err != nil {
-		return "", err
-	}
-	b[6], b[8] = b[6]&0x0f|0x40, b[8]&0x3f|0x80
-	return fmt.Sprintf("%x-%x-%x-%x-%x", b[:4], b[4:6], b[6:8], b[8:10], b[10:]), nil
 }
 
 // loginToken is the opaque lt:<uuid> the extension issues for addr, on A10's terms: 900 seconds,

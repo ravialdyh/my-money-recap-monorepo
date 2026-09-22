@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"uuid"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -81,7 +82,7 @@ func TestMagicLinkEndToEnd(t *testing.T) {
 	})
 
 	t.Run("one idempotency key sends one email", func(t *testing.T) {
-		address, key := freshAddress(t), mustIdempotencyKey(t)
+		address, key := freshAddress(t), uuid.NewV4().String()
 		for i := range 2 {
 			if _, err := anonymous.RequestMagicLink(ctx, request(address, key)); err != nil {
 				t.Fatalf("request %d carrying %s: %v", i+1, key, err)
@@ -99,16 +100,7 @@ func TestMagicLinkEndToEnd(t *testing.T) {
 // local run inside an hour would fail on its first request.
 func freshAddress(t *testing.T) string {
 	t.Helper()
-	return "mmr-test-" + mustIdempotencyKey(t) + "@example.test"
-}
-
-func mustIdempotencyKey(t *testing.T) string {
-	t.Helper()
-	key, err := newIdempotencyKey()
-	if err != nil {
-		t.Fatal(err)
-	}
-	return key
+	return "mmr-test-" + uuid.NewV4().String() + "@example.test"
 }
 
 func memberRows(t *testing.T, db *pgxpool.Pool, address string) int {
