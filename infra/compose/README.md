@@ -60,7 +60,7 @@ carries is ignored, and a stack first booted with any other name must be rebuilt
 
 ## What comes up
 
-The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.example`.
+The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.yaml`.
 
 | Container | Image | Host port | Notes |
 | --- | --- | --- | --- |
@@ -124,7 +124,7 @@ Compose identifies a stack by project name, so two worktrees that both run this 
 each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
 sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
 `BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `POSTGRES_HOST_PORT`, `REDIS_HOST_PORT`,
-`MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`); the defaults in `.env.example` are the stock
+`MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`); the defaults in `compose.yaml` are the stock
 stack the iOS app signs in against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
 `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
 Volumes and the `members`, `notify` and `bff` images are named after the project, so stacks do not share data either.
