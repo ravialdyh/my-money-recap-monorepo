@@ -1,5 +1,14 @@
 # Setup automation: what is code, what is a human
 
+> **Later replaced, noted 2026-09-22.** The body below is the record of 2026-09-14 and is kept as written. These of its suggestions were replaced:
+>
+> - Decrypting on the VM into Compose `secrets:` files under `/run/secrets`, with the age key kept on the VM (the summary's "Runtime secrets" row, §2 steps 2 and 3, §4 step 9, recommended change 6): the deploy decrypts on the GitHub runner and the machine never holds the age key. The machine receives a `.env` of the domain, the eight stack values and the four identity-provider ids, and Keycloak's two identity-provider secrets as vault files; Compose mounts those two vault files, and the two connection strings it takes from the `.env`, under `/run/secrets`. "Rotation = edit, commit, deploy" holds for the provider credentials and `bff_client_secret`; the stack's other passwords are chosen once, when their volume is first initialised (#73, PR #85; `ARCHITECTURE.md` §10 "Secrets (A13)").
+> - `.env` files among the rejected options (recommended change 9, `ARCHITECTURE.md` §9): the owner accepted a mode-0600 `.env` on the machine on 2026-09-22, and §9 now rejects a plain `.env` only as the store (#73, PR #85).
+> - `infra/secrets/prod.env.sops` (§2 step 1): the file is `infra/secrets/prod.yaml`, with its key set in `infra/secrets/example.yaml` (#66, PR #76).
+> - The vault names `${vault.<realm>_<name>}` and `${vault.prod_apple_p8}` (§3, recommended change 3): the vault uses the `KEY_ONLY` key resolver, and the realm references `${vault.google_client_secret}` and `${vault.apple_sign_in_key}` (#71, PR #84; `ARCHITECTURE.md` §7.5 "Secrets").
+> - §3's `.p8` as a static secret the Apple extension reads through the vault: the extension pinned in the image (1.17.0) never asks the vault, so Sign in with Apple cannot finish a code exchange with real values until that changes (#71, PR #84).
+> - One `infra/tofu/` for DNS, the VM and the realm (recommended change 7): the realm is its own root with its own state, `infra/tofu/realm/` (#65, PR #75), and the machine root is a separate one, still owed by #74.
+
 | | |
 |---|---|
 | Date | 2026-09-14 |

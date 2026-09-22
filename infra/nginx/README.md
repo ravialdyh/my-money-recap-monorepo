@@ -25,9 +25,9 @@ and falls back to the location's `default_type`. That is how the header comes ou
 `charset` directive. It is served from a `location =` with `try_files`, so there is no directory
 index and no trailing-slash redirect; Apple refuses a redirected association file
 (`docs/research/2026-09-14-setup-automation.md` §1.4). Its `appIDs` entry is
-`TEAMID.com.mymoneyrecap.app`: the bundle identifier is real, the team identifier is a placeholder
-until the Apple Developer Program enrolment, which is one of the nine human steps the wizard walks
-and produces no value a file can hold.
+`TEAMID.com.mymoneyrecap.app`: the bundle identifier is real, the team identifier is a placeholder.
+The real one is `apple_team_id` in the secrets file, which the wizard's step 4 claims since #71, but
+nothing writes it into this file yet: the deploy copies `html/` as it is.
 
 `html/magic.html` is the A3 web fallback page of `docs/SCREEN-STATES.md`: violet ground, an
 envelope, one sentence, no control. It is one self-contained file with no script and no request of
@@ -66,4 +66,5 @@ certificate. The `acme` container runs the image's `daemon` command, which is su
 crontab that calls `acme.sh --cron`; with no domain it has nothing registered and renews nothing.
 Both containers mount the `acme-certs` volume, nginx read-only, so the wiring §10 describes exists
 before there is anything to put in it. Issuing a certificate, the `listen 443` server and the deploy
-hook that runs `nginx -s reload` all need a public name and arrive with the machine (#74).
+hook that runs `nginx -s reload` all need a public name and are #87's, once #74 names the
+machine.

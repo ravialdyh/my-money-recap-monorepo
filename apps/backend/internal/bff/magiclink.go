@@ -20,7 +20,7 @@ import (
 )
 
 // Mailer is the slice of moneyrecapv1connect.NotifyServiceClient that RequestMagicLink needs (§7.3).
-// notify is real from slice 3 for this one RPC, while Notify stays a stub until slice 7.
+// notify is real for this one RPC since #68, while Notify stays a stub until slice 7.
 type Mailer interface {
 	EmailMagicLink(ctx context.Context, req *connect.Request[moneyrecapv1.EmailMagicLinkRequest]) (*connect.Response[moneyrecapv1.EmailMagicLinkResponse], error)
 }

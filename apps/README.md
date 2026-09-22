@@ -26,6 +26,9 @@ and their variables are set; the CI job `backend` runs them that way:
   `internal/members/members_test.go`;
 - the `notify` magic-link test, `NOTIFY_TEST_*`, which also needs Mailpit
   (`infra/compose/README.md`, "Mailpit");
+- the magic-link end-to-end test (`TestMagicLinkEndToEnd`, #69), which also needs Mailpit, and the
+  edge test through Nginx (`TestEdge`, #72), `BFF_TEST_*` listed in `infra/compose/README.md`,
+  "Running the Go tests against this stack";
 - the backend end-to-end test at the BFF's HTTP boundary (`TestEndToEnd`), `BFF_TEST_*` listed at
   the top of `internal/bff/e2e_test.go`. With the stock `.env`:
 

@@ -32,8 +32,8 @@ docker compose -f infra/compose/compose.yaml --profile mail ps
 **`--profile mail` is part of the command, not an extra.** `notify` is configured to send through
 `mailpit:1025` and has no second mail host, but its health check is the one every Go container
 shares and pings only the database. An `up` without the profile therefore returns a `notify` that
-reports healthy and answers every send with `unavailable`, which is the state ticket #69's
-magic-link path is built on. Leaving the profile out is a way to see what an `up` looks like without
+reports healthy and answers every send with `unavailable`, so every `RequestMagicLink` fails with
+that code, because the BFF's `EmailMagicLink` call to `notify` does (#69). Leaving the profile out is a way to see what an `up` looks like without
 a mail host, never a way to run the stack (see "Mailpit").
 
 Stop with `--profile mail down`; add `-v` to drop the volumes. A `down` takes the profile the `up`
@@ -66,15 +66,15 @@ The host ports are the `*_HOST_PORT` variables; their defaults are in `.env.exam
 | --- | --- | --- | --- |
 | postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members` and `notify` — three of the five A9 plans — one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). |
 | keycloak | the `KEYCLOAK_TAG` default in `compose.yaml` (Keycloak 26.6.6 with magic-link 0.75) | `KEYCLOAK_HOST_PORT` | One full Phase Two tag; never `latest` or a shorter tag (§7.5). Its file vault reads the two identity-provider secrets from `/run/secrets` (see "Secrets"). |
-| rabbitmq | `rabbitmq:4-management` | — | No consumer until slice 5. |
-| redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link limit, §4.4's fifth job and the first one built: five requests per address per hour, counted with `INCR` and `EXPIRE`, failing closed (#69). Published to loopback so a `bff` run on the host has a Redis too. The other four §4.4 jobs arrive with slices 4 and 5. |
+| rabbitmq | `rabbitmq:4-management` | — | Nothing publishes to it or consumes from it yet: the outbox and the broker (A4, A5) are still proposed. |
+| redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's magic-link limit, §4.4's fifth job and the first one built: five requests per address per hour, counted with `INCR` and `EXPIRE`, failing closed (#69). Published to loopback so a `bff` run on the host has a Redis too. The other four §4.4 jobs are not built yet; the JWKS is cached in each process's memory (`internal/auth`). |
 | members-migrate | built from `apps/backend` (`Dockerfile`, `CMD=members`) | — | One-shot: `members migrate` applies the embedded SQL migrations to the `members` database and exits. Reads its connection string from `/run/secrets/members_database_url`, as `members` does. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | — | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy. |
 | notify-migrate | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | — | One-shot: `notify migrate` applies the embedded SQL migrations to the `notify` database and exits. Reads its connection string from `/run/secrets/notify_database_url`, as `notify` does. |
 | mailpit | `axllent/mailpit`, pinned | 127.0.0.1:`MAILPIT_HOST_PORT` and `MAILPIT_SMTP_HOST_PORT` | Dev-only, behind the `mail` profile, so only an `up` carrying `--profile mail` starts it — which is why every command in "Run it" carries it (see "Mailpit"). Takes SMTP on 1025 and shows what arrived on 8025; both are published to loopback, the second so a `notify` run on the host has a mail host too. |
 | members | same image | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect, `/healthz` pings the database. Its connection string arrives as a file, never as an environment variable (see "Secrets"). Starts after the migration step and the realm step completed; verifies every bearer token against the realm JWKS (audience `bff`). |
-| notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect, `/healthz` pings the database. Slice 3 serves `EmailMagicLink` alone, which is the one procedure outside the bearer check (§4.2 point 3); every other procedure answers `unauthenticated` without a token and arrives in slice 7. Sends through `NOTIFY_SMTP_ADDR`, `mailpit:1025` here, so it is healthy but cannot send unless the `up` carried `--profile mail`. |
-| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` is healthy; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` is an in-process stub until slice 5, and so is `notify.GetWarningState` until slice 7; the `notify` container is real from slice 3 for `EmailMagicLink`, which the BFF calls from `RequestMagicLink` (#69). |
+| notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect, `/healthz` pings the database. It serves `EmailMagicLink` alone (#68), which is the one procedure outside the bearer check (§4.2 point 3); every other procedure answers `unauthenticated` without a token and arrives in slice 7. Sends through `NOTIFY_SMTP_ADDR`, `mailpit:1025` here, so it is healthy but cannot send unless the `up` carried `--profile mail`. |
+| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect: what the phone calls. Listens on 8080 inside the network like every Go container (§10). Starts after `members` and Redis are healthy and the realm step completed; verifies the token itself, then forwards it to `members` unchanged (§4.2). `ledger` is an in-process stub until slice 5, and so is `notify.GetWarningState` until slice 7; the `notify` container is real for `EmailMagicLink` since #68, and the BFF calls it from `RequestMagicLink` (#69). |
 | nginx | `nginx:stable` | `NGINX_HOST_PORT` | The edge (§5, A7): the four routes, the per-IP limits, the `/magic` fallback page and the apple-app-site-association file. One mounted configuration file and one mounted directory of static files, both read-only; see [`../nginx/README.md`](../nginx/README.md). Plain HTTP on a laptop, because ACME needs a domain. |
 | acme | `neilpang/acme.sh`, pinned | — | The certificate sidecar (§5, §10). Runs the image's `daemon` command and shares the `acme-certs` volume with Nginx; with no domain registered it renews nothing, which is all it does on a laptop. |
 
@@ -86,10 +86,10 @@ than `curl`, because the Keycloak image ships neither `curl` nor `wget`: it open
 Keycloak now starts with no realm and `realm-apply` builds it afterwards. The second hop stays,
 because `/health/ready` answers UP on the management port while a first boot is still bootstrapping
 on 8080, and `realm-apply` then gets `503 Service Unavailable` from the token endpoint.
-Keycloak and the BFF
-publish on every interface because the phone reaches them; the Postgres, `members` and `notify`
-ports bind to loopback and exist for the Connect-boundary tests (`apps/README.md`), as does
-Mailpit's, which is where the magic-link test reads the message it caused.
+Keycloak, the BFF and Nginx publish on every interface because the phone reaches them; the Postgres,
+`members` and `notify` ports bind to loopback and exist for the Connect-boundary tests
+(`apps/README.md`), as does Mailpit's, which is where the magic-link test reads the message it
+caused, and Redis's, so a `bff` run on the host has a Redis too.
 
 ## Secrets
 
@@ -128,16 +128,16 @@ sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBE
 `MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`); the defaults in `.env.example` are the stock
 stack the iOS app signs in against. `KC_HOSTNAME`, and with it the token issuer and the `members` issuer check, follow
 `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
-Volumes and the `members` and `bff` images are named after the project, so stacks do not share data either.
+Volumes and the `members`, `notify` and `bff` images are named after the project, so stacks do not share data either.
 
 ## A phone on the LAN
 
 A physical iPhone cannot reach the Mac as `localhost`, and the token issuer must match the address the
-phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives: `KC_HOSTNAME`, the
-`members` issuer check and the BFF issuer check all derive from it. To sign in from a device:
+phone uses. `MMR_HOST` (default `localhost`) is the one place that address lives: `KC_HOSTNAME`, the issuer
+check in `members`, `notify` and the BFF, and the BFF's magic-link base address all derive from it. To sign in from a device:
 
-1. Set `MMR_HOST=<the Mac's LAN IP>` in `.env` and recreate the stack (`--profile mail up -d --wait`); Keycloak, `members`
-   and `bff` restart with the new issuer `http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr`. The realm is unaffected: it holds no address.
+1. Set `MMR_HOST=<the Mac's LAN IP>` in `.env` and recreate the stack (`--profile mail up -d --wait`); Keycloak, `members`,
+   `notify` and `bff` restart with the new issuer `http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr`. The realm is unaffected: it holds no address.
 2. In Xcode, edit the scheme's Run action and add the environment variables
    `MMR_ISSUER=http://<ip>:${KEYCLOAK_HOST_PORT}/realms/mmr` and `MMR_BFF_URL=http://<ip>:${BFF_HOST_PORT}`; select
    a signing team, pick the phone, Run (`apps/ios/README.md`, "Run on a physical iPhone").
@@ -263,8 +263,8 @@ curl -s "http://localhost:8025/api/v1/search?query=to:someone@example.test" | jq
 curl -s http://localhost:8025/api/v1/message/<ID> | jq -r .Text
 ```
 
-Send one without a token, the way the BFF will (`EmailMagicLink` is exempt from the bearer check by
-procedure name, §4.2 point 3):
+Send one without a token, the way the BFF does (#69; `EmailMagicLink` is exempt from the bearer
+check by procedure name, §4.2 point 3):
 
 ```bash
 curl -s http://localhost:8083/money_recap.v1.NotifyService/EmailMagicLink -H 'Content-Type: application/json' \

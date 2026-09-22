@@ -1,4 +1,4 @@
-// Package notify is the notify service (ARCHITECTURE §7.3). Slice 3 (#68) sends the magic-link
+// Package notify is the notify service (ARCHITECTURE §7.3). Since #68 it sends the magic-link
 // email and nothing else: its schema, its SMTP client and its Connect handler.
 package notify
 
@@ -43,7 +43,7 @@ var errAddressRefused = errors.New("the mail host refused the address")
 // Migrate applies this service's embedded migrations to the notify database (internal/migrate).
 func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
-// Service implements NotifyService. Slice 3 serves EmailMagicLink alone, which is the one procedure
+// Service implements NotifyService. It serves EmailMagicLink alone (#68), which is the one procedure
 // outside the bearer check (internal/auth); every other RPC arrives in slice 7 behind it.
 type Service struct {
 	moneyrecapv1connect.UnimplementedNotifyServiceHandler
