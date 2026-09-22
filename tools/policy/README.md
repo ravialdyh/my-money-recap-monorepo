@@ -35,7 +35,7 @@ Concretely, all of these are rejected:
 
 Two things survive.
 
-**Docstrings on a declaration**, under 255 characters: Go package docs (`// Package bff …`), Go doc
+**Docstrings on a declaration**, at most 255 characters: Go package docs (`// Package bff …`), Go doc
 comments on a `func`/`type`/`var`/`const`, Swift `///` on a type or member, TSDoc on an export, and
 a comment on a field inside a struct or class body. This is where a `D*`, `A*`, `I*` or `§` citation
 lives, which is the only machine-greppable link from code back to the decision that caused it
