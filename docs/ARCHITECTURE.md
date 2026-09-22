@@ -208,7 +208,7 @@ sequenceDiagram
 | Responsibility | Who the Member is: Keycloak subject, email as the token's `email` claim reports it, Display Name, Avatar, Currency code, timezone, sign-up date, deletion request. First-sign-in detection (PRD §5 step 5). Onboarding progress (§6.4). The 24-hour deletion job (§9). |
 | Owns | `member` (id, keycloak_subject, email, display_name, avatar_key, currency_code, timezone, created_at, signed_up_on, deletion_requested_at, deleted_at, onboarding_step), `deletion_progress` (member_id, keycloak_deleted_at, ledger_purged_at, notify_purged_at, currency_purged_at), `outbox`, `processed_events`. |
 | RPCs | `GetOrCreateBySubject` (saves the token's `email` claim on create and refreshes it on every call whose token carries one, so a change made in Keycloak reaches us on the next sign-in; a refreshed token lacks the claim after an admin clears the address, and the stored one stays), `GetProfile`, `SaveProfile` (Display Name, Avatar, Currency and the onboarding step just completed or skipped, one write per step), `SetTimezone`, `RequestDeletion`, `CancelDeletion`. Every write takes an idempotency key (A14). |
-| Publishes | `members.created`, `members.updated` (name, avatar, timezone, currency, email), `members.deletion.requested`, `members.deletion.cancelled`, `members.deleted`. |
+| Publishes | `members.created`, `members.updated` (its `MemberFacts`: name, timezone, sign-up date, currency, email), `members.deletion.requested`, `members.deletion.cancelled`, `members.deleted`. |
 | Consumes | `ledger.currency.converted` → set `currency_code`, then publish `members.updated`. `ledger.member.purged`, `notify.member.purged`, `currency.member.purged` → stamp `deletion_progress`. |
 | Why separate | Identity and profile change rarely and are needed by every other service. Publishing them as events lets `ledger` and `notify` keep the few facts they need, timezone, `signed_up_on` and email, without calling `members` on every request. The email is an identifier, not a credential: it is the standard OIDC claim, read from a signed token over TLS, and storing it carries the same risk as storing the Display Name. |
 
@@ -245,12 +245,12 @@ sequenceDiagram
     participant M as members
     P->>B: PreviewCurrencyChange(IDR)
     B->>C: Quote(GBP→IDR)
-    C-->>B: rate 20,150, source OER
+    C-->>B: rate 20,150, source PROVIDER
     B->>L: PreviewConversion(20,150, IDR)
     L-->>B: before/after values, rounded by ledger
     B-->>P: values for the confirm sheet
     P->>B: ChangeCurrency(IDR, 20,150, key)
-    B->>L: ApplyCurrencyConversion(20,150, OER, IDR, key)
+    B->>L: ApplyCurrencyConversion(20,150, PROVIDER, IDR, key)
     Note over L: one transaction: rewrite salary + spends<br/>(originals kept), currency_conversion row, outbox row
     L--)M: ledger.currency.converted (via RabbitMQ)
     Note over M: set currency_code, publish members.updated
@@ -271,7 +271,7 @@ Flow: salary edit after Payday (D56)
 | Responsibility | Deciding and sending every notification in PRD §10, and remembering what was sent. Device tokens. Notification preferences. The Target Warning state the Home banner reads. All outbound email: the magic-link email (§7.5) and the CSV export (PRD §6.16). Keycloak sends no mail. |
 | Owns | `notification_preference`, `device` (apns_token, member_id), `month_flag` (member_id, year_month, target_warning_sent_at, target_warning_message: ledger's §8.8 copy as it read when the month was stamped, so the Home banner stays until the 1st however Spent moves afterwards), `sent_log` (unique on member_id, kind, period), `email_status` (member_id, address, last_bounce_at), `magic_link_send` (idempotency_key, email, sent_at: one row per magic-link send, unique on `(email, idempotency_key)` — A14's `(member_id, idempotency_key)` has no Member on this path, and the key alone let one address lock every other one out of its own link; every send sweeps rows past the retention window in the same transaction, because a row holding a raw address and no member_id is one the purge below cannot reach), `member_facts` (replica: timezone, display_name, email, next_recap_at, next_reminder_at), `processed_events`. |
 | RPCs | `GetWarningState(month)` answering `fired` and the kept copy, `EvaluateWarning(month, crossed_line, warning)` answering `fired`, `fired_now` and the kept copy, `GetPrefs`, `SavePrefs`, `RegisterDevice`, `EmailMagicLink(email, link)`, `EmailExport(csv)`. Every write takes an idempotency key (A14). `notify` holds no rule from PRD §8; `crossed_line` is computed by `ledger`. |
-| Email | One SMTP provider, credentials mounted as a secret file (A13). `EmailMagicLink` takes the typed address because no member row may exist yet; `EmailExport` reads the address from `member_facts`. A hard bounce recorded by the provider's webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
+| Email | One SMTP provider, credentials mounted as a secret file (A13), is planned (#87 item 8): today `notify` sends to Mailpit on a laptop and in CI, and the machine has no mail host. `EmailMagicLink` takes the address the BFF parsed, because no member row may exist yet; `EmailExport` reads the address from `member_facts`. Planned with the provider: a hard bounce recorded by its webhook stamps `email_status.last_bounce_at`; `EmailExport` refuses an address with a bounce newer than its last change, which is the "Apple private-relay address that has bounced" case in PRD §6.16, and the BFF turns that into the `InlineError` that offers Profile. |
 | Consumes | `ledger.spend.logged`, `ledger.spend.edited` → stamp `month_flag` if `crossed_line` and unstamped, send the push if the stamp is fresh. `members.updated` → replica, recompute `next_*_at`. `members.deleted` → purge, then publish `notify.member.purged`. |
 | Schedulers | Every minute: one indexed query on `next_recap_at`, one on `next_reminder_at` (§4.5), in batches of 500. Each batch is one `ledger.GetSpentToday(member_ids[])` call for the reminder, then one APNs request per Member from a bounded worker pool. Insert into `sent_log` first, send only if the insert won, so a crash between the two never double-sends and two `notify` replicas never both send. |
 | APNs | Token-based auth with a .p8 key, HTTP/2 to Apple. A 410 response deletes the device row. |
@@ -291,7 +291,7 @@ A partial month still sends (PRD §10). The daily reminder is the same loop on `
 
 Flow: CSV export (PRD §6.16, D39)
 
-1. The phone calls `RequestExport`. The BFF calls `ledger.ExportCSV`, which streams every non-deleted Spend for that Member as CSV.
+1. The phone calls `RequestExport`. The BFF calls `ledger.ExportCSV`, which returns every non-deleted Spend for that Member as one CSV document.
 2. The BFF calls `notify.EmailExport(csv)`. Notify checks `email_status`, sends through SMTP, and writes `sent_log`.
 3. The BFF returns success and the phone's button becomes `Sent ✓` for 60 seconds (D67). A refused address returns the §6.16 `InlineError`. The file is never stored server-side; a second tap regenerates it.
 
@@ -299,7 +299,7 @@ Flow: CSV export (PRD §6.16, D39)
 
 | | |
 |---|---|
-| Responsibility | Exchange rates and conversion quotes. Fetching Open Exchange Rates once a day (D35), caching, the manual-rate fallback for unsupported pairs, and the before/after figures for the confirm sheet. |
+| Responsibility | Exchange rates: fetching Open Exchange Rates once a day (D35), caching, and naming an unsupported pair. A manual rate is typed on the phone and never passes through here (PRD §8.9 step 1); the confirm sheet's before/after figures are `ledger.PreviewConversion`'s. |
 | Owns | `rate_snapshot` (date, base, rates jsonb, fetched_at), `processed_events`. |
 | RPCs | `Quote(from, to)` → rate, source, as_of, or `UNSUPPORTED_PAIR`. No arithmetic on amounts: rounding and rewriting are `ledger`'s (§7.2), so §8 has one implementation. |
 | Consumes | `members.deleted` → nothing to purge; publishes `currency.member.purged` so `members` can complete its deletion tracking. |
@@ -382,7 +382,7 @@ One Postgres container, five databases, five roles, each role granted only its o
 
 Thirteen containers, one `compose.yaml`, health checks on every one so `depends_on: condition: service_healthy` starts them in order. Migrations run as a one-shot step per service before that service starts: the same image with the `migrate` subcommand, which `depends_on: condition: service_completed_successfully` orders (`members-migrate` is the first, #15). The same compose file runs on a laptop and on the first VM. Kubernetes comes after phase 1 is stable.
 
-**The thirteen are the VM's.** A laptop runs the same file plus Mailpit, the one container that never reaches the VM: behind the `mail` profile, it is the SMTP host `notify` sends to (#68). `realm-apply`, a one-shot step outside the count like the migration steps, builds the realm on every `up` (#65), and the deploy runs it on the machine too (#73, PR #85). Development-only containers are outside the count on any machine. Nginx and the `acme.sh` sidecar are two of the thirteen already, so joining the laptop stack (#72) changes no number: what changes is that there they serve plain HTTP and the sidecar holds no certificate, because ACME needs a domain.
+**The thirteen are the VM's.** A laptop runs the same file plus Mailpit, the one container that never reaches the VM: behind the `mail` profile, it is the SMTP host `notify` sends to (#68). The VM's `notify` has no mail host until #87 item 8. `realm-apply`, a one-shot step outside the count like the migration steps, builds the realm on every `up` (#65), and the deploy runs it on the machine too (#73, PR #85). Development-only containers are outside the count on any machine. Nginx and the `acme.sh` sidecar are two of the thirteen already, so joining the laptop stack (#72) changes no number: what changes is that there they serve plain HTTP and the sidecar holds no certificate, because ACME needs a domain.
 
 **What this does and does not buy.** The service split gives independent deployment and clean ownership. It does not give independent scaling: one VM, one Postgres process and one disk are shared, so a runaway query in `ledger` slows Keycloak and `notify` too. Nothing in phase 1 should be designed as if the four services could be scaled apart; that arrives with separate database instances, after phase 1.
 
