@@ -45,6 +45,18 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(model.monthLabel, "September")
     }
 
+    /// PRD §6.8's countdown before the effective Payday, in the singular on the day before (§12, criterion 4).
+    func testTheEyebrowCountsTheDaysToTheSalary() async throws {
+        var home = try recordedHome()
+        home.salary.daysUntilPayday = 15
+        let model = try HomeViewModel(fetch: { home }, context: freshContext())
+        await model.refresh()
+        XCTAssertEqual(model.heroEyebrow, "Spent so far · salary lands in 15 days")
+        home.salary.daysUntilPayday = 1
+        await model.refresh()
+        XCTAssertEqual(model.heroEyebrow, "Spent so far · salary lands in 1 day")
+    }
+
     func testGreetingAndSavedChipAppearWithNameAndMoneyIn() async throws {
         var home = try recordedHome()
         home.displayName = "Maya"

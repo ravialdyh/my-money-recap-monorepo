@@ -124,7 +124,8 @@ message SalarySetting {
   // "YYYY-MM" the row takes effect from (PRD D56).
   string effective_from = 3;
   // Always present: the amount as typed, with its Currency, never touched by a
-  // currency change (PRD §8.9).
+  // conversion (PRD §8.9); onboarding's relabel moves it to the new code with
+  // the amount (spec #92).
   Money original_amount = 4;
 }
 

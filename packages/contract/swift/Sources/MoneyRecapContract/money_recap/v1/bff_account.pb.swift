@@ -78,8 +78,9 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   /// Clears the value of `avatarKey`. Subsequent reads from it will return its default value.
   public mutating func clearAvatarKey() {self._avatarKey = nil}
 
-  /// ISO 4217. Accepted only while ledger holds no amount (step 2, or the
-  /// §8.9 step 2 shortcut); otherwise ChangeCurrency is the path.
+  /// ISO 4217. Accepted during onboarding, where a saved Salary is relabelled,
+  /// never converted (spec #92); after it, failed_precondition, since
+  /// ChangeCurrency is the path (PRD §8.9).
   public var currencyCode: String {
     get {_currencyCode ?? String()}
     set {_currencyCode = newValue}
@@ -110,25 +111,36 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   fileprivate var _onboardingStep: Int32? = nil
 }
 
-public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileResponse: Sendable {
+public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileResponse: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   public var profile: MoneyRecap_V1_Profile {
-    get {_profile ?? MoneyRecap_V1_Profile()}
-    set {_profile = newValue}
+    get {_storage._profile ?? MoneyRecap_V1_Profile()}
+    set {_uniqueStorage()._profile = newValue}
   }
   /// Returns true if `profile` has been explicitly set.
-  public var hasProfile: Bool {self._profile != nil}
+  public var hasProfile: Bool {_storage._profile != nil}
   /// Clears the value of `profile`. Subsequent reads from it will return its default value.
-  public mutating func clearProfile() {self._profile = nil}
+  public mutating func clearProfile() {_uniqueStorage()._profile = nil}
+
+  /// Step 3's answer as ledger relabelled it, when this save changed the
+  /// Currency during onboarding and a Salary was saved (spec #92).
+  public var salary: MoneyRecap_V1_SalarySetting {
+    get {_storage._salary ?? MoneyRecap_V1_SalarySetting()}
+    set {_uniqueStorage()._salary = newValue}
+  }
+  /// Returns true if `salary` has been explicitly set.
+  public var hasSalary: Bool {_storage._salary != nil}
+  /// Clears the value of `salary`. Subsequent reads from it will return its default value.
+  public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
-  fileprivate var _profile: MoneyRecap_V1_Profile? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 /// Called on every launch (ARCHITECTURE §6, A3).
@@ -428,33 +440,76 @@ nonisolated extension MoneyRecap_V1_BffServiceSaveProfileRequest: SwiftProtobuf.
 
 nonisolated extension MoneyRecap_V1_BffServiceSaveProfileResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".BffServiceSaveProfileResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}profile\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}profile\0\u{1}salary\0")
+
+  fileprivate class _StorageClass {
+    var _profile: MoneyRecap_V1_Profile? = nil
+    var _salary: MoneyRecap_V1_SalarySetting? = nil
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _profile = source._profile
+      _salary = source._salary
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._profile) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._profile) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._salary) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._profile {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._profile {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      } }()
+      try { if let v = _storage._salary {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      } }()
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_BffServiceSaveProfileResponse, rhs: MoneyRecap_V1_BffServiceSaveProfileResponse) -> Bool {
-    if lhs._profile != rhs._profile {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._profile != rhs_storage._profile {return false}
+        if _storage._salary != rhs_storage._salary {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

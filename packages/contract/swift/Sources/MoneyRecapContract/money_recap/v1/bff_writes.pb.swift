@@ -224,35 +224,34 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryRequest: Sendable {
 
 /// The fresh HomeView and the Settings rows after the append, which name the
 /// month a later-effective row starts from (D56).
-public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryResponse: Sendable {
+public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryResponse: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   public var home: MoneyRecap_V1_HomeView {
-    get {_home ?? MoneyRecap_V1_HomeView()}
-    set {_home = newValue}
+    get {_storage._home ?? MoneyRecap_V1_HomeView()}
+    set {_uniqueStorage()._home = newValue}
   }
   /// Returns true if `home` has been explicitly set.
-  public var hasHome: Bool {self._home != nil}
+  public var hasHome: Bool {_storage._home != nil}
   /// Clears the value of `home`. Subsequent reads from it will return its default value.
-  public mutating func clearHome() {self._home = nil}
+  public mutating func clearHome() {_uniqueStorage()._home = nil}
 
   public var settings: MoneyRecap_V1_SettingsView {
-    get {_settings ?? MoneyRecap_V1_SettingsView()}
-    set {_settings = newValue}
+    get {_storage._settings ?? MoneyRecap_V1_SettingsView()}
+    set {_uniqueStorage()._settings = newValue}
   }
   /// Returns true if `settings` has been explicitly set.
-  public var hasSettings: Bool {self._settings != nil}
+  public var hasSettings: Bool {_storage._settings != nil}
   /// Clears the value of `settings`. Subsequent reads from it will return its default value.
-  public mutating func clearSettings() {self._settings = nil}
+  public mutating func clearSettings() {_uniqueStorage()._settings = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
-  fileprivate var _home: MoneyRecap_V1_HomeView? = nil
-  fileprivate var _settings: MoneyRecap_V1_SettingsView? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 /// Onboarding step 4 and Settings > Saving Target (PRD §6.7, §6.16, D65).
@@ -269,35 +268,34 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveTargetRequest: Sendable {
   public init() {}
 }
 
-public nonisolated struct MoneyRecap_V1_BffServiceSaveTargetResponse: Sendable {
+public nonisolated struct MoneyRecap_V1_BffServiceSaveTargetResponse: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   public var home: MoneyRecap_V1_HomeView {
-    get {_home ?? MoneyRecap_V1_HomeView()}
-    set {_home = newValue}
+    get {_storage._home ?? MoneyRecap_V1_HomeView()}
+    set {_uniqueStorage()._home = newValue}
   }
   /// Returns true if `home` has been explicitly set.
-  public var hasHome: Bool {self._home != nil}
+  public var hasHome: Bool {_storage._home != nil}
   /// Clears the value of `home`. Subsequent reads from it will return its default value.
-  public mutating func clearHome() {self._home = nil}
+  public mutating func clearHome() {_uniqueStorage()._home = nil}
 
   public var settings: MoneyRecap_V1_SettingsView {
-    get {_settings ?? MoneyRecap_V1_SettingsView()}
-    set {_settings = newValue}
+    get {_storage._settings ?? MoneyRecap_V1_SettingsView()}
+    set {_uniqueStorage()._settings = newValue}
   }
   /// Returns true if `settings` has been explicitly set.
-  public var hasSettings: Bool {self._settings != nil}
+  public var hasSettings: Bool {_storage._settings != nil}
   /// Clears the value of `settings`. Subsequent reads from it will return its default value.
-  public mutating func clearSettings() {self._settings = nil}
+  public mutating func clearSettings() {_uniqueStorage()._settings = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
-  fileprivate var _home: MoneyRecap_V1_HomeView? = nil
-  fileprivate var _settings: MoneyRecap_V1_SettingsView? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 /// The confirm sheet's Convert, or the direct change when the preview said
@@ -325,35 +323,34 @@ public nonisolated struct MoneyRecap_V1_BffServiceChangeCurrencyRequest: Sendabl
 
 /// The fresh HomeView and the Settings rows, every amount now in the new
 /// Currency.
-public nonisolated struct MoneyRecap_V1_BffServiceChangeCurrencyResponse: Sendable {
+public nonisolated struct MoneyRecap_V1_BffServiceChangeCurrencyResponse: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   public var home: MoneyRecap_V1_HomeView {
-    get {_home ?? MoneyRecap_V1_HomeView()}
-    set {_home = newValue}
+    get {_storage._home ?? MoneyRecap_V1_HomeView()}
+    set {_uniqueStorage()._home = newValue}
   }
   /// Returns true if `home` has been explicitly set.
-  public var hasHome: Bool {self._home != nil}
+  public var hasHome: Bool {_storage._home != nil}
   /// Clears the value of `home`. Subsequent reads from it will return its default value.
-  public mutating func clearHome() {self._home = nil}
+  public mutating func clearHome() {_uniqueStorage()._home = nil}
 
   public var settings: MoneyRecap_V1_SettingsView {
-    get {_settings ?? MoneyRecap_V1_SettingsView()}
-    set {_settings = newValue}
+    get {_storage._settings ?? MoneyRecap_V1_SettingsView()}
+    set {_uniqueStorage()._settings = newValue}
   }
   /// Returns true if `settings` has been explicitly set.
-  public var hasSettings: Bool {self._settings != nil}
+  public var hasSettings: Bool {_storage._settings != nil}
   /// Clears the value of `settings`. Subsequent reads from it will return its default value.
-  public mutating func clearSettings() {self._settings = nil}
+  public mutating func clearSettings() {_uniqueStorage()._settings = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
-  fileprivate var _home: MoneyRecap_V1_HomeView? = nil
-  fileprivate var _settings: MoneyRecap_V1_SettingsView? = nil
+  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -653,36 +650,74 @@ nonisolated extension MoneyRecap_V1_BffServiceSaveSalaryResponse: SwiftProtobuf.
   public static let protoMessageName: String = _protobuf_package + ".BffServiceSaveSalaryResponse"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}home\0\u{1}settings\0")
 
+  fileprivate class _StorageClass {
+    var _home: MoneyRecap_V1_HomeView? = nil
+    var _settings: MoneyRecap_V1_SettingsView? = nil
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _home = source._home
+      _settings = source._settings
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._home) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._settings) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._home) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._settings) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._home {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
-    try { if let v = self._settings {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._home {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      } }()
+      try { if let v = _storage._settings {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      } }()
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_BffServiceSaveSalaryResponse, rhs: MoneyRecap_V1_BffServiceSaveSalaryResponse) -> Bool {
-    if lhs._home != rhs._home {return false}
-    if lhs._settings != rhs._settings {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._home != rhs_storage._home {return false}
+        if _storage._settings != rhs_storage._settings {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -722,36 +757,74 @@ nonisolated extension MoneyRecap_V1_BffServiceSaveTargetResponse: SwiftProtobuf.
   public static let protoMessageName: String = _protobuf_package + ".BffServiceSaveTargetResponse"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}home\0\u{1}settings\0")
 
+  fileprivate class _StorageClass {
+    var _home: MoneyRecap_V1_HomeView? = nil
+    var _settings: MoneyRecap_V1_SettingsView? = nil
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _home = source._home
+      _settings = source._settings
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._home) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._settings) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._home) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._settings) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._home {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
-    try { if let v = self._settings {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._home {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      } }()
+      try { if let v = _storage._settings {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      } }()
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_BffServiceSaveTargetResponse, rhs: MoneyRecap_V1_BffServiceSaveTargetResponse) -> Bool {
-    if lhs._home != rhs._home {return false}
-    if lhs._settings != rhs._settings {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._home != rhs_storage._home {return false}
+        if _storage._settings != rhs_storage._settings {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -801,36 +874,74 @@ nonisolated extension MoneyRecap_V1_BffServiceChangeCurrencyResponse: SwiftProto
   public static let protoMessageName: String = _protobuf_package + ".BffServiceChangeCurrencyResponse"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}home\0\u{1}settings\0")
 
+  fileprivate class _StorageClass {
+    var _home: MoneyRecap_V1_HomeView? = nil
+    var _settings: MoneyRecap_V1_SettingsView? = nil
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _home = source._home
+      _settings = source._settings
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._home) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._settings) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._home) }()
+        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._settings) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._home {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
-    try { if let v = self._settings {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._home {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      } }()
+      try { if let v = _storage._settings {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      } }()
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: MoneyRecap_V1_BffServiceChangeCurrencyResponse, rhs: MoneyRecap_V1_BffServiceChangeCurrencyResponse) -> Bool {
-    if lhs._home != rhs._home {return false}
-    if lhs._settings != rhs._settings {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._home != rhs_storage._home {return false}
+        if _storage._settings != rhs_storage._settings {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

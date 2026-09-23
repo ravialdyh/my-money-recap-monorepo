@@ -20,8 +20,8 @@ development credentials, and `.gitignore` keeps the file out of git. Then:
 docker compose -f infra/compose/compose.yaml --profile mail up -d --build --wait
 ```
 
-`--build` builds the `members`, `notify` and `bff` images from `apps/backend`; `--wait` returns once
-every container reports healthy and the two migration steps and `realm-apply` have exited 0. Check
+`--build` builds the `members`, `notify`, `ledger` and `bff` images from `apps/backend`; `--wait` returns
+once every container reports healthy and the three migration steps and `realm-apply` have exited 0. Check
 with:
 
 ```bash
@@ -52,12 +52,12 @@ The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.y
 | members | built from `apps/backend` (`Dockerfile`, `CMD=members`) | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect (`apps/backend/cmd/members/README.md`), and the relay that publishes its outbox every second. Starts after its migration step and the realm step completed and RabbitMQ is healthy. |
 | notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect (`apps/backend/cmd/notify/README.md`). Starts after its migration step and the realm step completed. |
 | ledger | built from `apps/backend` (`Dockerfile`, `CMD=ledger`) | 127.0.0.1:`LEDGER_HOST_PORT` | `LedgerService` over Connect, the money service (`apps/backend/cmd/ledger/README.md`), and the consumer that keeps its replica from `members`' events on `ledger.members`. Starts after its migration step, the realm step, a healthy RabbitMQ and a healthy `members`, which answers the profile read that fills a replica an event has not reached. The BFF does not call it yet. |
-| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect, what the phone calls (`apps/backend/cmd/bff/README.md`). Starts after `members` and Redis are healthy and the realm step completed. |
+| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect, what the phone calls (`apps/backend/cmd/bff/README.md`). Starts after `members`, `ledger` and Redis are healthy and the realm step completed. |
 | nginx | `nginx:stable` | `NGINX_HOST_PORT` | The edge (§5, A7), plain HTTP until a certificate exists (see "The edge"). Nginx resolves `bff` and `keycloak` once, at start, so Compose restarts it whenever an `up` recreates either (`restart: true`); otherwise `/api/` and `/auth/` could answer 502 from an old address. |
 | acme | `neilpang/acme.sh`, pinned | — | The certificate sidecar (§5, §10), sharing the `acme-certs` volume with Nginx; what it does with no domain is in [`../nginx/README.md`](../nginx/README.md#tls-and-the-acmesh-sidecar). |
 
 Every long-running container but the `acme` sidecar has a health check, and
-`depends_on: condition: service_healthy` orders the start; the two migration steps and the realm step
+`depends_on: condition: service_healthy` orders the start; the migration steps and the realm step
 are ordered with `condition: service_completed_successfully`. Keycloak's check is a bash `/dev/tcp`
 request rather than `curl`, because the Keycloak image ships neither `curl` nor `wget`: it opens 9000
 for `/health/ready` and then 8080 for `/realms/master`, not `/realms/mmr`, which `realm-apply` builds

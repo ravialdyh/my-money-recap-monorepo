@@ -65,6 +65,11 @@ public nonisolated struct MoneyRecap_V1_Profile: Sendable {
   /// Clears the value of `deletionRequestedAt`. Subsequent reads from it will return its default value.
   public mutating func clearDeletionRequestedAt() {self._deletionRequestedAt = nil}
 
+  /// How many decimals the Currency has, from the CLDR data ledger rounds with
+  /// (ARCHITECTURE §7.2); 0 while currency_code is empty. Step 3's amount field
+  /// allows exactly this many (spec #92).
+  public var currencyDigits: Int32 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -78,7 +83,7 @@ fileprivate nonisolated let _protobuf_package = "money_recap.v1"
 
 nonisolated extension MoneyRecap_V1_Profile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Profile"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}member_id\0\u{1}email\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0\u{1}timezone\0\u{3}onboarding_step\0\u{3}signed_up_on\0\u{3}deletion_requested_at\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}member_id\0\u{1}email\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0\u{1}timezone\0\u{3}onboarding_step\0\u{3}signed_up_on\0\u{3}deletion_requested_at\0\u{3}currency_digits\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -95,6 +100,7 @@ nonisolated extension MoneyRecap_V1_Profile: SwiftProtobuf.Message, SwiftProtobu
       case 7: try { try decoder.decodeSingularInt32Field(value: &self.onboardingStep) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self.signedUpOn) }()
       case 9: try { try decoder.decodeSingularMessageField(value: &self._deletionRequestedAt) }()
+      case 10: try { try decoder.decodeSingularInt32Field(value: &self.currencyDigits) }()
       default: break
       }
     }
@@ -132,6 +138,9 @@ nonisolated extension MoneyRecap_V1_Profile: SwiftProtobuf.Message, SwiftProtobu
     try { if let v = self._deletionRequestedAt {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
     } }()
+    if self.currencyDigits != 0 {
+      try visitor.visitSingularInt32Field(value: self.currencyDigits, fieldNumber: 10)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -145,6 +154,7 @@ nonisolated extension MoneyRecap_V1_Profile: SwiftProtobuf.Message, SwiftProtobu
     if lhs.onboardingStep != rhs.onboardingStep {return false}
     if lhs.signedUpOn != rhs.signedUpOn {return false}
     if lhs._deletionRequestedAt != rhs._deletionRequestedAt {return false}
+    if lhs.currencyDigits != rhs.currencyDigits {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

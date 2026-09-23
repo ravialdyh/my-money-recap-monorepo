@@ -923,8 +923,7 @@ const file_money_recap_v1_ledger_proto_rawDesc = "" +
 	"\x10ExportCSVRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\"%\n" +
 	"\x11ExportCSVResponse\x12\x10\n" +
-	"\x03csv\x18\x01 \x01(\fR\x03csv2\xb1\n" +
-	"\n" +
+	"\x03csv\x18\x01 \x01(\fR\x03csv2\x97\v\n" +
 	"\rLedgerService\x12d\n" +
 	"\x0fGetMonthSummary\x12&.money_recap.v1.GetMonthSummaryRequest\x1a'.money_recap.v1.GetMonthSummaryResponse\"\x00\x12O\n" +
 	"\bGetRecap\x12\x1f.money_recap.v1.GetRecapRequest\x1a .money_recap.v1.GetRecapResponse\"\x00\x12m\n" +
@@ -936,7 +935,8 @@ const file_money_recap_v1_ledger_proto_rawDesc = "" +
 	"\vDeleteSpend\x12\".money_recap.v1.DeleteSpendRequest\x1a#.money_recap.v1.DeleteSpendResponse\"\x00\x12X\n" +
 	"\vGetSettings\x12\".money_recap.v1.GetSettingsRequest\x1a#.money_recap.v1.GetSettingsResponse\"\x00\x12U\n" +
 	"\n" +
-	"SaveSalary\x12!.money_recap.v1.SaveSalaryRequest\x1a\".money_recap.v1.SaveSalaryResponse\"\x00\x12U\n" +
+	"SaveSalary\x12!.money_recap.v1.SaveSalaryRequest\x1a\".money_recap.v1.SaveSalaryResponse\"\x00\x12d\n" +
+	"\x0fRelabelCurrency\x12&.money_recap.v1.RelabelCurrencyRequest\x1a'.money_recap.v1.RelabelCurrencyResponse\"\x00\x12U\n" +
 	"\n" +
 	"SaveTarget\x12!.money_recap.v1.SaveTargetRequest\x1a\".money_recap.v1.SaveTargetResponse\"\x00\x12j\n" +
 	"\x11PreviewConversion\x12(.money_recap.v1.PreviewConversionRequest\x1a).money_recap.v1.PreviewConversionResponse\"\x00\x12|\n" +
@@ -987,14 +987,16 @@ var file_money_recap_v1_ledger_proto_goTypes = []any{
 	(*EditSpendRequest)(nil),                // 26: money_recap.v1.EditSpendRequest
 	(*DeleteSpendRequest)(nil),              // 27: money_recap.v1.DeleteSpendRequest
 	(*SaveSalaryRequest)(nil),               // 28: money_recap.v1.SaveSalaryRequest
-	(*SaveTargetRequest)(nil),               // 29: money_recap.v1.SaveTargetRequest
-	(*ApplyCurrencyConversionRequest)(nil),  // 30: money_recap.v1.ApplyCurrencyConversionRequest
-	(*LogSpendResponse)(nil),                // 31: money_recap.v1.LogSpendResponse
-	(*EditSpendResponse)(nil),               // 32: money_recap.v1.EditSpendResponse
-	(*DeleteSpendResponse)(nil),             // 33: money_recap.v1.DeleteSpendResponse
-	(*SaveSalaryResponse)(nil),              // 34: money_recap.v1.SaveSalaryResponse
-	(*SaveTargetResponse)(nil),              // 35: money_recap.v1.SaveTargetResponse
-	(*ApplyCurrencyConversionResponse)(nil), // 36: money_recap.v1.ApplyCurrencyConversionResponse
+	(*RelabelCurrencyRequest)(nil),          // 29: money_recap.v1.RelabelCurrencyRequest
+	(*SaveTargetRequest)(nil),               // 30: money_recap.v1.SaveTargetRequest
+	(*ApplyCurrencyConversionRequest)(nil),  // 31: money_recap.v1.ApplyCurrencyConversionRequest
+	(*LogSpendResponse)(nil),                // 32: money_recap.v1.LogSpendResponse
+	(*EditSpendResponse)(nil),               // 33: money_recap.v1.EditSpendResponse
+	(*DeleteSpendResponse)(nil),             // 34: money_recap.v1.DeleteSpendResponse
+	(*SaveSalaryResponse)(nil),              // 35: money_recap.v1.SaveSalaryResponse
+	(*RelabelCurrencyResponse)(nil),         // 36: money_recap.v1.RelabelCurrencyResponse
+	(*SaveTargetResponse)(nil),              // 37: money_recap.v1.SaveTargetResponse
+	(*ApplyCurrencyConversionResponse)(nil), // 38: money_recap.v1.ApplyCurrencyConversionResponse
 }
 var file_money_recap_v1_ledger_proto_depIdxs = []int32{
 	17, // 0: money_recap.v1.GetMonthSummaryResponse.summary:type_name -> money_recap.v1.MonthSummary
@@ -1016,27 +1018,29 @@ var file_money_recap_v1_ledger_proto_depIdxs = []int32{
 	27, // 16: money_recap.v1.LedgerService.DeleteSpend:input_type -> money_recap.v1.DeleteSpendRequest
 	8,  // 17: money_recap.v1.LedgerService.GetSettings:input_type -> money_recap.v1.GetSettingsRequest
 	28, // 18: money_recap.v1.LedgerService.SaveSalary:input_type -> money_recap.v1.SaveSalaryRequest
-	29, // 19: money_recap.v1.LedgerService.SaveTarget:input_type -> money_recap.v1.SaveTargetRequest
-	10, // 20: money_recap.v1.LedgerService.PreviewConversion:input_type -> money_recap.v1.PreviewConversionRequest
-	30, // 21: money_recap.v1.LedgerService.ApplyCurrencyConversion:input_type -> money_recap.v1.ApplyCurrencyConversionRequest
-	12, // 22: money_recap.v1.LedgerService.GetSpentToday:input_type -> money_recap.v1.GetSpentTodayRequest
-	15, // 23: money_recap.v1.LedgerService.ExportCSV:input_type -> money_recap.v1.ExportCSVRequest
-	1,  // 24: money_recap.v1.LedgerService.GetMonthSummary:output_type -> money_recap.v1.GetMonthSummaryResponse
-	3,  // 25: money_recap.v1.LedgerService.GetRecap:output_type -> money_recap.v1.GetRecapResponse
-	5,  // 26: money_recap.v1.LedgerService.ListMonthsWithData:output_type -> money_recap.v1.ListMonthsWithDataResponse
-	7,  // 27: money_recap.v1.LedgerService.ListSpends:output_type -> money_recap.v1.ListSpendsResponse
-	31, // 28: money_recap.v1.LedgerService.LogSpend:output_type -> money_recap.v1.LogSpendResponse
-	32, // 29: money_recap.v1.LedgerService.EditSpend:output_type -> money_recap.v1.EditSpendResponse
-	33, // 30: money_recap.v1.LedgerService.DeleteSpend:output_type -> money_recap.v1.DeleteSpendResponse
-	9,  // 31: money_recap.v1.LedgerService.GetSettings:output_type -> money_recap.v1.GetSettingsResponse
-	34, // 32: money_recap.v1.LedgerService.SaveSalary:output_type -> money_recap.v1.SaveSalaryResponse
-	35, // 33: money_recap.v1.LedgerService.SaveTarget:output_type -> money_recap.v1.SaveTargetResponse
-	11, // 34: money_recap.v1.LedgerService.PreviewConversion:output_type -> money_recap.v1.PreviewConversionResponse
-	36, // 35: money_recap.v1.LedgerService.ApplyCurrencyConversion:output_type -> money_recap.v1.ApplyCurrencyConversionResponse
-	14, // 36: money_recap.v1.LedgerService.GetSpentToday:output_type -> money_recap.v1.GetSpentTodayResponse
-	16, // 37: money_recap.v1.LedgerService.ExportCSV:output_type -> money_recap.v1.ExportCSVResponse
-	24, // [24:38] is the sub-list for method output_type
-	10, // [10:24] is the sub-list for method input_type
+	29, // 19: money_recap.v1.LedgerService.RelabelCurrency:input_type -> money_recap.v1.RelabelCurrencyRequest
+	30, // 20: money_recap.v1.LedgerService.SaveTarget:input_type -> money_recap.v1.SaveTargetRequest
+	10, // 21: money_recap.v1.LedgerService.PreviewConversion:input_type -> money_recap.v1.PreviewConversionRequest
+	31, // 22: money_recap.v1.LedgerService.ApplyCurrencyConversion:input_type -> money_recap.v1.ApplyCurrencyConversionRequest
+	12, // 23: money_recap.v1.LedgerService.GetSpentToday:input_type -> money_recap.v1.GetSpentTodayRequest
+	15, // 24: money_recap.v1.LedgerService.ExportCSV:input_type -> money_recap.v1.ExportCSVRequest
+	1,  // 25: money_recap.v1.LedgerService.GetMonthSummary:output_type -> money_recap.v1.GetMonthSummaryResponse
+	3,  // 26: money_recap.v1.LedgerService.GetRecap:output_type -> money_recap.v1.GetRecapResponse
+	5,  // 27: money_recap.v1.LedgerService.ListMonthsWithData:output_type -> money_recap.v1.ListMonthsWithDataResponse
+	7,  // 28: money_recap.v1.LedgerService.ListSpends:output_type -> money_recap.v1.ListSpendsResponse
+	32, // 29: money_recap.v1.LedgerService.LogSpend:output_type -> money_recap.v1.LogSpendResponse
+	33, // 30: money_recap.v1.LedgerService.EditSpend:output_type -> money_recap.v1.EditSpendResponse
+	34, // 31: money_recap.v1.LedgerService.DeleteSpend:output_type -> money_recap.v1.DeleteSpendResponse
+	9,  // 32: money_recap.v1.LedgerService.GetSettings:output_type -> money_recap.v1.GetSettingsResponse
+	35, // 33: money_recap.v1.LedgerService.SaveSalary:output_type -> money_recap.v1.SaveSalaryResponse
+	36, // 34: money_recap.v1.LedgerService.RelabelCurrency:output_type -> money_recap.v1.RelabelCurrencyResponse
+	37, // 35: money_recap.v1.LedgerService.SaveTarget:output_type -> money_recap.v1.SaveTargetResponse
+	11, // 36: money_recap.v1.LedgerService.PreviewConversion:output_type -> money_recap.v1.PreviewConversionResponse
+	38, // 37: money_recap.v1.LedgerService.ApplyCurrencyConversion:output_type -> money_recap.v1.ApplyCurrencyConversionResponse
+	14, // 38: money_recap.v1.LedgerService.GetSpentToday:output_type -> money_recap.v1.GetSpentTodayResponse
+	16, // 39: money_recap.v1.LedgerService.ExportCSV:output_type -> money_recap.v1.ExportCSVResponse
+	25, // [25:40] is the sub-list for method output_type
+	10, // [10:25] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
 	10, // [10:10] is the sub-list for extension extendee
 	0,  // [0:10] is the sub-list for field type_name

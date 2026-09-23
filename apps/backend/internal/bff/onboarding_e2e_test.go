@@ -16,9 +16,9 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestOnboardingEndToEnd walks steps 1 and 2 through the BFF and members containers as the realm's test Member:
-// Home refused until the Currency, an unknown code refused, Home by name, Avatar and Currency, then going back to
-// step 1. Skips like TestEndToEnd.
+// TestOnboardingEndToEnd walks steps 1 to 3 through the BFF, members and ledger containers as the realm's test
+// Member: Home refused until the Currency, bad answers refused, Home greeting, back to step 1, then step 3. Skips
+// like TestEndToEnd.
 func TestOnboardingEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
@@ -35,6 +35,11 @@ func TestOnboardingEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 	client := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(tok))
+	zone := connect.NewRequest(&moneyrecapv1.BffServiceSetTimezoneRequest{Timezone: "Asia/Jakarta"})
+	zone.Header().Set("Idempotency-Key", rand.Text())
+	if _, err := client.SetTimezone(ctx, zone); err != nil {
+		t.Fatal(err)
+	}
 	state := func() *moneyrecapv1.OnboardingState {
 		t.Helper()
 		res, err := client.GetOnboardingState(ctx, connect.NewRequest(&moneyrecapv1.BffServiceGetOnboardingStateRequest{}))
@@ -91,4 +96,53 @@ func TestOnboardingEndToEnd(t *testing.T) {
 		t.Fatalf("after going back to step 1: %v, want Tess and fox with IDR kept and progress still at step 2 (#102)", s)
 	}
 	t.Log("going back to step 1 changed only its answers: the Currency and the saved progress stayed")
+	stepThree(ctx, t, client, db, testauth.Decode(t, tok).Sub, state, save)
+}
+
+// stepThree saves step 3 through the BFF and ledger (#103): the Salary, then the step; a crash between the two,
+// replayed by lowering the step; a new Payday replacing the Salary from the sign-up month; a Currency relabelling it.
+func stepThree(ctx context.Context, t *testing.T, client moneyrecapv1connect.BffServiceClient, db *pgxpool.Pool, sub string, state func() *moneyrecapv1.OnboardingState, save func(*moneyrecapv1.BffServiceSaveProfileRequest) error) {
+	t.Helper()
+	salary := func(amount, payday string) error {
+		req := connect.NewRequest(&moneyrecapv1.BffServiceSaveSalaryRequest{
+			Amount: &moneyrecapv1.Money{Amount: amount, CurrencyCode: "IDR"}, Payday: payday,
+			AppliesFrom: moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_THIS_MONTH,
+		})
+		req.Header().Set("Idempotency-Key", rand.Text())
+		_, err := client.SaveSalary(ctx, req)
+		return err
+	}
+	if err := salary("15000000.5", "25"); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Fatalf("a rupiah cent: %v, want invalid_argument, the Currency has 0 decimals", err)
+	}
+	if err := salary("15000000", "25"); err != nil {
+		t.Fatal(err)
+	}
+	s := state()
+	signUpMonth := s.Profile.SignedUpOn[:7]
+	if s.NextStep != 4 || s.Profile.OnboardingStep != 3 || s.Salary.GetAmount().GetAmount() != "15000000" || s.Salary.GetEffectiveFrom() != signUpMonth {
+		t.Fatalf("after step 3: %v, want step 4 next with 15000000 from %s", s, signUpMonth)
+	}
+	if _, err := db.Exec(ctx, `UPDATE member SET onboarding_step = 2 WHERE keycloak_subject = $1`, sub); err != nil {
+		t.Fatal(err)
+	}
+	if s := state(); s.NextStep != 3 || s.Salary.GetAmount().GetAmount() != "15000000" {
+		t.Fatalf("after a crash between the two writes: %v, want step 3 with the amount filled in", s)
+	}
+	if err := salary("15000000", "last"); err != nil {
+		t.Fatal(err)
+	}
+	if s := state(); s.NextStep != 4 || s.Salary.GetPayday() != "last" || s.Salary.GetEffectiveFrom() != signUpMonth {
+		t.Fatalf("step 3 again with a new Payday: %v, want last in force from %s, one Salary", s, signUpMonth)
+	}
+	if err := save(&moneyrecapv1.BffServiceSaveProfileRequest{CurrencyCode: proto.String("EUR"), OnboardingStep: proto.Int32(2)}); err != nil {
+		t.Fatal(err)
+	}
+	if s := state(); s.Profile.CurrencyDigits != 2 || s.Salary.GetAmount().GetAmount() != "15000000.00" || s.Salary.GetOriginalAmount().GetCurrencyCode() != "EUR" {
+		t.Fatalf("back at step 2 for EUR: %v, want 15000000.00 EUR, original too, and 2 decimals to type", s)
+	}
+	if err := save(&moneyrecapv1.BffServiceSaveProfileRequest{CurrencyCode: proto.String("IDR"), OnboardingStep: proto.Int32(2)}); err != nil {
+		t.Fatal(err)
+	}
+	t.Log("step 3 saved, resumed after a crash, replaced with a new Payday, and relabelled EUR and back to IDR")
 }

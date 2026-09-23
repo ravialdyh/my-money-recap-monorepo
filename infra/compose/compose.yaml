@@ -233,6 +233,7 @@ services:
       BFF_OIDC_ISSUER: *issuer
       BFF_OIDC_JWKS_URL: *jwks
       BFF_MEMBERS_URL: http://members:8080
+      BFF_LEDGER_URL: http://ledger:8080
       BFF_NOTIFY_URL: http://notify:8080
       BFF_REALM_URL: http://keycloak:8080/realms/mmr
       BFF_CLIENT_SECRET: ${BFF_CLIENT_SECRET:?set in .env}
@@ -241,7 +242,7 @@ services:
     ports:
       - "${BFF_HOST_PORT:-8082}:8080"
     depends_on:
-      members:
+      ledger:
         condition: service_healthy
       redis:
         condition: service_healthy

@@ -52,10 +52,11 @@ final class HomeViewModel {
         home.map { "Hi, \($0.displayName)" }
     }
 
-    /// "Spent so far", extended with the countdown before the effective Payday (PRD §6.8).
+    /// "Spent so far", extended with the countdown before the effective Payday (PRD §6.8): "in 1 day", "in 15 days".
     var heroEyebrow: String {
         guard let home, home.hasSalary, home.salary.daysUntilPayday > 0 else { return "Spent so far" }
-        return "Spent so far · salary lands in \(home.salary.daysUntilPayday) days"
+        let days = home.salary.daysUntilPayday
+        return "Spent so far · salary lands in \(days) \(days == 1 ? "day" : "days")"
     }
 
     /// The Saved chip exists only while Money In > 0 (PRD D41): the server omits `saved` then, and the phone checks the

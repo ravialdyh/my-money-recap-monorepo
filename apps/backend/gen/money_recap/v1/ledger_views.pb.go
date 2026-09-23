@@ -561,7 +561,8 @@ type SalarySetting struct {
 	// "YYYY-MM" the row takes effect from (PRD D56).
 	EffectiveFrom string `protobuf:"bytes,3,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
 	// Always present: the amount as typed, with its Currency, never touched by a
-	// currency change (PRD §8.9).
+	// conversion (PRD §8.9); onboarding's relabel moves it to the new code with
+	// the amount (spec #92).
 	OriginalAmount *Money `protobuf:"bytes,4,opt,name=original_amount,json=originalAmount,proto3" json:"original_amount,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache

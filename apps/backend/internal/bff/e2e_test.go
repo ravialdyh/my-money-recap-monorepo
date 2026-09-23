@@ -19,15 +19,21 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// onboard answers steps 1 and 2 through the BFF under token, as the app does, so GetHome answers: the name Test,
-// the owl and IDR, the rupiah PRD D45 proves every screen in.
+// onboard sends the zone UTC and answers steps 1 and 2 through the BFF under token, as the app does, so GetHome
+// answers: the name Test, the owl and IDR, the rupiah PRD D45 proves every screen in, with ledger's months in UTC.
 func onboard(ctx context.Context, t *testing.T, base, token string) {
 	t.Helper()
+	client := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(token))
+	zone := connect.NewRequest(&moneyrecapv1.BffServiceSetTimezoneRequest{Timezone: "UTC"})
+	zone.Header().Set("Idempotency-Key", rand.Text())
+	if _, err := client.SetTimezone(ctx, zone); err != nil {
+		t.Fatal(err)
+	}
 	req := connect.NewRequest(&moneyrecapv1.BffServiceSaveProfileRequest{
 		DisplayName: proto.String("Test"), AvatarKey: proto.String("owl"), CurrencyCode: proto.String("IDR"), OnboardingStep: proto.Int32(2),
 	})
 	req.Header().Set("Idempotency-Key", rand.Text())
-	if _, err := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(token)).SaveProfile(ctx, req); err != nil {
+	if _, err := client.SaveProfile(ctx, req); err != nil {
 		t.Fatal(err)
 	}
 }

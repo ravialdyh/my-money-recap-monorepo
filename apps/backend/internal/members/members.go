@@ -16,6 +16,7 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/cldr"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/migrate"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/serve"
 )
@@ -124,10 +125,13 @@ func (s *Service) own(ctx context.Context, id string) (Row, error) {
 // storeFailed is serve.StoreFailed for this service.
 func storeFailed(ctx context.Context, err error) error { return serve.StoreFailed(ctx, "members", err) }
 
+// profile is a stored row as the contract carries it, with the Currency's decimals from the CLDR data ledger rounds
+// with, which step 3's amount field allows (spec #92).
 func profile(m Row) *moneyrecapv1.Profile {
+	digits, _ := cldr.Digits(m.CurrencyCode)
 	p := &moneyrecapv1.Profile{
 		MemberId: m.ID, Email: m.Email, DisplayName: m.DisplayName, AvatarKey: m.AvatarKey, CurrencyCode: m.CurrencyCode,
-		Timezone: m.Timezone, OnboardingStep: m.OnboardingStep, SignedUpOn: m.SignedUpOn,
+		Timezone: m.Timezone, OnboardingStep: m.OnboardingStep, SignedUpOn: m.SignedUpOn, CurrencyDigits: int32(digits),
 	}
 	if m.DeletionRequestedAt != nil {
 		p.DeletionRequestedAt = timestamppb.New(*m.DeletionRequestedAt)

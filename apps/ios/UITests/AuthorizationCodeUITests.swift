@@ -59,6 +59,8 @@ final class AuthorizationCodeUITests: XCTestCase {
         XCTAssert(app.buttons["Next"].isEnabled, "so the Member just taps Next")
         snapshot("03-step-2-own-currency")
         app.buttons["Next"].tap()
+        XCTAssert(app.staticTexts["Your monthly salary"].waitForExistence(timeout: 30), "step 3 (PRD §6.6)")
+        app.buttons["Skip for now"].tap()
         assertHomeAtZero(app, greeting: "Hi, Test", currency: own)
         snapshot("04-home-at-zero-through-the-web-sheet")
     }

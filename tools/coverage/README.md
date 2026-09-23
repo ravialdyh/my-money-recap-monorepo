@@ -25,8 +25,8 @@ measurements is in the pull requests that raised them.
 
 | Language | Measured by | Latest |
 | --- | --- | --- |
-| `go` | The `backend` job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify` and the three end-to-end tests really run. The floor sits at the target, not at the measurement, because the ratchet stops there. | 82.4% |
-| `ios` | The `ios` job's commands, `-enableCodeCoverage YES` on both halves of the build-then-test split, on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home and counts far higher. When two clean runs differ, the floor takes the lower. | 75.8% |
+| `go` | The `backend` job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify`, `internal/ledger` and the end-to-end tests really run. The floor sits at the target, not at the measurement, because the ratchet stops there. | 82.8% |
+| `ios` | The `ios` job's commands, `-enableCodeCoverage YES` on both halves of the build-then-test split, on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home and counts far higher. When two clean runs differ, the floor takes the lower. | 78.0% |
 | `typescript` | `npm run test:coverage` in `my-money-recap-ds`. The floor sits at the target, as Go's does. | 97.8% |
 
 ## What is not counted
@@ -43,15 +43,15 @@ functions, so the fit-to-width measurement, the count-up animation and every eve
 exercised.
 
 Go's gap is `internal/members`, whose handlers the boundary test reaches in the Compose container,
-outside the profile, and `cmd/bff`, `cmd/members` and `cmd/notify`: their `main`, `run` and handler
+outside the profile, and `cmd/bff`, `cmd/ledger`, `cmd/members` and `cmd/notify`: their `main`, `run` and handler
 wiring, which only the Compose stack runs. `serve.Main`'s serve path, which needs a listener and a
 signal rather than a return value, is `internal/serve`'s gap. `internal/migrate`'s uncovered lines are
 store errors a live Postgres does not raise, and `internal/notify`'s are the STARTTLS upgrade no local
-mail host offers and write errors a socket under a live deadline does not reach. `internal/ledger`
-holds only the fixture decoding test until `ledger` is built.
+mail host offers and write errors a socket under a live deadline does not reach.
 
 iOS's gap is the views: the unit tests cover the view models, sign-in and the session, the Keychain
-and money formatting (`apps/ios/README.md`, "Layout"), and no unit test renders a view.
+and money formatting (`apps/ios/README.md`, "Layout"), and render tests draw only the states a picture can
+tell apart, since SwiftUI's accessibility tree is empty in a unit test.
 
 Nothing forces those into one change. Add tests with the slice that touches the code, raise the floor
 in the same pull request, and the ratchet keeps what you gained.

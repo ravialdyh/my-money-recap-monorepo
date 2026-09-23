@@ -130,7 +130,12 @@ func (s *Service) fill(ctx context.Context, id string) (facts, error) {
 	return f, nil
 }
 
-func salaries(ctx context.Context, db *pgxpool.Pool, id string) ([]salaryRow, error) {
+// querier is a pool or a transaction, so a write can read back the rows it changed.
+type querier interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}
+
+func salaries(ctx context.Context, db querier, id string) ([]salaryRow, error) {
 	rows, err := db.Query(ctx, `SELECT amount::text, original_amount::text, original_currency, payday, effective_from FROM salary_setting WHERE member_id = $1 ORDER BY id`, id)
 	if err != nil {
 		return nil, err

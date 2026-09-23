@@ -117,6 +117,8 @@ type BffServiceClient interface {
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
 	// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
 	// included; failed_precondition when the D56 sheet should have opened.
+	// During onboarding it is a setup save, and step 3 is then recorded in
+	// members, after ledger answers (spec #92).
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
 	// ledger.SaveTarget: the first takes effect in the sign-up month, later ones
 	// next month (D65); failed_precondition without a Salary (D44).
@@ -438,6 +440,8 @@ type BffServiceHandler interface {
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
 	// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
 	// included; failed_precondition when the D56 sheet should have opened.
+	// During onboarding it is a setup save, and step 3 is then recorded in
+	// members, after ledger answers (spec #92).
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
 	// ledger.SaveTarget: the first takes effect in the sign-up month, later ones
 	// next month (D65); failed_precondition without a Salary (D44).

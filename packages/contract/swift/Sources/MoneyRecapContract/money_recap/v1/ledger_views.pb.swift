@@ -296,7 +296,8 @@ public nonisolated struct MoneyRecap_V1_SalarySetting: Sendable {
   public var effectiveFrom: String = String()
 
   /// Always present: the amount as typed, with its Currency, never touched by a
-  /// currency change (PRD §8.9).
+  /// conversion (PRD §8.9); onboarding's relabel moves it to the new code with
+  /// the amount (spec #92).
   public var originalAmount: MoneyRecap_V1_Money {
     get {_originalAmount ?? MoneyRecap_V1_Money()}
     set {_originalAmount = newValue}
