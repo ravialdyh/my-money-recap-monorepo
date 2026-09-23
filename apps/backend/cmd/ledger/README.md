@@ -4,7 +4,7 @@ The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary and Saving T
 PRD §8 computes from them. Built in slice 4 (#99) for a Member who has no Spends yet, since nothing can
 log one before slice 5: it serves `SaveSalary`, `RelabelCurrency`, `SaveTarget`, `GetSettings` and
 `GetMonthSummary`, and the rest of `LedgerService` is planned. The BFF calls it since #103: Home's month,
-onboarding's step 3 and a resumed step 3's saved Salary; step 4 follows (#104). Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
+onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
 
 | Variable | Default | Meaning |
@@ -36,11 +36,12 @@ onboarding's step 3 and a resumed step 3's saved Salary; step 4 follows (#104). 
 
 ## The rules
 
-- The **first** Salary and the **first** Saving Target take effect in the sign-up month: a first save is not
-  an edit (spec #92), so D56 and D65 do not apply to it, even when onboarding ends in a later month.
-- So does every Salary sent with `setup`, which the BFF sets while onboarding is unfinished: step 3 saved
-  again, after a crash between its two writes or from step 4's back arrow, replaces the setup Salary, a new
-  Payday included (owner, 2026-09-23). Two rows sharing a start month resolve newest first.
+- A Salary or Saving Target sent with `setup`, which the BFF sets while onboarding is unfinished, takes effect
+  in the sign-up month, even when onboarding ends in a later month: a first save is not an edit (spec #92), so
+  D56 and D65 do not apply. Saved again, after a crash between its two writes or from step 4's back arrow, it
+  replaces the setup row, a new Payday included (owner, 2026-09-23). Two rows sharing a month resolve newest first.
+- The **first** Salary or Saving Target saved **after** onboarding, from Home's prompt, takes effect this
+  month, so no month already recapped gains one (owner, 2026-09-23). Every later save is an edit.
 - `RelabelCurrency` is onboarding's Currency change: every Salary row takes the new code, `original_currency`
   included, each amount and original rounded half up to the new decimals and never below the smallest unit, and
   the replica takes the code in the same transaction, so a save in it right after is not refused. No rate, no

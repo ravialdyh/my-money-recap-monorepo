@@ -20,8 +20,8 @@ var (
 	paydayPattern = regexp.MustCompile(`^([1-9]|[12]\d|3[01])$`)
 )
 
-// SaveSalary appends a salary_setting row. The first, and any setup save, takes effect in the sign-up month (spec
-// #92); after it, per D56 and §8.10, a new Payday or a next-month answer starts next month, this month's applies now.
+// SaveSalary appends a salary_setting row. A setup save takes effect in the sign-up month (spec #92); after setup, per
+// salaryStarts, a first one this month, then per D56 and §8.10 a new Payday or next-month answer next month.
 func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyrecapv1.SaveSalaryRequest]) (*connect.Response[moneyrecapv1.SaveSalaryResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -111,14 +111,14 @@ func (l ledgerOf) amount(m *moneyrecapv1.Money) (*big.Rat, error) {
 	return r, nil
 }
 
-// salaryStarts is the month a new row takes effect from. An unspecified answer applies now before this
-// month's Payday and is failed_precondition from it on, which the phone answers with the D56 sheet.
+// salaryStarts is the month a row saved after setup takes effect from: a first one this month, which is no edit
+// (owner 2026-09-23). An unspecified answer applies now before this month's Payday, then is the D56 sheet's.
 func (l member) salaryStarts(payday string, applies moneyrecapv1.SalaryAppliesFrom) (month, error) {
 	now := monthOf(l.today)
 	current, ok := inForce(l.salaries, salaryFrom, now)
 	switch {
 	case len(l.salaries) == 0:
-		return monthOf(l.signedUp), nil
+		return now, nil
 	case ok && current.payday != payday, applies == moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_NEXT_MONTH:
 		return now.next(), nil
 	case applies == moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_UNSPECIFIED && ok && !l.today.Before(now.day(effectivePayday(current.payday, now))):
@@ -127,8 +127,8 @@ func (l member) salaryStarts(payday string, applies moneyrecapv1.SalaryAppliesFr
 	return now, nil
 }
 
-// SaveTarget appends a saving_target_setting row: the first takes effect in the sign-up month (spec #92),
-// every later one next month (D65). No Target can be set without a Salary (D44).
+// SaveTarget appends a saving_target_setting row: a setup save in the sign-up month (spec #92), a first one after
+// setup this month (owner 2026-09-23), every later one next month (D65). No Target without a Salary (D44).
 func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyrecapv1.SaveTargetRequest]) (*connect.Response[moneyrecapv1.SaveTargetResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -144,8 +144,11 @@ func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyreca
 		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("no Saving Target without a Salary (D44)"))
 	}
 	from := monthOf(l.today).next()
-	if len(l.targets) == 0 {
+	switch {
+	case req.Msg.Setup:
 		from = monthOf(l.signedUp)
+	case len(l.targets) == 0:
+		from = monthOf(l.today)
 	}
 	answer := &moneyrecapv1.SaveTargetResponse{}
 	err = idempotency.Write(ctx, s.DB, l.id, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {

@@ -43,8 +43,8 @@ type HomeView struct {
 	// Absent until a Saving Target is set.
 	SavingTarget *SavingTargetFacts `protobuf:"bytes,9,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	// The month's Streak so far (PRD §8.5, D43): the longest spend-free run in
-	// the window to today. With no Spends it is the elapsed days, which Home
-	// prints as "Streak day {n}"; 1 on the first-run Home.
+	// the window to today. With no Spends it is the elapsed days, which the
+	// empty Spend list prints as "Streak day {n}"; 1 on the sign-up day.
 	StreakDay int32 `protobuf:"varint,10,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
 	// Days left in the month counting today, never below 1 (PRD §8.7).
 	DaysRemaining int32 `protobuf:"varint,11,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
@@ -442,11 +442,11 @@ type OnboardingState struct {
 	// Display Name, Avatar key and Currency as saved by steps 1 and 2; an empty
 	// field is an unanswered one.
 	Profile *Profile `protobuf:"bytes,2,opt,name=profile,proto3" json:"profile,omitempty"`
-	// Step 3's answer; absent when not yet reached, or skipped, which is absent
-	// with profile.onboarding_step at 3 or more.
+	// Step 3's answer, the Salary in force, which Home's prompts reopen after
+	// setup too; absent before step 2 is saved, or when none is set.
 	Salary *SalarySetting `protobuf:"bytes,3,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Step 4's answer; absent when not yet reached, or skipped or blocked by a
-	// skipped Salary (D44), which is absent with profile.onboarding_step at 4.
+	// Step 4's answer, the Saving Target in force; absent before step 2 is
+	// saved, or when none is set, skipped or blocked by no Salary (D44).
 	SavingTarget *SavingTargetSetting `protobuf:"bytes,4,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	// The given_name claim of the Member's own token, which fills step 1's First
 	// name field; empty when the provider shared none (PRD §6.4). Read by the

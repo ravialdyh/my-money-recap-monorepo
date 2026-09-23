@@ -61,8 +61,16 @@ final class AuthorizationCodeUITests: XCTestCase {
         app.buttons["Next"].tap()
         XCTAssert(app.staticTexts["Your monthly salary"].waitForExistence(timeout: 30), "step 3 (PRD §6.6)")
         app.buttons["Skip for now"].tap()
+        XCTAssert(app.buttons["Set a salary first"].waitForExistence(timeout: 30), "step 4 blocked (D44)")
+        XCTAssertEqual(app.buttons.matching(identifier: "Skip for now").count, 1, "one Skip for now, the main button")
+        XCTAssertFalse(app.buttons["Done"].exists)
+        app.buttons["Skip for now"].tap()
         assertHomeAtZero(app, greeting: "Hi, Test", currency: own)
         snapshot("04-home-at-zero-through-the-web-sheet")
+        app.buttons["Set a saving target"].tap()
+        XCTAssert(app.buttons["Set a salary first"].waitForExistence(timeout: 30), "Home's prompt opens step 4")
+        app.buttons["Back"].tap()
+        XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "and Back returns to Home, not to step 3")
     }
 
     /// The web sheet and its "wants to use localhost to sign in" alert are drawn by system processes

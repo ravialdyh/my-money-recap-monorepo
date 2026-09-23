@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// PRD §6.6 / SCREEN-STATES A6, step 3 of onboarding: the back chevron to step 2 and the step pill, the question, the
+/// PRD §6.6 / SCREEN-STATES A6, step 3 of onboarding: the back chevron and the step pill, the question, the
 /// amount card and the Payday card, then Next and Skip for now.
 struct SalaryView: View {
     @State private var model: SalaryViewModel
@@ -44,11 +44,7 @@ struct SalaryView: View {
                     finish(model.next)
                 }
                 .disabled(!model.canContinue)
-                Button("Skip for now") { finish(model.skip) }
-                    .textStyle(Tokens.TypeRamp.bodyM)
-                    .fontWeight(.heavy)
-                    .frame(maxWidth: .infinity, minHeight: Tokens.Size.touchTargetMin)
-                    .buttonStyle(PressableStyle())
+                GroundLink(title: "Skip for now") { finish(model.skip) }
                     .disabled(model.isSaving)
             }
         }

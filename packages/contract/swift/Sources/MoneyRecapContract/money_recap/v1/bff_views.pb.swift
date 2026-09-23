@@ -101,8 +101,8 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   public mutating func clearSavingTarget() {_uniqueStorage()._savingTarget = nil}
 
   /// The month's Streak so far (PRD §8.5, D43): the longest spend-free run in
-  /// the window to today. With no Spends it is the elapsed days, which Home
-  /// prints as "Streak day {n}"; 1 on the first-run Home.
+  /// the window to today. With no Spends it is the elapsed days, which the
+  /// empty Spend list prints as "Streak day {n}"; 1 on the sign-up day.
   public var streakDay: Int32 {
     get {_storage._streakDay}
     set {_uniqueStorage()._streakDay = newValue}
@@ -295,8 +295,8 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `profile`. Subsequent reads from it will return its default value.
   public mutating func clearProfile() {_uniqueStorage()._profile = nil}
 
-  /// Step 3's answer; absent when not yet reached, or skipped, which is absent
-  /// with profile.onboarding_step at 3 or more.
+  /// Step 3's answer, the Salary in force, which Home's prompts reopen after
+  /// setup too; absent before step 2 is saved, or when none is set.
   public var salary: MoneyRecap_V1_SalarySetting {
     get {_storage._salary ?? MoneyRecap_V1_SalarySetting()}
     set {_uniqueStorage()._salary = newValue}
@@ -306,8 +306,8 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// Step 4's answer; absent when not yet reached, or skipped or blocked by a
-  /// skipped Salary (D44), which is absent with profile.onboarding_step at 4.
+  /// Step 4's answer, the Saving Target in force; absent before step 2 is
+  /// saved, or when none is set, skipped or blocked by no Salary (D44).
   public var savingTarget: MoneyRecap_V1_SavingTargetSetting {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
     set {_uniqueStorage()._savingTarget = newValue}

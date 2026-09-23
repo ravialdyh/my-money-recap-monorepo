@@ -48,6 +48,48 @@ func TestASetupSaveReplacesTheSetupSalary(t *testing.T) {
 	}
 }
 
+// A Member who signed up in July and sets both in September after setup starts them in September, leaving the
+// delivered months without; during setup a Target starts in the sign-up month and a re-save replaces it (owner 2026-09-23).
+func TestFirstSavesStartThisMonthAfterSetup(t *testing.T) {
+	db := testDB(t)
+	after := "00000000-0000-4000-8000-00000000a014"
+	during := "00000000-0000-4000-8000-00000000a015"
+	afterCtx := seed(t, db, after, "after", "Asia/Jakarta", "2026-07-10", "IDR", nil, nil)
+	duringCtx := seed(t, db, during, "during", "Asia/Jakarta", "2026-07-10", "IDR", nil, nil)
+	s := &Service{DB: db, Now: func() time.Time { return at(t, "2026-09-20", "Asia/Jakarta") }}
+	save := func(ctx context.Context, id, key string, setup bool) {
+		t.Helper()
+		if _, err := s.SaveSalary(ctx, connect.NewRequest(&moneyrecapv1.SaveSalaryRequest{
+			IdempotencyKey: key, MemberId: id, Amount: idr("3000000"), Payday: "25",
+			AppliesFrom: moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_THIS_MONTH, Setup: setup,
+		})); err != nil {
+			t.Fatalf("%s: %v", key, err)
+		}
+	}
+	target := func(ctx context.Context, id, key string, percent int32, setup bool) *moneyrecapv1.LedgerSettings {
+		t.Helper()
+		res, err := s.SaveTarget(ctx, connect.NewRequest(&moneyrecapv1.SaveTargetRequest{IdempotencyKey: key, MemberId: id, Percent: percent, Setup: setup}))
+		if err != nil {
+			t.Fatalf("%s: %v", key, err)
+		}
+		return res.Msg.Settings
+	}
+
+	save(afterCtx, after, "s1", false)
+	if got := target(afterCtx, after, "t1", 20, false); got.GetSalary().GetEffectiveFrom() != "2026-09" || got.GetSavingTarget().GetEffectiveFrom() != "2026-09" {
+		t.Fatalf("first Salary and Target after setup: %v, want both from 2026-09, not the July sign-up month", got)
+	}
+	august, err := s.GetMonthSummary(afterCtx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: after, Month: "2026-08"}))
+	if err != nil || august.Msg.Summary.Salary != nil || august.Msg.Summary.SavingTarget != nil {
+		t.Errorf("August after both saves: %v, %v, want no Salary and no Target", august, err)
+	}
+	save(duringCtx, during, "s1", true)
+	target(duringCtx, during, "t1", 20, true)
+	if got := target(duringCtx, during, "t2", 35, true); got.GetSavingTarget().GetPercent() != 35 || got.GetSavingTarget().GetEffectiveFrom() != "2026-07" || got.NextSavingTarget != nil {
+		t.Fatalf("a setup Target saved again: %v, want 35%% from 2026-07 and nothing waiting", got)
+	}
+}
+
 // A Currency change during onboarding relabels the Salary, never converts it: amount and original take the new code,
 // rounded half up and kept above zero, and the replica takes it at once, so a save right after is accepted (spec #92).
 func TestRelabelCurrency(t *testing.T) {

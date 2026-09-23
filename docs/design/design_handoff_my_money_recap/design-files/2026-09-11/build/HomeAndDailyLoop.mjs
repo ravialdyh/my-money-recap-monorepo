@@ -45,11 +45,11 @@ const b1WarnBefore = col('B1 · Home / target warning, before payday', screen('r
   `D53: the warning fires before Payday too, with different copy. 20 September, Spent £2,000 > the line of £2,400 − £480 = £1,920. Same coral Banner, dismiss × for the session only, target card moves up on dismiss. Money In is still £0, so no Saved chip and the bar stays clamped at zero.`]);
 const b1Partial = col('B1 · Home / partial month in the list', screen('recap', `${H('October 2026')}
   ${hero('Spent so far · salary lands in 24 days', 'n0', [['earned', 'Money in £0']])}
-  ${target('£0 of £480', 'n0', 'Nothing spent yet. Streak day 1.')}
+  ${target('£0 of £480', 'n0', 'Nothing to keep yet. Your salary lands on the 25th.')}
   ${homeButtons(false)}
   ${pastList([['September 2026', 'The Squirrel'], ['August 2026', 'Partial']])}`), [
   `§8.11: a partial month shows "Partial" as its value instead of an Archetype name and opens P1–P4 (situation 2 or 3). Here August was the sign-up month with the 25th already past. Newest first; the current month is never listed.`,
-  '1 October: Money In is £0 until the 25th, so no Saved chip and "salary lands in 24 days"; the streak window starts on the 1st, so "Streak day 1".']);
+  '1 October: Money In is £0 until the 25th, so no Saved chip, "salary lands in 24 days" and the target card's "Nothing to keep yet. Your salary lands on the 25th."']);
 
 // Row 2 · offline, first load, preview card, log-a-spend cap
 const b1Offline = col('B1 · Home / offline', screen('recap', `${H('September 2026', 'Maya', { after: `<div style="margin-top:8px;font:700 12px/1.3 var(--mmr-font-family-text);color:var(--mmr-color-text-on-ground-muted)">Last updated Saturday 14:20.</div>

@@ -28,31 +28,67 @@ func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyreca
 	if err != nil {
 		return nil, err
 	}
-	setup := p.OnboardingStep < setupDone
 	ledgerCtx, cancel := context.WithTimeout(ctx, s.timeout())
 	defer cancel()
 	saved, err := s.Ledger.SaveSalary(ledgerCtx, connect.NewRequest(&moneyrecapv1.SaveSalaryRequest{
 		IdempotencyKey: key, MemberId: p.MemberId, Amount: req.Msg.Amount, Payday: req.Msg.Payday,
-		AppliesFrom: req.Msg.AppliesFrom, Setup: setup,
+		AppliesFrom: req.Msg.AppliesFrom, Setup: p.OnboardingStep < setupDone,
 	}))
 	if err != nil {
 		return nil, requiredCallFailed("ledger.SaveSalary", connect.CodeOf(err), err)
 	}
-	if setup && p.OnboardingStep < 3 {
-		membersCtx, cancel := context.WithTimeout(ctx, s.timeout())
-		defer cancel()
-		step, err := s.Members.SaveProfile(membersCtx, connect.NewRequest(&moneyrecapv1.SaveProfileRequest{
-			IdempotencyKey: key, MemberId: p.MemberId, OnboardingStep: proto.Int32(3),
-		}))
-		if err != nil {
-			return nil, requiredCallFailed("members.SaveProfile", connect.CodeOf(err), err)
-		}
-		p = step.Msg.Profile
+	if p, err = s.recordStep(ctx, key, p, 3); err != nil {
+		return nil, err
 	}
 	return connect.NewResponse(&moneyrecapv1.BffServiceSaveSalaryResponse{
 		Home:     homeView(p, saved.Msg.Month, nil, nil, s.now()),
 		Settings: &moneyrecapv1.SettingsView{Profile: p, LedgerSettings: saved.Msg.Settings},
 	}), nil
+}
+
+// SaveTarget is onboarding step 4 and, later, Settings' Saving Target (PRD §6.7, §6.16), as SaveSalary: ledger first,
+// a setup save while onboarding is unfinished, then step 4 recorded in members under the same key.
+func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceSaveTargetRequest]) (*connect.Response[moneyrecapv1.BffServiceSaveTargetResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	p, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ledgerCtx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	saved, err := s.Ledger.SaveTarget(ledgerCtx, connect.NewRequest(&moneyrecapv1.SaveTargetRequest{
+		IdempotencyKey: key, MemberId: p.MemberId, Percent: req.Msg.Percent, Setup: p.OnboardingStep < setupDone,
+	}))
+	if err != nil {
+		return nil, requiredCallFailed("ledger.SaveTarget", connect.CodeOf(err), err)
+	}
+	if p, err = s.recordStep(ctx, key, p, setupDone); err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceSaveTargetResponse{
+		Home:     homeView(p, saved.Msg.Month, nil, nil, s.now()),
+		Settings: &moneyrecapv1.SettingsView{Profile: p, LedgerSettings: saved.Msg.Settings},
+	}), nil
+}
+
+// recordStep saves step in members under the write's key once ledger has answered, when progress is below it;
+// members keeps the highest step, so a lower one is never sent (spec #92).
+func (s *Service) recordStep(ctx context.Context, key string, p *moneyrecapv1.Profile, step int32) (*moneyrecapv1.Profile, error) {
+	if p.OnboardingStep >= step {
+		return p, nil
+	}
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	saved, err := s.Members.SaveProfile(ctx, connect.NewRequest(&moneyrecapv1.SaveProfileRequest{
+		IdempotencyKey: key, MemberId: p.MemberId, OnboardingStep: proto.Int32(step),
+	}))
+	if err != nil {
+		return nil, requiredCallFailed("members.SaveProfile", connect.CodeOf(err), err)
+	}
+	return saved.Msg.Profile, nil
 }
 
 // relabel is the second half of a setup Currency change once members holds the new code: ledger moves any saved

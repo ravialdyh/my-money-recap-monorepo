@@ -1,6 +1,7 @@
 package bff
 
 import (
+	"errors"
 	"testing"
 
 	"connectrpc.com/connect"
@@ -61,6 +62,44 @@ func TestSaveSalaryWritesLedgerThenTheStep(t *testing.T) {
 	}
 }
 
+// Step 4 mirrors step 3: a setup save in ledger, then step 4 in members under the same key; D44's refusal passes
+// through with no step recorded; after setup the save is an edit and no step is sent (spec #92, owner 2026-09-23).
+func TestSaveTargetWritesLedgerThenTheStep(t *testing.T) {
+	msg := &moneyrecapv1.BffServiceSaveTargetRequest{Percent: 20}
+	members, ledger := &fakeMembers{profile: salaryAt(3)}, &fakeLedger{}
+	s := newService(t, members, StubNotify{})
+	s.Ledger = ledgerClient(t, ledger)
+	if _, err := s.SaveTarget(ctx, keyed(msg, "")); connect.CodeOf(err) != connect.CodeInvalidArgument || ledger.gotTarget != nil {
+		t.Fatalf("no key: %v, ledger reached %v; want invalid_argument before any call", err, ledger.gotTarget != nil)
+	}
+	res, err := s.SaveTarget(ctx, keyed(msg, "k1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := ledger.gotTarget; !got.Setup || got.IdempotencyKey != "k1" || got.MemberId != "m-1" || got.Percent != 20 || ledger.gotToken != "Bearer tok" {
+		t.Errorf("ledger got %v with %q, want a setup save of 20%% under k1 for m-1 with the caller's token", got, ledger.gotToken)
+	}
+	if got := members.gotProfile; got.GetIdempotencyKey() != "k1" || got.GetOnboardingStep() != 4 {
+		t.Errorf("members got %v, want step 4 alone under k1", got)
+	}
+	if v := res.Msg; v.Settings.Profile.OnboardingStep != 4 || v.Settings.LedgerSettings.SavingTarget.GetPercent() != 20 {
+		t.Errorf("answer %v, want step 4 and the Target", v)
+	}
+
+	blocked := &fakeMembers{profile: salaryAt(3)}
+	s = newService(t, blocked, StubNotify{})
+	s.Ledger = ledgerClient(t, &fakeLedger{err: connect.NewError(connect.CodeFailedPrecondition, errors.New("no Saving Target without a Salary (D44)"))})
+	if _, err := s.SaveTarget(ctx, keyed(msg, "k2")); connect.CodeOf(err) != connect.CodeFailedPrecondition || blocked.gotProfile != nil {
+		t.Errorf("a Target with no Salary: %v, step recorded %v; want failed_precondition and no step", err, blocked.gotProfile != nil)
+	}
+	done, edit := &fakeMembers{profile: salaryAt(4)}, &fakeLedger{}
+	s = newService(t, done, StubNotify{})
+	s.Ledger = ledgerClient(t, edit)
+	if _, err := s.SaveTarget(ctx, keyed(msg, "k3")); err != nil || edit.gotTarget.GetSetup() || done.gotProfile != nil {
+		t.Errorf("after setup: %v, setup %v, step recorded %v; want an edit and no step write", err, edit.gotTarget.GetSetup(), done.gotProfile != nil)
+	}
+}
+
 // A Currency saved again during setup relabels step 3's Salary in ledger, after members holds it, and the answer
 // carries the relabelled Salary; a first Currency moves nothing; after setup a change is refused (spec #92).
 func TestSaveProfileRelabelsDuringSetupAndRefusesAfter(t *testing.T) {
@@ -94,16 +133,23 @@ func TestSaveProfileRelabelsDuringSetupAndRefusesAfter(t *testing.T) {
 	}
 }
 
-// A resume at step 3 or 4 carries step 3's saved answer from ledger, so the amount is filled in again; steps 1 and
-// 2 never ask ledger, and a ledger that fails is unavailable rather than an empty step (spec #92).
+// A resume at step 3 or 4, or Home's prompts after setup, carry the saved Salary and Target from ledger; before the
+// Currency ledger is never asked, and a ledger that fails is unavailable rather than an empty step (spec #92).
 func TestGetOnboardingStateCarriesStepThreesAnswer(t *testing.T) {
 	saved := &moneyrecapv1.SalarySetting{Amount: &moneyrecapv1.Money{Amount: "15000000", CurrencyCode: "IDR"}, Payday: "last"}
-	ledger := &fakeLedger{salary: saved}
+	target := &moneyrecapv1.SavingTargetSetting{Percent: 35, EffectiveFrom: "2026-09"}
+	ledger := &fakeLedger{salary: saved, target: target}
 	s := newService(t, &fakeMembers{profile: salaryAt(2)}, StubNotify{})
 	s.Ledger = ledgerClient(t, ledger)
 	res, err := s.GetOnboardingState(ctx, connect.NewRequest(&moneyrecapv1.BffServiceGetOnboardingStateRequest{}))
-	if err != nil || res.Msg.State.NextStep != 3 || !proto.Equal(res.Msg.State.Salary, saved) {
-		t.Fatalf("at step 3: %v, %v; want step 3 with the saved Salary", res, err)
+	if err != nil || res.Msg.State.NextStep != 3 || !proto.Equal(res.Msg.State.Salary, saved) || !proto.Equal(res.Msg.State.SavingTarget, target) {
+		t.Fatalf("at step 3: %v, %v; want step 3 with the saved Salary and Target", res, err)
+	}
+	s = newService(t, &fakeMembers{profile: salaryAt(4)}, StubNotify{})
+	s.Ledger = ledgerClient(t, ledger)
+	res, err = s.GetOnboardingState(ctx, connect.NewRequest(&moneyrecapv1.BffServiceGetOnboardingStateRequest{}))
+	if err != nil || res.Msg.State.NextStep != 0 || !proto.Equal(res.Msg.State.Salary, saved) || !proto.Equal(res.Msg.State.SavingTarget, target) {
+		t.Fatalf("after setup: %v, %v; want setup over with the Salary step 4 takes a share of", res, err)
 	}
 	early := &fakeLedger{err: errLedgerDown}
 	s = newService(t, &fakeMembers{profile: &moneyrecapv1.Profile{MemberId: "m-1"}}, StubNotify{})

@@ -9,17 +9,18 @@ the session in the Keychain (I2), the generated Connect client (I3) sending the 
 `SetTimezone` on every launch, under one `Idempotency-Key` (A3, A14), then routing the launch (spec #92): a
 Member whose stored Home already greets them opens Home at once, with no round trip and so with no signal, and
 anyone else asks `GetOnboardingState` and opens the first unanswered of onboarding step 1, Name and Avatar (PRD
-§6.4, #98), step 2, Currency (§6.5, #100), and step 3, Salary and Payday (§6.6, #103), with the answers already
-saved filled in and re-selected. Each back chevron returns to the step before without losing a later answer (#102);
+§6.4, #98), step 2, Currency (§6.5, #100), step 3, Salary and Payday (§6.6, #103), and step 4, Saving Target
+(§6.7, #104), with the answers already saved filled in and re-selected. Step 4 without a Salary shows the prompt
+back to step 3 and one Skip for now (D44). Each back chevron returns to the step before without losing a later answer (#102);
 a Currency saved again during setup relabels step 3's Salary, and step 3 fills it in again. With no answer at launch, or a save that
 cannot reach the BFF, setup says `No connection. We need one to save your answers.`: on its own with Try again
 at launch, in the step's card otherwise, where Next tries again. The `HomeSnapshot` cache in SwiftData (I4),
-the only setup progress on the device and erased at sign-out, and Home drawn at zero in the B1 "no salary set"
-layout (PRD §6.8, D54, D69), greeting the Member by name with their Avatar and printing every figure in
-their Currency. Home is served only once steps 1 and 2 are answered: a `failed_precondition` from `GetHome`
-deletes the stored Home and reopens the unanswered step. Step 4 arrives with its own ticket, so until then
-step 3, saved or skipped, leads to Home. Nothing on Home navigates yet; the sheets and screens behind the chips,
-cards and buttons arrive with their own tickets.
+the only setup progress on the device and erased at sign-out, and Home drawn at zero (PRD §6.8, D54, D69),
+greeting the Member by name with their Avatar and printing every figure in their Currency, with the Saving
+Target's card filled in once one is set. Home is served only once steps 1 and 2 are answered: a
+`failed_precondition` from `GetHome` deletes the stored Home and reopens the unanswered step. Home's two
+prompt cards reopen step 3 and step 4, which run as in setup and whose back chevron returns to Home. The
+sheets and screens behind the chips and buttons arrive with their own tickets.
 
 ## Open
 

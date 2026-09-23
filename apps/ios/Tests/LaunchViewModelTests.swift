@@ -2,8 +2,9 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// The launch after sign-in (spec #92): the zone first, then Home or the first unanswered of steps 1 to 3 with the
-/// answers already saved, going back without losing any, and the no-connection state when nothing answers.
+/// The launch after sign-in (spec #92): the zone first, then Home or the first unanswered of steps 1 to 4 with the
+/// answers already saved, going back without losing any, Home's prompts reopening steps 3 and 4, and the no-connection
+/// state when nothing answers.
 @MainActor
 final class LaunchViewModelTests: XCTestCase {
     private func state(
@@ -11,14 +12,18 @@ final class LaunchViewModelTests: XCTestCase {
         name: String = "",
         avatar: String = "",
         suggested: String = "",
-        salary: MoneyRecap_V1_SalarySetting? = nil
+        salary: MoneyRecap_V1_SalarySetting? = nil,
+        target: MoneyRecap_V1_SavingTargetSetting? = nil
     ) -> MoneyRecap_V1_OnboardingState {
         .with {
             $0.nextStep = next
-            $0.profile = profile(name, avatar, next > 2 ? "IDR" : "")
+            $0.profile = profile(name, avatar, next > 2 || next == 0 ? "IDR" : "")
             $0.suggestedName = suggested
             if let salary {
                 $0.salary = salary
+            }
+            if let target {
+                $0.savingTarget = target
             }
         }
     }
@@ -77,7 +82,18 @@ final class LaunchViewModelTests: XCTestCase {
         model.stepTwoSaved()
         XCTAssertEqual(model.route, .stepThree(currency: "EUR", digits: 2, saved: nil), "typed in the saved Currency")
         model.stepThreeDone()
-        XCTAssertEqual(model.route, .home, "step 4 is not built yet, so Home")
+        XCTAssertEqual(model.route, .stepFour(salary: nil, digits: 2, saved: nil), "skipped, so blocked (D44)")
+        model.setSalary()
+        XCTAssertEqual(model.route, .stepThree(currency: "EUR", digits: 2, saved: nil), "the prompt back to step 3")
+        let typed = salary("2400.00", "EUR")
+        model.salarySaved(.with { $0.salary = typed })
+        model.stepThreeDone()
+        XCTAssertEqual(model.route, .stepFour(salary: typed.amount, digits: 2, saved: nil), "a share of what was saved")
+        model.back()
+        XCTAssertEqual(model.route, .stepThree(currency: "EUR", digits: 2, saved: typed), "step 3 with its answer")
+        model.stepThreeDone()
+        model.stepFourDone()
+        XCTAssertEqual(model.route, .home)
     }
 
     func testAResumeOpensTheFirstUnansweredStepWithTheSavedAnswers() async {
@@ -95,9 +111,41 @@ final class LaunchViewModelTests: XCTestCase {
         let salaried = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(3, salary: typed) })
         await salaried.start()
         XCTAssertEqual(salaried.route, .stepThree(currency: "IDR", digits: 0, saved: typed), "a crash after ledger")
-        let later = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(4) })
+        let kept = MoneyRecap_V1_SavingTargetSetting.with { $0.percent = 35 }
+        let later = LaunchViewModel(
+            greetedBefore: false,
+            setZone: {},
+            state: { self.state(4, salary: typed, target: kept) }
+        )
         await later.start()
-        XCTAssertEqual(later.route, .home, "step 4 is not built yet, so Home")
+        XCTAssertEqual(later.route, .stepFour(salary: typed.amount, digits: 0, saved: kept), "a crash after ledger")
+        let done = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(0) })
+        await done.start()
+        XCTAssertEqual(done.route, .home, "setup over")
+    }
+
+    /// Home's prompts open step 3 or 4 after setup with the saved answers; step 3 leads on to step 4 as in setup, back
+    /// returns to Home, never to step 2, and with no answer Try again reopens the same step (owner 2026-09-23).
+    func testHomesPromptsOpenStepsThreeAndFourAndBackReturnsHome() async {
+        var next: MoneyRecap_V1_OnboardingState? = state(0)
+        let model = LaunchViewModel(greetedBefore: true, setZone: {}, state: { next })
+        await model.start()
+        await model.open(step: 3)
+        XCTAssertEqual(model.route, .stepThree(currency: "IDR", digits: 0, saved: nil))
+        let typed = salary("15000000", "IDR")
+        model.salarySaved(.with { $0.salary = typed })
+        model.stepThreeDone()
+        XCTAssertEqual(model.route, .stepFour(salary: typed.amount, digits: 0, saved: nil))
+        model.back()
+        XCTAssertEqual(model.route, .home, "back from a step Home opened is Home")
+        next = nil
+        await model.open(step: 4)
+        XCTAssertEqual(model.route, .noConnection)
+        next = state(0, salary: typed)
+        await model.retry()
+        XCTAssertEqual(model.route, .stepFour(salary: typed.amount, digits: 0, saved: nil), "the step Home opened")
+        model.stepFourDone()
+        XCTAssertEqual(model.route, .home)
     }
 
     /// Step 2's back chevron re-selects what step 1 saved; saving step 1 again returns to step 2 with its own saved
