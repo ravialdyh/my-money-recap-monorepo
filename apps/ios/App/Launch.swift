@@ -13,6 +13,7 @@ final class LaunchViewModel {
         case noConnection
         case stepOne(name: String, avatar: String)
         case stepTwo(saved: String)
+        case stepThree(currency: String, digits: Int, saved: MoneyRecap_V1_SalarySetting?)
         case home
     }
 
@@ -20,6 +21,8 @@ final class LaunchViewModel {
     private(set) var isRetrying = false
     /// The answers saved so far, the server's copy: from the onboarding state, then from each save's answer.
     private var profile = MoneyRecap_V1_Profile()
+    /// Step 3's saved Salary, relabelled whenever step 2 is saved again (spec #92).
+    private var salary: MoneyRecap_V1_SalarySetting?
     private let setZone: () async -> Void
     private let state: () async -> MoneyRecap_V1_OnboardingState?
 
@@ -47,9 +50,13 @@ final class LaunchViewModel {
         route = await decided()
     }
 
-    /// A save the BFF answered, whose profile is what the steps re-select when the Member goes back.
-    func saved(_ profile: MoneyRecap_V1_Profile) {
-        self.profile = profile
+    /// A save the BFF answered, whose profile is what the steps re-select when the Member goes back. A Currency save
+    /// during setup also answers the Salary it relabelled; any other save leaves the Salary as it is.
+    func saved(_ answer: MoneyRecap_V1_BffServiceSaveProfileResponse) {
+        profile = answer.profile
+        if answer.hasSalary {
+            salary = answer.salary
+        }
     }
 
     func stepOneSaved() {
@@ -57,13 +64,22 @@ final class LaunchViewModel {
     }
 
     func stepTwoSaved() {
+        route = stepThree
+    }
+
+    /// Step 3 saved or skipped. Step 4 arrives with #104.
+    func stepThreeDone() {
         route = .home
     }
 
-    /// Step 2's back chevron: step 1 with the saved name and Avatar. Saving it again leaves later answers and the
-    /// saved progress as they are (members keeps the highest step), and Next returns to step 2.
+    /// The back chevron: the step before, with its saved answers. Saving it again leaves later answers and the saved
+    /// progress as they are (members keeps the highest step), and Next returns to the step after it.
     func back() {
-        route = .stepOne(name: profile.displayName, avatar: profile.avatarKey)
+        if case .stepThree = route {
+            route = .stepTwo(saved: profile.currencyCode)
+        } else {
+            route = .stepOne(name: profile.displayName, avatar: profile.avatarKey)
+        }
     }
 
     /// Home answered failed_precondition: step 1 or 2 is unanswered, so that step opens (spec #92).
@@ -75,15 +91,22 @@ final class LaunchViewModel {
     private func decided() async -> Route {
         guard let state = await state() else { return .noConnection }
         profile = state.profile
+        salary = state.hasSalary ? state.salary : nil
         switch state.nextStep {
         case 1:
             let saved = profile.displayName
             return .stepOne(name: saved.isEmpty ? state.suggestedName : saved, avatar: profile.avatarKey)
         case 2:
             return .stepTwo(saved: profile.currencyCode)
+        case 3:
+            return stepThree
         default:
             return .home
         }
+    }
+
+    private var stepThree: Route {
+        .stepThree(currency: profile.currencyCode, digits: Int(profile.currencyDigits), saved: salary)
     }
 }
 
@@ -137,6 +160,18 @@ struct LaunchView: View {
                     onBack: model.back,
                     onSaved: model.stepTwoSaved
                 )
+            case let .stepThree(currency, digits, saved):
+                SalaryView(
+                    model: SalaryViewModel(
+                        currency: currency,
+                        digits: digits,
+                        saved: saved,
+                        saveSalary: saveSalary,
+                        saveProfile: saveProfile
+                    ),
+                    onBack: model.back,
+                    onDone: model.stepThreeDone
+                )
             case .home:
                 HomeView(session: session, context: context) {
                     Task { await model.homeRefused() }
@@ -154,8 +189,17 @@ struct LaunchView: View {
     ) async -> SaveResult {
         let saved = await BffClient.retried(session) { await client.saveProfile(request: request, headers: headers) }
         if case let .success(answer) = saved.result {
-            model.saved(answer.profile)
+            model.saved(answer)
         }
         return SaveResult(saved.result)
+    }
+
+    /// Step 3's Salary, retried once after the token refreshes (IOS I3).
+    private func saveSalary(
+        _ request: MoneyRecap_V1_BffServiceSaveSalaryRequest,
+        _ headers: Headers
+    ) async -> SaveResult {
+        await SaveResult(BffClient.retried(session) { await client.saveSalary(request: request, headers: headers) }
+            .result)
     }
 }

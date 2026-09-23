@@ -31,6 +31,10 @@ message Profile {
   string signed_up_on = 8;
   // Present only while a deletion request is pending (PRD D60).
   optional google.protobuf.Timestamp deletion_requested_at = 9;
+  // How many decimals the Currency has, from the CLDR data ledger rounds with
+  // (ARCHITECTURE §7.2); 0 while currency_code is empty. Step 3's amount field
+  // allows exactly this many (spec #92).
+  int32 currency_digits = 10;
 }
 
 message GetOrCreateBySubjectRequest {
@@ -67,9 +71,9 @@ message SaveProfileRequest {
   // One of the six keys Profile.avatar_key lists; any other is
   // invalid_argument.
   optional string avatar_key = 4;
-  // ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
-  // PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
-  // ledger.currency.converted (§7.1), never by this write.
+  // ISO 4217. During onboarding, where ledger relabels a saved Salary rather
+  // than converting it (spec #92), or the PRD §8.9 step 2 shortcut; otherwise
+  // the code changes only by consuming ledger.currency.converted (§7.1).
   optional string currency_code = 5;
   // The step just completed or skipped, 1 to 4 (PRD §5 step 6), saved in the
   // same write as the answers so one Idempotency-Key covers both (A14); a

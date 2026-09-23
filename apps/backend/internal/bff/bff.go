@@ -17,25 +17,10 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Ledger is the part of moneyrecapv1connect.LedgerServiceClient GetHome needs (§7.2), StubLedger until
-// the ledger service is built. Money with an empty currency code is stamped by GetHome.
-type Ledger interface {
-	GetMonthSummary(ctx context.Context, req *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error)
-}
-
 // Notify is the part of moneyrecapv1connect.NotifyServiceClient GetHome needs (§7.3), StubNotify until
 // notify serves GetWarningState.
 type Notify interface {
 	GetWarningState(ctx context.Context, req *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error)
-}
-
-// StubLedger answers zeros: nothing spent, nothing in, no Saved, no Salary, no target, streak day 1.
-type StubLedger struct{}
-
-func (StubLedger) GetMonthSummary(context.Context, *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error) {
-	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: &moneyrecapv1.MonthSummary{
-		Spent: &moneyrecapv1.Money{Amount: "0"}, MoneyIn: &moneyrecapv1.Money{Amount: "0"}, StreakDay: 1,
-	}}), nil
 }
 
 // StubNotify answers "not fired".
@@ -46,11 +31,11 @@ func (StubNotify) GetWarningState(context.Context, *connect.Request[moneyrecapv1
 }
 
 // Service implements BffService. Every RPC but RequestMagicLink runs behind auth.Interceptor;
-// Members must carry auth.Forward so the service verifies the same token again.
+// Members and Ledger must carry auth.Forward so each service verifies the same token again.
 type Service struct {
 	moneyrecapv1connect.UnimplementedBffServiceHandler
 	Members moneyrecapv1connect.MembersServiceClient
-	Ledger  Ledger
+	Ledger  moneyrecapv1connect.LedgerServiceClient
 	Notify  Notify
 	// MagicLink is the realm and the notify client RequestMagicLink needs (magiclink.go, A10).
 	MagicLink MagicLink
@@ -76,6 +61,14 @@ func (s *Service) timeout() time.Duration {
 	return s.Timeout
 }
 
+// now is the server clock in UTC: Now, or time.Now when it is nil.
+func (s *Service) now() time.Time {
+	if s.Now == nil {
+		return time.Now().UTC()
+	}
+	return s.Now().UTC()
+}
+
 // member creates the Member on first sight and answers their Profile: members.GetOrCreateBySubject with
 // the token's subject and email claim (PRD §5 step 5), which forwards the caller's token unchanged.
 func (s *Service) member(ctx context.Context) (*moneyrecapv1.Profile, error) {
@@ -90,10 +83,7 @@ func (s *Service) member(ctx context.Context) (*moneyrecapv1.Profile, error) {
 }
 
 func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
-	nowFn, timeout := s.Now, s.timeout()
-	if nowFn == nil {
-		nowFn = time.Now
-	}
+	timeout := s.timeout()
 	profile, err := s.member(ctx)
 	if err != nil {
 		return nil, err
@@ -102,7 +92,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		return nil, connect.NewError(connect.CodeFailedPrecondition, errNotOnboarded)
 	}
 	memberID := profile.MemberId
-	now := nowFn().UTC()
+	now := s.now()
 	month := now.Format(monthLayout)
 
 	var (
@@ -138,19 +128,24 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		warning = notifyRes.Msg.GetWarning()
 	}
 
-	currency := profile.CurrencyCode
+	return connect.NewResponse(&moneyrecapv1.GetHomeResponse{Home: homeView(profile, summary, ledgerRes.Msg.GetRecapMonths(), warning, now)}), nil
+}
+
+// homeView joins the Profile and ledger's month into the HomeView, stamping money ledger left without a code with the
+// Member's Currency; the dates are the server's UTC ones until ledger computes them in the Member's zone (A3).
+func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recaps []*moneyrecapv1.RecapMonth, warning *moneyrecapv1.TargetWarning, now time.Time) *moneyrecapv1.HomeView {
 	stamp := func(m *moneyrecapv1.Money) *moneyrecapv1.Money {
 		if m != nil && m.CurrencyCode == "" {
-			m.CurrencyCode = currency
+			m.CurrencyCode = p.CurrencyCode
 		}
 		return m
 	}
 	firstOfNext := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, time.UTC)
-	return connect.NewResponse(&moneyrecapv1.GetHomeResponse{Home: &moneyrecapv1.HomeView{
-		DisplayName:   profile.DisplayName,
-		AvatarKey:     profile.AvatarKey,
-		CurrencyCode:  currency,
-		Month:         month,
+	return &moneyrecapv1.HomeView{
+		DisplayName:   p.DisplayName,
+		AvatarKey:     p.AvatarKey,
+		CurrencyCode:  p.CurrencyCode,
+		Month:         now.Format(monthLayout),
 		Spent:         stamp(summary.GetSpent()),
 		MoneyIn:       stamp(summary.GetMoneyIn()),
 		Saved:         stamp(summary.GetSaved()),
@@ -159,9 +154,9 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		StreakDay:     summary.GetStreakDay(),
 		DaysRemaining: daysRemainingInclusive(now, firstOfNext),
 		TargetWarning: warning,
-		RecapMonths:   ledgerRes.Msg.GetRecapMonths(),
+		RecapMonths:   recaps,
 		FirstRecapOn:  firstOfNext.Format(dateLayout),
-	}}), nil
+	}
 }
 
 // requiredCallFailed logs why a required call failed and answers with code and a message naming only

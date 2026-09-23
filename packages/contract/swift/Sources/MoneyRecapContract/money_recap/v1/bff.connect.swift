@@ -66,6 +66,8 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
 
     /// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
     /// included; failed_precondition when the D56 sheet should have opened.
+    /// During onboarding it is a setup save, and step 3 is then recorded in
+    /// members, after ledger answers (spec #92).
     @available(iOS 13, *)
     func `saveSalary`(request: MoneyRecap_V1_BffServiceSaveSalaryRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveSalaryResponse>
 

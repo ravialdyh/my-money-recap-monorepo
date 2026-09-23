@@ -48,8 +48,12 @@ type Profile struct {
 	SignedUpOn string `protobuf:"bytes,8,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
 	// Present only while a deletion request is pending (PRD D60).
 	DeletionRequestedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=deletion_requested_at,json=deletionRequestedAt,proto3,oneof" json:"deletion_requested_at,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// How many decimals the Currency has, from the CLDR data ledger rounds with
+	// (ARCHITECTURE §7.2); 0 while currency_code is empty. Step 3's amount field
+	// allows exactly this many (spec #92).
+	CurrencyDigits int32 `protobuf:"varint,10,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Profile) Reset() {
@@ -143,6 +147,13 @@ func (x *Profile) GetDeletionRequestedAt() *timestamppb.Timestamp {
 		return x.DeletionRequestedAt
 	}
 	return nil
+}
+
+func (x *Profile) GetCurrencyDigits() int32 {
+	if x != nil {
+		return x.CurrencyDigits
+	}
+	return 0
 }
 
 type GetOrCreateBySubjectRequest struct {
@@ -347,9 +358,9 @@ type SaveProfileRequest struct {
 	// One of the six keys Profile.avatar_key lists; any other is
 	// invalid_argument.
 	AvatarKey *string `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
-	// ISO 4217. Only while ledger holds no amount (onboarding step 2, or the
-	// PRD §8.9 step 2 shortcut); otherwise the code changes only by consuming
-	// ledger.currency.converted (§7.1), never by this write.
+	// ISO 4217. During onboarding, where ledger relabels a saved Salary rather
+	// than converting it (spec #92), or the PRD §8.9 step 2 shortcut; otherwise
+	// the code changes only by consuming ledger.currency.converted (§7.1).
 	CurrencyCode *string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
 	// The step just completed or skipped, 1 to 4 (PRD §5 step 6), saved in the
 	// same write as the answers so one Idempotency-Key covers both (A14); a
@@ -779,7 +790,7 @@ var File_money_recap_v1_members_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_members_proto_rawDesc = "" +
 	"\n" +
-	"\x1cmoney_recap/v1/members.proto\x12\x0emoney_recap.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf9\x02\n" +
+	"\x1cmoney_recap/v1/members.proto\x12\x0emoney_recap.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa2\x03\n" +
 	"\aProfile\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
@@ -791,7 +802,9 @@ const file_money_recap_v1_members_proto_rawDesc = "" +
 	"\x0fonboarding_step\x18\a \x01(\x05R\x0eonboardingStep\x12 \n" +
 	"\fsigned_up_on\x18\b \x01(\tR\n" +
 	"signedUpOn\x12S\n" +
-	"\x15deletion_requested_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x13deletionRequestedAt\x88\x01\x01B\x18\n" +
+	"\x15deletion_requested_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x13deletionRequestedAt\x88\x01\x01\x12'\n" +
+	"\x0fcurrency_digits\x18\n" +
+	" \x01(\x05R\x0ecurrencyDigitsB\x18\n" +
 	"\x16_deletion_requested_at\"M\n" +
 	"\x1bGetOrCreateBySubjectRequest\x12\x18\n" +
 	"\asubject\x18\x01 \x01(\tR\asubject\x12\x14\n" +

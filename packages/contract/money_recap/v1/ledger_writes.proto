@@ -83,12 +83,29 @@ message SaveSalaryRequest {
   // before the effective Payday in the Member's zone, failed_precondition on
   // or after it, which the phone answers by opening the sheet (PRD §8.10).
   SalaryAppliesFrom applies_from = 5;
+  // True while onboarding is unfinished, which only the BFF knows: the row
+  // starts in the sign-up month whatever it changes, replacing the setup
+  // Salary, since a setup save is no edit (spec #92). D56 governs the rest.
+  bool setup = 6;
 }
 
 // The settings after the append and the recomputed current month.
 message SaveSalaryResponse {
   LedgerSettings settings = 1;
   MonthSummary month = 2;
+}
+
+message RelabelCurrencyRequest {
+  // A14; see the package doc in shared.proto.
+  string idempotency_key = 1;
+  string member_id = 2;
+  // ISO 4217, the Currency members now holds for the Member.
+  string currency_code = 3;
+}
+
+// The settings after the relabel.
+message RelabelCurrencyResponse {
+  LedgerSettings settings = 1;
 }
 
 message SaveTargetRequest {

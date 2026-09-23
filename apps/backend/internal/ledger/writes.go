@@ -20,8 +20,8 @@ var (
 	paydayPattern = regexp.MustCompile(`^([1-9]|[12]\d|3[01])$`)
 )
 
-// SaveSalary appends a salary_setting row. The first takes effect in the sign-up month (spec #92); after
-// it, per D56 and §8.10, a new Payday or a next-month answer starts next month, this month's applies now.
+// SaveSalary appends a salary_setting row. The first, and any setup save, takes effect in the sign-up month (spec
+// #92); after it, per D56 and §8.10, a new Payday or a next-month answer starts next month, this month's applies now.
 func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyrecapv1.SaveSalaryRequest]) (*connect.Response[moneyrecapv1.SaveSalaryResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -38,9 +38,11 @@ func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyreca
 	if payday != "last" && !paydayPattern.MatchString(payday) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New(`payday is 1 to 31 or "last"`))
 	}
-	from, err := l.salaryStarts(payday, req.Msg.AppliesFrom)
-	if err != nil {
-		return nil, err
+	from := monthOf(l.signedUp)
+	if !req.Msg.Setup {
+		if from, err = l.salaryStarts(payday, req.Msg.AppliesFrom); err != nil {
+			return nil, err
+		}
 	}
 	answer := &moneyrecapv1.SaveSalaryResponse{}
 	err = idempotency.Write(ctx, s.DB, l.id, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
@@ -50,6 +52,44 @@ func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyreca
 		}
 		l.salaries = append(l.salaries, salaryRow{amount: amount, original: amount, originalCurrency: l.cash.code, payday: payday, from: from})
 		answer.Settings, answer.Month = l.settings(l.today), l.summary(monthOf(l.today), l.today)
+		return nil
+	})
+	if err != nil {
+		return nil, writeFailed(ctx, err)
+	}
+	return connect.NewResponse(answer), nil
+}
+
+// RelabelCurrency is onboarding's Currency change (spec #92): every Salary row takes the new code, originals
+// included, each amount rounded half up to its decimals and kept above zero; the replica takes the code at once.
+func (s *Service) RelabelCurrency(ctx context.Context, req *connect.Request[moneyrecapv1.RelabelCurrencyRequest]) (*connect.Response[moneyrecapv1.RelabelCurrencyResponse], error) {
+	if req.Msg.IdempotencyKey == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
+	}
+	c, err := currencyOf(req.Msg.CurrencyCode)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	l, err := s.load(ctx, req.Msg.MemberId)
+	if err != nil {
+		return nil, err
+	}
+	unit := new(big.Rat).SetFrac(big.NewInt(1), new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(c.scale)), nil)).FloatString(c.scale)
+	answer := &moneyrecapv1.RelabelCurrencyResponse{}
+	err = idempotency.Write(ctx, s.DB, l.id, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
+		if _, err := tx.Exec(ctx, `UPDATE member_facts SET currency_code = $2 WHERE member_id = $1`, l.id, c.code); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `UPDATE salary_setting SET original_currency = $2,
+			amount = greatest(round(amount, $3::int), $4::numeric), original_amount = greatest(round(original_amount, $3::int), $4::numeric)
+			WHERE member_id = $1`, l.id, c.code, c.scale, unit); err != nil {
+			return err
+		}
+		if l.salaries, err = salaries(ctx, tx, l.id); err != nil {
+			return err
+		}
+		l.cash = c
+		answer.Settings = l.settings(l.today)
 		return nil
 	})
 	if err != nil {

@@ -5,6 +5,7 @@ package money_recap.v1;
 option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1";
 
 import "google/protobuf/timestamp.proto";
+import "money_recap/v1/ledger_views.proto";
 import "money_recap/v1/members.proto";
 import "money_recap/v1/notify.proto";
 
@@ -30,8 +31,9 @@ message BffServiceSaveProfileRequest {
   // One of the six keys Profile.avatar_key lists (PRD §6.4); any other is
   // invalid_argument.
   optional string avatar_key = 2;
-  // ISO 4217. Accepted only while ledger holds no amount (step 2, or the
-  // §8.9 step 2 shortcut); otherwise ChangeCurrency is the path.
+  // ISO 4217. Accepted during onboarding, where a saved Salary is relabelled,
+  // never converted (spec #92); after it, failed_precondition, since
+  // ChangeCurrency is the path (PRD §8.9).
   optional string currency_code = 3;
   // The onboarding step just completed or skipped, 1 to 4 (PRD §5 step 6);
   // a skip sends only this field. Absent from Settings > Profile.
@@ -40,6 +42,9 @@ message BffServiceSaveProfileRequest {
 
 message BffServiceSaveProfileResponse {
   Profile profile = 1;
+  // Step 3's answer as ledger relabelled it, when this save changed the
+  // Currency during onboarding and a Salary was saved (spec #92).
+  optional SalarySetting salary = 2;
 }
 
 // Called on every launch (ARCHITECTURE §6, A3).

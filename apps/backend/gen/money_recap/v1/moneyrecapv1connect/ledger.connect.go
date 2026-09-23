@@ -57,6 +57,9 @@ const (
 	// LedgerServiceSaveSalaryProcedure is the fully-qualified name of the LedgerService's SaveSalary
 	// RPC.
 	LedgerServiceSaveSalaryProcedure = "/money_recap.v1.LedgerService/SaveSalary"
+	// LedgerServiceRelabelCurrencyProcedure is the fully-qualified name of the LedgerService's
+	// RelabelCurrency RPC.
+	LedgerServiceRelabelCurrencyProcedure = "/money_recap.v1.LedgerService/RelabelCurrency"
 	// LedgerServiceSaveTargetProcedure is the fully-qualified name of the LedgerService's SaveTarget
 	// RPC.
 	LedgerServiceSaveTargetProcedure = "/money_recap.v1.LedgerService/SaveTarget"
@@ -90,10 +93,14 @@ type LedgerServiceClient interface {
 	// Soft-deletes; the row leaves every computation (PRD §7).
 	DeleteSpend(context.Context, *connect.Request[v1.DeleteSpendRequest]) (*connect.Response[v1.DeleteSpendResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
-	// Appends a salary_setting row. The first takes effect in the sign-up month,
-	// as a first save is no edit (spec #92); later ones from the month
-	// applies_from names (PRD D56, §8.10), a Payday change always next month.
+	// Appends a salary_setting row. The first, and any setup save, takes effect
+	// in the sign-up month, as neither is an edit (spec #92); later ones from
+	// the month applies_from names (PRD D56, §8.10), a new Payday next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
+	// Onboarding's Currency change (spec #92): every Salary row takes the new
+	// code, originals included, each amount re-rounded half up to its decimals;
+	// no rate and no CurrencyConversion row. The replica takes the code at once.
+	RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error)
 	// Appends a saving_target_setting row: the first takes effect in the sign-up
 	// month (spec #92), later ones next month (PRD D65); failed_precondition
 	// without a Salary (D44).
@@ -173,6 +180,12 @@ func NewLedgerServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(ledgerServiceMethods.ByName("SaveSalary")),
 			connect.WithClientOptions(opts...),
 		),
+		relabelCurrency: connect.NewClient[v1.RelabelCurrencyRequest, v1.RelabelCurrencyResponse](
+			httpClient,
+			baseURL+LedgerServiceRelabelCurrencyProcedure,
+			connect.WithSchema(ledgerServiceMethods.ByName("RelabelCurrency")),
+			connect.WithClientOptions(opts...),
+		),
 		saveTarget: connect.NewClient[v1.SaveTargetRequest, v1.SaveTargetResponse](
 			httpClient,
 			baseURL+LedgerServiceSaveTargetProcedure,
@@ -217,6 +230,7 @@ type ledgerServiceClient struct {
 	deleteSpend             *connect.Client[v1.DeleteSpendRequest, v1.DeleteSpendResponse]
 	getSettings             *connect.Client[v1.GetSettingsRequest, v1.GetSettingsResponse]
 	saveSalary              *connect.Client[v1.SaveSalaryRequest, v1.SaveSalaryResponse]
+	relabelCurrency         *connect.Client[v1.RelabelCurrencyRequest, v1.RelabelCurrencyResponse]
 	saveTarget              *connect.Client[v1.SaveTargetRequest, v1.SaveTargetResponse]
 	previewConversion       *connect.Client[v1.PreviewConversionRequest, v1.PreviewConversionResponse]
 	applyCurrencyConversion *connect.Client[v1.ApplyCurrencyConversionRequest, v1.ApplyCurrencyConversionResponse]
@@ -269,6 +283,11 @@ func (c *ledgerServiceClient) SaveSalary(ctx context.Context, req *connect.Reque
 	return c.saveSalary.CallUnary(ctx, req)
 }
 
+// RelabelCurrency calls money_recap.v1.LedgerService.RelabelCurrency.
+func (c *ledgerServiceClient) RelabelCurrency(ctx context.Context, req *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error) {
+	return c.relabelCurrency.CallUnary(ctx, req)
+}
+
 // SaveTarget calls money_recap.v1.LedgerService.SaveTarget.
 func (c *ledgerServiceClient) SaveTarget(ctx context.Context, req *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error) {
 	return c.saveTarget.CallUnary(ctx, req)
@@ -311,10 +330,14 @@ type LedgerServiceHandler interface {
 	// Soft-deletes; the row leaves every computation (PRD §7).
 	DeleteSpend(context.Context, *connect.Request[v1.DeleteSpendRequest]) (*connect.Response[v1.DeleteSpendResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
-	// Appends a salary_setting row. The first takes effect in the sign-up month,
-	// as a first save is no edit (spec #92); later ones from the month
-	// applies_from names (PRD D56, §8.10), a Payday change always next month.
+	// Appends a salary_setting row. The first, and any setup save, takes effect
+	// in the sign-up month, as neither is an edit (spec #92); later ones from
+	// the month applies_from names (PRD D56, §8.10), a new Payday next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
+	// Onboarding's Currency change (spec #92): every Salary row takes the new
+	// code, originals included, each amount re-rounded half up to its decimals;
+	// no rate and no CurrencyConversion row. The replica takes the code at once.
+	RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error)
 	// Appends a saving_target_setting row: the first takes effect in the sign-up
 	// month (spec #92), later ones next month (PRD D65); failed_precondition
 	// without a Salary (D44).
@@ -390,6 +413,12 @@ func NewLedgerServiceHandler(svc LedgerServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(ledgerServiceMethods.ByName("SaveSalary")),
 		connect.WithHandlerOptions(opts...),
 	)
+	ledgerServiceRelabelCurrencyHandler := connect.NewUnaryHandler(
+		LedgerServiceRelabelCurrencyProcedure,
+		svc.RelabelCurrency,
+		connect.WithSchema(ledgerServiceMethods.ByName("RelabelCurrency")),
+		connect.WithHandlerOptions(opts...),
+	)
 	ledgerServiceSaveTargetHandler := connect.NewUnaryHandler(
 		LedgerServiceSaveTargetProcedure,
 		svc.SaveTarget,
@@ -440,6 +469,8 @@ func NewLedgerServiceHandler(svc LedgerServiceHandler, opts ...connect.HandlerOp
 			ledgerServiceGetSettingsHandler.ServeHTTP(w, r)
 		case LedgerServiceSaveSalaryProcedure:
 			ledgerServiceSaveSalaryHandler.ServeHTTP(w, r)
+		case LedgerServiceRelabelCurrencyProcedure:
+			ledgerServiceRelabelCurrencyHandler.ServeHTTP(w, r)
 		case LedgerServiceSaveTargetProcedure:
 			ledgerServiceSaveTargetHandler.ServeHTTP(w, r)
 		case LedgerServicePreviewConversionProcedure:
@@ -493,6 +524,10 @@ func (UnimplementedLedgerServiceHandler) GetSettings(context.Context, *connect.R
 
 func (UnimplementedLedgerServiceHandler) SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.LedgerService.SaveSalary is not implemented"))
+}
+
+func (UnimplementedLedgerServiceHandler) RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.LedgerService.RelabelCurrency is not implemented"))
 }
 
 func (UnimplementedLedgerServiceHandler) SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error) {

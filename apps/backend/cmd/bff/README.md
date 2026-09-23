@@ -22,11 +22,24 @@ and the zone to `members.SetTimezone`, and answers the Profile it returns.
 
 `GetOnboardingState` (#98) answers where onboarding resumes: step 1 until the Display Name and Avatar are
 saved, step 2 until the Currency is, then, since steps 3 and 4 can be skipped, the highest step saved; 0
-once none is left. It carries the Profile so far and the `given_name` claim of the caller's own token as
-`suggested_name`, which fills step 1's First name field: the email sign-in path never gives the phone an
-identity token, so the BFF reads the claim. `SaveProfile` checks the answers with `internal/answers`, the
+once none is left. It carries the Profile so far, with the Currency's decimals `members` adds, and the
+`given_name` claim of the caller's own token as `suggested_name`, which fills step 1's First name field: the
+email sign-in path never gives the phone an identity token, so the BFF reads the claim. When step 3 or 4 is
+next it also carries step 3's saved Salary from `ledger.GetSettings`, so a resumed step 3 is filled in; a
+failed `ledger` call is `unavailable`. `SaveProfile` checks the answers with `internal/answers`, the
 rules `members` applies again, before any service call, then hands them and the step to
-`members.SaveProfile` under the phone's key, one write for both (A14).
+`members.SaveProfile` under the phone's key, one write for both (A14). A Currency saved again during
+onboarding then goes to `ledger.RelabelCurrency` under the same key, which moves a saved Salary to the new
+code without converting it, and the answer carries that Salary (#103); after onboarding a Currency change is
+`failed_precondition`, since converting is `ChangeCurrency`'s (PRD §8.9).
+
+`SaveSalary` (#103) is step 3, and later Settings' Salary: `ledger.SaveSalary` under the phone's key, marked
+as a setup save while onboarding is unfinished, so the Salary starts in the sign-up month whatever it
+changes (spec #92), then, the first time, step 3 recorded in `members` under the same key, after `ledger`
+answers. One call and one key for the phone, two writes to two services: a crash between them leaves the
+Salary saved and step 3 next, and saving again leaves the newest row in force. `ledger`'s code, such as
+`invalid_argument` for an amount with too many decimals or the D56 `failed_precondition`, reaches the phone
+as it is.
 
 Before any of that, the request is counted against its address in Redis, `ml:<address>:<hour>` with
 the address lower-cased: §4.4's magic-link rate limit, five per address per hour (PRD §11), which
@@ -41,15 +54,15 @@ prints every amount in that Currency, so neither has a fallback. Then the
 §6.1 fan-out runs in parallel with a one-second timeout each: `ledger.GetMonthSummary` (required) and
 `notify.GetWarningState` (optional). A failed `members` call reaches the phone with its own Connect
 code, a failed `ledger` call as `unavailable`, each with a message naming only the call; the upstream
-text, which can hold a host or a database name, goes to the log. `ledger` and `notify` are the
-in-process stubs `internal/bff/bff.go` describes, returning zeros and "no warning"; the join stamps
-each amount the stub leaves without a code with the Member's Currency. `days_remaining` and
-`first_recap_on` come from the server clock in UTC until `ledger` computes them in the Member's zone (A3).
+text, which can hold a host or a database name, goes to the log. `ledger` is the real service since #103;
+`notify` is still the in-process stub `internal/bff/bff.go` describes, answering "no warning". The join
+stamps each amount left without a code with the Member's Currency. `days_remaining` and `first_recap_on`
+come from the server clock in UTC until `ledger` computes them in the Member's zone (A3).
 
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary; serves on `BFF_LISTEN` (default `:8080`). No subcommands, and its own start-up rather than `serve.Main` (see below). |
-| `../../internal/bff/` | The handlers, the `Ledger` and `Notify` interfaces and their stubs, the magic-link path in `magiclink.go`, the unit tests and the three end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestEdge`). |
+| `../../internal/bff/` | The handlers, the Salary save in `salary.go`, the `Notify` interface and its stub, the magic-link path in `magiclink.go`, the unit tests with a fake `ledger` served over Connect, and the end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestOnboardingEndToEnd`, `TestEdge`). |
 | `../../internal/auth/` | The JWT interceptor and the token-forwarding client interceptor. |
 
 The BFF keeps its own `main.go` rather than `serve.Main` (`apps/README.md`, "Every service") because
@@ -66,6 +79,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_OIDC_JWKS_URL` | required | Where to fetch the signing keys from this process: `http://keycloak:8080/realms/mmr/protocol/openid-connect/certs` inside the Compose network, `http://localhost:8080/...` from the host. The two are separate settings because the phone and a container reach Keycloak by different hostnames. |
 | `BFF_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry. |
 | `BFF_MEMBERS_URL` | required | The `members` service: `http://members:8080` in Compose. |
+| `BFF_LEDGER_URL` | required | The `ledger` service: `http://ledger:8080` in Compose. `GetHome`, `GetOnboardingState`, `SaveProfile` and `SaveSalary` call it, forwarding the caller's token. |
 | `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. Only `RequestMagicLink` calls it; `GetHome`'s `notify` is still the in-process stub. |
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
@@ -76,14 +90,14 @@ service's start-up, which is a silent breakage away from a stack that does not c
 ## Run
 
 The normal way is the whole stack (`infra/compose/README.md`, "Run it"), which starts `bff` once
-`members` and Redis are healthy and the realm step has completed, and publishes it on
+`members`, `ledger` and Redis are healthy and the realm step has completed, and publishes it on
 `BFF_HOST_PORT`.
 
-By hand, against that stack's Keycloak and `members`, on a port the stack does not publish:
+By hand, against that stack's Keycloak, `members` and `ledger`, on a port the stack does not publish:
 
 ```bash
 cd apps/backend
-BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_NOTIFY_URL=http://localhost:8083 BFF_REALM_URL=http://localhost:8080/realms/mmr BFF_CLIENT_SECRET="$BFF_CLIENT_SECRET" BFF_MAGIC_LINK_BASE_URL=http://localhost:8090/magic BFF_REDIS_ADDR=localhost:6379 BFF_LISTEN=:8084 go run ./cmd/bff
+BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_LEDGER_URL=http://localhost:8084 BFF_NOTIFY_URL=http://localhost:8083 BFF_REALM_URL=http://localhost:8080/realms/mmr BFF_CLIENT_SECRET="$BFF_CLIENT_SECRET" BFF_MAGIC_LINK_BASE_URL=http://localhost:8090/magic BFF_REDIS_ADDR=localhost:6379 BFF_LISTEN=:8085 go run ./cmd/bff
 ```
 
 A token for the realm's test Member and the `GetHome` call are in `infra/compose/README.md`, "Try it".

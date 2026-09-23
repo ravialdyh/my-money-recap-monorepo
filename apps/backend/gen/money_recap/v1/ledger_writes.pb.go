@@ -469,7 +469,11 @@ type SaveSalaryRequest struct {
 	// The D56 sheet's answer. UNSPECIFIED means no sheet opened: THIS_MONTH
 	// before the effective Payday in the Member's zone, failed_precondition on
 	// or after it, which the phone answers by opening the sheet (PRD §8.10).
-	AppliesFrom   SalaryAppliesFrom `protobuf:"varint,5,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
+	AppliesFrom SalaryAppliesFrom `protobuf:"varint,5,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
+	// True while onboarding is unfinished, which only the BFF knows: the row
+	// starts in the sign-up month whatever it changes, replacing the setup
+	// Salary, since a setup save is no edit (spec #92). D56 governs the rest.
+	Setup         bool `protobuf:"varint,6,opt,name=setup,proto3" json:"setup,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -539,6 +543,13 @@ func (x *SaveSalaryRequest) GetAppliesFrom() SalaryAppliesFrom {
 	return SalaryAppliesFrom_SALARY_APPLIES_FROM_UNSPECIFIED
 }
 
+func (x *SaveSalaryRequest) GetSetup() bool {
+	if x != nil {
+		return x.Setup
+	}
+	return false
+}
+
 // The settings after the append and the recomputed current month.
 type SaveSalaryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -592,6 +603,113 @@ func (x *SaveSalaryResponse) GetMonth() *MonthSummary {
 	return nil
 }
 
+type RelabelCurrencyRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14; see the package doc in shared.proto.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	// ISO 4217, the Currency members now holds for the Member.
+	CurrencyCode  string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RelabelCurrencyRequest) Reset() {
+	*x = RelabelCurrencyRequest{}
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RelabelCurrencyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RelabelCurrencyRequest) ProtoMessage() {}
+
+func (x *RelabelCurrencyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RelabelCurrencyRequest.ProtoReflect.Descriptor instead.
+func (*RelabelCurrencyRequest) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *RelabelCurrencyRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *RelabelCurrencyRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+func (x *RelabelCurrencyRequest) GetCurrencyCode() string {
+	if x != nil {
+		return x.CurrencyCode
+	}
+	return ""
+}
+
+// The settings after the relabel.
+type RelabelCurrencyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Settings      *LedgerSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RelabelCurrencyResponse) Reset() {
+	*x = RelabelCurrencyResponse{}
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RelabelCurrencyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RelabelCurrencyResponse) ProtoMessage() {}
+
+func (x *RelabelCurrencyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RelabelCurrencyResponse.ProtoReflect.Descriptor instead.
+func (*RelabelCurrencyResponse) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *RelabelCurrencyResponse) GetSettings() *LedgerSettings {
+	if x != nil {
+		return x.Settings
+	}
+	return nil
+}
+
 type SaveTargetRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// A14; see the package doc in shared.proto.
@@ -605,7 +723,7 @@ type SaveTargetRequest struct {
 
 func (x *SaveTargetRequest) Reset() {
 	*x = SaveTargetRequest{}
-	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[8]
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -617,7 +735,7 @@ func (x *SaveTargetRequest) String() string {
 func (*SaveTargetRequest) ProtoMessage() {}
 
 func (x *SaveTargetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[8]
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -630,7 +748,7 @@ func (x *SaveTargetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveTargetRequest.ProtoReflect.Descriptor instead.
 func (*SaveTargetRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{8}
+	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SaveTargetRequest) GetIdempotencyKey() string {
@@ -665,7 +783,7 @@ type SaveTargetResponse struct {
 
 func (x *SaveTargetResponse) Reset() {
 	*x = SaveTargetResponse{}
-	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[9]
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -677,7 +795,7 @@ func (x *SaveTargetResponse) String() string {
 func (*SaveTargetResponse) ProtoMessage() {}
 
 func (x *SaveTargetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[9]
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -690,7 +808,7 @@ func (x *SaveTargetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SaveTargetResponse.ProtoReflect.Descriptor instead.
 func (*SaveTargetResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{9}
+	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SaveTargetResponse) GetSettings() *LedgerSettings {
@@ -727,7 +845,7 @@ type ApplyCurrencyConversionRequest struct {
 
 func (x *ApplyCurrencyConversionRequest) Reset() {
 	*x = ApplyCurrencyConversionRequest{}
-	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[10]
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -739,7 +857,7 @@ func (x *ApplyCurrencyConversionRequest) String() string {
 func (*ApplyCurrencyConversionRequest) ProtoMessage() {}
 
 func (x *ApplyCurrencyConversionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[10]
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -752,7 +870,7 @@ func (x *ApplyCurrencyConversionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyCurrencyConversionRequest.ProtoReflect.Descriptor instead.
 func (*ApplyCurrencyConversionRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{10}
+	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ApplyCurrencyConversionRequest) GetIdempotencyKey() string {
@@ -801,7 +919,7 @@ type ApplyCurrencyConversionResponse struct {
 
 func (x *ApplyCurrencyConversionResponse) Reset() {
 	*x = ApplyCurrencyConversionResponse{}
-	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[11]
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -813,7 +931,7 @@ func (x *ApplyCurrencyConversionResponse) String() string {
 func (*ApplyCurrencyConversionResponse) ProtoMessage() {}
 
 func (x *ApplyCurrencyConversionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[11]
+	mi := &file_money_recap_v1_ledger_writes_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -826,7 +944,7 @@ func (x *ApplyCurrencyConversionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApplyCurrencyConversionResponse.ProtoReflect.Descriptor instead.
 func (*ApplyCurrencyConversionResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{11}
+	return file_money_recap_v1_ledger_writes_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ApplyCurrencyConversionResponse) GetSettings() *LedgerSettings {
@@ -878,16 +996,23 @@ const file_money_recap_v1_ledger_writes_proto_rawDesc = "" +
 	"\x13DeleteSpendResponse\x12+\n" +
 	"\x05spend\x18\x01 \x01(\v2\x15.money_recap.v1.SpendR\x05spend\x122\n" +
 	"\x05month\x18\x02 \x01(\v2\x1c.money_recap.v1.MonthSummaryR\x05month\x12!\n" +
-	"\fcrossed_line\x18\x03 \x01(\bR\vcrossedLine\"\xe6\x01\n" +
+	"\fcrossed_line\x18\x03 \x01(\bR\vcrossedLine\"\xfc\x01\n" +
 	"\x11SaveSalaryRequest\x12'\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12-\n" +
 	"\x06amount\x18\x03 \x01(\v2\x15.money_recap.v1.MoneyR\x06amount\x12\x16\n" +
 	"\x06payday\x18\x04 \x01(\tR\x06payday\x12D\n" +
-	"\fapplies_from\x18\x05 \x01(\x0e2!.money_recap.v1.SalaryAppliesFromR\vappliesFrom\"\x84\x01\n" +
+	"\fapplies_from\x18\x05 \x01(\x0e2!.money_recap.v1.SalaryAppliesFromR\vappliesFrom\x12\x14\n" +
+	"\x05setup\x18\x06 \x01(\bR\x05setup\"\x84\x01\n" +
 	"\x12SaveSalaryResponse\x12:\n" +
 	"\bsettings\x18\x01 \x01(\v2\x1e.money_recap.v1.LedgerSettingsR\bsettings\x122\n" +
-	"\x05month\x18\x02 \x01(\v2\x1c.money_recap.v1.MonthSummaryR\x05month\"s\n" +
+	"\x05month\x18\x02 \x01(\v2\x1c.money_recap.v1.MonthSummaryR\x05month\"\x83\x01\n" +
+	"\x16RelabelCurrencyRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12#\n" +
+	"\rcurrency_code\x18\x03 \x01(\tR\fcurrencyCode\"U\n" +
+	"\x17RelabelCurrencyResponse\x12:\n" +
+	"\bsettings\x18\x01 \x01(\v2\x1e.money_recap.v1.LedgerSettingsR\bsettings\"s\n" +
 	"\x11SaveTargetRequest\x12'\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x18\n" +
@@ -917,7 +1042,7 @@ func file_money_recap_v1_ledger_writes_proto_rawDescGZIP() []byte {
 	return file_money_recap_v1_ledger_writes_proto_rawDescData
 }
 
-var file_money_recap_v1_ledger_writes_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_money_recap_v1_ledger_writes_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_money_recap_v1_ledger_writes_proto_goTypes = []any{
 	(*LogSpendRequest)(nil),                 // 0: money_recap.v1.LogSpendRequest
 	(*LogSpendResponse)(nil),                // 1: money_recap.v1.LogSpendResponse
@@ -927,43 +1052,46 @@ var file_money_recap_v1_ledger_writes_proto_goTypes = []any{
 	(*DeleteSpendResponse)(nil),             // 5: money_recap.v1.DeleteSpendResponse
 	(*SaveSalaryRequest)(nil),               // 6: money_recap.v1.SaveSalaryRequest
 	(*SaveSalaryResponse)(nil),              // 7: money_recap.v1.SaveSalaryResponse
-	(*SaveTargetRequest)(nil),               // 8: money_recap.v1.SaveTargetRequest
-	(*SaveTargetResponse)(nil),              // 9: money_recap.v1.SaveTargetResponse
-	(*ApplyCurrencyConversionRequest)(nil),  // 10: money_recap.v1.ApplyCurrencyConversionRequest
-	(*ApplyCurrencyConversionResponse)(nil), // 11: money_recap.v1.ApplyCurrencyConversionResponse
-	(*Money)(nil),                           // 12: money_recap.v1.Money
-	(Category)(0),                           // 13: money_recap.v1.Category
-	(*Spend)(nil),                           // 14: money_recap.v1.Spend
-	(*MonthSummary)(nil),                    // 15: money_recap.v1.MonthSummary
-	(SalaryAppliesFrom)(0),                  // 16: money_recap.v1.SalaryAppliesFrom
-	(*LedgerSettings)(nil),                  // 17: money_recap.v1.LedgerSettings
-	(RateSource)(0),                         // 18: money_recap.v1.RateSource
+	(*RelabelCurrencyRequest)(nil),          // 8: money_recap.v1.RelabelCurrencyRequest
+	(*RelabelCurrencyResponse)(nil),         // 9: money_recap.v1.RelabelCurrencyResponse
+	(*SaveTargetRequest)(nil),               // 10: money_recap.v1.SaveTargetRequest
+	(*SaveTargetResponse)(nil),              // 11: money_recap.v1.SaveTargetResponse
+	(*ApplyCurrencyConversionRequest)(nil),  // 12: money_recap.v1.ApplyCurrencyConversionRequest
+	(*ApplyCurrencyConversionResponse)(nil), // 13: money_recap.v1.ApplyCurrencyConversionResponse
+	(*Money)(nil),                           // 14: money_recap.v1.Money
+	(Category)(0),                           // 15: money_recap.v1.Category
+	(*Spend)(nil),                           // 16: money_recap.v1.Spend
+	(*MonthSummary)(nil),                    // 17: money_recap.v1.MonthSummary
+	(SalaryAppliesFrom)(0),                  // 18: money_recap.v1.SalaryAppliesFrom
+	(*LedgerSettings)(nil),                  // 19: money_recap.v1.LedgerSettings
+	(RateSource)(0),                         // 20: money_recap.v1.RateSource
 }
 var file_money_recap_v1_ledger_writes_proto_depIdxs = []int32{
-	12, // 0: money_recap.v1.LogSpendRequest.amount:type_name -> money_recap.v1.Money
-	13, // 1: money_recap.v1.LogSpendRequest.category:type_name -> money_recap.v1.Category
-	14, // 2: money_recap.v1.LogSpendResponse.spend:type_name -> money_recap.v1.Spend
-	15, // 3: money_recap.v1.LogSpendResponse.month:type_name -> money_recap.v1.MonthSummary
-	12, // 4: money_recap.v1.EditSpendRequest.amount:type_name -> money_recap.v1.Money
-	13, // 5: money_recap.v1.EditSpendRequest.category:type_name -> money_recap.v1.Category
-	14, // 6: money_recap.v1.EditSpendResponse.spend:type_name -> money_recap.v1.Spend
-	15, // 7: money_recap.v1.EditSpendResponse.month:type_name -> money_recap.v1.MonthSummary
-	14, // 8: money_recap.v1.DeleteSpendResponse.spend:type_name -> money_recap.v1.Spend
-	15, // 9: money_recap.v1.DeleteSpendResponse.month:type_name -> money_recap.v1.MonthSummary
-	12, // 10: money_recap.v1.SaveSalaryRequest.amount:type_name -> money_recap.v1.Money
-	16, // 11: money_recap.v1.SaveSalaryRequest.applies_from:type_name -> money_recap.v1.SalaryAppliesFrom
-	17, // 12: money_recap.v1.SaveSalaryResponse.settings:type_name -> money_recap.v1.LedgerSettings
-	15, // 13: money_recap.v1.SaveSalaryResponse.month:type_name -> money_recap.v1.MonthSummary
-	17, // 14: money_recap.v1.SaveTargetResponse.settings:type_name -> money_recap.v1.LedgerSettings
-	15, // 15: money_recap.v1.SaveTargetResponse.month:type_name -> money_recap.v1.MonthSummary
-	18, // 16: money_recap.v1.ApplyCurrencyConversionRequest.source:type_name -> money_recap.v1.RateSource
-	17, // 17: money_recap.v1.ApplyCurrencyConversionResponse.settings:type_name -> money_recap.v1.LedgerSettings
-	15, // 18: money_recap.v1.ApplyCurrencyConversionResponse.month:type_name -> money_recap.v1.MonthSummary
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	14, // 0: money_recap.v1.LogSpendRequest.amount:type_name -> money_recap.v1.Money
+	15, // 1: money_recap.v1.LogSpendRequest.category:type_name -> money_recap.v1.Category
+	16, // 2: money_recap.v1.LogSpendResponse.spend:type_name -> money_recap.v1.Spend
+	17, // 3: money_recap.v1.LogSpendResponse.month:type_name -> money_recap.v1.MonthSummary
+	14, // 4: money_recap.v1.EditSpendRequest.amount:type_name -> money_recap.v1.Money
+	15, // 5: money_recap.v1.EditSpendRequest.category:type_name -> money_recap.v1.Category
+	16, // 6: money_recap.v1.EditSpendResponse.spend:type_name -> money_recap.v1.Spend
+	17, // 7: money_recap.v1.EditSpendResponse.month:type_name -> money_recap.v1.MonthSummary
+	16, // 8: money_recap.v1.DeleteSpendResponse.spend:type_name -> money_recap.v1.Spend
+	17, // 9: money_recap.v1.DeleteSpendResponse.month:type_name -> money_recap.v1.MonthSummary
+	14, // 10: money_recap.v1.SaveSalaryRequest.amount:type_name -> money_recap.v1.Money
+	18, // 11: money_recap.v1.SaveSalaryRequest.applies_from:type_name -> money_recap.v1.SalaryAppliesFrom
+	19, // 12: money_recap.v1.SaveSalaryResponse.settings:type_name -> money_recap.v1.LedgerSettings
+	17, // 13: money_recap.v1.SaveSalaryResponse.month:type_name -> money_recap.v1.MonthSummary
+	19, // 14: money_recap.v1.RelabelCurrencyResponse.settings:type_name -> money_recap.v1.LedgerSettings
+	19, // 15: money_recap.v1.SaveTargetResponse.settings:type_name -> money_recap.v1.LedgerSettings
+	17, // 16: money_recap.v1.SaveTargetResponse.month:type_name -> money_recap.v1.MonthSummary
+	20, // 17: money_recap.v1.ApplyCurrencyConversionRequest.source:type_name -> money_recap.v1.RateSource
+	19, // 18: money_recap.v1.ApplyCurrencyConversionResponse.settings:type_name -> money_recap.v1.LedgerSettings
+	17, // 19: money_recap.v1.ApplyCurrencyConversionResponse.month:type_name -> money_recap.v1.MonthSummary
+	20, // [20:20] is the sub-list for method output_type
+	20, // [20:20] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_ledger_writes_proto_init() }
@@ -980,7 +1108,7 @@ func file_money_recap_v1_ledger_writes_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_money_recap_v1_ledger_writes_proto_rawDesc), len(file_money_recap_v1_ledger_writes_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -119,8 +119,9 @@ type BffServiceSaveProfileRequest struct {
 	// One of the six keys Profile.avatar_key lists (PRD §6.4); any other is
 	// invalid_argument.
 	AvatarKey *string `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
-	// ISO 4217. Accepted only while ledger holds no amount (step 2, or the
-	// §8.9 step 2 shortcut); otherwise ChangeCurrency is the path.
+	// ISO 4217. Accepted during onboarding, where a saved Salary is relabelled,
+	// never converted (spec #92); after it, failed_precondition, since
+	// ChangeCurrency is the path (PRD §8.9).
 	CurrencyCode *string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
 	// The onboarding step just completed or skipped, 1 to 4 (PRD §5 step 6);
 	// a skip sends only this field. Absent from Settings > Profile.
@@ -188,8 +189,11 @@ func (x *BffServiceSaveProfileRequest) GetOnboardingStep() int32 {
 }
 
 type BffServiceSaveProfileResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Profile *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	// Step 3's answer as ledger relabelled it, when this save changed the
+	// Currency during onboarding and a Salary was saved (spec #92).
+	Salary        *SalarySetting `protobuf:"bytes,2,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -227,6 +231,13 @@ func (*BffServiceSaveProfileResponse) Descriptor() ([]byte, []int) {
 func (x *BffServiceSaveProfileResponse) GetProfile() *Profile {
 	if x != nil {
 		return x.Profile
+	}
+	return nil
+}
+
+func (x *BffServiceSaveProfileResponse) GetSalary() *SalarySetting {
+	if x != nil {
+		return x.Salary
 	}
 	return nil
 }
@@ -737,7 +748,7 @@ var File_money_recap_v1_bff_account_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_bff_account_proto_rawDesc = "" +
 	"\n" +
-	" money_recap/v1/bff_account.proto\x12\x0emoney_recap.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cmoney_recap/v1/members.proto\x1a\x1bmoney_recap/v1/notify.proto\"9\n" +
+	" money_recap/v1/bff_account.proto\x12\x0emoney_recap.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a!money_recap/v1/ledger_views.proto\x1a\x1cmoney_recap/v1/members.proto\x1a\x1bmoney_recap/v1/notify.proto\"9\n" +
 	"!BffServiceRequestMagicLinkRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\"$\n" +
 	"\"BffServiceRequestMagicLinkResponse\"\x88\x02\n" +
@@ -750,9 +761,11 @@ const file_money_recap_v1_bff_account_proto_rawDesc = "" +
 	"\r_display_nameB\r\n" +
 	"\v_avatar_keyB\x10\n" +
 	"\x0e_currency_codeB\x12\n" +
-	"\x10_onboarding_step\"R\n" +
+	"\x10_onboarding_step\"\x99\x01\n" +
 	"\x1dBffServiceSaveProfileResponse\x121\n" +
-	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\":\n" +
+	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\x12:\n" +
+	"\x06salary\x18\x02 \x01(\v2\x1d.money_recap.v1.SalarySettingH\x00R\x06salary\x88\x01\x01B\t\n" +
+	"\a_salary\":\n" +
 	"\x1cBffServiceSetTimezoneRequest\x12\x1a\n" +
 	"\btimezone\x18\x01 \x01(\tR\btimezone\"R\n" +
 	"\x1dBffServiceSetTimezoneResponse\x121\n" +
@@ -805,21 +818,23 @@ var file_money_recap_v1_bff_account_proto_goTypes = []any{
 	(*BffServiceCancelDeletionRequest)(nil),         // 14: money_recap.v1.BffServiceCancelDeletionRequest
 	(*BffServiceCancelDeletionResponse)(nil),        // 15: money_recap.v1.BffServiceCancelDeletionResponse
 	(*Profile)(nil),                                 // 16: money_recap.v1.Profile
-	(*NotificationPrefs)(nil),                       // 17: money_recap.v1.NotificationPrefs
-	(*timestamppb.Timestamp)(nil),                   // 18: google.protobuf.Timestamp
+	(*SalarySetting)(nil),                           // 17: money_recap.v1.SalarySetting
+	(*NotificationPrefs)(nil),                       // 18: money_recap.v1.NotificationPrefs
+	(*timestamppb.Timestamp)(nil),                   // 19: google.protobuf.Timestamp
 }
 var file_money_recap_v1_bff_account_proto_depIdxs = []int32{
 	16, // 0: money_recap.v1.BffServiceSaveProfileResponse.profile:type_name -> money_recap.v1.Profile
-	16, // 1: money_recap.v1.BffServiceSetTimezoneResponse.profile:type_name -> money_recap.v1.Profile
-	17, // 2: money_recap.v1.BffServiceSaveNotificationPrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
-	17, // 3: money_recap.v1.BffServiceSaveNotificationPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
-	18, // 4: money_recap.v1.BffServiceRequestDeletionResponse.deletion_requested_at:type_name -> google.protobuf.Timestamp
-	16, // 5: money_recap.v1.BffServiceCancelDeletionResponse.profile:type_name -> money_recap.v1.Profile
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	17, // 1: money_recap.v1.BffServiceSaveProfileResponse.salary:type_name -> money_recap.v1.SalarySetting
+	16, // 2: money_recap.v1.BffServiceSetTimezoneResponse.profile:type_name -> money_recap.v1.Profile
+	18, // 3: money_recap.v1.BffServiceSaveNotificationPrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
+	18, // 4: money_recap.v1.BffServiceSaveNotificationPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
+	19, // 5: money_recap.v1.BffServiceRequestDeletionResponse.deletion_requested_at:type_name -> google.protobuf.Timestamp
+	16, // 6: money_recap.v1.BffServiceCancelDeletionResponse.profile:type_name -> money_recap.v1.Profile
+	7,  // [7:7] is the sub-list for method output_type
+	7,  // [7:7] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_bff_account_proto_init() }
@@ -827,9 +842,11 @@ func file_money_recap_v1_bff_account_proto_init() {
 	if File_money_recap_v1_bff_account_proto != nil {
 		return
 	}
+	file_money_recap_v1_ledger_views_proto_init()
 	file_money_recap_v1_members_proto_init()
 	file_money_recap_v1_notify_proto_init()
 	file_money_recap_v1_bff_account_proto_msgTypes[2].OneofWrappers = []any{}
+	file_money_recap_v1_bff_account_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

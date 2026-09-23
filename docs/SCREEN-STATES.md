@@ -38,7 +38,7 @@ Violet ground throughout.
 | A5 | no region currency | The device region names no currency: no row is checked and Next stays disabled until one is tapped. |
 | A5 | empty search | `No currency matches "{query}".` plus a `Clear search` link. The chosen row stays chosen underneath, so Next keeps its state. |
 | A4–A7 | no connection | Setup needs a connection, since every answer is saved as it is given. A step whose save cannot reach the server shows `InlineError` in its card: `No connection. We need one to save your answers.` The answers stay and Next tries again. A launch that cannot learn the next step shows the same `InlineError` in a card on the violet ground, with `Try again`. A Member who finished setup never meets it: Home opens from the stored answer (B1 offline). |
-| A6 | Salary and payday | D51. `DayPicker` with a `Last day` option after 31 and a computed helper below it: `Next paydays: 25 Sep · 25 Oct · 25 Nov`, updating on every tap. No other helper line. |
+| A6 | Salary and payday | A 44pt back chevron to step 2, then `Chip` label `Step 3 of 4`. `AmountField` labelled `Amount, after tax`, empty, with the Currency's symbol fixed in front and at most the Currency's decimals; Next stays disabled until the amount is above zero. D51: `DayPicker` on 25, with a `Last day` option after 31 and a computed helper below it: `Next paydays: 25 Sep · 25 Oct · 25 Nov`, updating on every tap, today counting. No other helper line. `Skip for now` under Next records the skip. |
 | A6 | amount too long | D57. At 11 digits the field stops accepting keystrokes and shows `That's more than the app can store.` |
 | A7 | Saving target | Slider, live amount preview. |
 | A7 | salary skipped | D44. The slider card is replaced by a `PromptCard`: `Set a salary first` / `A target is a share of your salary, so we need the salary first.` Tapping returns to A6. The primary button reads `Skip for now`. A percentage can never be set without a salary. |
@@ -183,6 +183,7 @@ One string, one place. Where two screens show the same idea, they show the same 
 | Streak badge, under 7 | `Beat it next month.` |
 | Offline | `No connection. You can look, but not log.` |
 | Stale cache | `Last updated {day} {time}.` |
+| Amount label, Salary | `Amount, after tax` |
 | Amount cap | `That's more than the app can store.` |
 | Payday preview | `Next paydays: {d1} · {d2} · {d3}` |
 | No salary prompt | `Set your monthly salary` |

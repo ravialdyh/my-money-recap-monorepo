@@ -54,7 +54,8 @@ is `invalid_argument`, and the next write sweeps keys older than 24 hours (A14).
 them: a Display Name stored in NFC and trimmed, 1 to 30 code points of letters in any script, spaces,
 hyphens and apostrophes; one of the six Avatar keys `Profile.avatar_key` lists; an ISO 4217 Currency. It
 keeps `onboarding_step` at the highest step ever saved, so saving an earlier step again never lowers it,
-and it is keyed like `SetTimezone`.
+and it is keyed like `SetTimezone`. Every Profile it answers carries `currency_digits`, the Currency's decimals
+from `internal/cldr`, the data `ledger` rounds with, which step 3's amount field allows (#103).
 
 ## Events
 

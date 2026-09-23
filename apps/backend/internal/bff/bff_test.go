@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
@@ -28,9 +29,24 @@ type fakeMembers struct {
 	gotProfile  *moneyrecapv1.SaveProfileRequest
 }
 
+// SaveProfile writes the answers sent over the stored profile and keeps the highest step, as members does.
 func (f *fakeMembers) SaveProfile(_ context.Context, req *connect.Request[moneyrecapv1.SaveProfileRequest]) (*connect.Response[moneyrecapv1.SaveProfileResponse], error) {
 	f.gotProfile = req.Msg
-	return connect.NewResponse(&moneyrecapv1.SaveProfileResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId, DisplayName: req.Msg.GetDisplayName(), AvatarKey: req.Msg.GetAvatarKey()}}), nil
+	p := &moneyrecapv1.Profile{MemberId: req.Msg.MemberId}
+	if f.profile != nil {
+		p = proto.CloneOf(f.profile)
+	}
+	if req.Msg.DisplayName != nil {
+		p.DisplayName = *req.Msg.DisplayName
+	}
+	if req.Msg.AvatarKey != nil {
+		p.AvatarKey = *req.Msg.AvatarKey
+	}
+	if req.Msg.CurrencyCode != nil {
+		p.CurrencyCode = *req.Msg.CurrencyCode
+	}
+	p.OnboardingStep = max(p.OnboardingStep, req.Msg.GetOnboardingStep())
+	return connect.NewResponse(&moneyrecapv1.SaveProfileResponse{Profile: p}), nil
 }
 
 func (f *fakeMembers) SetTimezone(_ context.Context, req *connect.Request[moneyrecapv1.SetTimezoneRequest]) (*connect.Response[moneyrecapv1.SetTimezoneResponse], error) {
@@ -63,13 +79,6 @@ func (hangingNotify) GetWarningState(ctx context.Context, _ *connect.Request[mon
 	return nil, ctx.Err()
 }
 
-// failingLedger fails the way a ledger whose database is gone would, naming the address.
-type failingLedger struct{}
-
-func (failingLedger) GetMonthSummary(context.Context, *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error) {
-	return nil, errors.New("dial tcp 172.18.0.5:5432: connect: connection refused")
-}
-
 // firedNotify says the Target Warning fired and carries the §8.8 copy it kept (PRD §6.8).
 type firedNotify struct{}
 
@@ -85,7 +94,7 @@ func newService(t *testing.T, members *fakeMembers, notify Notify) *Service {
 	t.Cleanup(srv.Close)
 	return &Service{
 		Members: moneyrecapv1connect.NewMembersServiceClient(srv.Client(), srv.URL, connect.WithInterceptors(auth.Forward())),
-		Ledger:  StubLedger{},
+		Ledger:  ledgerClient(t, &fakeLedger{}),
 		Notify:  notify,
 		Timeout: 100 * time.Millisecond,
 		Now:     func() time.Time { return time.Date(2026, 9, 16, 12, 0, 0, 0, time.UTC) },
@@ -135,7 +144,7 @@ func TestGetHomeRefusesBeforeStepsOneAndTwo(t *testing.T) {
 		"no Currency":  {MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox"},
 	} {
 		s := newService(t, &fakeMembers{profile: p}, hangingNotify{})
-		s.Ledger = failingLedger{}
+		s.Ledger = ledgerClient(t, &fakeLedger{err: errLedgerDown})
 		if _, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
 			t.Errorf("%s: %v, want failed_precondition before the fan-out", name, err)
 		}
@@ -194,15 +203,15 @@ func TestGetHomeKeepsTheCodeAndDropsTheUpstreamText(t *testing.T) {
 	const host = "172.18.0."
 	cases := map[string]struct {
 		members *fakeMembers
-		ledger  Ledger
+		ledger  *fakeLedger
 		want    connect.Code
 	}{
-		"GetOrCreateBySubject": {&fakeMembers{createErr: connect.NewError(connect.CodeUnauthenticated, errors.New("fetching keys: dial tcp 172.18.0.2:8080: connection refused"))}, StubLedger{}, connect.CodeUnauthenticated},
-		"GetMonthSummary":      {&fakeMembers{profile: onboarded()}, failingLedger{}, connect.CodeUnavailable},
+		"GetOrCreateBySubject": {&fakeMembers{createErr: connect.NewError(connect.CodeUnauthenticated, errors.New("fetching keys: dial tcp 172.18.0.2:8080: connection refused"))}, &fakeLedger{}, connect.CodeUnauthenticated},
+		"GetMonthSummary":      {&fakeMembers{profile: onboarded()}, &fakeLedger{err: errLedgerDown}, connect.CodeUnavailable},
 	}
 	for name, c := range cases {
 		s := newService(t, c.members, StubNotify{})
-		s.Ledger = c.ledger
+		s.Ledger = ledgerClient(t, c.ledger)
 		_, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 		if connect.CodeOf(err) != c.want || strings.Contains(err.Error(), host) {
 			t.Errorf("%s: %v, want %v without the upstream text", name, err, c.want)
