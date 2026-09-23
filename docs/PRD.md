@@ -49,7 +49,7 @@ Every design question raised while writing this document, with the decision take
 | # | Question | Decision |
 |---|---|---|
 | D1 | Who owns the account | The Member, an adult. One Member per account. No child users. |
-| D2 | What "monthly salary" means | A single fixed monthly amount, the only income. Chore earnings from the mockups are dropped. |
+| D2 | What "monthly salary" means | A single fixed monthly amount, the only income, and take-home pay: what reaches the bank after tax, which step 3's field says (`Amount, after tax`). Chore earnings from the mockups are dropped. **Take-home added 2026-09-23 (spec #92); every §8 figure depends on it.** |
 | D3 | What "target saving" means | A monthly Saving Target stored as a percentage of Salary. No named goals. |
 | D4 | How money gets recorded | Salary is credited automatically on Payday. Spends are logged by hand. |
 | D5 | What "Saved" is | Computed: Money In minus total Spends for the calendar month. |
@@ -100,11 +100,11 @@ Every design question raised while writing this document, with the decision take
 | **D53** | **Does the Target Warning fire before Payday?** | **Yes, with different copy.** Before Payday: `You've spent {spent} of the {line} you meant to spend this month.` After: `You've passed your saving line. {over} over.` Holding the warning until Payday would silence it for the three weeks it exists to cover. |
 | **D54** | **The Home hero when no Salary is set** | **Still Spent.** The hero shows the Spent figure and the Salary prompt moves below it as a `PromptCard`. Replacing the whole hero with a prompt (as drawn) hides a Spend the Member just logged. |
 | **D55** | **The month-so-far preview before Payday** | Shows Spent, the Category split and the Streak. The target percentage and the kept-vs-target bar are replaced by `Your salary lands on the {payday}.` A preview opened on the 10th would otherwise read `0% of your saving target`. |
-| **D56** | **Editing Salary after Payday has passed** | **Ask.** Saving after the current month's effective Payday opens a sheet: `The {amount} I was paid on {date}` (applies to this month) or `My new salary, from {next payday}` (applies from next month). A date-based rule cannot tell a correction from a raise. Editing *before* Payday needs no sheet. **Payday changes are always forward-only**, with no sheet, so moving Payday from the 25th to the 5th on the 20th cannot make a salary appear for a date that already passed. |
+| **D56** | **Editing Salary after Payday has passed** | **Ask.** Saving after the current month's effective Payday opens a sheet: `The {amount} I was paid on {date}` (applies to this month) or `My new salary, from {next payday}` (applies from next month). A date-based rule cannot tell a correction from a raise. Editing *before* Payday needs no sheet. **Payday edits are always forward-only**, with no sheet, so moving Payday from the 25th to the 5th on the 20th cannot make a salary appear for a date that already passed. |
 | **D57** | **Maximum amount** | **11 digits before the decimal separator.** The field refuses further keystrokes and shows `That's more than the app can store.` An 8-digit IDR salary is ordinary; an untrapped typo breaks every layout. Eleven is the most the hero card can show at its smallest step for a currency with a symbol: `Rp 99.999.999.999` measures 297 of the card's 298pt at 40pt and a twelfth digit overflows (317pt). A currency the formatter prints as a three-letter code (`BHD 99,999,999,999` is 328pt) still overflows above nine digits; those amounts are absurd for a salary and the hero clips rather than wraps (2026-09-11, measured in `scripts/measure.tsx`). |
 | **D58** | **Logging a Spend with no connection** | The `Log a spend` button is disabled at 40% and Home carries a `Banner`: `No connection. You can look, but not log.` A connection that fails *during* a save keeps the existing behaviour: sheet open, values intact, Save enabled to retry. |
 | **D59** | **Reaching a past month's Spends** | **A month switcher at the top of the Spend list.** Today the list is current-month only, so a mistake in last month's data is unreachable although D21 permits editing it. |
-| **D60** | **Signing in during the 24-hour deletion window** | **Signing in cancels the deletion**, after a confirm: `Welcome back. Do you want to keep your account after all?` The 24 hours becomes a grace period rather than a queue. Extends D39. |
+| **D60** | **Signing in during the 24-hour deletion window** | **Signing in cancels the deletion**, after a confirm: the restore sheet (§6.18), whose copy SCREEN-STATES D11b owns (D48). The 24 hours becomes a grace period rather than a queue. Extends D39. **Rewritten 2026-09-23 (#105): the confirm quoted here before is replaced by the sheet's.** |
 | **D61** | **Offline** | **Read offline, write online.** Every figure the app shows is the server's last answer for that screen, stored on the device (`ARCHITECTURE.md` A2, `IOS.md` I4), so displaying it needs no server. The session is persisted on device behind biometric unlock, so Home, the Spend list and every past Recap render with no signal. **Rationale rewritten 2026-09-16; the original said the phone computed the figures itself.** Writes still require the network. Offline *logging* with sync stays out of scope (§14). |
 | **D62** | **Session lifetime** | **30 days from last use**, not from last sign-in. Face ID (or the device passcode) on each cold launch. Counting from sign-in would force a full re-authentication on the morning the Recap notification arrives. |
 | **D63** | **Stale cache across two devices** | When offline, Home shows `Last updated {day} {time}` under the month chip. D11 supports iPhone and iPad, so an iPad's cache can legitimately lag an iPhone's writes. |
@@ -154,7 +154,7 @@ Step by step:
 2. **Sign in.** Three buttons. Apple and Google go through Keycloak's identity brokering. Email asks for an address and sends a magic link.
 3. **Email verification.** For the email path, the account is unusable until the link is tapped; tapping it is the verification. Apple and Google addresses are trusted by the broker and need no separate verification.
 4. **Deletion check.** If the Member requested deletion less than 24 hours ago, the restore confirm appears before anything else (D60).
-5. **First sign-in detection.** The backend checks whether a Member record exists for the Keycloak subject. None means onboarding; otherwise Home.
+5. **First sign-in detection.** The launch call creates the Member record on first sight, so a record always exists by now; the saved progress decides instead. Steps 1 and 2 unanswered, or a later step neither answered nor skipped, means onboarding at the first such step; otherwise Home. **Rewritten 2026-09-23 (spec #92); the original read the absence of a record.**
 6. **Onboarding.** Name + Avatar (required), Currency (required), Salary + Payday (skippable), Saving Target (skippable, and **blocked when Salary was skipped**, D44). Progress is saved screen by screen, so a force-quit resumes at the next unanswered screen.
 7. **Home.** Current month numbers, target progress, actions.
 8. **Log a spend.** Bottom sheet over Home. Disabled with no connection (D58). On the first Spend ever saved, the app asks for push permission.
@@ -205,18 +205,18 @@ Rules
 | | |
 |---|---|
 | Ground | violet |
-| Components | `Eyebrow` "Step 1 of 4", `Headline` size m "What should we call you?", `Card` with `TextField`, `Card` with `AvatarGrid` (six `Illustration`s in a 3 × 2 grid, 68pt cells, 88pt hit area), `Button` "Next" |
+| Components | `Chip` label "Step 1 of 4" (the plain white pill every canvas draws), `Headline` size m "What should we call you?", `Card` with `TextField`, `Card` with `AvatarGrid` (six `Illustration`s in a 3 × 2 grid, 68pt cells, 88pt hit area), `Button` "Next" |
 | Validation | Display Name 1 to 30 characters, trimmed, letters, spaces, hyphens and apostrophes. Avatar required. Next disabled until both valid. |
 | Prefill | Apple and Google supply a name when they share one; when they do not, the field is empty and no avatar is selected. |
 
-**Moving between onboarding steps.** Every step after the first carries a 44pt back chevron to the previous step. Each step is saved when its primary button is tapped, so a force-quit resumes at the first unanswered step with earlier answers intact and re-selected: the Currency list opens on the saved choice, not on the device locale. Going back and changing an answer never clears a later one, except that removing the Salary re-blocks step 4 (D44).
+**Moving between onboarding steps.** Every step after the first carries a 44pt back chevron to the previous step. Each step is saved when its primary button is tapped, so a force-quit resumes at the first unanswered step with earlier answers intact and re-selected: the Currency list opens on the saved choice, not on the device locale. Going back and changing an answer never clears a later one.
 
 ### 6.5 Onboarding 2 · Currency
 
 | | |
 |---|---|
 | Ground | violet |
-| Components | `Eyebrow` "Step 2 of 4", `Headline` "Which currency?", `Card` with a searchable list of `ListRow trailing="check"` |
+| Components | `Chip` label "Step 2 of 4", `Headline` "Which currency?", `Card` with a searchable list of `ListRow trailing="check"` |
 | Content | Full ISO 4217 list as the platform ships it, its common currencies (those in use and a few recently withdrawn, such as the Croatian kuna), built on the phone, sorted by name in British English, searchable by code or name. The device region's currency is preselected, so Next is usually enabled; where the region names no currency, nothing is preselected and Next waits for a choice. **Rewritten 2026-09-23 (#100); the original said Next is always enabled.** |
 | Empty search | SCREEN-STATES A5 owns the wording: `No currency matches "{query}".` plus a `Clear search` link. |
 
@@ -225,7 +225,7 @@ Rules
 | | |
 |---|---|
 | Ground | violet |
-| Components | `Eyebrow` "Step 3 of 4", `Headline` "Your monthly salary", `Card` with `AmountField` (currency symbol fixed), `Card` with `DayPicker`, `Button` "Next", `HelperText` link "Skip for now" |
+| Components | `Chip` label "Step 3 of 4", `Headline` "Your monthly salary", `Card` with `AmountField` labelled "Amount, after tax" (currency symbol fixed), `Card` with `DayPicker`, `Button` "Next", a text link "Skip for now" under it |
 | Validation | Amount > 0 and at most 11 digits before the decimal separator (D57). Payday 1–31 or `Last day`, default 25. Both required together, or skip both. |
 | Payday helper | The three dates that follow the current selection, computed on device: `Next paydays: 25 Sep · 25 Oct · 25 Nov`. Updates on every tap. For 29, 30, 31 and `Last day` this is what tells the Member what a short month does (D51). |
 
@@ -234,7 +234,7 @@ Rules
 | | |
 |---|---|
 | Ground | violet |
-| Components | `Eyebrow` "Step 4 of 4", `Headline` "How much do you want to keep?", `Card` with "Share of salary to keep", the percentage at 80px, `Slider` 0–100 in steps of 5, live amount preview, `Button` "Done", `HelperText` link "Skip for now" |
+| Components | `Chip` label "Step 4 of 4", `Headline` "How much do you want to keep?", `Card` with "Share of salary to keep", the percentage at 80px, `Slider` 0–100 in steps of 5, live amount preview, `Button` "Done", a text link "Skip for now" under it |
 | Default | 20%. |
 | Salary skipped (D44) | The card is replaced by a `PromptCard`: "Set a salary first" / "A target is a share of your salary, so we need the salary first." Tapping it returns to step 3. "Done" reads "Skip for now" and goes to Home. |
 | Exit | Done or Skip goes to Home. |
@@ -371,7 +371,7 @@ Amounts are exact decimals (`NUMERIC`, never a float or an integer count of mino
 
 | Entity | Fields | Notes |
 |---|---|---|
-| Member | id, keycloak_subject, email, display_name, avatar_key (one of six), currency_code, **timezone**, **created_at**, **signed_up_on**, **deletion_requested_at**, deleted_at, onboarding_step | One per Keycloak user. `email` is the token's OIDC `email` claim, saved on first sign-in and refreshed on each; it is where the magic link and the CSV export are addressed. `created_at` is load-bearing: it bounds the Streak (D43) and identifies the sign-up month (D52). `deletion_requested_at` drives D60; `deleted_at` is the tombstone the 24-hour deletion job sets (§9; `ARCHITECTURE.md` §7.1). `onboarding_step` records onboarding progress (§6.4). `timezone` is an IANA name sent by the app on each launch; every "today" in §8 and every local time in §10 is evaluated in it (`ARCHITECTURE.md` A3). **`signed_up_on`** is the local date at sign-up, fixed forever, so a later timezone change cannot move the Streak window or the partial-month test by a day. |
+| Member | id, keycloak_subject, email, display_name, avatar_key (one of six), currency_code, **timezone**, **created_at**, **signed_up_on**, **deletion_requested_at**, deleted_at, onboarding_step | One per Keycloak user. `email` is the token's OIDC `email` claim, saved on first sign-in and refreshed on each; it is where the magic link and the CSV export are addressed. `created_at` is when the row was written, and nothing in §8 reads it. `deletion_requested_at` drives D60; `deleted_at` is the tombstone the 24-hour deletion job sets (§9; `ARCHITECTURE.md` §7.1). `onboarding_step` records onboarding progress (§6.4). `timezone` is an IANA name sent by the app on each launch; every "today" in §8 and every local time in §10 is evaluated in it (`ARCHITECTURE.md` A3). **`signed_up_on`** is the local date at sign-up, fixed forever: it bounds the Streak (D43) and identifies the sign-up month (D52), so a later timezone change cannot move the Streak window or the partial-month test by a day. **Rewritten 2026-09-23 (spec #92); both rules read `created_at` before.** |
 | SalarySetting | member_id, amount, **original_amount, original_currency**, payday (1–31 **or the token `last`**), effective_from (year-month) | Append-only. `original_*` hold the value as typed and are never touched by a currency change (§8.9). The row with the latest effective_from ≤ a month is the one in force for that month. §8.10 decides which month a new row starts from. |
 | SavingTargetSetting | member_id, percent (0–100), effective_from (year-month) | Same append-only pattern; §8.10 decides which month a new row starts from. |
 | Spend | id, member_id, amount, **original_amount, original_currency**, category (enum of eight), date, note, created_at, updated_at | Soft-deleted rows are excluded from every computation. `original_*` hold the value as typed and are never touched by a currency change (§8.9). |
@@ -490,7 +490,7 @@ Copy depends on whether Payday has passed (D53):
 
 A month M is **partial** when either:
 
-- M is the Member's sign-up month and M's effective Payday fell strictly before `Member.created_at`; or
+- M is the Member's sign-up month and M's effective Payday fell strictly before the Member's sign-up date (`signed_up_on`); or
 - M is a past month, Money In for M is 0 and M has at least one Spend.
 
 For a partial month: Money In is 0, Saved is not computed or displayed, there is no Archetype, and the Recap is the four screens in §6.17 rather than §6.11–6.14. The Home and past-Recap list rows read "Partial". Sharing is unavailable.

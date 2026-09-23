@@ -39,7 +39,7 @@ Each entry: purpose · composition · notable rules. Exact copy is in the HTML. 
 - **A4 Name and avatar**: Chip "Step 1 of 4", Headline "What should we call you?", TextField, AvatarGrid 3×2 at 68pt (selected = 2px white ring on violet halo), Next. Name 1–30 chars letters/spaces/hyphens/apostrophes; both required. *Variant:* **empty** (Apple/Google shared no name).
 - **A5 Currency**: Chip "Step 2 of 4", search field, full ISO 4217 list as `ListRow trailing="check"` rows with the violet check; device-locale currency preselected so Next is always enabled.
 - **A6 Salary and payday**: in `2026-09-11/`.
-- **A7 Saving target**: Chip "Step 4 of 4", card: "Share of salary to keep", 80px percentage, Slider 0–100 step 5 default 20 (28pt ink knob, 3px white ring, 44pt hit row), 0%/100% labels, live amount preview (target% × salary; "Add a salary to see the amount." if salary skipped), Done, "Skip for now".
+- **A7 Saving target**: Chip "Step 4 of 4", card: "Share of salary to keep", 80px percentage, Slider 0–100 step 5 default 20 (28pt ink knob, 3px white ring, 44pt hit row), 0%/100% labels, live amount preview (target% × salary; with no salary the card is the D44 prompt, A7 salary skipped), Done, "Skip for now".
 - **A8 Home / after payday**: Money in £2,400, Saved = salary − spent, "Keep spending under £61 a day and you'll make it." The first-run and skipped Homes are in `2026-09-11/`.
 - **Flow · Launch to Home**: in `2026-09-11/`.
 

@@ -34,7 +34,7 @@ Violet ground throughout.
 | A4 | Name and avatar | `Chip` label `Step 1 of 4`, no back chevron. `TextField` `First name`, which drops digits, emoji and other punctuation as they are typed and stops at 30 characters, and `AvatarGrid` under `Pick your avatar`, each Avatar named beneath it. Next disabled until both valid. |
 | A4 | empty | Apple/Google shared no name. |
 | A4 | prefilled | The name the provider shared, the token's `given_name`, already in `First name`; no Avatar chosen. |
-| A5 | Currency | A 44pt back chevron to step 1, then `Chip` label `Step 2 of 4`. A search field `Search by name or code` over the platform's common ISO 4217 currencies as `ListRow trailing="check"`, each labelled `{code} · {name}` and sorted by its British English name. The device region's currency is preselected, so Next is usually enabled. |
+| A5 | Currency | A 44pt back chevron to step 1, then `Chip` label `Step 2 of 4`. A search field `Search by name or code` over the platform's common ISO 4217 currencies as `ListRow trailing="check"`, each labelled `{code} · {name}` and sorted by its British English name. The device region's currency is preselected, so Next is usually enabled. Held sideways, the back chevron, the question and Next sit left of the card, so the list keeps its height. |
 | A5 | no region currency | The device region names no currency: no row is checked and Next stays disabled until one is tapped. |
 | A5 | empty search | `No currency matches "{query}".` plus a `Clear search` link. The chosen row stays chosen underneath, so Next keeps its state. |
 | A4–A7 | no connection | Setup needs a connection, since every answer is saved as it is given. A step whose save cannot reach the server shows `InlineError` in its card: `No connection. We need one to save your answers.` The answers stay and Next tries again. A launch that cannot learn the next step shows the same `InlineError` in a card on the violet ground, with `Try again`. A Member who finished setup never meets it: Home opens from the stored answer (B1 offline). |
@@ -148,7 +148,7 @@ White `Sheet variant="full"` on violet.
 | D10 | Delete account | Coral-100 card, explanation, coral button. |
 | D11 | Delete confirm | Typed `DELETE` enables the button. |
 | D11b | Restore account | D60. Shown after sign-in when deletion was requested under 24 hours ago. `Sheet variant="full"`, coral tint, headline `Welcome back`, body naming the deletion time and what is lost. `Keep my account` (ink) / `Continue with deletion` (secondary). No back control. Built in #105; until the Settings slice builds Delete account, only a test reaches it. |
-| D11b | keep failed | `InlineError` in the sheet, above the buttons, with both buttons live: `We couldn't keep your account. Try again.` The same line for every failure, a lost connection included. |
+| D11b | keep failed | `InlineError` in the sheet, above the buttons, on a white well because the sheet is already coral, with both buttons live: `We couldn't keep your account. Try again.` The same line for every failure, a lost connection included. |
 | D12 | Log out | iOS action sheet. |
 | none | Flow · Settings and account | Includes the which-salary sheet, the restore branch and the offline states. |
 
@@ -184,6 +184,9 @@ One string, one place. Where two screens show the same idea, they show the same 
 | Streak badge, under 7 | `Beat it next month.` |
 | Offline | `No connection. You can look, but not log.` |
 | Stale cache | `Last updated {day} {time}.` |
+| Avatar grid label | `Pick your avatar` |
+| Currency search | `Search by name or code` |
+| Offline, setup | `No connection. We need one to save your answers.` |
 | Amount label, Salary | `Amount, after tax` |
 | Amount cap | `That's more than the app can store.` |
 | Payday preview | `Next paydays: {d1} · {d2} · {d3}` |

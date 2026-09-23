@@ -1,5 +1,5 @@
 // Package ledger is the money service (ARCHITECTURE §7.2): the Salary and Saving Target rows, their
-// settings read and the month figures, built in slice 4 for a Member who has no Spends yet (spec #92).
+// settings read and the month figures, built for a Member who has no Spends yet (spec #92).
 package ledger
 
 import (

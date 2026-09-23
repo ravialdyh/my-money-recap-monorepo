@@ -1,7 +1,7 @@
 # ledger
 
 The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary and Saving Target and every figure
-PRD §8 computes from them. Built in slice 4 (#99) for a Member who has no Spends yet, since nothing can
+PRD §8 computes from them. Built by #99 (spec #92) for a Member who has no Spends yet, since nothing can
 log one before slice 5: it serves `SaveSalary`, `RelabelCurrency`, `SaveTarget`, `GetSettings` and
 `GetMonthSummary`, and the rest of `LedgerService` is planned. The BFF calls it since #103: Home's month,
 onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,

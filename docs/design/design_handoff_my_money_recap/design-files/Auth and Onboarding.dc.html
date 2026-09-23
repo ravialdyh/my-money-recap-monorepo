@@ -232,7 +232,7 @@ input[type=range]::-webkit-slider-thumb{width:44px;height:44px}
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Slider 0 to 100 in steps of 5, default 20. Preview recalculates live: target% × salary from A6. If salary was skipped the preview reads "Add a salary to see the amount." Drag the knob to try.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Slider 0 to 100 in steps of 5, default 20. Preview recalculates live: target% × salary from A6. If salary was skipped the slider card is replaced by the D44 prompt back to A6 (A7 · salary skipped). Drag the knob to try.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Slider: ProgressBar track (violet tone) plus a 28 pt ink knob with a 3 px white ring; the hit area is the full 44 pt row.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Done → A8. Skip for now → A8 with the target prompt card.</div>
 </div>

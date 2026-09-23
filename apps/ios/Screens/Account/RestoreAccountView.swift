@@ -20,7 +20,7 @@ struct RestoreAccountView: View {
                     .foregroundStyle(Tokens.Text.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if model.failed {
-                    InlineError(text: RestoreAccountViewModel.failedCopy)
+                    InlineError(text: RestoreAccountViewModel.failedCopy, well: Tokens.Surface.card)
                 }
                 Spacer(minLength: 0)
                 VStack(spacing: 10) {
