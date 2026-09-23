@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
@@ -141,6 +142,24 @@ func TestRelabelCurrency(t *testing.T) {
 	if _, err := s.RelabelCurrency(stranger, connect.NewRequest(&moneyrecapv1.RelabelCurrencyRequest{IdempotencyKey: "x", MemberId: id, CurrencyCode: "EUR"})); connect.CodeOf(err) != connect.CodeNotFound {
 		t.Errorf("another Member's token: %v, want not_found", err)
 	}
+	facts := func(at time.Time, code string) *moneyrecapv1.MembersUpdated {
+		return &moneyrecapv1.MembersUpdated{Envelope: envelope(id, at), Facts: &moneyrecapv1.MemberFacts{CurrencyCode: code}}
+	}
+	if err := apply(t, db, facts(time.Now().Add(-time.Minute), "GBP")); err != nil || replicaCode(t, db, id) != "IDR" {
+		t.Errorf("a members event older than the relabel: %v, the replica holds %q, want IDR kept", err, replicaCode(t, db, id))
+	}
+	if err := apply(t, db, facts(time.Now().Add(time.Minute), "EUR")); err != nil || replicaCode(t, db, id) != "EUR" {
+		t.Errorf("a newer members event: %v, the replica holds %q, want EUR", err, replicaCode(t, db, id))
+	}
+}
+
+func replicaCode(t *testing.T, db *pgxpool.Pool, id string) string {
+	t.Helper()
+	var code string
+	if err := db.QueryRow(context.Background(), `SELECT currency_code FROM member_facts WHERE member_id = $1`, id).Scan(&code); err != nil {
+		t.Fatal(err)
+	}
+	return code
 }
 
 // A Member who signs up after this month's Payday and answers step 3 gets the Salary the partial-month fixture

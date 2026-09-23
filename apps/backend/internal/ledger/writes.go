@@ -61,7 +61,8 @@ func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyreca
 }
 
 // RelabelCurrency is onboarding's Currency change (spec #92): every Salary row takes the new code, originals
-// included, each amount rounded half up to its decimals and kept above zero; the replica takes the code at once.
+// included, rounded half up to its decimals and kept above zero; the replica takes the code at once, stamped so no
+// older members event takes it back.
 func (s *Service) RelabelCurrency(ctx context.Context, req *connect.Request[moneyrecapv1.RelabelCurrencyRequest]) (*connect.Response[moneyrecapv1.RelabelCurrencyResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -77,7 +78,7 @@ func (s *Service) RelabelCurrency(ctx context.Context, req *connect.Request[mone
 	unit := new(big.Rat).SetFrac(big.NewInt(1), new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(c.scale)), nil)).FloatString(c.scale)
 	answer := &moneyrecapv1.RelabelCurrencyResponse{}
 	err = idempotency.Write(ctx, s.DB, l.id, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
-		if _, err := tx.Exec(ctx, `UPDATE member_facts SET currency_code = $2 WHERE member_id = $1`, l.id, c.code); err != nil {
+		if _, err := tx.Exec(ctx, `UPDATE member_facts SET currency_code = $2, currency_at = now() WHERE member_id = $1`, l.id, c.code); err != nil {
 			return err
 		}
 		if _, err := tx.Exec(ctx, `UPDATE salary_setting SET original_currency = $2,
