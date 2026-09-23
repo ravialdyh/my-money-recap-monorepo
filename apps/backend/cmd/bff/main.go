@@ -53,6 +53,6 @@ func run() error {
 		},
 	}
 	mux := http.NewServeMux()
-	mux.Handle(moneyrecapv1connect.NewBffServiceHandler(svc, connect.WithInterceptors(verifier.Interceptor())))
+	mux.Handle(moneyrecapv1connect.NewBffServiceHandler(svc, connect.WithInterceptors(verifier.Interceptor(), bff.MemberLimit(bff.RedisLimiter{Client: limit}))))
 	return serve.Run(ctx, "bff", listen, mux, nil)
 }

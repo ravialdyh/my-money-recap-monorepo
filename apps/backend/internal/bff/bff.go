@@ -166,8 +166,9 @@ func requiredCallFailed(call string, code connect.Code, err error) error {
 	return connect.NewError(code, fmt.Errorf("%s failed", call))
 }
 
-// logOptionalCallDegraded records that an optional fan-out call failed and the HomeView went out
-// without it. A log line stands in for the §6.1 metric until OpenTelemetry lands (A11).
+// logOptionalCallDegraded records that an optional call failed and the request went on without it:
+// Home without notify, a request the per-Member limit could not count. A log line stands in for the
+// §4.4 and §6.1 metrics until OpenTelemetry lands (A11).
 func logOptionalCallDegraded(call, consequence string, err error) {
 	log.Printf("%s: %v (%s)", call, err, consequence)
 }

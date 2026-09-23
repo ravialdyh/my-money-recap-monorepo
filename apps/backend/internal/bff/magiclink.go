@@ -25,13 +25,13 @@ type Mailer interface {
 	EmailMagicLink(ctx context.Context, req *connect.Request[moneyrecapv1.EmailMagicLinkRequest]) (*connect.Response[moneyrecapv1.EmailMagicLinkResponse], error)
 }
 
-// Limiter is the slice of Redis the magic-link limit needs: one counter per key, expiring after
-// window, as §4.4 counts with INCR and EXPIRE (A6).
+// Limiter is the slice of Redis both limits need, the magic-link one and MemberLimit: one counter per
+// key, expiring after window, as §4.4 counts with INCR and EXPIRE (A6).
 type Limiter interface {
 	Count(ctx context.Context, key string, window time.Duration) (int64, error)
 }
 
-// RedisLimiter is the BFF's first Redis client (§4.4, A6). TxPipeline makes the INCR and the EXPIRE
+// RedisLimiter is the BFF's Redis client, shared by both limits (§4.4, A6). TxPipeline makes the INCR and the EXPIRE
 // one round trip, so a key can never outlive its window because the second call was lost.
 type RedisLimiter struct {
 	Client redis.UniversalClient
