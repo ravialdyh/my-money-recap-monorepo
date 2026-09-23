@@ -42,7 +42,7 @@ func seed(t *testing.T, db *pgxpool.Pool, id, subject, zone, signedUp, code stri
 	t.Helper()
 	ctx := context.Background()
 	t.Cleanup(func() {
-		for _, table := range []string{"member_facts", "salary_setting", "saving_target_setting", "idempotency"} {
+		for _, table := range []string{"member_facts", "salary_setting", "saving_target_setting", "spend", "idempotency"} {
 			if _, err := db.Exec(ctx, `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
 				t.Logf("cleanup %s: %v", table, err)
 			}
@@ -79,9 +79,31 @@ func at(t *testing.T, date, zone string) time.Time {
 	return d.Add(12 * time.Hour)
 }
 
-// TestTheAnswerKeyWithoutSpends runs every PRD §8 fixture with no Spends, SaveSalary, conversion or Recap
-// through the service and its database: rows seeded, the clock at asOf, months and settings compared whole.
-func TestTheAnswerKeyWithoutSpends(t *testing.T) {
+// seedSpends writes Spend rows straight into the database; seed's cleanup removes them.
+func seedSpends(t *testing.T, db *pgxpool.Pool, id string, spends []*moneyrecapv1.Spend) {
+	t.Helper()
+	for _, s := range spends {
+		if _, err := db.Exec(context.Background(), `INSERT INTO spend (member_id, amount, original_amount, original_currency, category, spent_on, note) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+			id, s.Amount.Amount, s.OriginalAmount.Amount, s.OriginalAmount.CurrencyCode, int16(s.Category), s.Date, s.Note); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+// leftOut names why a fixture does not run yet, or nothing when it runs.
+func leftOut(f *moneyrecapv1.LedgerFixture) string {
+	switch {
+	case f.Convert != nil || f.ConversionPreview != nil:
+		return "the currency change waits for slice 7"
+	case len(f.Recaps) > 0:
+		return "GetRecap is not built yet (#131)"
+	}
+	return ""
+}
+
+// TestTheAnswerKey runs every PRD §8 fixture through the service and its database: rows seeded, the last Spend
+// logged on its own date where crossed_line is asserted, the Salary saved, then months, settings and rows compared.
+func TestTheAnswerKey(t *testing.T) {
 	db := testDB(t)
 	ran := 0
 	for i, name := range fixtureNames(t, fixtureDir) {
@@ -93,38 +115,82 @@ func TestTheAnswerKeyWithoutSpends(t *testing.T) {
 		if err := protojson.Unmarshal(raw, &f); err != nil {
 			t.Fatal(err)
 		}
-		if len(f.Spends) > 0 || f.SaveSalary != nil || f.Convert != nil || len(f.Recaps) > 0 || f.ConversionPreview != nil || f.CrossedLine != nil {
+		if why := leftOut(&f); why != "" {
+			t.Logf("left out: %s: %s", name, why)
 			continue
 		}
 		ran++
-		t.Run(name, func(t *testing.T) {
-			id := fmt.Sprintf("00000000-0000-4000-8000-%012d", i)
-			ctx := seed(t, db, id, "fixture-"+name, f.Timezone, f.SignedUpOn, f.CurrencyCode, f.Salaries, f.SavingTargets)
-			asOf := at(t, f.AsOf, f.Timezone)
-			s := &Service{DB: db, Now: func() time.Time { return asOf }}
-			for _, want := range f.Months {
-				got, err := s.GetMonthSummary(ctx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: id, Month: want.Month}))
-				if err != nil {
-					t.Fatal(err)
-				}
-				if !proto.Equal(got.Msg.Summary, want) {
-					t.Errorf("%s:\n got %v\nwant %v", want.Month, got.Msg.Summary, want)
-				}
-			}
-			if f.Settings == nil {
-				return
-			}
-			got, err := s.GetSettings(ctx, connect.NewRequest(&moneyrecapv1.GetSettingsRequest{MemberId: id}))
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !proto.Equal(got.Msg.Settings, f.Settings) {
-				t.Errorf("settings:\n got %v\nwant %v", got.Msg.Settings, f.Settings)
-			}
-		})
+		t.Run(name, func(t *testing.T) { runFixture(t, db, fmt.Sprintf("00000000-0000-4000-8000-%012d", i), name, &f) })
 	}
-	if ran == 0 {
-		t.Fatal("no fixture without Spends ran")
+	if ran != 19 {
+		t.Fatalf("%d fixtures ran, want 19", ran)
 	}
-	t.Logf("%d fixtures without Spends ran as the answer key", ran)
+}
+
+func runFixture(t *testing.T, db *pgxpool.Pool, id, name string, f *moneyrecapv1.LedgerFixture) {
+	ctx := seed(t, db, id, "fixture-"+name, f.Timezone, f.SignedUpOn, f.CurrencyCode, f.Salaries, f.SavingTargets)
+	seeded := f.Spends
+	if f.CrossedLine != nil {
+		seeded = f.Spends[:len(f.Spends)-1]
+	}
+	seedSpends(t, db, id, seeded)
+	clock := at(t, f.AsOf, f.Timezone)
+	s := &Service{DB: db, Now: func() time.Time { return clock }}
+	if f.CrossedLine != nil {
+		last := f.Spends[len(f.Spends)-1]
+		clock = at(t, last.Date, f.Timezone)
+		got, err := s.LogSpend(ctx, connect.NewRequest(&moneyrecapv1.LogSpendRequest{
+			IdempotencyKey: "log", MemberId: id, Amount: last.Amount, Category: last.Category, Date: last.Date, Note: last.Note,
+		}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got.Msg.CrossedLine != *f.CrossedLine {
+			t.Errorf("crossed_line %v, want %v", got.Msg.CrossedLine, *f.CrossedLine)
+		}
+		logged := got.Msg.Spend
+		logged.Id, logged.CreatedAt, logged.UpdatedAt = last.Id, nil, nil
+		if !proto.Equal(logged, last) {
+			t.Errorf("logged:\n got %v\nwant %v", logged, last)
+		}
+		clock = at(t, f.AsOf, f.Timezone)
+	}
+	if f.SaveSalary != nil {
+		f.SaveSalary.IdempotencyKey, f.SaveSalary.MemberId = "salary", id
+		if _, err := s.SaveSalary(ctx, connect.NewRequest(f.SaveSalary)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, want := range f.Months {
+		got, err := s.GetMonthSummary(ctx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: id, Month: want.Month}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !proto.Equal(got.Msg.Summary, want) {
+			t.Errorf("%s:\n got %v\nwant %v", want.Month, got.Msg.Summary, want)
+		}
+	}
+	if f.Settings != nil {
+		got, err := s.GetSettings(ctx, connect.NewRequest(&moneyrecapv1.GetSettingsRequest{MemberId: id}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !proto.Equal(got.Msg.Settings, f.Settings) {
+			t.Errorf("settings:\n got %v\nwant %v", got.Msg.Settings, f.Settings)
+		}
+	}
+	if len(f.SalariesAfter) > 0 {
+		rows, err := salaries(ctx, db, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		c, _ := currencyOf(f.CurrencyCode)
+		got := &moneyrecapv1.LedgerFixture{}
+		for _, r := range rows {
+			got.SalariesAfter = append(got.SalariesAfter, ledgerOf{cash: c}.salarySetting(r))
+		}
+		if !proto.Equal(got, &moneyrecapv1.LedgerFixture{SalariesAfter: f.SalariesAfter}) {
+			t.Errorf("salary rows:\n got %v\nwant %v", got.SalariesAfter, f.SalariesAfter)
+		}
+	}
 }

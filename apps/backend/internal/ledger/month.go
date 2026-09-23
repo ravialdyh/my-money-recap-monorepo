@@ -69,32 +69,53 @@ func inForce[T any](rows []T, from func(T) month, m month) (T, bool) {
 func salaryFrom(r salaryRow) month { return r.from }
 func targetFrom(r targetRow) month { return r.from }
 
+// spendRow is what every figure reads of a Spend that is not deleted (PRD §7): its amount and its local date.
+type spendRow struct {
+	amount *big.Rat
+	date   time.Time
+}
+
 // ledgerOf is one Member's rows and replica facts, what every computation reads.
 type ledgerOf struct {
 	cash     cash
 	signedUp time.Time
 	salaries []salaryRow
 	targets  []targetRow
+	spends   []spendRow
 }
 
-// summary is GetMonthSummary for month m on the Member's local today (PRD §8). No Spend can be logged before
-// slice 5, so Spent is 0, the Streak is the window's elapsed days (§8.5) and no Target Warning exists (§8.8).
+// spent is PRD §8.3's Spent for month m and how many Spends make it.
+func (l ledgerOf) spent(m month) (sum *big.Rat, count int) {
+	sum = new(big.Rat)
+	for _, s := range l.spends {
+		if monthOf(s.date) == m {
+			sum.Add(sum, s.amount)
+			count++
+		}
+	}
+	return sum, count
+}
+
+// summary is GetMonthSummary for month m on the Member's local today (PRD §8): the figures, the §8.7 sentence
+// and the §8.8 warning copy, present whenever Spent is above the line and worded by whether Payday has passed (D53).
 func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
-	zero := new(big.Rat)
+	spent, count := l.spent(m)
 	s := &moneyrecapv1.MonthSummary{
-		Month: m.String(), Spent: l.cash.money(zero), MoneyIn: l.cash.money(zero),
+		Month: m.String(), Spent: l.cash.money(spent), MoneyIn: l.cash.money(new(big.Rat)),
 		StreakDay: l.streak(m, today), DaysRemaining: daysRemaining(m, today),
 	}
 	sal, ok := inForce(l.salaries, salaryFrom, m)
 	if !ok {
+		s.Partial = m.before(monthOf(today)) && count > 0
 		return s
 	}
 	payday := m.day(effectivePayday(sal.payday, m))
 	current := m == monthOf(today)
 	s.Partial = m == monthOf(l.signedUp) && payday.Before(l.signedUp)
 	paid := !s.Partial && (!current || !today.Before(payday))
+	saved := new(big.Rat).Sub(sal.amount, spent)
 	if paid {
-		s.MoneyIn, s.Saved = l.cash.money(sal.amount), l.cash.money(sal.amount)
+		s.MoneyIn, s.Saved = l.cash.money(sal.amount), l.cash.money(saved)
 	}
 	s.Salary = &moneyrecapv1.SalaryFacts{Amount: l.cash.money(sal.amount), Payday: sal.payday}
 	if current && today.Before(payday) {
@@ -105,7 +126,10 @@ func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 		return s
 	}
 	target := l.cash.rounded(new(big.Rat).Mul(sal.amount, big.NewRat(int64(tgt.percent), 100)))
+	line := new(big.Rat).Sub(sal.amount, target)
+	over := new(big.Rat).Sub(spent, line)
 	s.SavingTarget = &moneyrecapv1.SavingTargetFacts{Percent: tgt.percent, Amount: l.cash.money(target)}
+	spare := new(big.Rat).Sub(saved, target)
 	switch {
 	case !paid && (!m.before(monthOf(today)) || !s.Partial):
 		next := payday
@@ -113,19 +137,28 @@ func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 			next = m.next().day(effectivePayday(sal.payday, m.next()))
 		}
 		s.SavingTarget.ProgressSentence = "Nothing to keep yet. Your salary lands on the " + ordinal(next.Day()) + "."
-	case paid && current:
-		left := new(big.Rat).Sub(sal.amount, target)
+	case current && over.Sign() > 0:
+		s.SavingTarget.ProgressSentence = "You're " + l.cash.printed(over) + " past your line. Next month is a fresh start."
+	case current:
+		left := new(big.Rat).Neg(over)
 		daily := new(big.Int).Quo(left.Num(), new(big.Int).Mul(left.Denom(), big.NewInt(int64(s.DaysRemaining))))
 		s.SavingTarget.ProgressSentence = "Keep spending under " + l.cash.printed(new(big.Rat).SetInt(daily)) + " a day and you'll make it."
+	case paid && spare.Sign() >= 0:
+		s.SavingTarget.ProgressSentence = "Target met. " + l.cash.printed(spare) + " to spare."
 	case paid:
-		if spare := new(big.Rat).Sub(sal.amount, target); spare.Sign() >= 0 {
-			s.SavingTarget.ProgressSentence = "Target met. " + l.cash.printed(spare) + " to spare."
-		}
+		s.SavingTarget.ProgressSentence = l.cash.printed(new(big.Rat).Neg(spare)) + " short of your target."
+	}
+	switch {
+	case over.Sign() <= 0:
+	case current && today.Before(payday):
+		s.TargetWarning = &moneyrecapv1.TargetWarning{Message: "You've spent " + l.cash.printed(spent) + " of the " + l.cash.printed(line) + " you meant to spend this month."}
+	default:
+		s.TargetWarning = &moneyrecapv1.TargetWarning{Message: "You've passed your saving line. " + l.cash.printed(over) + " over."}
 	}
 	return s
 }
 
-// streak is PRD §8.5 with no Spends: the elapsed days of the window, which starts on the later of the 1st and
+// streak is PRD §8.5: the longest run of spend-free days in the window, which starts on the later of the 1st and
 // the sign-up date and ends today in the current month or on the month's last day before it.
 func (l ledgerOf) streak(m month, today time.Time) int32 {
 	start, end := m.day(1), m.day(m.days())
@@ -135,10 +168,19 @@ func (l ledgerOf) streak(m month, today time.Time) int32 {
 	if m == monthOf(today) {
 		end = today
 	}
-	if end.Before(start) {
-		return 0
+	spendDays := map[time.Time]bool{}
+	for _, s := range l.spends {
+		spendDays[s.date] = true
 	}
-	return int32(end.Sub(start).Hours()/24) + 1
+	var best, run int32
+	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
+		run++
+		if spendDays[d] {
+			run = 0
+		}
+		best = max(best, run)
+	}
+	return best
 }
 
 // daysRemaining counts today and is never below 1 (PRD §8.7), so a past month answers 1.

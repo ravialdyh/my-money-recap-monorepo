@@ -1,5 +1,5 @@
-// Package ledger is the money service (ARCHITECTURE §7.2): the Salary and Saving Target rows, their
-// settings read and the month figures, built for a Member who has no Spends yet (spec #92).
+// Package ledger is the money service (ARCHITECTURE §7.2): the Salary, Saving Target and Spend rows, the
+// settings read and every Home figure of PRD §8 over them.
 package ledger
 
 import (
@@ -85,6 +85,9 @@ func (s *Service) load(ctx context.Context, id string) (member, error) {
 	if m.targets, err = targets(ctx, s.DB, id); err != nil {
 		return member{}, storeFailed(ctx, err)
 	}
+	if m.spends, err = spends(ctx, s.DB, id); err != nil {
+		return member{}, storeFailed(ctx, err)
+	}
 	return m, nil
 }
 
@@ -151,6 +154,21 @@ func salaries(ctx context.Context, db querier, id string) ([]salaryRow, error) {
 		row.original, _ = new(big.Rat).SetString(original)
 		row.from = monthOf(from)
 		return row, nil
+	})
+}
+
+// spends reads every Spend of the Member that is not deleted (PRD §7).
+func spends(ctx context.Context, db querier, id string) ([]spendRow, error) {
+	rows, err := db.Query(ctx, `SELECT amount::text, spent_on FROM spend WHERE member_id = $1 AND deleted_at IS NULL`, id)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (spendRow, error) {
+		var amount string
+		var row spendRow
+		err := r.Scan(&amount, &row.date)
+		row.amount, _ = new(big.Rat).SetString(amount)
+		return row, err
 	})
 }
 

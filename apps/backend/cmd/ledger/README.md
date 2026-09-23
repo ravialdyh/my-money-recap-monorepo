@@ -1,9 +1,9 @@
 # ledger
 
-The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary and Saving Target and every figure
-PRD §8 computes from them. Built by #99 (spec #92) for a Member who has no Spends yet, since nothing can
-log one before slice 5: it serves `SaveSalary`, `RelabelCurrency`, `SaveTarget`, `GetSettings` and
-`GetMonthSummary`, and the rest of `LedgerService` is planned. The BFF calls it since #103: Home's month,
+The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary, Saving Target and Spends and every
+figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #128: it serves `SaveSalary`,
+`RelabelCurrency`, `SaveTarget`, `LogSpend`, `GetSettings` and `GetMonthSummary`, and the rest of
+`LedgerService` is planned. The BFF calls it since #103: Home's month,
 onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
 
@@ -15,7 +15,7 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary: its name, its schema step, its handler and its consumer, handed to `serve.Main`. |
-| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the two writes), `month.go` (PRD §8 for a month without Spends), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
+| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`), `month.go` (PRD §8's Home figures of a month), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
 
 ## What it keeps
 
@@ -33,6 +33,8 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 - **The rows** (`salary_setting`, `saving_target_setting`), append-only (PRD §7). The row in force for a
   month is the one with the latest effective month not after it, and of two sharing that month the newer
   wins, which makes a step 3 save repeated after a crash safe.
+- **The Spends** (`spend`): the amount and the amount as typed with its Currency, the Category, the local
+  date, the note, when it was created and updated, and a deletion stamp; a deleted Spend counts nowhere.
 
 ## The rules
 
@@ -55,6 +57,11 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
   (`internal/cldr`, ARCHITECTURE §7.2), which the phone prints exactly: GBP `2400.00`, IDR `3000000`. A
   sentence names a currency that the older x/text symbols lack by its code: `VES 1.500`.
   The target amount rounds half up.
+- A Spend's amount follows the Salary's rule; its Category is one of the eight; its date is in the last 60
+  days including today, never ahead, in the Member's zone (A3); its note is at most 80 characters, counted
+  as NFC code points like a Display Name. `LogSpend` locks the Member's replica row and reads the Spends
+  again inside its transaction, so `crossed_line` is true for exactly the log that first takes this month's
+  Spent past Salary minus the target amount (PRD §8.8), never for a Spend in another month.
 - Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
   (`internal/idempotency`, A14), as `members` does.
 
@@ -62,7 +69,9 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 
 `go test ./internal/ledger/` runs them. The money ones need the stack's `ledger` database, and the
 Connect-boundary one and `TestMembersEventsReachTheReplica` also need `ledger`, `members` and a real Keycloak token (`infra/compose/README.md`,
-"Running the Go tests against this stack"). `TestTheAnswerKeyWithoutSpends` runs every file in
-`packages/contract/fixtures/ledger/` that has no Spends, SaveSalary, conversion or Recap: seven today.
-Each goes through the service and its database, its rows seeded and the clock at its `asOf`, and every
-listed month and the settings are compared whole.
+"Running the Go tests against this stack"). `TestTheAnswerKey` runs every file in
+`packages/contract/fixtures/ledger/` but those it names as left out with their reason: the four Recap files
+until `GetRecap` is built and the currency change until slice 7, so 19 run. Each goes through the service and
+its database, its rows seeded, the last Spend logged on its own date where the file asserts `crossedLine`,
+its `saveSalary` made, the clock at its `asOf`, and every listed month, the settings and the Salary rows
+after are compared whole.
