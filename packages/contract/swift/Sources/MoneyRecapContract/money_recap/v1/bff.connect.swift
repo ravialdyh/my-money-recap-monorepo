@@ -22,6 +22,8 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     func `requestMagicLink`(request: MoneyRecap_V1_BffServiceRequestMagicLinkRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestMagicLinkResponse>
 
     /// Home always shows the current month (PRD §6.8, D59), so no month argument.
+    /// failed_precondition until steps 1 and 2 are answered: Home greets by name
+    /// and prints every amount in the Member's Currency (spec #92).
     @available(iOS 13, *)
     func `getHome`(request: MoneyRecap_V1_GetHomeRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_GetHomeResponse>
 

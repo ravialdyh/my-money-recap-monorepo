@@ -4,6 +4,7 @@ package bff
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -60,9 +61,9 @@ type Service struct {
 	Now func() time.Time
 }
 
-// The fallback currency while a Member has none: the currency every artboard is drawn in.
-// A skeleton-only state (#10): once onboarding saves a Currency, every Member has one.
-const fallbackCurrency = "GBP"
+// errNotOnboarded is GetHome's answer until steps 1 and 2 are answered: Home greets by name and prints the
+// Member's Currency (spec #92), and the phone reads it as "open onboarding".
+var errNotOnboarded = errors.New("onboarding steps 1 and 2 are unanswered")
 
 // The server's calendar strings (PRD §6.8): a Recap Month and a date.
 const monthLayout, dateLayout = "2006-01", "2006-01-02"
@@ -96,6 +97,9 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	profile, err := s.member(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if step := nextStep(profile); step == 1 || step == 2 {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, errNotOnboarded)
 	}
 	memberID := profile.MemberId
 	now := nowFn().UTC()
@@ -135,9 +139,6 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	}
 
 	currency := profile.CurrencyCode
-	if currency == "" {
-		currency = fallbackCurrency
-	}
 	stamp := func(m *moneyrecapv1.Money) *moneyrecapv1.Money {
 		if m != nil && m.CurrencyCode == "" {
 			m.CurrencyCode = currency

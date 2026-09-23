@@ -34,15 +34,17 @@ fails closed with `resource_exhausted` (§4.4, A6). It is the BFF's one Redis cl
 
 `GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim (PRD
 §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
-it again, with a one-second timeout; the Profile it answers is the one the HomeView shows. Then the
+it again, with a one-second timeout; the Profile it answers is the one the HomeView shows. Until the
+Member has answered onboarding's steps 1 and 2, a name, an Avatar and a Currency, it stops there with
+`failed_precondition`, which the phone reads as "open onboarding" (spec #92): Home greets by name and
+prints every amount in that Currency, so neither has a fallback. Then the
 §6.1 fan-out runs in parallel with a one-second timeout each: `ledger.GetMonthSummary` (required) and
 `notify.GetWarningState` (optional). A failed `members` call reaches the phone with its own Connect
 code, a failed `ledger` call as `unavailable`, each with a message naming only the call; the upstream
 text, which can hold a host or a database name, goes to the log. `ledger` and `notify` are the
-in-process stubs `internal/bff/bff.go` describes, returning zeros and "no warning". The
-join fills `currency_code` with `GBP` and leaves `display_name` empty for a Member who has not
-onboarded, the two skeleton-only states spec #10 records; `days_remaining` and `first_recap_on` come
-from the server clock in UTC until `ledger` computes them in the Member's zone (A3).
+in-process stubs `internal/bff/bff.go` describes, returning zeros and "no warning"; the join stamps
+each amount the stub leaves without a code with the Member's Currency. `days_remaining` and
+`first_recap_on` come from the server clock in UTC until `ledger` computes them in the Member's zone (A3).
 
 | Path | Holds |
 | --- | --- |

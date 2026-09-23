@@ -1,17 +1,19 @@
 {
     "home": {
-        "currencyCode": "GBP",
+        "displayName": "Test",
+        "avatarKey": "owl",
+        "currencyCode": "IDR",
         "month": "2026-09",
         "spent": {
             "amount": "0",
-            "currencyCode": "GBP"
+            "currencyCode": "IDR"
         },
         "moneyIn": {
             "amount": "0",
-            "currencyCode": "GBP"
+            "currencyCode": "IDR"
         },
         "streakDay": 1,
-        "daysRemaining": 14,
+        "daysRemaining": 9,
         "firstRecapOn": "2026-10-01"
     }
 }

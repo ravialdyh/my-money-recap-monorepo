@@ -4,13 +4,14 @@ import SwiftData
 import SwiftUI
 
 /// What the app opens on after sign-in (spec #92): the zone first on every launch (A3), then Home at once for a
-/// Member the stored Home already greets (I4), else step 1 while it is unanswered. No answer at all: Home.
+/// Member the stored Home already greets (I4), else the first unanswered of steps 1 and 2. No answer at all: Home.
 @Observable
 @MainActor
 final class LaunchViewModel {
     enum Route: Equatable {
         case deciding
         case stepOne(name: String, avatar: String)
+        case stepTwo
         case home
     }
 
@@ -31,20 +32,39 @@ final class LaunchViewModel {
     func start() async {
         await setZone()
         guard route == .deciding else { return }
-        guard let state = await state(), state.nextStep == 1 else {
-            route = .home
-            return
-        }
-        let saved = state.profile.displayName
-        route = .stepOne(name: saved.isEmpty ? state.suggestedName : saved, avatar: state.profile.avatarKey)
+        route = await decided(orElse: .home)
     }
 
     func stepOneSaved() {
+        route = .stepTwo
+    }
+
+    func stepTwoSaved() {
         route = .home
+    }
+
+    /// Home answered failed_precondition: step 1 or 2 is unanswered, so that step opens (spec #92). With no answer
+    /// the screen stays blank rather than returning to a Home that would refuse again.
+    func homeRefused() async {
+        route = .deciding
+        route = await decided(orElse: .deciding)
+    }
+
+    private func decided(orElse fallback: Route) async -> Route {
+        guard let state = await state() else { return fallback }
+        switch state.nextStep {
+        case 1:
+            let saved = state.profile.displayName
+            return .stepOne(name: saved.isEmpty ? state.suggestedName : saved, avatar: state.profile.avatarKey)
+        case 2:
+            return .stepTwo
+        default:
+            return .home
+        }
     }
 }
 
-/// Routes between step 1 and Home on one client, so the zone, the state and the save share its interceptor.
+/// Routes between the steps and Home on one client, so the zone, the state and the saves share its interceptor.
 struct LaunchView: View {
     private let session: AuthSession
     private let context: ModelContext
@@ -80,17 +100,24 @@ struct LaunchView: View {
             case .deciding:
                 Screen {}
             case let .stepOne(name, avatar):
-                NameAvatarView(model: NameAvatarViewModel(name: name, avatar: avatar) { request, headers in
-                    let saved = await BffClient.retried(session) { await client.saveProfile(
-                        request: request,
-                        headers: headers
-                    ) }
-                    return (try? saved.result.get()) != nil
-                }, onSaved: model.stepOneSaved)
+                NameAvatarView(
+                    model: NameAvatarViewModel(name: name, avatar: avatar, save: saveProfile),
+                    onSaved: model.stepOneSaved
+                )
+            case .stepTwo:
+                CurrencyView(model: CurrencyViewModel(save: saveProfile), onSaved: model.stepTwoSaved)
             case .home:
-                HomeView(session: session, context: context)
+                HomeView(session: session, context: context) {
+                    Task { await model.homeRefused() }
+                }
             }
         }
         .task { await model.start() }
+    }
+
+    /// One onboarding save, retried once after the token refreshes (IOS I3); true once the BFF has it.
+    private func saveProfile(_ request: MoneyRecap_V1_BffServiceSaveProfileRequest, _ headers: Headers) async -> Bool {
+        let saved = await BffClient.retried(session) { await client.saveProfile(request: request, headers: headers) }
+        return (try? saved.result.get()) != nil
     }
 }

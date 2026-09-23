@@ -12,25 +12,25 @@ import (
 	"golang.org/x/text/number"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/cldr"
 )
 
-// errNotCurrency is a code CLDR does not know as a currency.
+// errNotCurrency is a code no territory takes as tender in CLDR.
 var errNotCurrency = errors.New("currency_code is not an ISO 4217 currency")
 
-// cash is one Currency as ledger holds it: its ISO 4217 code and the decimals CLDR gives it, the data the
-// phone's formatter prints from (§7.2 "Rounding"): GBP 2, IDR 0.
+// cash is one Currency as ledger holds it: its ISO 4217 code and the decimals CLDR gives it (package cldr, §7.2
+// "Rounding"): GBP 2, IDR 0. The phone prints an amount with exactly these decimals.
 type cash struct {
 	code  string
 	scale int
 }
 
 func currencyOf(code string) (cash, error) {
-	u, err := currency.ParseISO(code)
-	if err != nil || len(code) != 3 {
+	scale, ok := cldr.Digits(code)
+	if !ok {
 		return cash{}, errNotCurrency
 	}
-	scale, _ := currency.Standard.Rounding(u)
-	return cash{code: u.String(), scale: scale}, nil
+	return cash{code: code, scale: scale}, nil
 }
 
 // money is r at the currency's decimals, halves rounded up (PRD §8.4): big.Rat rounds half away from zero,
@@ -45,15 +45,17 @@ func (c cash) rounded(r *big.Rat) *big.Rat {
 	return v
 }
 
-// printed is an amount in a sentence as the PRD prints one (§8.7): the symbol and digit grouping of the
-// currency's home locale, a space only after a letter, no fraction when whole: "£320", "Rp 400.000".
+// printed is an amount in a sentence as the PRD prints one (§8.7): the home locale's symbol and grouping, a space
+// only after a letter, no fraction when whole: "£320", "Rp 400.000"; the code where x/text lacks one: "VES 1.500".
 func (c cash) printed(r *big.Rat) string {
 	region, _ := language.ParseRegion(c.code[:2])
 	base, _ := language.Make("und-" + region.String()).Base()
 	tag, _ := language.Compose(base, region)
 	p := message.NewPrinter(tag)
-	u := currency.MustParseISO(c.code)
-	symbol := p.Sprint(currency.Symbol(u))
+	symbol := c.code
+	if u, err := currency.ParseISO(c.code); err == nil {
+		symbol = p.Sprint(currency.Symbol(u))
+	}
 	digits := c.scale
 	if r.IsInt() || c.rounded(r).IsInt() {
 		digits = 0

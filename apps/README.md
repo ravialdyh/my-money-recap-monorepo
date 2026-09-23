@@ -49,6 +49,9 @@ what is its own.
   one that consumes hands it a worker running `events.Consume`, whose handler runs in the transaction that
   records the message id in its `processed_events`. `serve.Main` builds every worker before it serves, so
   their variables are reported with the rest, and runs them until shutdown.
+- **One currency list** (`internal/cldr`, §7.2). Whether a code is a Currency and how many decimals it has
+  come from Unicode CLDR's `currencyData.json`, kept unedited beside the package: `internal/answers` checks
+  step 2's code with it and `ledger` rounds with it, so the two never disagree.
 - **One keyed write** (`internal/idempotency`, A14). A service that owns a Member write claims the key in
   an `idempotency` table of its own, inside the write's transaction; a store error answers through
   `serve.StoreFailed`, which never lets driver text reach the caller.

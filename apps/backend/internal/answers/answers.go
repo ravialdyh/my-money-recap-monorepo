@@ -9,8 +9,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"golang.org/x/text/currency"
 	"golang.org/x/text/unicode/norm"
+
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/cldr"
 )
 
 // AvatarKeys are the six Avatars, the list Profile.avatar_key's documentation holds (PRD D36).
@@ -40,9 +41,9 @@ func AvatarKey(k string) error {
 	return nil
 }
 
-// CurrencyCode refuses a code CLDR does not know as a currency, the data ledger rounds with (§7.2).
+// CurrencyCode refuses a code no territory takes as tender in CLDR, the data ledger rounds with (§7.2).
 func CurrencyCode(c string) error {
-	if u, err := currency.ParseISO(c); err != nil || u.String() != c {
+	if _, ok := cldr.Digits(c); !ok {
 		return errors.New("currency_code is not an ISO 4217 currency")
 	}
 	return nil

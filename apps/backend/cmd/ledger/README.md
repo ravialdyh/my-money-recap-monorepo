@@ -44,7 +44,8 @@ the rest of `LedgerService` is planned. The BFF does not call it yet; onboarding
 - A later Saving Target starts next month (D65), and none can be set without a Salary (D44).
 - An amount is in the Member's Currency, above zero, D57's 11 digits at most before the separator, and no
   more decimals than the Currency has. Every amount answered carries that Currency's CLDR decimals
-  (`golang.org/x/text/currency`, the data the phone's formatter reads): GBP `2400.00`, IDR `3000000`.
+  (`internal/cldr`, ARCHITECTURE §7.2), which the phone prints exactly: GBP `2400.00`, IDR `3000000`. A
+  sentence names a currency that the older x/text symbols lack by its code: `VES 1.500`.
   The target amount rounds half up.
 - Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
   (`internal/idempotency`, A14), as `members` does.

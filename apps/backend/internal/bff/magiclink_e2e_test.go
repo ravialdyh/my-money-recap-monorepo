@@ -53,16 +53,20 @@ func TestMagicLinkEndToEnd(t *testing.T) {
 		}
 		t.Logf("second redemption of the same token → %s", refusal)
 
-		home, err := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(access)).
-			GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+		client := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(access))
+		if _, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+			t.Fatalf("GetHome for the new Member: %v, want failed_precondition until steps 1 and 2 are answered", err)
+		}
+		onboard(ctx, t, base, access)
+		home, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 		if err != nil {
 			t.Fatal(err)
 		}
-		assertZeroHome(t, home.Msg.Home)
+		assertZeroHome(t, home.Msg.Home, "Test", "IDR")
 		if rows := memberRows(t, db, address); rows != 1 {
 			t.Fatalf("%d Member rows for %s, want 1", rows, address)
 		}
-		t.Logf("GetHome on the magic-link token → HomeView of zeros and one Member row")
+		t.Logf("GetHome on the magic-link token → failed_precondition, then after steps 1 and 2 a HomeView of zeros and one Member row")
 	})
 
 	t.Run("the sixth request in the hour is refused", func(t *testing.T) {

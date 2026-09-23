@@ -57,7 +57,8 @@ final class SignInUITests: XCTestCase {
         nameField.typeText("Maya2")
         XCTAssertEqual(nameField.value as? String, "Maya", "the field refuses a digit (PRD §6.4)")
         answerStepOne(app, avatar: "Otter")
-        assertHomeAtZero(app, greeting: "Hi, Maya")
+        searchStepTwo(app, for: "rupiah", choosing: "Indonesian Rupiah, IDR")
+        assertHomeAtZero(app, greeting: "Hi, Maya", currency: "IDR")
         snapshot("05-home-at-zero-signed-in-by-link")
 
         app.terminate()
@@ -74,7 +75,7 @@ final class SignInUITests: XCTestCase {
         app.launch()
         XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
         XCTAssert(
-            app.staticTexts["Money in \(Self.zero)"].exists,
+            app.staticTexts["Money in \(Self.zero("IDR"))"].exists,
             "an unreachable BFF leaves the last snapshot on screen (PRD D61)"
         )
         snapshot("07-bff-unreachable-snapshot-still-shown")
@@ -99,8 +100,9 @@ extension XCTestCase {
         ProcessInfo.processInfo.environment.filter { ["MMR_BFF_URL", "MMR_ISSUER"].contains($0.key) }
     }
 
-    static var zero: String {
-        Decimal(0).formatted(.currency(code: "GBP").precision(.fractionLength(0)))
+    /// 0 in `currency`, as the app prints a whole amount (`Money`): in the device locale, without a zero fraction.
+    static func zero(_ currency: String) -> String {
+        Decimal(0).formatted(.currency(code: currency).precision(.fractionLength(0)))
     }
 
     /// Onboarding step 1 (PRD §6.4), its name already in the field: no Next without an Avatar, then the Avatar and
@@ -117,12 +119,33 @@ extension XCTestCase {
         app.buttons["Next"].tap()
     }
 
-    /// Home at zero, the B1 "no salary set" layout (PRD §6.8), greeting the Member once step 1 is saved.
+    /// Onboarding step 2 (PRD §6.5, SCREEN-STATES A5): a search that matches nothing says so and clears, a search by
+    /// name finds the Currency, and Next saves it.
     @MainActor
-    func assertHomeAtZero(_ app: XCUIApplication, greeting: String) {
+    func searchStepTwo(_ app: XCUIApplication, for query: String, choosing row: String) {
+        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2 (PRD §6.5)")
+        XCTAssert(app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Step 2 of 4'")).firstMatch.exists)
+        let search = app.textFields["Search by name or code"]
+        search.tap()
+        search.typeText("ducat")
+        XCTAssert(app.staticTexts["No currency matches \"ducat\"."].waitForExistence(timeout: 5), "the empty search")
+        snapshot("step-2-no-match")
+        app.buttons["Clear search"].tap()
+        search.tap()
+        search.typeText(query)
+        app.buttons[row].tap()
+        XCTAssert(app.buttons[row].isSelected, "the tapped Currency reads as chosen")
+        snapshot("step-2-searched")
+        app.buttons["Next"].tap()
+    }
+
+    /// Home at zero, the B1 "no salary set" layout (PRD §6.8), greeting the Member and printing every figure in the
+    /// Currency step 2 saved.
+    @MainActor
+    func assertHomeAtZero(_ app: XCUIApplication, greeting: String, currency: String) {
         XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 30), "Home at zero (PRD §6.8)")
-        XCTAssert(app.staticTexts[Self.zero].exists, "the hero shows Spent at \(Self.zero)")
-        XCTAssert(app.staticTexts["Money in \(Self.zero)"].exists)
+        XCTAssert(app.staticTexts[Self.zero(currency)].exists, "the hero shows Spent at \(Self.zero(currency))")
+        XCTAssert(app.staticTexts["Money in \(Self.zero(currency))"].exists)
         XCTAssertEqual(
             app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Saved'")).count,
             0,

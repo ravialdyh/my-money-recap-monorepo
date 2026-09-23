@@ -12,11 +12,25 @@ import (
 	"connectrpc.com/connect"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
+
+// onboard answers steps 1 and 2 through the BFF under token, as the app does, so GetHome answers: the name Test,
+// the owl and IDR, the rupiah PRD D45 proves every screen in.
+func onboard(ctx context.Context, t *testing.T, base, token string) {
+	t.Helper()
+	req := connect.NewRequest(&moneyrecapv1.BffServiceSaveProfileRequest{
+		DisplayName: proto.String("Test"), AvatarKey: proto.String("owl"), CurrencyCode: proto.String("IDR"), OnboardingStep: proto.Int32(2),
+	})
+	req.Header().Set("Idempotency-Key", rand.Text())
+	if _, err := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(token)).SaveProfile(ctx, req); err != nil {
+		t.Fatal(err)
+	}
+}
 
 // TestEndToEnd drives the BFF's HTTP boundary against the real Compose stack (#17, spec #10).
 // It skips unless BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_USER_PASSWORD and
@@ -72,11 +86,15 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatalf("%d Member rows after the unauthenticated calls, want 0: a bad token reached members", rows)
 	}
 
+	if _, err := getHome(accessToken); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Fatalf("GetHome for a new Member: %v, want failed_precondition until steps 1 and 2 are answered", err)
+	}
+	onboard(ctx, t, base, accessToken)
 	home, err := getHome(accessToken)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assertZeroHome(t, home)
+	assertZeroHome(t, home, "Test", "IDR")
 	now := time.Now().UTC()
 	if home.Month != now.Format(monthLayout) || home.FirstRecapOn != time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, time.UTC).Format(dateLayout) {
 		t.Fatalf("HomeView dates: %v", home)

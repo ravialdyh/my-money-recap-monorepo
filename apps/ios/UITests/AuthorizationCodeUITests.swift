@@ -52,8 +52,15 @@ final class AuthorizationCodeUITests: XCTestCase {
         XCTAssert(field.waitForExistence(timeout: 30), "the runner cleared the test Member's row, so step 1 opens")
         XCTAssertEqual(field.value as? String, "Test", "the token's given_name fills the field (PRD §6.4)")
         answerStepOne(app, avatar: "Fox")
-        assertHomeAtZero(app, greeting: "Hi, Test")
-        snapshot("03-home-at-zero-through-the-web-sheet")
+        let own = try XCTUnwrap(Locale.current.currency?.identifier, "the simulator's region names a currency")
+        let name = Locale(identifier: "en_GB").localizedString(forCurrencyCode: own) ?? own
+        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2 (PRD §6.5)")
+        XCTAssert(app.buttons["\(name), \(own)"].isSelected, "the region's own currency starts chosen (PRD §6.5)")
+        XCTAssert(app.buttons["Next"].isEnabled, "so the Member just taps Next")
+        snapshot("03-step-2-own-currency")
+        app.buttons["Next"].tap()
+        assertHomeAtZero(app, greeting: "Hi, Test", currency: own)
+        snapshot("04-home-at-zero-through-the-web-sheet")
     }
 
     /// The web sheet and its "wants to use localhost to sign in" alert are drawn by system processes

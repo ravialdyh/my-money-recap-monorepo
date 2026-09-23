@@ -8,12 +8,12 @@ struct HomeView: View {
     @State private var model: HomeViewModel
 
     /// The launch sends the zone (`LaunchView`); Home asks only for itself, once more after the interceptor refreshes
-    /// the token on `unauthenticated` (IOS I3).
-    init(session: AuthSession, context: ModelContext) {
+    /// the token on `unauthenticated` (IOS I3), and hands `onboardingNeeded` back to the launch when refused.
+    init(session: AuthSession, context: ModelContext, onboardingNeeded: @escaping () -> Void) {
         let client = BffClient.make(session: session)
         _model = State(initialValue: HomeViewModel(fetch: {
             try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
-        }, context: context))
+        }, context: context, onboardingNeeded: onboardingNeeded))
     }
 
     var body: some View {
