@@ -20,7 +20,7 @@ final class NameAvatarViewModelTests: XCTestCase {
         var sent: [(MoneyRecap_V1_BffServiceSaveProfileRequest, Headers)] = []
         let model = NameAvatarViewModel(name: "", avatar: "") { request, headers in
             sent.append((request, headers))
-            return true
+            return .saved
         }
         XCTAssertFalse(model.canContinue, "nothing answered yet (SCREEN-STATES A4 empty)")
         model.type(" Maya ")
@@ -42,7 +42,7 @@ final class NameAvatarViewModelTests: XCTestCase {
         var succeed = false
         let model = NameAvatarViewModel(name: "Test", avatar: "unknown") { _, headers in
             keys.append(headers["Idempotency-Key"]?.first ?? "")
-            return succeed
+            return succeed ? .saved : .failed
         }
         XCTAssertNil(model.avatar, "a key outside the six is no answer")
         model.choose("fox")
@@ -56,5 +56,23 @@ final class NameAvatarViewModelTests: XCTestCase {
         XCTAssertEqual(keys.count, 3)
         XCTAssertEqual(keys[0], keys[1], "the retry of the same answers counts once")
         XCTAssertNotEqual(keys[1], keys[2], "a changed Avatar is a new write")
+    }
+
+    /// A save that cannot reach the BFF says so in the card (spec #92), keeps the answers, and Next tries again.
+    func testASaveWithNoConnectionIsSaidAndNextTriesAgain() async {
+        var answer = SaveResult.offline
+        let model = NameAvatarViewModel(name: "Maya", avatar: "otter") { _, _ in answer }
+        let offline = await model.next()
+        XCTAssertFalse(offline)
+        XCTAssertTrue(model.offline)
+        XCTAssertEqual(model.name, "Maya")
+        XCTAssertTrue(model.canContinue, "Next is the way to try again")
+        answer = .failed
+        _ = await model.next()
+        XCTAssertFalse(model.offline, "a refusal is not a lost connection")
+        answer = .saved
+        let saved = await model.next()
+        XCTAssertTrue(saved)
+        XCTAssertFalse(model.offline)
     }
 }

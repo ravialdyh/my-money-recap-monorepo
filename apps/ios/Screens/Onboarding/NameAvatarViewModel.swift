@@ -8,7 +8,7 @@ import MoneyRecapContract
 @Observable
 @MainActor
 final class NameAvatarViewModel {
-    typealias Save = (MoneyRecap_V1_BffServiceSaveProfileRequest, Headers) async -> Bool
+    typealias Save = (MoneyRecap_V1_BffServiceSaveProfileRequest, Headers) async -> SaveResult
 
     struct Answers: Equatable {
         let name: String
@@ -18,6 +18,8 @@ final class NameAvatarViewModel {
     private(set) var name: String
     private(set) var avatar: String?
     private(set) var isSaving = false
+    /// The last save could not reach the BFF: the step says so and Next tries again (`NoConnectionView.copy`).
+    private(set) var offline = false
     private var attempt: SaveAttempt<Answers>?
     private let save: Save
 
@@ -53,6 +55,8 @@ final class NameAvatarViewModel {
             $0.avatarKey = avatar
             $0.onboardingStep = 1
         }
-        return await save(request, current.headers)
+        let result = await save(request, current.headers)
+        offline = result == .offline
+        return result == .saved
     }
 }

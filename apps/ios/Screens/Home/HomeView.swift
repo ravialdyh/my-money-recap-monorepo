@@ -11,9 +11,14 @@ struct HomeView: View {
     /// the token on `unauthenticated` (IOS I3), and hands `onboardingNeeded` back to the launch when refused.
     init(session: AuthSession, context: ModelContext, onboardingNeeded: @escaping () -> Void) {
         let client = BffClient.make(session: session)
-        _model = State(initialValue: HomeViewModel(fetch: {
+        self.init(model: HomeViewModel(fetch: {
             try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
         }, context: context, onboardingNeeded: onboardingNeeded))
+    }
+
+    /// Home over a given model, as the render tests draw it.
+    init(model: HomeViewModel) {
+        _model = State(initialValue: model)
     }
 
     var body: some View {

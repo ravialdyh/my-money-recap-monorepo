@@ -10,10 +10,12 @@ import XCTest
 final class CurrencyViewModelTests: XCTestCase {
     private let britain = Locale(identifier: "en_GB")
 
-    private func model(region: Locale = Locale(identifier: "id_ID"), save: @escaping CurrencyViewModel.Save = { _, _ in
-        true
-    }) -> CurrencyViewModel {
-        CurrencyViewModel(region: region, save: save)
+    private func model(
+        saved: String = "",
+        region: Locale = Locale(identifier: "id_ID"),
+        save: @escaping CurrencyViewModel.Save = { _, _ in .saved }
+    ) -> CurrencyViewModel {
+        CurrencyViewModel(saved: saved, region: region, save: save)
     }
 
     func testTheListIsThePlatformsCommonCurrenciesSortedByTheirBritishNames() {
@@ -65,6 +67,13 @@ final class CurrencyViewModelTests: XCTestCase {
         XCTAssertTrue(model(region: britain).canContinue, "so most Members just tap Next")
     }
 
+    /// Going back to step 2, or resuming on it, re-selects the saved Currency rather than the region's (spec #92).
+    func testTheSavedCurrencyStartsChosenOverTheRegions() {
+        XCTAssertEqual(model(saved: "EUR", region: britain).selected, "EUR")
+        XCTAssertEqual(model(saved: "", region: britain).selected, "GBP", "nothing saved: the region's own")
+        XCTAssertEqual(model(saved: "IDR", region: Locale(identifier: "en_001")).selected, "IDR")
+    }
+
     func testARegionThatNamesNoCurrencyChoosesNothingAndNextWaits() {
         let step = model(region: Locale(identifier: "en_001"))
         XCTAssertNil(step.selected, "the app never quietly picks a currency")
@@ -76,17 +85,19 @@ final class CurrencyViewModelTests: XCTestCase {
 
     func testNextSavesTheCurrencyWithStepTwoUnderOneKeyPerChoice() async {
         var sent: [(MoneyRecap_V1_BffServiceSaveProfileRequest, String)] = []
-        var answer = false
+        var answer = SaveResult.offline
         let step = model { request, headers in
             sent.append((request, headers["Idempotency-Key"]?.first ?? ""))
             return answer
         }
         let failed = await step.next()
         XCTAssertFalse(failed)
-        XCTAssertTrue(step.canContinue, "a failed save leaves Next on")
-        answer = true
+        XCTAssertTrue(step.offline, "no connection is said in the card (spec #92)")
+        XCTAssertTrue(step.canContinue, "a failed save leaves Next on, the way to try again")
+        answer = .saved
         let retried = await step.next()
         XCTAssertTrue(retried)
+        XCTAssertFalse(step.offline)
         step.choose("USD")
         _ = await step.next()
         XCTAssertEqual(sent.map(\.0.currencyCode), ["IDR", "IDR", "USD"])

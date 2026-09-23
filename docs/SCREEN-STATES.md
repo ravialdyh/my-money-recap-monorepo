@@ -34,9 +34,10 @@ Violet ground throughout.
 | A4 | Name and avatar | `Chip` label `Step 1 of 4`, no back chevron. `TextField` `First name`, which drops digits, emoji and other punctuation as they are typed and stops at 30 characters, and `AvatarGrid` under `Pick your avatar`, each Avatar named beneath it. Next disabled until both valid. |
 | A4 | empty | Apple/Google shared no name. |
 | A4 | prefilled | The name the provider shared, the token's `given_name`, already in `First name`; no Avatar chosen. |
-| A5 | Currency | `Chip` label `Step 2 of 4`. A search field `Search by name or code` over the platform's common ISO 4217 currencies as `ListRow trailing="check"`, each labelled `{code} · {name}` and sorted by its British English name. The device region's currency is preselected, so Next is usually enabled. |
+| A5 | Currency | A 44pt back chevron to step 1, then `Chip` label `Step 2 of 4`. A search field `Search by name or code` over the platform's common ISO 4217 currencies as `ListRow trailing="check"`, each labelled `{code} · {name}` and sorted by its British English name. The device region's currency is preselected, so Next is usually enabled. |
 | A5 | no region currency | The device region names no currency: no row is checked and Next stays disabled until one is tapped. |
 | A5 | empty search | `No currency matches "{query}".` plus a `Clear search` link. The chosen row stays chosen underneath, so Next keeps its state. |
+| A4–A7 | no connection | Setup needs a connection, since every answer is saved as it is given. A step whose save cannot reach the server shows `InlineError` in its card: `No connection. We need one to save your answers.` The answers stay and Next tries again. A launch that cannot learn the next step shows the same `InlineError` in a card on the violet ground, with `Try again`. A Member who finished setup never meets it: Home opens from the stored answer (B1 offline). |
 | A6 | Salary and payday | D51. `DayPicker` with a `Last day` option after 31 and a computed helper below it: `Next paydays: 25 Sep · 25 Oct · 25 Nov`, updating on every tap. No other helper line. |
 | A6 | amount too long | D57. At 11 digits the field stops accepting keystrokes and shows `That's more than the app can store.` |
 | A7 | Saving target | Slider, live amount preview. |

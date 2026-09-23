@@ -40,8 +40,7 @@ final class HomeViewModel {
             try HomeSnapshot.replace(with: fresh, in: context)
             home = fresh
         } catch let error as ConnectError where error.code == .failedPrecondition {
-            try? context.delete(model: HomeSnapshot.self)
-            try? context.save()
+            HomeSnapshot.erase(from: context)
             onboardingNeeded()
         } catch {
             return

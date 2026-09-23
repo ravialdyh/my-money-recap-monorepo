@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// PRD §6.4 / SCREEN-STATES A4, step 1 of onboarding: no back chevron, the step label as the white pill every canvas
-/// draws, the First name field and the Avatar grid, then Next.
+/// draws, in the 44pt row later steps share with their chevron, the First name field and the Avatar grid, then Next.
 struct NameAvatarView: View {
     @State private var model: NameAvatarViewModel
     /// What the field shows. The model keeps only what `DisplayName` allows, and writing that back here redraws
@@ -18,11 +18,14 @@ struct NameAvatarView: View {
 
     var body: some View {
         Screen {
-            Chip(text: "Step 1 of 4", asLabel: true).padding(.top, 8)
+            Chip(text: "Step 1 of 4", asLabel: true).frame(minHeight: Tokens.Size.touchTargetMin)
             Headline(text: "What should we call you?", size: .m).padding(.top, 18)
             ScrollView {
                 VStack(spacing: Tokens.Space._5) {
                     Card {
+                        if model.offline {
+                            InlineError(text: NoConnectionView.copy)
+                        }
                         MMRTextField(
                             label: "First name",
                             text: $typed,

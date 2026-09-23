@@ -13,7 +13,7 @@ struct CheckInboxView: View {
 
     var body: some View {
         Screen {
-            EmailHeader(back: useAnotherEmail)
+            BackRow(label: "Email", back: useAnotherEmail)
             Image("ill-envelope")
                 .resizable()
                 .scaledToFit()

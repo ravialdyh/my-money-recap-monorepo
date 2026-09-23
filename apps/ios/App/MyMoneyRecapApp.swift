@@ -28,8 +28,7 @@ struct RootView: View {
         }
         .onChange(of: session.isSignedIn) { _, signedIn in
             if !signedIn {
-                try? context.delete(model: HomeSnapshot.self)
-                try? context.save()
+                HomeSnapshot.erase(from: context)
             }
         }
         .task {
