@@ -50,9 +50,13 @@ Salary or Target starts in the current month and later ones follow D56 and D65 (
 key, whose `failed_precondition` for a stamp past the 24 hours reaches the phone as it is. The sheet itself is
 opened by the stamp in `SetTimezone`'s Profile, the launch call.
 
-Before any of that, the request is counted against its address in Redis, `ml:<address>:<hour>` with
-the address lower-cased: §4.4's magic-link rate limit, five per address per hour (PRD §11), which
-fails closed with `resource_exhausted` (§4.4, A6). It is the BFF's one Redis client.
+Redis holds two of §4.4's limits, through one client. `RequestMagicLink` is counted against its address
+before the realm is asked, `ml:<address>:<hour>` with the address lower-cased: five per address per hour
+(PRD §11), failing closed with `resource_exhausted`. Every other RPC is counted against the token's subject
+once the bearer check has passed, `rl:<subject>:<minute>`: 120 per Member per minute (#97), past which the
+request is `resource_exhausted` before any service is called. That one fails open: when Redis does not
+answer within a quarter of a second the request goes on uncounted and a log line records it, so a cache
+that is down never locks a Member out of their money (§4.4, A6).
 
 `GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim (PRD
 §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
@@ -93,7 +97,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
 | `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `http://<domain>:80/magic` on the machine today and `https://<domain>/magic` once TLS arrives (#87), `http://localhost:8090/magic` on a laptop, where Nginx serves the fallback page on `NGINX_HOST_PORT` (#72). |
-| `BFF_REDIS_ADDR` | required | Redis for the magic-link limit: `redis:6379` in Compose, `localhost:REDIS_HOST_PORT` from the host. No default, because a BFF that cannot find Redis refuses every magic-link request (§4.4). |
+| `BFF_REDIS_ADDR` | required | Redis for the two limits: `redis:6379` in Compose, `localhost:REDIS_HOST_PORT` from the host. No default, because a BFF that cannot find Redis refuses every magic-link request (§4.4); the per-Member limit lets requests through without it. |
 | `BFF_LISTEN` | `:8080` | Listen address. |
 
 ## Run
