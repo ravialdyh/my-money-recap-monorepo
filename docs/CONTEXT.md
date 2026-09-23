@@ -27,7 +27,7 @@ _Avoid_: Profile picture, photo
 ### Money
 
 **Salary**:
-The fixed amount of money the Member expects to receive each month, set once at setup and editable later. It is the only recurring income in v1.
+The fixed take-home amount, after tax, the Member expects to receive each month (PRD D2), set once at setup and editable later. It is the only recurring income in v1.
 _Avoid_: Allowance, wage, pay, earnings, monthly income
 
 **Spend**:

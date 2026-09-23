@@ -4,7 +4,7 @@ Runnable products.
 
 | Path | What lives here |
 | --- | --- |
-| `apps/backend/` | The one Go module for the backend (spec #10): the generated contract package under `gen/`, shared packages under `internal/`, one binary per app under `cmd/`, and one `Dockerfile` that builds any of them (`--build-arg CMD=<name>`) from the module root, per `docs/ARCHITECTURE.md` §10. Today: `cmd/members`, `cmd/notify` and `cmd/bff` (see their READMEs); `ledger` and `currency` land with later slices. |
+| `apps/backend/` | The one Go module for the backend (spec #10): the generated contract package under `gen/`, shared packages under `internal/`, one binary per app under `cmd/`, and one `Dockerfile` that builds any of them (`--build-arg CMD=<name>`) from the module root, per `docs/ARCHITECTURE.md` §10. Today: `cmd/members`, `cmd/notify`, `cmd/ledger` and `cmd/bff` (see their READMEs); `currency` lands with a later slice. |
 | `apps/ios/` | The SwiftUI app (`docs/IOS.md`); `apps/ios/README.md` says what is built and how to open, build and run it against local Compose. |
 
 The iOS app consumes the design tokens from `my-money-recap-ds` (generated into

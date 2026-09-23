@@ -15,7 +15,8 @@ card, above the action, never at the top of the screen and never absolutely posi
 undeliverable address. It takes `null` to remove it, and `null` is the default, so a plain message
 is just `<InlineError>…</InlineError>`.
 
-Coral-100 fill, a coral-500 dot, coral text in Nunito 800 13. It carries `role="alert"`, so do not
+Coral-100 fill, a coral-500 dot, coral text in Nunito 800 13. On a surface that is already coral, the restore
+sheet's (SCREEN-STATES D11b), the fill is white instead; the app's `InlineError` takes it as `well`. It carries `role="alert"`, so do not
 add another live region around it.
 
 ```tsx

@@ -1,29 +1,27 @@
 # apps/ios
 
-The SwiftUI app (`docs/IOS.md`), iOS 17+, iPhone and iPad. So far: Sign in (PRD §6.1) by email, through
-Enter email and Check your inbox (§6.2, §6.3) to a link that opens the app signed in with no browser
-(I1), Sign in with Apple and Continue with Google handing the system web sheet straight to their
-provider (#71), and the authorization-code flow through Keycloak's login page behind a debug-only launch
-argument;
-the session in the Keychain (I2), the generated Connect client (I3) sending the device's zone with
-`SetTimezone` on every launch, under one `Idempotency-Key` (A3, A14), then routing the launch (spec #92): a
-deletion asked for under 24 hours ago, which that call's Profile carries, opens D11b Restore account before
-anything else, whose "Keep my account" clears it and continues and whose "Continue with deletion" signs out on
-the phone (PRD §6.18, D60, #105; nothing in the app asks for a deletion yet); otherwise a
-Member whose stored Home already greets them opens Home at once, with no round trip and so with no signal, and
-anyone else asks `GetOnboardingState` and opens the first unanswered of onboarding step 1, Name and Avatar (PRD
-§6.4, #98), step 2, Currency (§6.5, #100), step 3, Salary and Payday (§6.6, #103), and step 4, Saving Target
-(§6.7, #104), with the answers already saved filled in and re-selected. Step 4 without a Salary shows the prompt
-back to step 3 and one Skip for now (D44). Each back chevron returns to the step before without losing a later answer (#102);
-a Currency saved again during setup relabels step 3's Salary, and step 3 fills it in again. With no answer at launch, or a save that
-cannot reach the BFF, setup says `No connection. We need one to save your answers.`: on its own with Try again
-at launch, in the step's card otherwise, where Next tries again. The `HomeSnapshot` cache in SwiftData (I4),
-the only setup progress on the device and erased at sign-out, and Home drawn at zero (PRD §6.8, D54, D69),
-greeting the Member by name with their Avatar and printing every figure in their Currency, with the Saving
-Target's card filled in once one is set. Home is served only once steps 1 and 2 are answered: a
-`failed_precondition` from `GetHome` deletes the stored Home and reopens the unanswered step. Home's two
-prompt cards reopen step 3 and step 4, which run as in setup and whose back chevron returns to Home. The
-sheets and screens behind the chips and buttons arrive with their own tickets.
+The SwiftUI app (`docs/IOS.md`), iOS 17+, iPhone and iPad. Built so far:
+
+- **Sign in** (PRD §6.1 to §6.3): by email, through Enter email and Check your inbox to a link that opens the app
+  signed in with no browser (I1); Sign in with Apple and Continue with Google, which hand the system web sheet
+  straight to their provider (#71); and the authorization-code flow through Keycloak's login page, behind a
+  debug-only launch argument. The session lives in the Keychain (I2).
+- **Launch**: the generated Connect client (I3) sends the device's zone with `SetTimezone` on every launch, under
+  one `Idempotency-Key` (A3, A14), and the launch then routes as IOS I4 orders it: D11b Restore account, a stored
+  Home, or the first unanswered onboarding step. On the restore sheet (PRD §6.18, D60, #105), "Keep my account"
+  clears the deletion and continues, and "Continue with deletion" signs out on the phone; nothing in the app asks
+  for a deletion yet.
+- **Onboarding** (spec #92): step 1, Name and Avatar (PRD §6.4, #98), step 2, Currency (§6.5, #100), step 3,
+  Salary and Payday (§6.6, #103), and step 4, Saving Target (§6.7, #104), each with the answers already saved
+  filled in. Step 4 without a Salary shows the prompt back to step 3 and one Skip for now (D44). Each back chevron
+  returns to the step before without losing a later answer (#102), and a Currency saved again during setup
+  relabels step 3's Salary. With no connection, setup says `No connection. We need one to save your answers.`: on
+  its own with Try again at launch, and in the step's card otherwise, where Next tries again.
+- **Home** (PRD §6.8, D54, D69): drawn at zero, from the `HomeSnapshot` cache (I4) when one is stored, greeting the
+  Member by name with their Avatar and printing every figure in their Currency, with the Saving Target's card
+  filled in once one is set. A `failed_precondition` from `GetHome`, step 1 or 2 unanswered, deletes the stored
+  Home and reopens that step. The two prompt cards reopen step 3 and step 4, whose back chevron then returns to
+  Home. The sheets and screens behind the other chips and buttons arrive with their own tickets.
 
 ## Open
 
