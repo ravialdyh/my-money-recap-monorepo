@@ -21,7 +21,7 @@ const b1Before = col('B1 · Home / before payday', screen('recap', `${H('Septemb
   ${target('£0 of £480', 'n0', 'Nothing to keep yet. Your salary lands on the 25th.')}
   ${homeButtons(true)}
   ${plainRecaps()}`), [
-  `D41: before Money In > 0 the chip row carries only "Money in £0" — no Saved chip. 20 September, Spent £900, Money In £0 (payday the 25th): the countdown eyebrow, the bar clamped at zero and the before-payday helper.`,
+  `D41: before Money In > 0 the chip row carries only "Money in £0", no Saved chip. 20 September, Spent £900, Money In £0 (payday the 25th): the countdown eyebrow, the bar clamped at zero and the before-payday helper.`,
   'A negative Saved on a green chip stated the opposite of the Member\'s position; Spent and Money In together already say everything true. VoiceOver: the hidden chip is absent from the tree, not present-and-empty (§11).']);
 const b1NoSalary = col('B1 · Home / no salary set', screen('recap', `${H('September 2026')}
   ${hero('Spent so far', 'n1190', [['earned', 'Money in £0']])}
@@ -29,14 +29,14 @@ const b1NoSalary = col('B1 · Home / no salary set', screen('recap', `${H('Septe
   <div style="margin-top:12px">${X('PromptCard', 'size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month."', '', '100%,136px')}</div>
   ${homeButtons(true)}
   ${plainRecaps()}`), [
-  `D54: the hero keeps the StatHero — Spent £1,190, the spend the Member just logged — and the salary PromptCard (size="hero") sits below it. With no Salary there is no Payday, so the eyebrow has no countdown and Money In is £0.`,
+  `D54: the hero keeps the StatHero (Spent £1,190, the spend the Member just logged) and the salary PromptCard (size="hero") sits below it. With no Salary there is no Payday, so the eyebrow has no countdown and Money In is £0.`,
   'This is the tallest Home: hero 191 + prompt 191 + prompt 136 puts the buttons at 740–856pt, so Home scrolls here; "Log a spend" stays above the fold and the recap section sits below it. If scrolling is not wanted, the salary prompt at (about 94pt) brings the page back under 844.']);
 const b1NoTarget = col('B1 · Home / no target set, salary set', screen('recap', `${H('September 2026')}
   ${hero('Spent so far', 'n1190', [['earned', 'Money in £2,400'], ['saved', 'Saved £1,210']])}
   <div style="margin-top:12px">${X('PromptCard', 'size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month."', '', '100%,136px')}</div>
   ${homeButtons(true)}
   ${plainRecaps()}`), [
-  `26 September: the hero card is entirely normal — Spent £1,190, Money in £2,400, Saved £1,210. Only the target card becomes the 136pt PromptCard "Set a saving target", so nothing below it moves when the target is set. No daily-allowance sentence (it derives from the target amount) and the Target Warning cannot fire (§8.8).`]);
+  `26 September: the hero card is entirely normal: Spent £1,190, Money in £2,400, Saved £1,210. Only the target card becomes the 136pt PromptCard "Set a saving target", so nothing below it moves when the target is set. No daily-allowance sentence (it derives from the target amount) and the Target Warning cannot fire (§8.8).`]);
 const b1WarnBefore = col('B1 · Home / target warning, before payday', screen('recap', `${H('September 2026')}
   ${hero('Spent so far · salary lands in 5 days', 'n2000', [['earned', 'Money in £0']])}
   <div style="margin-top:12px">${X('Banner', 'tone="warning" on-dismiss="{{ noop }}"', "You've spent £2,000 of the £1,920 you meant to spend this month.", '100%,72px')}</div>
@@ -58,7 +58,7 @@ const b1Offline = col('B1 · Home / offline', screen('recap', `${H('September 20
   ${target('£1,210 of £480', 'n480', "Keep spending under £146 a day and you'll make it.")}
   ${homeButtons(true, true)}`), [
   `D58 / D61 / D63: read offline, write online. Every number renders from the cache; the grey Banner sits at the top and "Last updated {day} {time}" is the month chip's second line, because an iPad's cache can lag an iPhone's writes. "Log a spend" is disabled at 40%; the sheet is not reachable.`,
-  'Banner `tone="offline"` — the grey third tone beside warning and info.']);
+  'Banner `tone="offline"`, the grey third tone beside warning and info.']);
 const skel = (w, h, r = 999) => `<span class="mmr-skeleton" style="width:${w}px;height:${h}px;border-radius:${r}px"></span>`;
 const b1FirstLoad = col('B1 · Home / first load, no cache', screen('recap', `${H('September 2026')}
   <div style="margin-top:18px">${X('Card', '', `<div style="display:flex;flex-direction:column;gap:10px">${skel(96, 14)}${skel(190, 64, 16)}</div>
@@ -67,13 +67,13 @@ const b1FirstLoad = col('B1 · Home / first load, no cache', screen('recap', `${
     ${X('ProgressBar', 'value="{{ n0 }}" max="{{ n480 }}" tone="green"', '', '100%,22px')}
     <div style="display:flex">${skel(230, 14)}</div>`, '100%,136px')}</div>
   ${homeButtons(true)}`), [
-  `D49: no cache exists after a first sign-in. Both cards at their filled heights — 191 and 136pt — with ink.100 blocks where the numbers go, so nothing jumps when they arrive. No spinner. The greeting is known from onboarding and stays.`]);
+  `D49: no cache exists after a first sign-in. Both cards at their filled heights (191 and 136pt) with ink.100 blocks where the numbers go, so nothing jumps when they arrive. No spinner. The greeting is known from onboarding and stays.`]);
 const b1Preview = col('B1 · Home / preview card', screen('recap', `${H('September 2026')}
   ${hero('Spent so far', 'n1190', [['earned', 'Money in £2,400'], ['saved', 'Saved £1,210']])}
   ${target('£1,210 of £480', 'n480', "Keep spending under £146 a day and you'll make it.")}
   ${homeButtons(true)}
   ${previewCard('Your first recap arrives on 1 October.')}`), [
-  `D47: the dashed "Your first recap arrives on 1 October." card is now tappable — a chevron well on the right, 56pt minimum — and opens the month-so-far preview (P1). It replaces the plain helper line under "Past recaps" wherever no Recap exists yet.`]);
+  `D47: the dashed "Your first recap arrives on 1 October." card is now tappable (a chevron well on the right, 56pt minimum) and opens the month-so-far preview (P1). It replaces the plain helper line under "Past recaps" wherever no Recap exists yet.`]);
 const b2TooLong = col('B2 · Log a spend / amount too long', screen('recap', `${H('September 2026')}
   <div style="position:absolute;inset:0">
   ${X('Sheet', 'title="Log a spend" scrim="{{ true }}"', `<div style="display:flex;flex-direction:column;gap:14px;margin-top:14px">
@@ -84,8 +84,8 @@ const b2TooLong = col('B2 · Log a spend / amount too long', screen('recap', `${
       ${X('Button', '', 'Save', '100%,52px')}
     </div>`, '100%,100%')}
   </div>`), [
-  `D57, same rule as A6: at 11 digits before the separator the field stops accepting keystrokes and shows "That's more than the app can store." — the line is coral but the amount is still a valid one, so Save stays enabled once a Category is picked.`,
-  '"£ 99,999,999,999.00" is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The field always shows the currency\'s full decimals while typing.', 'Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills — one of the two has to give; drawn here as shipped.']);
+  `D57, same rule as A6: at 11 digits before the separator the field stops accepting keystrokes and shows "That's more than the app can store." The line is coral but the amount is still a valid one, so Save stays enabled once a Category is picked.`,
+  '"£ 99,999,999,999.00" is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The field always shows the currency\'s full decimals while typing.', 'Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills; one of the two has to give; drawn here as shipped.']);
 
 // Row 3 · Spend list, empty list, old spend
 const switcher = (open = false) => `<div style="margin-top:12px;display:flex;align-items:center;gap:8px;position:relative">
@@ -106,7 +106,7 @@ const b6Open = col('B6 · Spend list / month switcher open', screen('recap', `${
     <div style="opacity:.4">${listCard}</div>
     <div style="position:absolute;left:0;right:0;top:8px">${X('Card', 'dc-props="{{ tightCard }}"', X('DataRowList', '', `${X('ListRow', 'label="September 2026" trailing="check" selected="{{ true }}"', '', '100%,56px')}${X('ListRow', 'label="August 2026" trailing="check"', '', '100%,56px')}${X('ListRow', 'label="July 2026" trailing="check"', '', '100%,56px')}`, '100%,168px'), '100%,176px')}</div>
   </div>`), [
-  `The open switcher: every month with data, newest first, as ListRow trailing="check" — the same row as the currency list. Months with no Spend and no Money In are not listed. Picking a past month reloads the list; editing there recomputes that month's Recap live (D22).`]);
+  `The open switcher: every month with data, newest first, as ListRow trailing="check", the same row as the currency list. Months with no Spend and no Money In are not listed. Picking a past month reloads the list; editing there recomputes that month's Recap live (D22).`]);
 const b6Empty = col('B6 · Spend list / empty', screen('recap', `${backRow('Spends')}
   <div style="margin-top:16px">${X('Headline', 'size="m"', 'Spends', '100%,42px')}</div>
   ${switcher()}
@@ -128,14 +128,14 @@ const b7Old = col('B7 · Spend detail / older than 60 days', screen('recap', `${
       ${X('ListRow', 'label="Delete this spend" tone="destructive" trailing="none"', '', '100%,56px')}
     </div>`, '100%,100%')}
   </div>`), [
-  `§6.10: opened on 26 September, the picker only offers the last 60 days including today (29 July onward), so a spend dated 10 July keeps its date. The date row becomes read-only text — no chevron, 40% — with the helper "Dates older than 60 days can't be changed." Amount, Category and Note stay editable; deleting still works.`]);
+  `§6.10: opened on 26 September, the picker only offers the last 60 days including today (29 July onward), so a spend dated 10 July keeps its date. The date row becomes read-only text (no chevron, 40%) with the helper "Dates older than 60 days can't be changed." Amount, Category and Note stay editable; deleting still works.`]);
 
 const flowB = flow('Flow · Home and the daily loop', 1440, 980, [
   'M156 404H298', 'M348 300C348 144 440 144 538 144', 'M636 144H778', 'M876 144H1018', 'M876 230C925 230 925 380 878 380',
   'M778 200C700 200 560 360 398 360', 'M778 440H398', 'M348 508C348 664 440 664 538 664', 'M636 664H778', 'M876 664H1018', 'M1116 664H1258',
   'M1308 804C1308 872 828 872 828 806', 'M300 330C250 330 250 160 232 160', 'M300 480C250 480 250 860 232 860',
   'M348 250V210', 'M300 440C230 440 230 664 158 664', 'M588 520C560 560 588 600 588 556',
-], 'arwB', 'Home numbers animate to their new values with motion.reveal.number after the sheet closes; Reduce Motion replaces every reveal with a 150 ms fade. New since the first canvas: the offline branch (D58 — Home reads from cache, "Log a spend" is disabled and the sheet is unreachable), the month switcher on the Spend list (D59) and the preview entry from the Home card (D47). Thumbnails are schematic; see rows 1–3 for the screens.', 12, 17,
+], 'arwB', 'Home numbers animate to their new values with motion.reveal.number after the sheet closes; Reduce Motion replaces every reveal with a 150 ms fade. New since the first canvas: the offline branch (D58: Home reads from cache, "Log a spend" is disabled and the sheet is unreachable), the month switcher on the Spend list (D59) and the preview entry from the Home card (D47). Thumbnails are schematic; see rows 1–3 for the screens.', 12, 17,
   `<div style="position:absolute;left:40px;top:140px;width:190px;height:40px;box-sizing:border-box;border:2px dashed var(--mmr-palette-ink-100);border-radius:999px;display:flex;align-items:center;justify-content:center;font:800 11px/1.2 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500)">Settings (part 4)</div>
   <div style="position:absolute;left:40px;top:840px;width:190px;height:40px;box-sizing:border-box;border:2px dashed var(--mmr-palette-ink-100);border-radius:999px;display:flex;align-items:center;justify-content:center;font:800 11px/1.2 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500)">Recap (part 3)</div>
   <div style="position:absolute;left:300px;top:10px;width:96px;height:200px;box-sizing:border-box;border:2px dashed var(--mmr-palette-ink-100);border-radius:12px;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font:800 11px/1.3 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500)">P1–P4 · Month so far (new group)</div>`, 'left:1150px;top:28px;width:270px');

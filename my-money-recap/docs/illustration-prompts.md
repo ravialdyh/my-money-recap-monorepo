@@ -148,7 +148,7 @@ Subject: the piggy bank from Subject 1 as a front-facing head-and-snout portrait
 
 ---
 
-## Batch 2 status (2026-09-04) — complete
+## Batch 2 status (2026-09-04): complete
 
 All of Subjects 5 to 16 are generated, cut and wired in. Nothing in this file is outstanding.
 

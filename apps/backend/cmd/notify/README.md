@@ -23,8 +23,8 @@ Its own two, besides the shared `NOTIFY_*` set:
 
 | Variable | Serve | Migrate | Meaning |
 | --- | --- | --- | --- |
-| `NOTIFY_SMTP_ADDR` | required | — | The mail host as `host:port`: `mailpit:1025` in Compose. Mailpit runs only on a laptop and in CI, behind the `mail` profile the deploy never passes, so the machine has no mail host until #87 item 8's provider, which also needs SMTP AUTH `notify` does not send yet. |
-| `NOTIFY_MAIL_FROM` | required | — | The envelope sender and the `From` header. |
+| `NOTIFY_SMTP_ADDR` | required | none | The mail host as `host:port`: `mailpit:1025` in Compose. Mailpit runs only on a laptop and in CI, behind the `mail` profile the deploy never passes, so the machine has no mail host until #87 item 8's provider, which also needs SMTP AUTH `notify` does not send yet. |
+| `NOTIFY_MAIL_FROM` | required | none | The envelope sender and the `From` header. |
 
 ## Run
 

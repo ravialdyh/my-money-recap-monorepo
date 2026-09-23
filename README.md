@@ -11,7 +11,7 @@ This repository is the monorepo for it: product docs and design record, illustra
 | --- | --- |
 | `docs/` | Product-level docs: the PRD, the screen-state contract, the domain glossary, the backend architecture, the iOS design and the design handoff |
 | `my-money-recap/` | Illustration source: the WebP artwork, the app icon, and the scripts and prompts that produce them |
-| `my-money-recap-ds/` | `@my-money-recap/ui` — the React design system: tokens, components, the four Recap screens |
+| `my-money-recap-ds/` | `@my-money-recap/ui`, the React design system: tokens, components, the four Recap screens |
 | `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members`, `notify` and `ledger` services) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
 | `packages/` | `packages/contract`, the Buf module every client is generated from |
 | `infra/` | `infra/compose`, the phase-1 Compose stack; `infra/tofu/realm`, the Keycloak realm in OpenTofu; `infra/nginx`, the edge's configuration and static files; `infra/secrets`, the SOPS-encrypted secret set, committed as its shape; `infra/wizard`, the nine setup steps only a human can do. See `infra/README.md` |
@@ -97,7 +97,7 @@ swiftformat . && swiftlint --fix && swiftlint lint --strict
 ```
 
 CI installs SwiftLint with `brew` before running it. That step looks redundant against
-`actions/runner-images`, because `images/macos/macos-15-Readme.md` lists SwiftLint 0.65.1 — but that
+`actions/runner-images`, because `images/macos/macos-15-Readme.md` lists SwiftLint 0.65.1, but that
 is the **Intel** image. `macos-latest` resolves to arm64 here (the job log shows Homebrew at
 `/opt/homebrew`, not `/usr/local`), and `macos-15-arm64-Readme.md` lists SwiftFormat and no
 SwiftLint. Without the install the job dies with exit 127, which is exactly how it failed earlier in
@@ -129,11 +129,11 @@ The configs carry no comments, so the reasoning lives here.
 - **Design-system tests.** `vitest.config.ts` runs them in `jsdom` so components can actually be
   rendered and clicked, which a Node environment cannot do. `restoreMocks` and `unstubGlobals` reset
   every spy and global between tests, because the suite replaces `ResizeObserver`,
-  `requestAnimationFrame`, `matchMedia` and `document.fonts` — none of which jsdom provides — and a
+  `requestAnimationFrame`, `matchMedia` and `document.fonts` (none of which jsdom provides) and a
   leak between files would make a pass depend on test order. React Testing Library drives the
   components through the DOM rather than their internals, so a refactor that keeps the markup keeps
   the tests.
-- **Dependabot.** Every ecosystem waits seven days before proposing a newly published version — a
+- **Dependabot.** Every ecosystem waits seven days before proposing a newly published version: a
   release hours old can be a compromised one. Security updates ignore the cooldown, so a real
   advisory still arrives at once. Each group is also `update-types: ["minor", "patch"]`, so routine
   bumps arrive batched and quiet while every **major** gets a pull request of its own. Without that
@@ -167,21 +167,21 @@ To move the iOS job onto your own Mac and stop paying for it entirely, register 
 **variable** `IOS_RUNNER` to `self-hosted`. The workflow reads
 `runs-on: ${{ vars.IOS_RUNNER || 'macos-latest' }}`, so nothing else changes, and unsetting the
 variable moves it straight back. Self-hosted runners are only safe on a private repository like this
-one — on a public repo a fork's pull request could run its own code on your machine.
+one: on a public repo a fork's pull request could run its own code on your machine.
 
 ## Docs
 
-- [`docs/PRD.md`](docs/PRD.md) — product requirements and the numbered decision log
-- [`docs/SCREEN-STATES.md`](docs/SCREEN-STATES.md) — every screen and state, with its copy
-- [`docs/CONTEXT.md`](docs/CONTEXT.md) — domain glossary (Member, Salary, Spend, Recap, Archetype…). Read this before naming anything.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — the backend design: Nginx, the Go BFF, the four services, RabbitMQ, Redis, Postgres, Keycloak, and the numbered `A*` decisions
-- [`docs/IOS.md`](docs/IOS.md) — the iOS app's internals: sign-in, session, networking, the SwiftData cache, generated tokens, and the numbered `I*` decisions
-- [`docs/design/design_handoff_my_money_recap/README.md`](docs/design/design_handoff_my_money_recap/README.md) — the design handoff: every canvas and artboard
-- [`my-money-recap-ds/README.md`](my-money-recap-ds/README.md) — the design system: visual rules and component API
-- [`my-money-recap/README.md`](my-money-recap/README.md) — how a rendered illustration becomes a shipped asset
-- [`apps/README.md`](apps/README.md) — the Go backend and the iOS app: build, test, run
-- [`infra/compose/README.md`](infra/compose/README.md) — the Compose stack: its containers and ports, the `mmr` realm, a phone on the LAN
-- [`packages/contract/README.md`](packages/contract/README.md) — the contract: what is generated where, and the breaking-change rule
+- [`docs/PRD.md`](docs/PRD.md): product requirements and the numbered decision log
+- [`docs/SCREEN-STATES.md`](docs/SCREEN-STATES.md): every screen and state, with its copy
+- [`docs/CONTEXT.md`](docs/CONTEXT.md): domain glossary (Member, Salary, Spend, Recap, Archetype…). Read this before naming anything.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the backend design: Nginx, the Go BFF, the four services, RabbitMQ, Redis, Postgres, Keycloak, and the numbered `A*` decisions
+- [`docs/IOS.md`](docs/IOS.md): the iOS app's internals: sign-in, session, networking, the SwiftData cache, generated tokens, and the numbered `I*` decisions
+- [`docs/design/design_handoff_my_money_recap/README.md`](docs/design/design_handoff_my_money_recap/README.md): the design handoff: every canvas and artboard
+- [`my-money-recap-ds/README.md`](my-money-recap-ds/README.md): the design system: visual rules and component API
+- [`my-money-recap/README.md`](my-money-recap/README.md): how a rendered illustration becomes a shipped asset
+- [`apps/README.md`](apps/README.md): the Go backend and the iOS app: build, test, run
+- [`infra/compose/README.md`](infra/compose/README.md): the Compose stack: its containers and ports, the `mmr` realm, a phone on the LAN
+- [`packages/contract/README.md`](packages/contract/README.md): the contract: what is generated where, and the breaking-change rule
 
 ## Single source of truth
 
@@ -190,10 +190,10 @@ one — on a public repo a fork's pull request could run its own code on your ma
 | Design tokens | `my-money-recap-ds/src/tokens/tokens.json` | `build:tokens`: `tokens.css`, `styles/css.generated.ts`, `dist/mmr.css`; `build:swift-tokens`: `apps/ios/DesignSystem/Tokens.swift` (`docs/IOS.md` I5) |
 | Illustration artwork | `my-money-recap/assets/illustrations/*.webp` | `build:assets`: `my-money-recap-ds/src/assets/illustrations.ts`. The iOS asset catalog's PNGs are copied by hand (`docs/IOS.md` I5) |
 | The API contract | `packages/contract/money_recap/v1/*.proto` | `buf generate`: `apps/backend/gen/`, `packages/contract/swift/Sources/` (`packages/contract/README.md`) |
-| Product and design decisions | `docs/PRD.md` (numbered `D*` decisions) | — |
-| Backend architecture decisions | `docs/ARCHITECTURE.md` (numbered `A*` decisions) | — |
-| iOS app decisions | `docs/IOS.md` (numbered `I*` decisions) | — |
-| Visual rules | `my-money-recap-ds/README.md` § Design rules | — |
+| Product and design decisions | `docs/PRD.md` (numbered `D*` decisions) | none |
+| Backend architecture decisions | `docs/ARCHITECTURE.md` (numbered `A*` decisions) | none |
+| iOS app decisions | `docs/IOS.md` (numbered `I*` decisions) | none |
+| Visual rules | `my-money-recap-ds/README.md` § Design rules | none |
 | Screens | `docs/design/design_handoff_my_money_recap/` | renders (not in git) |
-| Domain vocabulary | `docs/CONTEXT.md` | — |
+| Domain vocabulary | `docs/CONTEXT.md` | none |
 | Sample ledger | `docs/PRD.md` §8, and its answer key in `packages/contract/fixtures/ledger/` | not generated: the prop defaults in `my-money-recap-ds/src/screens/` copy Maya's September by hand for the stories and design-sync previews, and PRD §8 wins where they differ |

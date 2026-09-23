@@ -21,7 +21,7 @@ const sheet = `<div style="position:absolute;inset:0;background:var(--mmr-color-
     </div>`, '390px,auto')}</div>
   </div>`;
 const x2 = col('X2 · iPad landscape <span style="color:var(--mmr-palette-ink-500)">· 1194 × 834</span>', ipad(1194, 834, homeInner, sheet), [
-  `D40 / §11: the same 600pt column, centred; the scrim covers the whole screen but the Sheet anchors to the bottom of the column, not the screen edge, so it takes the column's width and keeps its radius.card corners. Landscape is 10pt shorter than the phone, so the recap section tucks under the buttons.`, 'Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills — one of the two has to give; drawn here as shipped.'], 1194);
+  `D40 / §11: the same 600pt column, centred; the scrim covers the whole screen but the Sheet anchors to the bottom of the column, not the screen edge, so it takes the column's width and keeps its radius.card corners. Landscape is 10pt shorter than the phone, so the recap section tucks under the buttons.`, 'Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills; one of the two has to give; drawn here as shipped.'], 1194);
 
 
 export default {
@@ -32,6 +32,6 @@ export default {
       tallScreen: { style: { height: 1194, width: 600 } }, shortScreen: { style: { height: 834, width: 600 } }, n80: 80, n1190: 1190, n1240: 1240 };
   }`,
   body: page('My Money Recap · iPad (X1, X2)',
-    'D40 and §11: iPad uses the phone layout — one column, centred on a full-bleed ground, portrait and landscape — with the column cap raised from 390 to 600pt (D68) so the width is not wasted. A two-column iPad layout was sketched and rejected: it needs a second navigation model for little gain. These two artboards are the written rule made visible, not a second layout; nothing else is redrawn for iPad. Sheets anchor to the column. Yellow stickies are annotations, not UI.',
+    'D40 and §11: iPad uses the phone layout (one column, centred on a full-bleed ground, portrait and landscape) with the column cap raised from 390 to 600pt (D68) so the width is not wasted. A two-column iPad layout was sketched and rejected: it needs a second navigation model for little gain. These two artboards are the written rule made visible, not a second layout; nothing else is redrawn for iPad. Sheets anchor to the column. Yellow stickies are annotations, not UI.',
     [row('Row 1 · Home, portrait and landscape (D40, column widened to 600pt)', [x1, x2])]),
 };

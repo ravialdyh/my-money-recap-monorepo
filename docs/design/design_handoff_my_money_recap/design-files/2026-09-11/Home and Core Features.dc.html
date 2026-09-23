@@ -69,7 +69,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Past recaps</div>
     <x-import component-from-global-scope="MMR.HelperText" dc-props="{{ onGround }}" hint-size="100%,20px">Your first recap arrives on 1 October.</x-import>
   </div></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D41: before Money In > 0 the chip row carries only "Money in £0" — no Saved chip. 20 September, Spent £900, Money In £0 (payday the 25th): the countdown eyebrow, the bar clamped at zero and the before-payday helper.</div>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D41: before Money In > 0 the chip row carries only "Money in £0", no Saved chip. 20 September, Spent £900, Money In £0 (payday the 25th): the countdown eyebrow, the bar clamped at zero and the before-payday helper.</div>
 <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">A negative Saved on a green chip stated the opposite of the Member's position; Spent and Money In together already say everything true. VoiceOver: the hidden chip is absent from the tree, not present-and-empty (§11).</div></div></sc-if>
 </div>
 
@@ -94,7 +94,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Past recaps</div>
     <x-import component-from-global-scope="MMR.HelperText" dc-props="{{ onGround }}" hint-size="100%,20px">Your first recap arrives on 1 October.</x-import>
   </div></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D54: the hero keeps the StatHero — Spent £1,190, the spend the Member just logged — and the salary PromptCard (size="hero") sits below it. With no Salary there is no Payday, so the eyebrow has no countdown and Money In is £0.</div>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D54: the hero keeps the StatHero (Spent £1,190, the spend the Member just logged) and the salary PromptCard (size="hero") sits below it. With no Salary there is no Payday, so the eyebrow has no countdown and Money In is £0.</div>
 <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">This is the tallest Home: hero 191 + prompt 191 + prompt 136 puts the buttons at 740–856pt, so Home scrolls here; "Log a spend" stays above the fold and the recap section sits below it. If scrolling is not wanted, the salary prompt at (about 94pt) brings the page back under 844.</div></div></sc-if>
 </div>
 
@@ -118,7 +118,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Past recaps</div>
     <x-import component-from-global-scope="MMR.HelperText" dc-props="{{ onGround }}" hint-size="100%,20px">Your first recap arrives on 1 October.</x-import>
   </div></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">26 September: the hero card is entirely normal — Spent £1,190, Money in £2,400, Saved £1,210. Only the target card becomes the 136pt PromptCard "Set a saving target", so nothing below it moves when the target is set. No daily-allowance sentence (it derives from the target amount) and the Target Warning cannot fire (§8.8).</div></div></sc-if>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">26 September: the hero card is entirely normal: Spent £1,190, Money in £2,400, Saved £1,210. Only the target card becomes the 136pt PromptCard "Set a saving target", so nothing below it moves when the target is set. No daily-allowance sentence (it derives from the target amount) and the Target Warning cannot fire (§8.8).</div></div></sc-if>
 </div>
 
 <!-- B1 · Home / target warning, before payday -->
@@ -194,7 +194,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <x-import component-from-global-scope="MMR.Button" variant="secondary" state="disabled" hint-size="100%,52px">See last month</x-import>
   </div></x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D58 / D61 / D63: read offline, write online. Every number renders from the cache; the grey Banner sits at the top and "Last updated {day} {time}" is the month chip's second line, because an iPad's cache can lag an iPhone's writes. "Log a spend" is disabled at 40%; the sheet is not reachable.</div>
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Banner `tone="offline"` — the grey third tone beside warning and info.</div></div></sc-if>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Banner `tone="offline"`, the grey third tone beside warning and info.</div></div></sc-if>
 </div>
 
 <!-- B1 · Home / first load, no cache -->
@@ -215,7 +215,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <x-import component-from-global-scope="MMR.Button" icon="{{ plusIcon }}" hint-size="100%,52px">Log a spend</x-import>
     <x-import component-from-global-scope="MMR.Button" variant="secondary" state="disabled" hint-size="100%,52px">See last month</x-import>
   </div></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D49: no cache exists after a first sign-in. Both cards at their filled heights — 191 and 136pt — with ink.100 blocks where the numbers go, so nothing jumps when they arrive. No spinner. The greeting is known from onboarding and stays.</div></div></sc-if>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D49: no cache exists after a first sign-in. Both cards at their filled heights (191 and 136pt) with ink.100 blocks where the numbers go, so nothing jumps when they arrive. No spinner. The greeting is known from onboarding and stays.</div></div></sc-if>
 </div>
 
 <!-- B1 · Home / preview card -->
@@ -240,7 +240,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <div style="font:800 12px/1.2 var(--mmr-font-family-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85">Past recaps</div>
     <button style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:2px dashed rgba(255,255,255,.4);border-radius:28px;background:transparent;padding:10px 12px 10px 22px;font:700 14px/1.4 var(--mmr-font-family-text);color:var(--mmr-color-text-on-ground-muted);text-align:left;cursor:pointer;min-height:56px"><span>Your first recap arrives on 1 October.</span><span style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.14);color:var(--mmr-palette-white);display:inline-flex;align-items:center;justify-content:center;flex:none"><x-import component-from-global-scope="MMR.Icon" name="chevron" hint-size="20px,20px"></x-import></span></button>
   </div></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D47: the dashed "Your first recap arrives on 1 October." card is now tappable — a chevron well on the right, 56pt minimum — and opens the month-so-far preview (P1). It replaces the plain helper line under "Past recaps" wherever no Recap exists yet.</div></div></sc-if>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D47: the dashed "Your first recap arrives on 1 October." card is now tappable (a chevron well on the right, 56pt minimum) and opens the month-so-far preview (P1). It replaces the plain helper line under "Past recaps" wherever no Recap exists yet.</div></div></sc-if>
 </div>
 
 <!-- B2 · Log a spend / amount too long -->
@@ -261,9 +261,9 @@ input::placeholder{color:#6B6890;font-weight:700}
       <x-import component-from-global-scope="MMR.Button"  hint-size="100%,52px">Save</x-import>
     </div></x-import>
   </div></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D57, same rule as A6: at 11 digits before the separator the field stops accepting keystrokes and shows "That's more than the app can store." — the line is coral but the amount is still a valid one, so Save stays enabled once a Category is picked.</div>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">D57, same rule as A6: at 11 digits before the separator the field stops accepting keystrokes and shows "That's more than the app can store." The line is coral but the amount is still a valid one, so Save stays enabled once a Category is picked.</div>
 <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">"£ 99,999,999,999.00" is wider than the field at 48 and 36pt, so AmountField draws it at 28pt (measured, §11, D71). The field always shows the currency's full decimals while typing.</div>
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills — one of the two has to give; drawn here as shipped.</div></div></sc-if>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Category chips are the shipped Chip tone variant (30pt uppercase pill, 44pt hit area via tappable) as conventions.md requires. The drawn B2/B3 sheets hand-styled them as 44pt mixed-case pills; one of the two has to give; drawn here as shipped.</div></div></sc-if>
 </div>
 </div>
 </div>
@@ -303,7 +303,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <div style="opacity:.4"><div style="margin-top:20px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,420px"><x-import component-from-global-scope="MMR.DataRowList"  hint-size="100%,380px"><sc-for list="{{ catRows }}" as="r" hint-placeholder-count="6"><x-import component-from-global-scope="MMR.DataRow" icon="{{ r.icon }}" icon-tone="{{ r.tone }}" label="{{ r.label }}" amount="{{ r.amount }}" hint-size="100%,62px"></x-import></sc-for></x-import></x-import></div></div>
     <div style="position:absolute;left:0;right:0;top:8px"><x-import component-from-global-scope="MMR.Card" dc-props="{{ tightCard }}" hint-size="100%,176px"><x-import component-from-global-scope="MMR.DataRowList"  hint-size="100%,168px"><x-import component-from-global-scope="MMR.ListRow" label="September 2026" trailing="check" selected="{{ true }}" hint-size="100%,56px"></x-import><x-import component-from-global-scope="MMR.ListRow" label="August 2026" trailing="check" hint-size="100%,56px"></x-import><x-import component-from-global-scope="MMR.ListRow" label="July 2026" trailing="check" hint-size="100%,56px"></x-import></x-import></x-import></div>
   </div></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">The open switcher: every month with data, newest first, as ListRow trailing="check" — the same row as the currency list. Months with no Spend and no Money In are not listed. Picking a past month reloads the list; editing there recomputes that month's Recap live (D22).</div></div></sc-if>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">The open switcher: every month with data, newest first, as ListRow trailing="check", the same row as the currency list. Months with no Spend and no Money In are not listed. Picking a past month reloads the list; editing there recomputes that month's Recap live (D22).</div></div></sc-if>
 </div>
 
 <!-- B6 · Spend list / empty -->
@@ -343,7 +343,7 @@ input::placeholder{color:#6B6890;font-weight:700}
       <x-import component-from-global-scope="MMR.ListRow" label="Delete this spend" tone="destructive" trailing="none" hint-size="100%,56px"></x-import>
     </div></x-import>
   </div></x-import>
-<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">§6.10: opened on 26 September, the picker only offers the last 60 days including today (29 July onward), so a spend dated 10 July keeps its date. The date row becomes read-only text — no chevron, 40% — with the helper "Dates older than 60 days can't be changed." Amount, Category and Note stay editable; deleting still works.</div></div></sc-if>
+<sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">§6.10: opened on 26 September, the picker only offers the last 60 days including today (29 July onward), so a spend dated 10 July keeps its date. The date row becomes read-only text (no chevron, 40%) with the helper "Dates older than 60 days can't be changed." Amount, Category and Note stay editable; deleting still works.</div></div></sc-if>
 </div>
 </div>
 </div>
@@ -392,7 +392,7 @@ input::placeholder{color:#6B6890;font-weight:700}
       <div style="font:800 11px/1.3 var(--mmr-font-family-text);color:var(--mmr-palette-ink-900);text-align:center;text-wrap:balance">{{ f.label }}</div>
     </div></sc-for>
   <sc-for list="{{ flowLabels }}" as="l" hint-placeholder-count="17"><div style="position:absolute;left:{{ l.x }};top:{{ l.y }};transform:translate(-50%,-50%);background:var(--mmr-palette-white);padding:3px 8px;border-radius:999px;font:800 11px/1.2 var(--mmr-font-family-text);color:{{ l.color }};white-space:nowrap">{{ l.text }}</div></sc-for>
-  <div style="position:absolute;left:1150px;top:28px;width:270px;font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Home numbers animate to their new values with motion.reveal.number after the sheet closes; Reduce Motion replaces every reveal with a 150 ms fade. New since the first canvas: the offline branch (D58 — Home reads from cache, "Log a spend" is disabled and the sheet is unreachable), the month switcher on the Spend list (D59) and the preview entry from the Home card (D47). Thumbnails are schematic; see rows 1–3 for the screens.</div>
+  <div style="position:absolute;left:1150px;top:28px;width:270px;font:700 13px/1.4 var(--mmr-font-family-text);color:var(--mmr-palette-ink-500);text-wrap:pretty">Home numbers animate to their new values with motion.reveal.number after the sheet closes; Reduce Motion replaces every reveal with a 150 ms fade. New since the first canvas: the offline branch (D58: Home reads from cache, "Log a spend" is disabled and the sheet is unreachable), the month switcher on the Spend list (D59) and the preview entry from the Home card (D47). Thumbnails are schematic; see rows 1–3 for the screens.</div>
 </div>
 </div>
 </div>

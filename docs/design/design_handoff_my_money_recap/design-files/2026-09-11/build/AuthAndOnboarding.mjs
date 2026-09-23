@@ -16,7 +16,7 @@ const a0b = col('A0b · Unlock', screen('recap', `<div style="flex-grow:1;displa
     <div style="font: 700 32px/1.1 var(--mmr-font-family-display); letter-spacing: -.01em; text-align: center">My Money Recap</div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding-bottom:12px;color:var(--mmr-palette-white)">${faceId}<div style="font:800 14px/1.2 var(--mmr-font-family-text)">Face ID</div></div>`), [
-  `D61 / D62: a session saved within the last 30 days exists, so the cover asks for Face ID (or Touch ID) and goes straight to Home. Works with no network — the unlock releases the Keychain entry and Home renders from cache. Each successful unlock extends the session another 30 days from last use.`,
+  `D61 / D62: a session saved within the last 30 days exists, so the cover asks for Face ID (or Touch ID) and goes straight to Home. Works with no network: the unlock releases the Keychain entry and Home renders from cache. Each successful unlock extends the session another 30 days from last use.`,
   'The Face ID glyph and sheet are iOS-owned (LAContext); drawn for placement only, on the launch screen so nothing flashes between launch and Home. Three failures → A1 Sign in.']);
 const a0bPasscode = col('A0b · Unlock / passcode fallback', screen('recap', `<div style="flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px">
     <img src="{{ coverSrc }}" alt="" style="width:270px;height:auto;display:block">
@@ -67,7 +67,7 @@ const a6 = col('A6 · Salary and payday', screen('recap', `${backRow('Step 3 of 
   ${amountCard('2,400')}
   ${paydayCard('{{ n25 }}', 'next25')}
   <div style="margin-top:auto;display:flex;flex-direction:column;gap:4px">${X('Button', '', 'Next', '100%,52px')}<button style="height:44px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);cursor:pointer">Skip for now</button></div>`), [
-  `D51: the shipped DayPicker — 1–31 plus "Last day" after 31, nothing disabled, the selection as the ink pill scrolled to centre — and the computed helper "Next paydays: 25 Sep · 25 Oct · 25 Nov", updating on every tap. There is no "If the month is shorter…" helper line; the three dates say it (tap 31 and read "30 Sep · 31 Oct · 30 Nov").`,
+  `D51: the shipped DayPicker (1–31 plus "Last day" after 31, nothing disabled, the selection as the ink pill scrolled to centre) and the computed helper "Next paydays: 25 Sep · 25 Oct · 25 Nov", updating on every tap. There is no "If the month is shorter…" helper line; the three dates say it (tap 31 and read "30 Sep · 31 Oct · 30 Nov").`,
   'The dates are a prop: min(Payday, days in month) is computed by the screen, not the picker (§8.2).']);
 const a6TooLong = col('A6 · Salary and payday / amount too long', screen('recap', `${backRow('Step 3 of 4')}
   <div style="margin-top:18px">${X('Headline', 'size="m"', 'Your monthly salary', '100%,42px')}</div>
@@ -89,14 +89,14 @@ const a8First = col('A8 · Home, first run', screen('recap', `${firstRunHeader}
   <div style="margin-top:12px">${X('Card', '', `${targetCardRow('Saving target', '£0 of £480')}${X('ProgressBar', 'value="{{ n0 }}" max="{{ n480 }}" tone="green"', '', '100%,22px')}${X('HelperText', '', 'Nothing spent yet. Streak day 1.', '100%,20px')}`, '100%,136px')}</div>
   <div style="margin-top:50px;display:flex;flex-direction:column;gap:12px">${X('Button', '', 'Log a spend', '100%,52px')}${X('Button', 'variant="secondary" state="disabled"', 'See last month', '100%,52px')}</div>
   ${previewCard('Your first recap arrives on 1 October.', 'Recaps')}`), [
-  `D43: "Streak day 1" for a Member who signed up today (4 September) — the streak window is max(1st, sign-up date) to today. D41: no Saved chip while Money In is £0. D47: the recap card is tappable.`]);
+  `D43: "Streak day 1" for a Member who signed up today (4 September): the streak window is max(1st, sign-up date) to today. D41: no Saved chip while Money In is £0. D47: the recap card is tappable.`]);
 const a8Skipped = col('A8 · Home / skipped', screen('recap', `${firstRunHeader}
   <div style="margin-top:18px">${X('Card', '', `${X('StatHero', 'eyebrow="Spent so far" value="{{ n0 }}" format="{{ gbp }}"', '', '100%,100px')}${X('StatChipRow', '', X('StatChip', 'tone="earned"', 'Money in £0', 'auto,34px'), '100%,34px')}`, '100%,191px')}</div>
   <div style="margin-top:12px">${X('PromptCard', 'size="hero" eyebrow="Salary" title="Set your monthly salary" helper="We\'ll show what you kept once we know what came in."', '', '100%,191px')}</div>
   <div style="margin-top:12px">${X('PromptCard', 'size="target" title="Set a saving target" helper="Pick a share of your salary to keep each month."', '', '100%,136px')}</div>
   <div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">${X('Button', '', 'Log a spend', '100%,52px')}${X('Button', 'variant="secondary" state="disabled"', 'See last month', '100%,52px')}</div>
   ${previewCard('Your first recap arrives on 1 October.', 'Recaps')}`), [
-  `D54: the hero card is no longer replaced wholesale — it keeps the StatHero (Spent £0, Money in £0) and the salary PromptCard moves below it. The target PromptCard is unchanged. Both prompts are the shipped component at and.`,
+  `D54: the hero card is no longer replaced wholesale: it keeps the StatHero (Spent £0, Money in £0) and the salary PromptCard moves below it. The target PromptCard is unchanged. Both prompts are the shipped component at and.`,
   'Home scrolls in this state (hero 191 + 191 + 136 before the buttons); "Log a spend" is above the fold, "See last month" and the recap card below it. See the sticky on B1 · no salary for the alternative.']);
 
 const a3Web = col('A3 · Web fallback page <span style="color:var(--mmr-palette-ink-500)">· 1200 × 720, shown at 50%</span>', `<div style="width:600px;height:360px;overflow:hidden;flex:none;border-radius:16px"><div style="width:1200px;height:720px;transform:scale(.5);transform-origin:top left;box-sizing:border-box;background:var(--mmr-color-ground-recap);color:var(--mmr-color-text-on-ground);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;padding:80px;font-family:var(--mmr-font-family-text)">
@@ -104,7 +104,7 @@ const a3Web = col('A3 · Web fallback page <span style="color:var(--mmr-palette-
   <div style="font:700 56px/1.05 var(--mmr-font-family-display);letter-spacing:-.01em;text-align:center;max-width:820px;text-wrap:balance">Open My Money Recap on your phone to finish signing in.</div>
   <div style="font:700 22px/1.4 var(--mmr-font-family-text);opacity:.85;text-align:center">The link in your email only works in the app.</div>
 </div></div>`, [
-  `Not an app screen. The magic-link URL doubles as this page when the tap happens on a device without the app (a laptop, D32). Violet ground, the envelope, one line, no controls — there is nothing to do here but pick up the phone.`], 600);
+  `Not an app screen. The magic-link URL doubles as this page when the tap happens on a device without the app (a laptop, D32). Violet ground, the envelope, one line, no controls: there is nothing to do here but pick up the phone.`], 600);
 
 const flowA = flow('Flow · Launch to Home', 1980, 760, [
   'M156 354H278', 'M376 290C440 290 440 144 498 144', 'M376 400H938', 'M328 458C328 600 1868 600 1868 460',

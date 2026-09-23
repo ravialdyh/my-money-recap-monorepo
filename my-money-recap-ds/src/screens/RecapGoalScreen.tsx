@@ -14,8 +14,8 @@ export interface RecapGoalScreenProps extends MoneyProps {
   /** Saved for the month. */
   saved?: number;
   /** Saving Target amount, or `null` for a Member who has not set one (SCREEN-STATES C3): the headline
-   *  becomes "Where {Spent} went" and the target card becomes a `PromptCard`. `null`, not `undefined`
-   *  — `undefined` takes the default. */
+   *  becomes "Where {Spent} went" and the target card becomes a `PromptCard`. `null`, not `undefined`:
+   *  `undefined` takes the default. */
   target?: number | null;
   /** One sentence from PRD §8.7. Unused when `target` is null. Defaults to the sample month's sentence in `currency`. */
   helper?: string;
