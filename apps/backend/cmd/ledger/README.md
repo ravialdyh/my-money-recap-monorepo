@@ -22,8 +22,8 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 - **The replica** (`member_facts`): the Member's zone, sign-up date and Currency, which every figure
   needs. `members.created` and `members.updated` keep it fresh from the quorum queue `ledger.members`
   (#101, §4.3): each message id is recorded in `processed_events` in the transaction that applies it, so a
-  second delivery changes nothing; an event older than the one applied (`facts_at`) is skipped, and an
-  empty fact never clears a stored one. A message that fails five times waits in `ledger.members.dead`
+  second delivery changes nothing; an event older than the one applied (`facts_at`) is skipped, a Currency older
+  than the last `RelabelCurrency` (`currency_at`) is too, and an empty fact never clears a stored one. A message that fails five times waits in `ledger.members.dead`
   for a person. On a miss, a fact no event has brought yet, it asks `members.GetProfile` once, under the
   caller's own token, which the service forwards (§6.2 step 3), and fills only what the row lacks, so a
   read racing a newer event cannot overwrite it. The row also keeps the subject
