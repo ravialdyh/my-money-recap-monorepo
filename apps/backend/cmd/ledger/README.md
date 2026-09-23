@@ -1,8 +1,8 @@
 # ledger
 
 The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary, Saving Target and Spends and every
-figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #128: it serves `SaveSalary`,
-`RelabelCurrency`, `SaveTarget`, `LogSpend`, `GetSettings` and `GetMonthSummary`, and the rest of
+figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #128 and Recaps since #130: it serves `SaveSalary`,
+`RelabelCurrency`, `SaveTarget`, `LogSpend`, `GetSettings`, `GetMonthSummary` and `GetRecap`, and the rest of
 `LedgerService` is planned. The BFF calls it since #103: Home's month,
 onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
@@ -15,7 +15,7 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary: its name, its schema step, its handler and its consumer, handed to `serve.Main`. |
-| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`), `month.go` (PRD §8's Home figures of a month), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
+| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
 
 ## What it keeps
 
@@ -62,6 +62,10 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
   as NFC code points like a Display Name. `LogSpend` locks the Member's replica row and reads the Spends
   again inside its transaction, so `crossed_line` is true for exactly the log that first takes this month's
   Spent past Salary minus the target amount (PRD §8.8), never for a Spend in another month.
+- A Recap is any month up to the current one (PRD §6.11 to §6.14, §8): the current month is the preview and a
+  partial month (§8.11) is in its §6.17 situation, each with its closing line and no Archetype. `GetMonthSummary`
+  also lists every earlier month with a Spend or Money In for Home, newest first, labelled by its Archetype
+  name or `Partial`, which a full month without an Archetype reads too (§6.14).
 - Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
   (`internal/idempotency`, A14), as `members` does.
 
@@ -70,8 +74,7 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 `go test ./internal/ledger/` runs them. The money ones need the stack's `ledger` database, and the
 Connect-boundary one and `TestMembersEventsReachTheReplica` also need `ledger`, `members` and a real Keycloak token (`infra/compose/README.md`,
 "Running the Go tests against this stack"). `TestTheAnswerKey` runs every file in
-`packages/contract/fixtures/ledger/` but those it names as left out with their reason: the four Recap files
-until `GetRecap` is built and the currency change until slice 7, so 19 run. Each goes through the service and
+`packages/contract/fixtures/ledger/` but the one it names as left out with its reason, the currency change, until slice 7, so 23 run. Each goes through the service and
 its database, its rows seeded, the last Spend logged on its own date where the file asserts `crossedLine`,
-its `saveSalary` made, the clock at its `asOf`, and every listed month, the settings and the Salary rows
+its `saveSalary` made, the clock at its `asOf`, and every listed month, Recap, the settings and the Salary rows
 after are compared whole.

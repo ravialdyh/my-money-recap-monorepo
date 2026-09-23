@@ -8,8 +8,8 @@ import XCTest
 /// case.
 @MainActor
 final class HomeViewModelTests: XCTestCase {
-    private func recordedHome() throws -> MoneyRecap_V1_HomeView {
-        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "home-zero", withExtension: "json"))
+    private func recordedHome(_ name: String = "home-zero") throws -> MoneyRecap_V1_HomeView {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: name, withExtension: "json"))
         return try MoneyRecap_V1_GetHomeResponse(jsonString: String(contentsOf: url, encoding: .utf8)).home
     }
 
@@ -43,6 +43,16 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(model.heroEyebrow, "Spent so far")
         XCTAssertEqual(model.previewCopy, "Your first recap arrives on 1 October.")
         XCTAssertEqual(model.monthLabel, "September")
+    }
+
+    /// Home's past-recap rows print each month and the label ledger answered, its Archetype or "Partial" (PRD §6.8,
+    /// §8.11), from the BFF's answer recorded with a Hustler August and a July of Spends with no Salary.
+    func testPastRecapRowsShowLedgersLabels() async throws {
+        let home = try recordedHome("home-recaps")
+        let model = try HomeViewModel(fetch: { home }, context: freshContext(), locale: Locale(identifier: "en_GB"))
+        await model.refresh()
+        let rows = model.home?.recapMonths.map { "\(model.recapLabel($0)): \($0.label)" }
+        XCTAssertEqual(rows, ["August 2026: Hustler", "July 2026: Partial"], "newest first, as ledger lists them")
     }
 
     /// PRD §6.8's countdown before the effective Payday, in the singular on the day before (§12, criterion 4).

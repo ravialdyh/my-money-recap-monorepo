@@ -92,17 +92,14 @@ func seedSpends(t *testing.T, db *pgxpool.Pool, id string, spends []*moneyrecapv
 
 // leftOut names why a fixture does not run yet, or nothing when it runs.
 func leftOut(f *moneyrecapv1.LedgerFixture) string {
-	switch {
-	case f.Convert != nil || f.ConversionPreview != nil:
+	if f.Convert != nil || f.ConversionPreview != nil {
 		return "the currency change waits for slice 7"
-	case len(f.Recaps) > 0:
-		return "GetRecap is not built yet (#131)"
 	}
 	return ""
 }
 
 // TestTheAnswerKey runs every PRD §8 fixture through the service and its database: rows seeded, the last Spend
-// logged on its own date where crossed_line is asserted, the Salary saved, then months, settings and rows compared.
+// logged on its own date where crossed_line is asserted, the Salary saved, then months, Recaps, settings and rows compared.
 func TestTheAnswerKey(t *testing.T) {
 	db := testDB(t)
 	ran := 0
@@ -122,8 +119,8 @@ func TestTheAnswerKey(t *testing.T) {
 		ran++
 		t.Run(name, func(t *testing.T) { runFixture(t, db, fmt.Sprintf("00000000-0000-4000-8000-%012d", i), name, &f) })
 	}
-	if ran != 19 {
-		t.Fatalf("%d fixtures ran, want 19", ran)
+	if ran != 23 {
+		t.Fatalf("%d fixtures ran, want 23", ran)
 	}
 }
 
@@ -168,6 +165,18 @@ func runFixture(t *testing.T, db *pgxpool.Pool, id, name string, f *moneyrecapv1
 		}
 		if !proto.Equal(got.Msg.Summary, want) {
 			t.Errorf("%s:\n got %v\nwant %v", want.Month, got.Msg.Summary, want)
+		}
+	}
+	for _, want := range f.Recaps {
+		got, err := s.GetRecap(ctx, connect.NewRequest(&moneyrecapv1.GetRecapRequest{MemberId: id, Month: want.Month}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if splurge := got.Msg.Recap.Splurge; splurge != nil {
+			splurge.Id, splurge.CreatedAt, splurge.UpdatedAt = want.Splurge.GetId(), nil, nil
+		}
+		if !proto.Equal(got.Msg.Recap, want) {
+			t.Errorf("recap %s:\n got %v\nwant %v", want.Month, got.Msg.Recap, want)
 		}
 	}
 	if f.Settings != nil {

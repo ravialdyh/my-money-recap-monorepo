@@ -1,0 +1,45 @@
+{
+    "home": {
+        "displayName": "Test",
+        "avatarKey": "owl",
+        "currencyCode": "IDR",
+        "month": "2026-09",
+        "spent": {
+            "amount": "0",
+            "currencyCode": "IDR"
+        },
+        "moneyIn": {
+            "amount": "0",
+            "currencyCode": "IDR"
+        },
+        "salary": {
+            "amount": {
+                "amount": "3000000",
+                "currencyCode": "IDR"
+            },
+            "payday": "25",
+            "daysUntilPayday": 1
+        },
+        "savingTarget": {
+            "percent": 20,
+            "amount": {
+                "amount": "600000",
+                "currencyCode": "IDR"
+            },
+            "progressSentence": "Nothing to keep yet. Your salary lands on the 25th."
+        },
+        "streakDay": 1,
+        "daysRemaining": 7,
+        "recapMonths": [
+            {
+                "month": "2026-08",
+                "label": "Hustler"
+            },
+            {
+                "month": "2026-07",
+                "label": "Partial"
+            }
+        ],
+        "firstRecapOn": "2026-10-01"
+    }
+}
