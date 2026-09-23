@@ -442,11 +442,11 @@ type OnboardingState struct {
 	// Display Name, Avatar key and Currency as saved by steps 1 and 2; an empty
 	// field is an unanswered one.
 	Profile *Profile `protobuf:"bytes,2,opt,name=profile,proto3" json:"profile,omitempty"`
-	// Step 3's answer; absent when not yet reached, or skipped, which is absent
-	// with profile.onboarding_step at 3 or more.
+	// Step 3's answer, the Salary in force, which Home's prompts reopen after
+	// setup too; absent before step 2 is saved, or when none is set.
 	Salary *SalarySetting `protobuf:"bytes,3,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Step 4's answer; absent when not yet reached, or skipped or blocked by a
-	// skipped Salary (D44), which is absent with profile.onboarding_step at 4.
+	// Step 4's answer, the Saving Target in force; absent before step 2 is
+	// saved, or when none is set, skipped or blocked by no Salary (D44).
 	SavingTarget *SavingTargetSetting `protobuf:"bytes,4,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	// The given_name claim of the Member's own token, which fills step 1's First
 	// name field; empty when the provider shared none (PRD §6.4). Read by the

@@ -133,8 +133,8 @@ func TestSaveProfileRelabelsDuringSetupAndRefusesAfter(t *testing.T) {
 	}
 }
 
-// A resume at step 3 or 4 carries steps 3 and 4's saved answers from ledger, so they are filled in again; steps 1
-// and 2 never ask ledger, and a ledger that fails is unavailable rather than an empty step (spec #92).
+// A resume at step 3 or 4, or Home's prompts after setup, carry the saved Salary and Target from ledger; before the
+// Currency ledger is never asked, and a ledger that fails is unavailable rather than an empty step (spec #92).
 func TestGetOnboardingStateCarriesStepThreesAnswer(t *testing.T) {
 	saved := &moneyrecapv1.SalarySetting{Amount: &moneyrecapv1.Money{Amount: "15000000", CurrencyCode: "IDR"}, Payday: "last"}
 	target := &moneyrecapv1.SavingTargetSetting{Percent: 35, EffectiveFrom: "2026-09"}
@@ -144,6 +144,12 @@ func TestGetOnboardingStateCarriesStepThreesAnswer(t *testing.T) {
 	res, err := s.GetOnboardingState(ctx, connect.NewRequest(&moneyrecapv1.BffServiceGetOnboardingStateRequest{}))
 	if err != nil || res.Msg.State.NextStep != 3 || !proto.Equal(res.Msg.State.Salary, saved) || !proto.Equal(res.Msg.State.SavingTarget, target) {
 		t.Fatalf("at step 3: %v, %v; want step 3 with the saved Salary and Target", res, err)
+	}
+	s = newService(t, &fakeMembers{profile: salaryAt(4)}, StubNotify{})
+	s.Ledger = ledgerClient(t, ledger)
+	res, err = s.GetOnboardingState(ctx, connect.NewRequest(&moneyrecapv1.BffServiceGetOnboardingStateRequest{}))
+	if err != nil || res.Msg.State.NextStep != 0 || !proto.Equal(res.Msg.State.Salary, saved) || !proto.Equal(res.Msg.State.SavingTarget, target) {
+		t.Fatalf("after setup: %v, %v; want setup over with the Salary step 4 takes a share of", res, err)
 	}
 	early := &fakeLedger{err: errLedgerDown}
 	s = newService(t, &fakeMembers{profile: &moneyrecapv1.Profile{MemberId: "m-1"}}, StubNotify{})

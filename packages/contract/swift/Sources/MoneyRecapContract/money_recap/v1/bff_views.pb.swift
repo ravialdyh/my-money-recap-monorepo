@@ -295,8 +295,8 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `profile`. Subsequent reads from it will return its default value.
   public mutating func clearProfile() {_uniqueStorage()._profile = nil}
 
-  /// Step 3's answer; absent when not yet reached, or skipped, which is absent
-  /// with profile.onboarding_step at 3 or more.
+  /// Step 3's answer, the Salary in force, which Home's prompts reopen after
+  /// setup too; absent before step 2 is saved, or when none is set.
   public var salary: MoneyRecap_V1_SalarySetting {
     get {_storage._salary ?? MoneyRecap_V1_SalarySetting()}
     set {_uniqueStorage()._salary = newValue}
@@ -306,8 +306,8 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// Step 4's answer; absent when not yet reached, or skipped or blocked by a
-  /// skipped Salary (D44), which is absent with profile.onboarding_step at 4.
+  /// Step 4's answer, the Saving Target in force; absent before step 2 is
+  /// saved, or when none is set, skipped or blocked by no Salary (D44).
   public var savingTarget: MoneyRecap_V1_SavingTargetSetting {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
     set {_uniqueStorage()._savingTarget = newValue}

@@ -11,14 +11,14 @@ import (
 )
 
 // GetOnboardingState is where onboarding resumes (PRD §6.4): the first unanswered step, the answers saved so far,
-// steps 3 and 4's from ledger once either is next, and the given_name the Member's own token carries for step 1.
+// steps 3 and 4's from ledger once the Currency is set, for a resume or Home's prompts, and the token's given_name.
 func (s *Service) GetOnboardingState(ctx context.Context, _ *connect.Request[moneyrecapv1.BffServiceGetOnboardingStateRequest]) (*connect.Response[moneyrecapv1.BffServiceGetOnboardingStateResponse], error) {
 	p, err := s.member(ctx)
 	if err != nil {
 		return nil, err
 	}
 	state := &moneyrecapv1.OnboardingState{NextStep: nextStep(p), Profile: p, SuggestedName: auth.From(ctx).GivenName}
-	if state.NextStep == 3 || state.NextStep == 4 {
+	if p.CurrencyCode != "" {
 		ctx, cancel := context.WithTimeout(ctx, s.timeout())
 		defer cancel()
 		settings, err := s.Ledger.GetSettings(ctx, connect.NewRequest(&moneyrecapv1.GetSettingsRequest{MemberId: p.MemberId}))

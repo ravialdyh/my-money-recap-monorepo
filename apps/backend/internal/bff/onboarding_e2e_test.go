@@ -167,8 +167,8 @@ func stepFour(ctx context.Context, t *testing.T, client moneyrecapv1connect.BffS
 	if got := first.Home.SavingTarget; got.GetPercent() != 20 || got.GetAmount().GetAmount() != "3000000" || first.Settings.LedgerSettings.SavingTarget.GetEffectiveFrom() != signUpMonth {
 		t.Fatalf("step 4 at 20%%: %v, want 3000000 of 15000000 on Home, from %s", first, signUpMonth)
 	}
-	if s := state(); s.NextStep != 0 || s.Profile.OnboardingStep != 4 {
-		t.Fatalf("after step 4: %v, want setup over", s)
+	if s := state(); s.NextStep != 0 || s.Profile.OnboardingStep != 4 || s.SavingTarget.GetPercent() != 20 || s.Salary.GetAmount().GetAmount() != "15000000" {
+		t.Fatalf("after step 4: %v, want setup over with the Salary and Target Home's prompts reopen", s)
 	}
 	if edit := target(30); edit.Home.SavingTarget.GetPercent() != 20 || edit.Settings.LedgerSettings.NextSavingTarget.GetPercent() != 30 {
 		t.Fatalf("a Target after setup: %v, want 20%% now and 30%% from next month (D65)", edit)

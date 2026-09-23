@@ -1,7 +1,7 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
-serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile` and `RequestMagicLink`; the rest of
+serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `SaveSalary`, `SaveTarget` and `RequestMagicLink`; the rest of
 `BffService` is planned. Every RPC but
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
@@ -24,9 +24,9 @@ and the zone to `members.SetTimezone`, and answers the Profile it returns.
 saved, step 2 until the Currency is, then, since steps 3 and 4 can be skipped, the highest step saved; 0
 once none is left. It carries the Profile so far, with the Currency's decimals `members` adds, and the
 `given_name` claim of the caller's own token as `suggested_name`, which fills step 1's First name field: the
-email sign-in path never gives the phone an identity token, so the BFF reads the claim. When step 3 or 4 is
-next it also carries step 3's saved Salary from `ledger.GetSettings`, so a resumed step 3 is filled in; a
-failed `ledger` call is `unavailable`. `SaveProfile` checks the answers with `internal/answers`, the
+email sign-in path never gives the phone an identity token, so the BFF reads the claim. Once the Currency is
+saved it also carries the Salary and Saving Target in force from `ledger.GetSettings`, so a resumed step 3 or 4,
+or one Home's prompt reopens after setup, is filled in; a failed `ledger` call is `unavailable`. `SaveProfile` checks the answers with `internal/answers`, the
 rules `members` applies again, before any service call, then hands them and the step to
 `members.SaveProfile` under the phone's key, one write for both (A14). A Currency saved again during
 onboarding then goes to `ledger.RelabelCurrency` under the same key, which moves a saved Salary to the new
@@ -84,7 +84,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_OIDC_JWKS_URL` | required | Where to fetch the signing keys from this process: `http://keycloak:8080/realms/mmr/protocol/openid-connect/certs` inside the Compose network, `http://localhost:8080/...` from the host. The two are separate settings because the phone and a container reach Keycloak by different hostnames. |
 | `BFF_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry. |
 | `BFF_MEMBERS_URL` | required | The `members` service: `http://members:8080` in Compose. |
-| `BFF_LEDGER_URL` | required | The `ledger` service: `http://ledger:8080` in Compose. `GetHome`, `GetOnboardingState`, `SaveProfile` and `SaveSalary` call it, forwarding the caller's token. |
+| `BFF_LEDGER_URL` | required | The `ledger` service: `http://ledger:8080` in Compose. `GetHome`, `GetOnboardingState`, `SaveProfile`, `SaveSalary` and `SaveTarget` call it, forwarding the caller's token. |
 | `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. Only `RequestMagicLink` calls it; `GetHome`'s `notify` is still the in-process stub. |
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
