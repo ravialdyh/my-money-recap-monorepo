@@ -25,7 +25,7 @@ measurements is in the pull requests that raised them.
 
 | Language | Measured by | Latest |
 | --- | --- | --- |
-| `go` | The `backend` job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify`, `internal/ledger` and the end-to-end tests really run. The floor sits at the target, not at the measurement, because the ratchet stops there. | 83.2% |
+| `go` | The `backend` job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify`, `internal/ledger` and the end-to-end tests really run. The floor sits at the target, not at the measurement, because the ratchet stops there. | 83.1% |
 | `ios` | The `ios` job's commands, `-enableCodeCoverage YES` on both halves of the build-then-test split, on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home and counts far higher. When two clean runs differ, the floor takes the lower. | 79.9% |
 | `typescript` | `npm run test:coverage` in `my-money-recap-ds`. The floor sits at the target, as Go's does. | 97.8% |
 

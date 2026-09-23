@@ -9,6 +9,7 @@ import (
 	"log"
 	"sync"
 	"time"
+	_ "time/tzdata"
 
 	"connectrpc.com/connect"
 
@@ -41,8 +42,7 @@ type Service struct {
 	MagicLink MagicLink
 	// Timeout bounds each call to a service; zero means the §6.1 one second.
 	Timeout time.Duration
-	// Now is the server clock; nil means time.Now. GetHome's dates are UTC until ledger computes them in
-	// the Member's zone (A3).
+	// Now is the server clock; nil means time.Now. GetHome reads it in the Member's zone (A3).
 	Now func() time.Time
 }
 
@@ -69,6 +69,16 @@ func (s *Service) now() time.Time {
 	return s.Now().UTC()
 }
 
+// zone is the Member's IANA zone (A3), the one ledger reads "today" in, from the zone data linked in as members
+// links it; UTC before the launch call has stored one.
+func zone(p *moneyrecapv1.Profile) *time.Location {
+	loc, err := time.LoadLocation(p.GetTimezone())
+	if err != nil {
+		return time.UTC
+	}
+	return loc
+}
+
 // member creates the Member on first sight and answers their Profile: members.GetOrCreateBySubject with
 // the token's subject and email claim (PRD §5 step 5), which forwards the caller's token unchanged.
 func (s *Service) member(ctx context.Context) (*moneyrecapv1.Profile, error) {
@@ -92,7 +102,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		return nil, connect.NewError(connect.CodeFailedPrecondition, errNotOnboarded)
 	}
 	memberID := profile.MemberId
-	now := s.now()
+	now := s.now().In(zone(profile))
 	month := now.Format(monthLayout)
 
 	var (
@@ -132,7 +142,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 }
 
 // homeView joins the Profile and ledger's month into the HomeView, stamping money ledger left without a code with the
-// Member's Currency; the dates are the server's UTC ones until ledger computes them in the Member's zone (A3).
+// Member's Currency. The month and first_recap_on are the Member's local dates, days_remaining is ledger's (A2, A3).
 func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recaps []*moneyrecapv1.RecapMonth, warning *moneyrecapv1.TargetWarning, now time.Time) *moneyrecapv1.HomeView {
 	stamp := func(m *moneyrecapv1.Money) *moneyrecapv1.Money {
 		if m != nil && m.CurrencyCode == "" {
@@ -140,7 +150,7 @@ func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recap
 		}
 		return m
 	}
-	firstOfNext := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, time.UTC)
+	firstOfNext := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location())
 	return &moneyrecapv1.HomeView{
 		DisplayName:   p.DisplayName,
 		AvatarKey:     p.AvatarKey,
@@ -152,7 +162,7 @@ func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recap
 		Salary:        summary.GetSalary(),
 		SavingTarget:  summary.GetSavingTarget(),
 		StreakDay:     summary.GetStreakDay(),
-		DaysRemaining: daysRemainingInclusive(now, firstOfNext),
+		DaysRemaining: summary.GetDaysRemaining(),
 		TargetWarning: warning,
 		RecapMonths:   recaps,
 		FirstRecapOn:  firstOfNext.Format(dateLayout),
@@ -171,10 +181,4 @@ func requiredCallFailed(call string, code connect.Code, err error) error {
 // §4.4 and §6.1 metrics until OpenTelemetry lands (A11).
 func logOptionalCallDegraded(call, consequence string, err error) {
 	log.Printf("%s: %v (%s)", call, err, consequence)
-}
-
-// daysRemainingInclusive counts today as one, so the last day of the month answers 1 (PRD §8.7).
-// Once ledger is built, GetHome reads MonthSummary.days_remaining, computed in the Member's zone (A2, A3).
-func daysRemainingInclusive(now, firstOfNext time.Time) int32 {
-	return int32(firstOfNext.AddDate(0, 0, -1).Day() - now.Day() + 1)
 }

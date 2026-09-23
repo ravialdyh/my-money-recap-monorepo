@@ -17,8 +17,8 @@ import (
 // errLedgerDown is how a ledger whose database is gone fails, naming the address.
 var errLedgerDown = errors.New("dial tcp 172.18.0.5:5432: connect: connection refused")
 
-// fakeLedger is ledger as the BFF sees it: a zero month, settings holding salary and target, and each write recorded
-// with the token it came with; err fails every call.
+// fakeLedger is ledger as the BFF sees it: a zero month with 15 days left, settings holding salary and target, the
+// month GetHome asked for and each write recorded with the token it came with; err fails every call.
 type fakeLedger struct {
 	moneyrecapv1connect.UnimplementedLedgerServiceHandler
 	err        error
@@ -29,17 +29,21 @@ type fakeLedger struct {
 	gotTarget  *moneyrecapv1.SaveTargetRequest
 	gotRelabel *moneyrecapv1.RelabelCurrencyRequest
 	settings   int
+	gotMonth   string
 }
 
 func zeroMonth() *moneyrecapv1.MonthSummary {
 	return &moneyrecapv1.MonthSummary{Spent: &moneyrecapv1.Money{Amount: "0"}, MoneyIn: &moneyrecapv1.Money{Amount: "0"}, StreakDay: 1}
 }
 
-func (f *fakeLedger) GetMonthSummary(context.Context, *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error) {
+func (f *fakeLedger) GetMonthSummary(_ context.Context, req *connect.Request[moneyrecapv1.GetMonthSummaryRequest]) (*connect.Response[moneyrecapv1.GetMonthSummaryResponse], error) {
+	f.gotMonth = req.Msg.Month
 	if f.err != nil {
 		return nil, f.err
 	}
-	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: zeroMonth()}), nil
+	summary := zeroMonth()
+	summary.DaysRemaining = 15
+	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: summary}), nil
 }
 
 func (f *fakeLedger) GetSettings(context.Context, *connect.Request[moneyrecapv1.GetSettingsRequest]) (*connect.Response[moneyrecapv1.GetSettingsResponse], error) {
