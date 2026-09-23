@@ -1,3 +1,4 @@
+import Connect
 import Foundation
 import MoneyRecapContract
 import SwiftData
@@ -11,6 +12,7 @@ final class HomeViewModel {
     private(set) var home: MoneyRecap_V1_HomeView?
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
     private let context: ModelContext
+    private let onboardingNeeded: () -> Void
     /// Dates print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot change the
     /// copy.
     private let dates: Date.FormatStyle
@@ -18,32 +20,37 @@ final class HomeViewModel {
     init(
         fetch: @escaping () async throws -> MoneyRecap_V1_HomeView,
         context: ModelContext,
-        locale: Locale = .autoupdatingCurrent
+        locale: Locale = .autoupdatingCurrent,
+        onboardingNeeded: @escaping () -> Void = {}
     ) {
         self.fetch = fetch
         self.context = context
+        self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
         if let snapshot = HomeSnapshot.load(from: context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
         }
     }
 
-    /// While `home` is nil there is no snapshot yet: the skeleton, no spinner (PRD §6.19).
-    /// A failed refresh is silent: offline or unauthenticated, the last snapshot stays (PRD D58, D61).
+    /// Nil `home` means no snapshot yet: the skeleton, no spinner (PRD §6.19). A failed refresh keeps the last one,
+    /// offline or unauthenticated (D58, D61); failed_precondition, step 1 or 2 unanswered, deletes it (spec #92).
     func refresh() async {
         do {
             let fresh = try await fetch()
             try HomeSnapshot.replace(with: fresh, in: context)
             home = fresh
+        } catch let error as ConnectError where error.code == .failedPrecondition {
+            try? context.delete(model: HomeSnapshot.self)
+            try? context.save()
+            onboardingNeeded()
         } catch {
             return
         }
     }
 
-    /// "Hi, {Display Name}", omitted while the name is empty (before onboarding).
+    /// "Hi, {Display Name}": Home is only served once step 1 has the name (spec #92).
     var greeting: String? {
-        guard let home, !home.displayName.isEmpty else { return nil }
-        return "Hi, \(home.displayName)"
+        home.map { "Hi, \($0.displayName)" }
     }
 
     /// "Spent so far", extended with the countdown before the effective Payday (PRD §6.8).

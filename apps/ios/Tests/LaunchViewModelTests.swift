@@ -2,7 +2,7 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// The launch after sign-in (spec #92): the zone first, then Home or step 1.
+/// The launch after sign-in (spec #92): the zone first, then Home or the first unanswered of steps 1 and 2.
 @MainActor
 final class LaunchViewModelTests: XCTestCase {
     private func state(_ next: Int32, name: String = "", suggested: String = "") -> MoneyRecap_V1_OnboardingState {
@@ -32,10 +32,12 @@ final class LaunchViewModelTests: XCTestCase {
         await model.start()
         XCTAssertEqual(model.route, .stepOne(name: "Test", avatar: ""))
         model.stepOneSaved()
-        XCTAssertEqual(model.route, .home)
+        XCTAssertEqual(model.route, .stepTwo, "step 1 leads to the Currency")
+        model.stepTwoSaved()
+        XCTAssertEqual(model.route, .home, "steps 3 and 4 are not built yet, so Home")
     }
 
-    func testASavedNameWinsOverTheProvidersAndLaterStepsOpenHome() async {
+    func testASavedNameWinsOverTheProvidersAndAMissingCurrencyOpensStepTwo() async {
         let resumed = LaunchViewModel(
             greetedBefore: false,
             setZone: {},
@@ -43,11 +45,28 @@ final class LaunchViewModelTests: XCTestCase {
         )
         await resumed.start()
         XCTAssertEqual(resumed.route, .stepOne(name: "Maya", avatar: ""))
-        let later = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(2) })
+        let currency = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(2) })
+        await currency.start()
+        XCTAssertEqual(currency.route, .stepTwo)
+        let later = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(3) })
         await later.start()
-        XCTAssertEqual(later.route, .home, "step 2 is not built yet, so Home")
+        XCTAssertEqual(later.route, .home, "step 3 is not built yet, so Home")
         let offline = LaunchViewModel(greetedBefore: false, setZone: {}, state: { nil })
         await offline.start()
         XCTAssertEqual(offline.route, .home, "no answer at all: Home and its skeleton")
+    }
+
+    /// A Home that refuses (failed_precondition, spec #92) reopens the first unanswered step, even for a Member the
+    /// stored Home greeted; with no answer the screen waits instead of returning to a Home that would refuse again.
+    func testARefusedHomeReopensTheUnansweredStep() async {
+        var next: MoneyRecap_V1_OnboardingState? = state(2)
+        let model = LaunchViewModel(greetedBefore: true, setZone: {}, state: { next })
+        await model.start()
+        XCTAssertEqual(model.route, .home)
+        await model.homeRefused()
+        XCTAssertEqual(model.route, .stepTwo)
+        next = nil
+        await model.homeRefused()
+        XCTAssertEqual(model.route, .deciding)
     }
 }

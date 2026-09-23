@@ -25,6 +25,8 @@ service BffService {
   // the send fails (§7.5).
   rpc RequestMagicLink(BffServiceRequestMagicLinkRequest) returns (BffServiceRequestMagicLinkResponse) {}
   // Home always shows the current month (PRD §6.8, D59), so no month argument.
+  // failed_precondition until steps 1 and 2 are answered: Home greets by name
+  // and prints every amount in the Member's Currency (spec #92).
   rpc GetHome(GetHomeRequest) returns (GetHomeResponse) {}
   // One month's full or Partial Recap, or the current month's preview (D47).
   rpc GetRecap(BffServiceGetRecapRequest) returns (BffServiceGetRecapResponse) {}

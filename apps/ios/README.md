@@ -8,11 +8,13 @@ argument;
 the session in the Keychain (I2), the generated Connect client (I3) sending the device's zone with
 `SetTimezone` on every launch, under one `Idempotency-Key` (A3, A14), then routing the launch (spec #92): a
 Member whose stored Home already greets them opens Home at once, and anyone else asks `GetOnboardingState`
-and opens onboarding step 1, Name and Avatar (PRD §6.4, #98), while it is unanswered; the `HomeSnapshot`
-cache in SwiftData (I4) and Home drawn at zero in the B1 "no salary set" layout (PRD §6.8, D54, D69),
-greeting the Member by name with their Avatar once step 1 is saved. Steps 2 to 4 arrive with their own
-tickets, so until then step 1 leads to Home. Nothing on Home navigates yet; the sheets and screens behind
-the chips, cards and buttons arrive with their own tickets.
+and opens the first unanswered of onboarding step 1, Name and Avatar (PRD §6.4, #98), and step 2, Currency
+(§6.5, #100); the `HomeSnapshot` cache in SwiftData (I4) and Home drawn at zero in the B1 "no salary set"
+layout (PRD §6.8, D54, D69), greeting the Member by name with their Avatar and printing every figure in
+their Currency. Home is served only once steps 1 and 2 are answered: a `failed_precondition` from `GetHome`
+deletes the stored Home and reopens the unanswered step. Steps 3 and 4 arrive with their own tickets, so
+until then step 2 leads to Home. Nothing on Home navigates yet; the sheets and screens behind the chips,
+cards and buttons arrive with their own tickets.
 
 ## Open
 
@@ -87,13 +89,15 @@ on the second run within the hour; watches Check your inbox count down; reads th
 over HTTP from inside the test process; and relaunches the app with the link as `--magic-link`, the
 handler the custom scheme and a universal link reach. The new Member meets step 1; the test force-quits
 and relaunches to prove step 1 reopens, types a name with a digit the field refuses, picks an Avatar and
-taps Next. It then asserts Home at zero greeting the Member, relaunches to prove Home renders from the
+taps Next. At step 2 it searches for a word no currency matches, clears the search, finds the rupiah by
+name and taps Next. It then asserts Home at zero greeting the Member in rupiah, relaunches to prove Home renders from the
 snapshot, relaunches with `MMR_BFF_URL` pointing at a closed port to prove the
 snapshot survives an unreachable BFF, and relaunches with `--reset-snapshot` to prove the first load is
 the skeleton. `UITests/AuthorizationCodeUITests.swift` keeps the flow every Apple and Google Member will
 use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test Member
 through Keycloak's login page, which covers the PKCE request, the sheet and the state built from its
-authorization response, and answers step 1 with the name the token's `given_name` filled in. The first skips itself unless the runner names Mailpit (`MMR_MAILPIT_URL`), the
+authorization response, answers step 1 with the name the token's `given_name` filled in, and at step 2
+finds the simulator region's own currency already chosen, so it just taps Next. The first skips itself unless the runner names Mailpit (`MMR_MAILPIT_URL`), the
 second unless it carries the test Member's password; CI's `ios` job passes
 `-only-testing:MyMoneyRecapTests`, so it never runs them. No UI test opens Apple's or Google's page:
 with placeholder client ids each answers with its own error page, which the repository neither controls
@@ -131,14 +135,14 @@ and runs once.
 
 | Folder | What lives here |
 | --- | --- |
-| `App/` | Entry point, the SwiftData container, root switch between Sign in and the launch (sign-out deletes the cache), `Launch` (the zone, then Home or step 1), `Info.plist` (URL scheme, the ATS local-networking allowance). |
+| `App/` | Entry point, the SwiftData container, root switch between Sign in and the launch (sign-out deletes the cache), `Launch` (the zone, then Home or the first unanswered of steps 1 and 2), `Info.plist` (URL scheme, the ATS local-networking allowance). |
 | `Auth/` | `AuthConfig` (issuer, client id, redirect, the login-token grant; no secret exists in the target), `AuthSession` (AppAuth discovery, PKCE authorization, `OIDAuthState`, the incoming magic link, fresh tokens, and a sign-out only when the realm refuses a refresh), `MagicLink` (the login token from any of the three sources, the direct grant, the state synthesized around the authorization request, and the failure codes behind the A3 copies and A1's error copy), `Keychain`. |
 | `Networking/` | `BffClient` builds the generated `MoneyRecap_V1_BffServiceClient` (proto codec, `MMR_BFF_URL` or its default) and calls once more after the interceptor refreshes a refused token (`retried`); `BearerInterceptor` is the one interceptor of I3, and sends `RequestMagicLink` with no token, keyed by its path in both halves. `SaveAttempt` holds one save attempt's `Idempotency-Key`, the same across its retries and new when the values change, which a write passes as a per-call header. No request or response type is written here. |
 | `Snapshots/` | `HomeSnapshot`, the one SwiftData model of I4: the `HomeView` bytes plus `updatedAt`, replaced whole on every success. |
-| `Screens/` | One folder per SCREEN-STATES group, each screen a view plus an `@Observable` view model (I6): `SignIn/` holds A1 Sign in, A2 Enter email and A3 Check your inbox on one navigation stack; `Onboarding/` holds A4 Name and avatar, with `DisplayName`, the rule `members` applies (NFC, 1 to 30 code points of letters, spaces, hyphens and apostrophes), which the First name field enforces as it is typed; `Home/`. |
-| `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `TextStyle+Font` (applies a type-ramp entry to a view), `Money` (the platform currency formatter, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen`, `Headline` (+ `SubCopy`, `Eyebrow`), `Illustration`, `Avatar`, `AvatarGrid` (the six keys `Profile.avatar_key` lists, each named for VoiceOver), `Card` (+ `CardTitle`), `Chip` (with `asLabel`, the step label pill), `StatHero`, `StatChip`, `PromptCard`, `ListRow`, `MMRButton`, `MMRTextField`, `InlineError`. Colours, radii and type come only from the tokens. The React row wrappers (`ChipRow`, `StatChipRow`) are a plain `HStack` here, and `PromptCard` has a `dashed` variant (the D47 outline card) the React one draws by hand. |
+| `Screens/` | One folder per SCREEN-STATES group, each screen a view plus an `@Observable` view model (I6): `SignIn/` holds A1 Sign in, A2 Enter email and A3 Check your inbox on one navigation stack; `Onboarding/` holds A4 Name and avatar, with `DisplayName`, the rule `members` applies (NFC, 1 to 30 code points of letters, spaces, hyphens and apostrophes), which the First name field enforces as it is typed, and A5 Currency, the list built from `Locale.commonISOCurrencyCodes`, the currencies in use, named and sorted in British English; `Home/`. |
+| `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `TextStyle+Font` (applies a type-ramp entry to a view), `Money` (the platform currency formatter at the amount's own decimals, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen`, `Headline` (+ `SubCopy`, `Eyebrow`), `Illustration`, `Avatar`, `AvatarGrid` (the six keys `Profile.avatar_key` lists, each named for VoiceOver), `Card` (+ `CardTitle`), `Chip` (with `asLabel`, the step label pill), `StatHero`, `StatChip`, `PromptCard`, `ListRow` (a chevron, or the check a chosen row carries), `MMRButton`, `MMRTextField`, `InlineError`, and `TextLink`, the helper-text link. Colours, radii and type come only from the tokens. The React row wrappers (`ChipRow`, `StatChipRow`) are a plain `HStack` here, and `PromptCard` has a `dashed` variant (the D47 outline card) the React one draws by hand. |
 | `Resources/` | Asset catalog with the cover and envelope illustrations and the six Avatars at 3x, named by their contract keys (PNGs from `my-money-recap/assets/illustrations/`, `ill-cover.webp`, `ill-envelope.webp` and `ill-avatar-<key>.webp`). |
-| `Tests/`, `UITests/` | XCTest unit tests on the view models, the magic-link handler and session (against a stub realm), the Keychain and the token refresh, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test Member; step 1 drawn in a window (`NameAvatarViewTests`); the two UI tests above. |
+| `Tests/`, `UITests/` | XCTest unit tests on the view models, the magic-link handler and session (against a stub realm), the Keychain and the token refresh, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test Member after steps 1 and 2, in rupiah; steps 1 and 2 drawn in a window (`NameAvatarViewTests`, `CurrencyViewTests`); every listed currency checked against the backend's CLDR file (`CurrencyViewModelTests`, which reads it from the repository); the two UI tests above. |
 | `scripts/` | `simulator-udid.sh`, `ui-test.sh`. |
 
 Not yet here: the Fredoka and Nunito font files are not bundled, so the type ramp renders in the system

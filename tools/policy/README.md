@@ -82,7 +82,7 @@ to be in a comment, not merely somewhere in the first five lines — otherwise a
 bypass the earlier substring match allowed. A file with no comment syntax cannot carry the marker,
 so a generated one of those goes in `exclude`.
 
-**`exclude`**, which holds three kinds of path:
+**`exclude`**, which holds four kinds of path:
 
 - `my-money-recap/**` (the illustration pipeline — one-off tooling, not shipped code),
   `my-money-recap-ds/.design-sync/**` (owned by the design-sync tool) and `docs/**`.
@@ -90,6 +90,8 @@ so a generated one of those goes in `exclude`.
   `*/.terraform.lock.hcl`, and `*.xcodeproj/*` (the Xcode project, its scheme and
   `Package.resolved`). The lockfiles grow with every dependency bump.
 - `*.md`: the cap is for code and configuration, and prose is not held to it.
+- Data kept unedited from its publisher, which a shorter copy would no longer be:
+  `apps/backend/internal/cldr/currencyData.json`, Unicode CLDR's currency data.
 
 `.pre-commit-config.yaml` carries a longer list, written once as a YAML anchor and shared by the seven
 hooks that format or lint generated output. That is not a copy of this one: those hooks touch JSON, CSS

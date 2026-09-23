@@ -95,6 +95,8 @@ type BffServiceClient interface {
 	// the send fails (§7.5).
 	RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error)
 	// Home always shows the current month (PRD §6.8, D59), so no month argument.
+	// failed_precondition until steps 1 and 2 are answered: Home greets by name
+	// and prints every amount in the Member's Currency (spec #92).
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
 	// One month's full or Partial Recap, or the current month's preview (D47).
 	GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error)
@@ -414,6 +416,8 @@ type BffServiceHandler interface {
 	// the send fails (§7.5).
 	RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error)
 	// Home always shows the current month (PRD §6.8, D59), so no month argument.
+	// failed_precondition until steps 1 and 2 are answered: Home greets by name
+	// and prints every amount in the Member's Currency (spec #92).
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
 	// One month's full or Partial Recap, or the current month's preview (D47).
 	GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error)

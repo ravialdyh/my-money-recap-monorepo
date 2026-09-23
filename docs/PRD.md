@@ -115,7 +115,7 @@ Every design question raised while writing this document, with the decision take
 | **D68** | **iPad column width** (2026-09-11) | **Single column, capped at 600pt instead of 390**, centred, portrait and landscape; the two Home buttons sit side by side and `Sheet`s take the column's width. A two-column iPad layout was sketched and rejected: it needs a second navigation model for little gain. Supersedes the width in D40. |
 | **D69** | **Home with no Salary set** (2026-09-11) | **It scrolls.** The Spent hero (191pt) plus the salary `PromptCard` (191pt) plus the target `PromptCard` (136pt) put the buttons at 740–856pt. `Log a spend` stays above the fold; the layout keeps the prompts at full height so nothing jumps when they are filled in. |
 | **D70** | **Category chips on the Log-a-spend sheet** (2026-09-11) | **The shipped `Chip` tone variant** — 30pt uppercase pill, 44pt hit area via `tappable` — not the 44pt mixed-case pill the 2026-09-08 B2/B3 sheets hand-drew. |
-| **D71** | **Long numbers and money, without hand-written rules** (2026-09-11) | Amounts are exact decimals with an ISO 4217 code (§7); the platform formatter prints them with the viewer's locale and the currency's own decimals, and no table in the system says how many decimals a currency has. `StatHero` and `AmountField` **measure** the printed string and draw it at the largest of 80/56/40pt (48/36/28pt) that fits — never a character count, which was shown to shrink a rupiah salary that fit. `PromptCard` takes the measured height of the card it replaces. `RecapGoalScreen` draws three bars in every currency. Page dots are tappable in their own slice of the row, the one exception to the 44pt width rule. |
+| **D71** | **Long numbers and money, without hand-written rules** (2026-09-11) | Amounts are exact decimals with an ISO 4217 code (§7); the platform formatter prints them with the viewer's locale and exactly the decimals each amount carries, which `ledger` rounded it to from Unicode CLDR's currency data, kept unedited, so no hand-written table says how many decimals a currency has. `StatHero` and `AmountField` **measure** the printed string and draw it at the largest of 80/56/40pt (48/36/28pt) that fits — never a character count, which was shown to shrink a rupiah salary that fit. `PromptCard` takes the measured height of the card it replaces. `RecapGoalScreen` draws three bars in every currency. Page dots are tappable in their own slice of the row, the one exception to the 44pt width rule. **Rewritten 2026-09-23 (#100); the original said the platform formatter supplies the currency's decimals and no table in the system holds them, but iOS 26.0 and 27.0 disagree on the forint's, and `ledger` has to round.** |
 
 ## 5. End-to-end flow
 
@@ -217,8 +217,8 @@ Rules
 |---|---|
 | Ground | violet |
 | Components | `Eyebrow` "Step 2 of 4", `Headline` "Which currency?", `Card` with a searchable list of `ListRow trailing="check"` |
-| Content | Full ISO 4217 list, sorted by name, searchable by code or name. Device locale's currency preselected, so Next is always enabled. |
-| Empty search | "No currency matches {query}." with a link to clear the search. |
+| Content | Full ISO 4217 list as the platform ships it, its common currencies (those in use and a few recently withdrawn, such as the Croatian kuna), built on the phone, sorted by name in British English, searchable by code or name. The device region's currency is preselected, so Next is usually enabled; where the region names no currency, nothing is preselected and Next waits for a choice. **Rewritten 2026-09-23 (#100); the original said Next is always enabled.** |
+| Empty search | SCREEN-STATES A5 owns the wording: `No currency matches "{query}".` plus a `Clear search` link. |
 
 ### 6.6 Onboarding 3 · Salary and Payday
 
@@ -367,7 +367,7 @@ Shown immediately after a successful sign-in when `deletion_requested_at` is wit
 
 ## 7. Data model
 
-Amounts are exact decimals (`NUMERIC`, never a float or an integer count of minor units) stored with the Member's ISO 4217 code, capped at 11 digits before the decimal separator (D57). How many decimals a currency shows, its symbol and its separators are the platform formatter's business at print time (§11, D71); nothing in the system stores or looks up a decimal count. Dates are plain calendar dates without timezone (D34). All entities belong to exactly one Member.
+Amounts are exact decimals (`NUMERIC`, never a float or an integer count of minor units) stored with the Member's ISO 4217 code, capped at 11 digits before the decimal separator (D57). How many decimals a currency has comes from Unicode CLDR's currency data, which `ledger` keeps unedited and rounds every stored amount to (§8.4); the phone prints an amount with exactly the decimals it carries, and its symbol and separators are the platform formatter's business at print time (§11, D71). **Rewritten 2026-09-23 (#100); the original said nothing in the system stores or looks up a decimal count.** Dates are plain calendar dates without timezone (D34). All entities belong to exactly one Member.
 
 | Entity | Fields | Notes |
 |---|---|---|
@@ -413,7 +413,7 @@ A **Recap Month** is a calendar month in local dates (D33, D41). Everything belo
 
 ### 8.4 Saving Target amount
 
-Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Currency's decimals as CLDR reports them at the time, which is the same data the platform formatter prints from; the server rounds and stores, the phone only prints (`ARCHITECTURE.md` §7.2). `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
+Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Currency's decimals in the CLDR data `ledger` keeps (§7, D71); the server rounds and stores, the phone only prints (`ARCHITECTURE.md` §7.2). `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
 
 *Worked:* £2,400 × 20 ÷ 100 = £480. Saved £640 ÷ £480 × 100 = 133%. Budi: Rp 15.000.000 × 20 ÷ 100 = Rp 3.000.000.
 
@@ -525,7 +525,7 @@ A partial month still sends "Recap ready" — there is something to see (§6.17)
 - **Connectivity (D61):** reading works offline from the cache; every write requires the network. A failed write shows an inline error and keeps the sheet open with the values intact.
 - **Long numbers (D45, D57, D71):** `StatHero` draws the printed amount at 80pt, or 56 / 40pt when the full string does not fit its card, measured on screen (SwiftUI `.minimumScaleFactor` over the same three sizes). `AmountField` does 48 → 36 → 28pt the same way. Amounts are capped at 11 digits before the decimal separator, the most the hero shows at 40pt in every currency. Home, the Recap cover and the share image must each be proven in IDR.
 - **Accessibility:** Dynamic Type up to the "Large" accessibility size; **at accessibility sizes the four Recap screens become one vertical scroll with `PageDots` as section markers** (D66). VoiceOver labels on every chip, bar and button — a `CategoryBar` reads "Bills, 35 percent, £616"; a `StatChip` reads "Money in, zero pounds"; the hidden Saved chip is absent from the accessibility tree, not present-and-empty. All tappable elements at least 44 × 44pt, except page dots, which own their slice of a 44pt-tall row like the system page control (D71). Reduce Motion replaces reveals with 150ms fades.
-- **Localisation:** v1 ships en-GB copy only. Money is printed by the platform formatter from the amount and the Member's currency code: symbol and decimals come from the currency's CLDR data, separators from the device language (an Indonesian phone prints `Rp 15.000.000`, a British phone printing rupiah `Rp 15,000,000`). Dates follow the device locale.
+- **Localisation:** v1 ships en-GB copy only. Money is printed by the platform formatter from the amount and the Member's currency code: the decimals are those the amount carries (D71), the symbol comes from the currency's CLDR data, separators from the device language (an Indonesian phone prints `Rp 15.000.000`, a British phone printing rupiah `Rp 15,000,000`). Dates follow the device locale.
 - **Privacy:** no analytics SDK in v1. Data stored server-side in one region and cached on device inside the app's container, protected by the device passcode and erased on log out or deletion. The share image never contains Salary or Money In.
 - **Security:** TLS everywhere, JWT verification on every request, no secrets in the binary, rate limiting on magic-link requests (5 per email per hour, enforced by the backend since neither Keycloak nor the extension limits sends), biometric gate on the persisted session.
 - **App Store compliance:** Sign in with Apple present (4.8), in-app account deletion (5.1.1(v)), privacy nutrition label listing email and financial data as linked to the user.

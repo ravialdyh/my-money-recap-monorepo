@@ -16,10 +16,10 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestOnboardingStepOneEndToEnd walks step 1 through the BFF and members containers with the realm test
-// Member's token: step 1 and its given name, the save, step 2, and Home greeting by name with the Avatar (#98).
-// It skips like TestEndToEnd.
-func TestOnboardingStepOneEndToEnd(t *testing.T) {
+// TestOnboardingEndToEnd walks steps 1 and 2 through the BFF and members containers as the realm's test Member:
+// Home refused until the Currency, an unknown code refused, then Home by name, Avatar and Currency. Skips like
+// TestEndToEnd.
+func TestOnboardingEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
 		t.Skip("BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_USER_PASSWORD and MMR_TEST_MEMBERS_DATABASE_URL not all set")
@@ -62,9 +62,25 @@ func TestOnboardingStepOneEndToEnd(t *testing.T) {
 	if s := state(); s.NextStep != 2 || s.Profile.DisplayName != "Test" || s.Profile.AvatarKey != "owl" || s.Profile.OnboardingStep != 1 {
 		t.Fatalf("after step 1: %v, want step 2 with Test and owl", s)
 	}
-	home, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
-	if err != nil || home.Msg.Home.DisplayName != "Test" || home.Msg.Home.AvatarKey != "owl" {
-		t.Fatalf("Home after step 1: %v, %v; want the greeting's name and the Avatar", home, err)
+	if _, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Fatalf("Home after step 1: %v, want failed_precondition until the Currency", err)
 	}
-	t.Logf("step 1 saved through the containers; Home greets %q with the %s", home.Msg.Home.DisplayName, home.Msg.Home.AvatarKey)
+	if err := save(&moneyrecapv1.BffServiceSaveProfileRequest{CurrencyCode: proto.String("ZZZ"), OnboardingStep: proto.Int32(2)}); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Fatalf("a code that is no currency: %v, want invalid_argument", err)
+	}
+	if err := save(&moneyrecapv1.BffServiceSaveProfileRequest{CurrencyCode: proto.String("IDR"), OnboardingStep: proto.Int32(2)}); err != nil {
+		t.Fatal(err)
+	}
+	if s := state(); s.NextStep != 3 || s.Profile.CurrencyCode != "IDR" || s.Profile.OnboardingStep != 2 {
+		t.Fatalf("after step 2: %v, want step 3 with IDR", s)
+	}
+	home, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertZeroHome(t, home.Msg.Home, "Test", "IDR")
+	if home.Msg.Home.AvatarKey != "owl" {
+		t.Fatalf("Home after step 2 shows the %q Avatar, want owl", home.Msg.Home.AvatarKey)
+	}
+	t.Logf("steps 1 and 2 saved through the containers; Home greets %q with the %s in %s", home.Msg.Home.DisplayName, home.Msg.Home.AvatarKey, home.Msg.Home.CurrencyCode)
 }

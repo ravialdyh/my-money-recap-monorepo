@@ -28,6 +28,7 @@ repos:
             |apps/ios/DesignSystem/Tokens\.swift
             |apps/ios/.*\.xcodeproj/.*
             |apps/ios/Resources/Assets\.xcassets/.*
+            |apps/backend/internal/cldr/currencyData\.json
             |my-money-recap-ds/src/styles/css\.generated\.ts
             |my-money-recap-ds/src/assets/illustrations\.ts
             |my-money-recap-ds/src/tokens/tokens\.css

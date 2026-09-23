@@ -15,6 +15,7 @@
     "package-lock.json",
     "*/go.sum",
     "*/.terraform.lock.hcl",
+    "apps/backend/internal/cldr/currencyData.json",
     "*.xcodeproj/*",
     "*.md"
   ]

@@ -1,9 +1,16 @@
 import SwiftUI
 
-/// Settings and Recap list row: label, a right-aligned secondary value and a chevron; a divider below.
+/// Settings, Recap and Currency list row (`ListRow.tsx`): label, a right-aligned secondary value, then a chevron that
+/// opens a screen or, for a choice, the violet check a selected row shows; a divider below.
 struct ListRow: View {
+    enum Trailing {
+        case chevron, check
+    }
+
     let label: String
     var value: String?
+    var trailing = Trailing.chevron
+    var selected = false
     var action: () -> Void = {}
 
     var body: some View {
@@ -14,13 +21,27 @@ struct ListRow: View {
                 if let value {
                     Text(value).textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)
                 }
-                Image(systemName: "chevron.right").font(.system(size: 14, weight: .heavy))
-                    .foregroundStyle(Tokens.Text.secondary)
+                switch trailing {
+                case .chevron:
+                    Image(systemName: "chevron.right").font(.system(size: 14, weight: .heavy))
+                        .foregroundStyle(Tokens.Text.secondary)
+                case .check:
+                    check.opacity(selected ? 1 : 0)
+                }
             }
             .padding(.vertical, Tokens.Space._5)
             .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())
+        .accessibilityAddTraits(trailing == .check && selected ? .isSelected : [])
         .overlay(alignment: .bottom) { Tokens.Surface.divider.frame(height: 1) }
+    }
+
+    /// An 18pt violet disc with a white tick (`.mmr-list-row-check`), its space kept when unselected so no row moves.
+    private var check: some View {
+        Circle()
+            .fill(Tokens.Palette.violet500)
+            .frame(width: 18, height: 18)
+            .overlay(Image(systemName: "checkmark").font(.system(size: 9, weight: .black)).foregroundStyle(.white))
     }
 }

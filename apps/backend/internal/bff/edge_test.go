@@ -37,6 +37,7 @@ func TestEdge(t *testing.T) {
 	}
 	ctx := t.Context()
 	token := testauth.UserToken(t, kc, pw)
+	onboard(ctx, t, base, token)
 
 	t.Run("GetHome through the edge answers what the BFF answers", func(t *testing.T) {
 		direct, through := home(ctx, t, base, token), home(ctx, t, edge+"/api", token)

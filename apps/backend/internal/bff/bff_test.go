@@ -94,30 +94,51 @@ func newService(t *testing.T, members *fakeMembers, notify Notify) *Service {
 
 var ctx = auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com", Raw: "tok"})
 
-// assertZeroHome is the HomeView of zeros both the unit test and the end-to-end test expect (#10):
-// nothing spent or in, no Saved, Salary, target, warning or recaps, no name, the fallback currency, streak day 1.
-func assertZeroHome(t *testing.T, h *moneyrecapv1.HomeView) {
+// onboarded is a Member who has answered steps 1 and 2, so GetHome answers them (spec #92).
+func onboarded() *moneyrecapv1.Profile {
+	return &moneyrecapv1.Profile{MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox", CurrencyCode: "IDR"}
+}
+
+// assertZeroHome is the HomeView of zeros the unit and end-to-end tests expect once steps 1 and 2 are answered:
+// nothing spent or in, no Saved, Salary, target, warning or recaps, streak day 1, the name, every amount in Currency.
+func assertZeroHome(t *testing.T, h *moneyrecapv1.HomeView, name, currency string) {
 	t.Helper()
-	if h.Spent.Amount != "0" || h.Spent.CurrencyCode != fallbackCurrency || h.MoneyIn.Amount != "0" || h.Saved != nil ||
-		h.Salary != nil || h.SavingTarget != nil || h.TargetWarning != nil || len(h.RecapMonths) != 0 ||
-		h.DisplayName != "" || h.CurrencyCode != fallbackCurrency || h.StreakDay != 1 || h.DaysRemaining < 1 {
-		t.Fatalf("HomeView: %v", h)
+	if h.Spent.Amount != "0" || h.Spent.CurrencyCode != currency || h.MoneyIn.Amount != "0" || h.MoneyIn.CurrencyCode != currency ||
+		h.Saved != nil || h.Salary != nil || h.SavingTarget != nil || h.TargetWarning != nil || len(h.RecapMonths) != 0 ||
+		h.DisplayName != name || h.CurrencyCode != currency || h.StreakDay != 1 || h.DaysRemaining < 1 {
+		t.Fatalf("HomeView: %v, want zeros for %s in %s", h, name, currency)
 	}
 }
 
 func TestGetHomeZeros(t *testing.T) {
-	members := &fakeMembers{}
+	members := &fakeMembers{profile: onboarded()}
 	res, err := newService(t, members, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
 		t.Fatal(err)
 	}
 	h := res.Msg.Home
-	assertZeroHome(t, h)
+	assertZeroHome(t, h, "Maya", "IDR")
 	if h.Month != "2026-09" || h.DaysRemaining != 15 || h.FirstRecapOn != "2026-10-01" {
 		t.Fatalf("HomeView dates: %v", h)
 	}
 	if members.gotToken != "Bearer tok" {
 		t.Fatalf("members received %q, want the caller's token forwarded", members.gotToken)
+	}
+}
+
+// GetHome refuses failed_precondition until steps 1 and 2 are answered, before it calls ledger or notify: Home
+// greets by name and prints the Member's Currency, so neither has a fallback (spec #92).
+func TestGetHomeRefusesBeforeStepsOneAndTwo(t *testing.T) {
+	for name, p := range map[string]*moneyrecapv1.Profile{
+		"a new Member": {MemberId: "m-1"},
+		"no Avatar":    {MemberId: "m-1", DisplayName: "Maya", CurrencyCode: "IDR"},
+		"no Currency":  {MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox"},
+	} {
+		s := newService(t, &fakeMembers{profile: p}, hangingNotify{})
+		s.Ledger = failingLedger{}
+		if _, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+			t.Errorf("%s: %v, want failed_precondition before the fan-out", name, err)
+		}
 	}
 }
 
@@ -134,7 +155,7 @@ func TestGetHomeReadsTheProfileGetOrCreateReturned(t *testing.T) {
 }
 
 func TestGetHomeNotifyTimeoutStillAnswers(t *testing.T) {
-	res, err := newService(t, &fakeMembers{}, hangingNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	res, err := newService(t, &fakeMembers{profile: onboarded()}, hangingNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +165,7 @@ func TestGetHomeNotifyTimeoutStillAnswers(t *testing.T) {
 }
 
 func TestGetHomeBannerOnlyWhenNotifySaysFired(t *testing.T) {
-	s := newService(t, &fakeMembers{}, StubNotify{})
+	s := newService(t, &fakeMembers{profile: onboarded()}, StubNotify{})
 	res, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
 		t.Fatal(err)
@@ -177,7 +198,7 @@ func TestGetHomeKeepsTheCodeAndDropsTheUpstreamText(t *testing.T) {
 		want    connect.Code
 	}{
 		"GetOrCreateBySubject": {&fakeMembers{createErr: connect.NewError(connect.CodeUnauthenticated, errors.New("fetching keys: dial tcp 172.18.0.2:8080: connection refused"))}, StubLedger{}, connect.CodeUnauthenticated},
-		"GetMonthSummary":      {&fakeMembers{}, failingLedger{}, connect.CodeUnavailable},
+		"GetMonthSummary":      {&fakeMembers{profile: onboarded()}, failingLedger{}, connect.CodeUnavailable},
 	}
 	for name, c := range cases {
 		s := newService(t, c.members, StubNotify{})
@@ -190,7 +211,7 @@ func TestGetHomeKeepsTheCodeAndDropsTheUpstreamText(t *testing.T) {
 }
 
 func TestDaysRemainingOnTheLastDay(t *testing.T) {
-	s := newService(t, &fakeMembers{}, StubNotify{})
+	s := newService(t, &fakeMembers{profile: onboarded()}, StubNotify{})
 	s.Now = func() time.Time { return time.Date(2026, 2, 28, 23, 59, 0, 0, time.UTC) }
 	res, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
