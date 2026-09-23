@@ -57,7 +57,7 @@ struct HomeView: View {
     private func filled(_ home: MoneyRecap_V1_HomeView) -> some View {
         if let greeting = model.greeting {
             HStack(spacing: 12) {
-                Headline(text: greeting, size: .m)
+                Headline(text: greeting)
                 Spacer()
                 Avatar(key: home.avatarKey)
             }

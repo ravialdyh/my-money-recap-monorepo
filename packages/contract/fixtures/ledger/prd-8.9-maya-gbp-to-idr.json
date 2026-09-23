@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.9 step 4, Maya on 30 September converting GBP → IDR at 20,150: every SalarySetting and Spend amount becomes round-half-up(amount × 20,150) to IDR's 0 decimals, £2,400 → Rp 48.360.000 and the Spends £1,760 → Rp 35.464.000 (300 → 6.045.000, 150 → 3.022.500, 200 → 4.030.000, 250 → 5.037.500, 180 → 3.627.000, 120 → 2.418.000, 420 → 8.463.000, 140 → 2.821.000), each row's original amount and Currency untouched; the Saving Target percentage stays 20% (step 5); the preview shows the same before and after (step 3, acceptance 8).",
+  "doc": "PRD §8.9 step 4, Maya on 30 September converting GBP → IDR at 20,150: every SalarySetting and Spend amount becomes round-half-up(amount × 20,150) to IDR's 0 decimals, £2,400 → Rp48.360.000 and the Spends £1,760 → Rp35.464.000 (300 → 6.045.000, 150 → 3.022.500, 200 → 4.030.000, 250 → 5.037.500, 180 → 3.627.000, 120 → 2.418.000, 420 → 8.463.000, 140 → 2.821.000), each row's original amount and Currency untouched; the Saving Target percentage stays 20% (step 5); the preview shows the same before and after (step 3, acceptance 8).",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",

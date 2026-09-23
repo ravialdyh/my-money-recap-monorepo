@@ -18,11 +18,13 @@ final class SignInUITests: XCTestCase {
         app.launch()
         XCTAssert(app.staticTexts["Your month in money."].waitForExistence(timeout: 10))
         snapshot("01-sign-in")
+        sideways(app, reaching: app.buttons["Continue with email"], "sign-in")
 
         app.buttons["Continue with email"].tap()
         let field = app.textFields["Email address"]
         XCTAssert(field.waitForExistence(timeout: 5), "Continue with email pushes Enter email")
         XCTAssertFalse(app.buttons["Send me a link"].isEnabled, "Send stays disabled until the address is one")
+        sideways(app, reaching: app.buttons["Send me a link"], "enter-email")
         field.tap()
         field.typeText(address)
         XCTAssert(app.buttons["Send me a link"].isEnabled)
@@ -35,6 +37,7 @@ final class SignInUITests: XCTestCase {
         XCTAssert(countdown.exists, "Resend sleeps behind a live m:ss countdown")
         XCTAssertFalse(countdown.isEnabled)
         snapshot("03-check-your-inbox-countdown")
+        sideways(app, reaching: countdown, "check-your-inbox")
         let first = countdown.label
         try await Task.sleep(for: .seconds(3))
         XCTAssertNotEqual(countdown.label, first, "the countdown is live")
@@ -70,8 +73,10 @@ final class SignInUITests: XCTestCase {
         )
         backToStepOne(app, finding: "Maya", "Otter")
         snapshot("05-resumed-answers-restored")
+        sideways(app, reaching: app.buttons["Next"], "step-1")
         app.buttons["Next"].tap()
         XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30))
+        sideways(app, reaching: app.buttons["Next"], "step-2")
 
         let offline = "No connection. We need one to save your answers."
         app.launchEnvironment["MMR_BFF_URL"] = "http://localhost:1"
@@ -89,6 +94,7 @@ final class SignInUITests: XCTestCase {
         await fulfillment(of: [settled], timeout: 30)
         XCTAssert(app.staticTexts[offline].exists, "still no connection, still the state and its Try again")
         snapshot("06-no-connection-part-way-through-setup")
+        sideways(app, reaching: app.buttons["Try again"], "no-connection")
 
         app.launchEnvironment = Self.appEnvironment
         app.terminate()
@@ -98,6 +104,7 @@ final class SignInUITests: XCTestCase {
         answerStepFour(app, salary: 15_000_000)
         assertHomeAtZero(app, greeting: "Hi, Maya", currency: "IDR", salary: true, target: 3_750_000)
         snapshot("07-home-at-zero-signed-in-by-link")
+        sideways(app, reaching: app.buttons["Log a spend"], "home")
 
         app.terminate()
         app.launch()

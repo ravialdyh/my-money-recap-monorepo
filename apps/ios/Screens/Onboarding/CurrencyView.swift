@@ -17,7 +17,7 @@ struct CurrencyView: View {
     var body: some View {
         Screen {
             BackRow(label: "Step 2 of 4", back: onBack)
-            Headline(text: "Which currency?", size: .m).padding(.top, 18)
+            Headline(text: "Which currency?").padding(.top, 18)
             Card {
                 if model.offline {
                     InlineError(text: NoConnectionView.copy)

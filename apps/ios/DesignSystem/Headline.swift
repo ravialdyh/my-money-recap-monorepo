@@ -1,10 +1,10 @@
 import SwiftUI
 
-/// Fredoka headline; `l` is the sign-in size (PRD §6.1).
+/// Fredoka headline, `m` by default as in Headline.tsx; `l` is the sign-in size (PRD §6.1).
 struct Headline: View {
     enum Size { case l, m }
     let text: String
-    var size: Size = .l
+    var size: Size = .m
 
     var body: some View {
         Text(text)

@@ -27,7 +27,7 @@ with `splurge` or `spendsAfter`), and `createdAt` and `updatedAt`, which `ledger
 Amounts follow `Money`: a decimal string with at most 11 digits before the separator (D57) and an
 ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"15000000"`), the decimals CLDR
 reports for the currency (§8.4). A sentence that embeds an amount is written as the PRD prints it
-(`£160`, `Rp 2.600.000`).
+(`£160`, `Rp2.600.000`).
 
 Every `SalarySetting` and every `Spend`, wherever it sits, carries `originalAmount`: the amount as
 typed, with its Currency (PRD §7, §8.9 step 4). Every file so far starts from a ledger never

@@ -21,9 +21,9 @@ struct TargetView: View {
     }
 
     var body: some View {
-        Screen {
+        Screen(scrolls: true) {
             BackRow(label: "Step 4 of 4", back: onBack)
-            Headline(text: "How much do you want to keep?", size: .m).padding(.top, 18)
+            Headline(text: "How much do you want to keep?").padding(.top, 18)
             VStack(spacing: Tokens.Space._4) {
                 if model.offline, model.isBlocked {
                     Card { InlineError(text: NoConnectionView.copy) }

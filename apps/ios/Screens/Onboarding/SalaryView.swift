@@ -15,27 +15,29 @@ struct SalaryView: View {
 
     var body: some View {
         Screen {
-            BackRow(label: "Step 3 of 4", back: onBack)
-            Headline(text: "Your monthly salary", size: .m).padding(.top, 18)
             ScrollView {
-                VStack(spacing: Tokens.Space._4) {
-                    Card {
-                        if model.offline {
-                            InlineError(text: NoConnectionView.copy)
+                VStack(alignment: .leading, spacing: 0) {
+                    BackRow(label: "Step 3 of 4", back: onBack)
+                    Headline(text: "Your monthly salary").padding(.top, 18)
+                    VStack(spacing: Tokens.Space._4) {
+                        Card {
+                            if model.offline {
+                                InlineError(text: NoConnectionView.copy)
+                            }
+                            AmountField(
+                                label: "Amount, after tax",
+                                currency: model.currency,
+                                digits: model.digits,
+                                amount: $model.amount
+                            )
                         }
-                        AmountField(
-                            label: "Amount, after tax",
-                            currency: model.currency,
-                            digits: model.digits,
-                            amount: $model.amount
-                        )
+                        Card {
+                            CardTitle(text: "Payday")
+                            DayPicker(selected: model.payday, nextPaydays: model.nextPaydays, choose: model.choose)
+                        }
                     }
-                    Card {
-                        CardTitle(text: "Payday")
-                        DayPicker(selected: model.payday, nextPaydays: model.nextPaydays, choose: model.choose)
-                    }
+                    .padding(.top, 20)
                 }
-                .padding(.top, 20)
             }
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)

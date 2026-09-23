@@ -82,6 +82,7 @@ extension XCTestCase {
         XCTAssert(app.buttons[payday].isSelected, "the tapped Payday reads as chosen")
         XCTAssert(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Next paydays: '")).firstMatch.exists)
         snapshot("step-3-answered")
+        sideways(app, reaching: amount, "step-3")
         app.buttons["Next"].tap()
     }
 
@@ -107,6 +108,7 @@ extension XCTestCase {
             .press(forDuration: 0.1, thenDragTo: slider.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5)))
         XCTAssert(app.staticTexts[Self.preview(salary / 4, of: salary)].waitForExistence(timeout: 5), "live at 25%")
         snapshot("step-4-answered")
+        sideways(app, reaching: app.buttons["Done"], "step-4")
         app.buttons["Done"].tap()
     }
 
@@ -153,6 +155,35 @@ extension XCTestCase {
         XCTAssert(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on'")).firstMatch
             .exists)
         XCTAssert(app.staticTexts[greeting].exists, "Home greets the Member by name (PRD §6.8)")
+    }
+
+    /// PRD §11 "Platform": the screen held sideways, `control` reached by scrolling where the screen scrolls, a
+    /// picture, then upright again (#106).
+    @MainActor
+    func sideways(_ app: XCUIApplication, reaching control: XCUIElement, _ name: String) {
+        turn(app, to: .landscapeLeft, name)
+        var swipes = 0
+        while !control.isHittable, swipes < 4 {
+            app.swipeUp()
+            swipes += 1
+        }
+        XCTAssert(control.isHittable, "\(name): reachable held sideways")
+        snapshot("sideways-\(name)")
+        turn(app, to: .portrait, name)
+    }
+
+    /// Turns the phone and waits until the window has turned too, then for the rotation to settle.
+    @MainActor
+    private func turn(_ app: XCUIApplication, to orientation: UIDeviceOrientation, _ name: String) {
+        XCUIDevice.shared.orientation = orientation
+        let window = app.windows.firstMatch
+        let wide = orientation.isLandscape
+        let turned = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in (window.frame.width > window.frame.height) == wide },
+            object: nil
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [turned], timeout: 10), .completed, "\(name): turned")
+        _ = XCTWaiter().wait(for: [XCTestExpectation(description: "the rotation settles")], timeout: 1)
     }
 
     @MainActor

@@ -35,8 +35,8 @@ struct SignInView: View {
     }
 
     private var signIn: some View {
-        Screen {
-            Headline(text: "Your month in money.")
+        Screen(scrolls: true) {
+            Headline(text: "Your month in money.", size: .l)
             SubCopy(text: "Sign in to start your recap.").padding(.top, 10)
             Illustration(name: "ill-cover", width: 260)
             Card(underIllustration: true) {
