@@ -67,4 +67,4 @@ export function TitleOnly() {
   );
 }
 export function Pressed() { return <div style={ground}><PromptCard title="Set a saving target" helper="Pick a share of your salary to keep each month." state="pressed" /></div>; }
-export function Disabled() { return <div style={ground}><PromptCard title="Set a saving target" helper="Offline — you can look, but not log." state="disabled" /></div>; }
+export function Disabled() { return <div style={ground}><PromptCard title="Set a saving target" helper="No connection. You can look, but not log." state="disabled" /></div>; }

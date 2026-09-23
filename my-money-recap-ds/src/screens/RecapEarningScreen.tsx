@@ -17,7 +17,7 @@ export interface RecapEarningScreenProps extends MoneyProps {
   /** Saved = Money In minus Spent (D5). */
   saved?: number;
   /** Saving Target amount in currency. Pass `null` for a Member who has not set one (§6.12).
-   *  It must be `null`, not `undefined` — `undefined` is replaced by the default below. */
+   *  It must be `null`, not `undefined`: `undefined` is replaced by the default below. */
   targetAmount?: number | null;
   /** Opens Settings › Saving target from the no-target prompt. */
   onSetTarget?: () => void;

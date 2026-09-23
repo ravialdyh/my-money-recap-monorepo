@@ -19,10 +19,11 @@ and `/* */` for CSS.
 **A file is at most 300 lines.** Every text file outside `exclude` (below), whether or not the
 scanner knows its comment syntax.
 
-**No em dash in anything a Member can read.** A `—`, or an escaped one (`&mdash;`, `\u{2014}`), outside
-the comments of a Swift, Go, TypeScript, JavaScript or protobuf file, or anywhere in an HTML page, a
-`.plist`, a `.strings` or a `.xcstrings` file, is rejected: it reads as unprofessional in the app
-(owner, 2026-09-22). Comments may still use one; copy uses a full stop or a comma instead.
+**No em dash anywhere.** The character U+2014, or an escaped one (the HTML entity, or a `\u` escape of 2014),
+is rejected in every tracked text file: code, comments, documents, canvases, and the paths `exclude` lists below,
+which the other rules skip. Only this checker and its tests may name it. First for the app's copy (owner,
+2026-09-22), then for everything (owner, 2026-09-23): use a full stop, a comma or a colon instead. An en dash in a
+range such as `1–31` is fine.
 
 **A comment is either a directive or a docstring on a declaration. Nothing else survives.**
 
@@ -30,9 +31,9 @@ Concretely, all of these are rejected:
 
 | Rejected | Instead |
 | --- | --- |
-| A comment attached to no declaration — a file header, a section banner, a stray note | Delete it. If it carries a decision, the decision belongs in a README or in `docs/`. |
+| A comment attached to no declaration: a file header, a section banner, a stray note | Delete it. If it carries a decision, the decision belongs in a README or in `docs/`. |
 | A trailing comment after code on the same line | Delete it, or rename the thing it was explaining. `const field = useRef() // the padded row` became `const paddedRow = useRef()`. |
-| A comment inside a function body | Name the code. Extract the step into a function whose name says what the comment said — `lockMigrationLedger`, `daysRemainingInclusive`. |
+| A comment inside a function body | Name the code. Extract the step into a function whose name says what the comment said: `lockMigrationLedger`, `daysRemainingInclusive`. |
 | A Python module docstring | The file's name and its code say what it is. |
 | A docstring over 255 characters | State the contract; put the reasoning in the nearest README. |
 | `TODO`, `FIXME`, `XXX`, `HACK`, `WIP` | Open a GitHub issue. A tag in the source has no owner and no date. |
@@ -54,15 +55,15 @@ deliberately short, and every entry is there because deleting it breaks somethin
 | --- | --- |
 | `#!/bin/sh` and the other shebangs | `execve` fails with `ENOEXEC`. pre-commit reads the shebang itself to build the command, so deleting the one in `tools/hooks/if-installed.sh` kills the gofmt, golangci-lint, swiftformat, swiftlint, hadolint and buf-lint hooks at once. Two pre-commit hooks also enforce it both ways. |
 | `// swift-tools-version:` | SwiftPM cannot load `packages/contract/swift/Package.swift` at all. |
-| `//go:embed` | It **is** the migration bundle. `internal/members` still compiles and still vets without it — the `embed.FS` is simply empty, `ReadDir` fails at run time, `members-migrate` exits 1, and the Compose stack never comes up. CI catches it, but only at the integration step. |
+| `//go:embed` | It **is** the migration bundle. `internal/members` still compiles and still vets without it: the `embed.FS` is simply empty, `ReadDir` fails at run time, `members-migrate` exits 1, and the Compose stack never comes up. CI catches it, but only at the integration step. |
 | `//go:build`, `// +build` | Build constraints; the file silently joins or leaves the build. |
 | `# shellcheck disable=SC1091` | `infra/compose/a10-smoke.sh` sources `.env`, which is git-ignored and absent at lint time. The shellcheck hook fails without the waiver. |
 | `//nolint`, `// swiftlint:`, `// swiftformat:`, `@ts-expect-error`, `eslint-disable`, `biome-ignore`, `prettier-ignore`, `c8/v8/istanbul ignore` | Linter waivers. `.golangci.yml` sets `nolintlint` to require both an explanation and a specific linter, so a bare `//nolint` is already rejected by golangci-lint. |
 | `# syntax=`, `# escape=`, `# hadolint ignore=` | Docker parser directives; the first two change how the Dockerfile is parsed. |
 | `# type:`, `# noqa`, `# pragma:`, `# mypy:`, `# ruff:` | Python tool waivers. |
-| `# vN` after `uses: owner/action@<sha>` | Dependabot maintains these alongside the pin. Strip them and Dependabot's next PR puts them back, which the policy would then reject — a loop no commit can leave. |
+| `# vN` after `uses: owner/action@<sha>` | Dependabot maintains these alongside the pin. Strip them and Dependabot's next PR puts them back, which the policy would then reject, a loop no commit can leave. |
 
-A comment that merely restates the code is out of scope for the hook — no linter can see it. That one
+A comment that merely restates the code is out of scope for the hook: no linter can see it. That one
 is a review concern.
 
 ## What is skipped, and how
@@ -70,21 +71,21 @@ is a review concern.
 Three mechanisms, in this order. None of them repeats another.
 
 **No known comment syntax** skips the comment rules, not the cap: an HTML page, a JSON fixture or a
-`.tf` file is still held to 300 lines. `.html` has no syntax on purpose — a page mixes `<!-- -->`
+`.tf` file is still held to 300 lines. `.html` has no syntax on purpose: a page mixes `<!-- -->`
 with `//` and `/* */` inside `<script>` and `<style>`, which one syntax per extension cannot scan. A
 file that is not UTF-8 text, a PNG, is skipped outright.
 
 **The generated-file header.** A file with `Code generated by`, `@generated`, `DO NOT EDIT`,
 `Do not edit by hand` or `Generated from` **inside a comment** in its first five lines is skipped:
 everything buf writes, plus `Tokens.swift`, `css.generated.ts` and `illustrations.ts`. The marker has
-to be in a comment, not merely somewhere in the first five lines — otherwise a string literal like
+to be in a comment, not merely somewhere in the first five lines; otherwise a string literal like
 `const helpText = "Ask before you DO NOT EDIT the ledger"` would exempt its whole file, which is a
 bypass the earlier substring match allowed. A file with no comment syntax cannot carry the marker,
 so a generated one of those goes in `exclude`.
 
 **`exclude`**, which holds four kinds of path:
 
-- `my-money-recap/**` (the illustration pipeline — one-off tooling, not shipped code),
+- `my-money-recap/**` (the illustration pipeline: one-off tooling, not shipped code),
   `my-money-recap-ds/.design-sync/**` (owned by the design-sync tool) and `docs/**`.
 - Files a tool rewrites and nobody can shorten by hand: `package-lock.json`, `*/go.sum`,
   `*/.terraform.lock.hcl`, and `*.xcodeproj/*` (the Xcode project, its scheme and

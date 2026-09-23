@@ -62,7 +62,7 @@ what is its own.
 | Variable | Serve | Migrate | Meaning |
 | --- | --- | --- | --- |
 | `<NAME>_DATABASE_URL` | required | required | `postgres://<name>:<password>@postgres:5432/<name>`; each role reaches only its own database (A9). Compose passes it as `<NAME>_DATABASE_URL_FILE`, `/run/secrets/<name>_database_url`; the plain form is what a local `go run` uses. |
-| `<NAME>_OIDC_ISSUER` | required | — | The `iss` Keycloak stamps into tokens, as `BFF_OIDC_ISSUER` (`backend/cmd/bff/README.md`). |
-| `<NAME>_OIDC_JWKS_URL` | required | — | Where this process fetches the signing keys, as `BFF_OIDC_JWKS_URL`. |
-| `<NAME>_OIDC_AUDIENCE` | `bff` | — | The `aud` a token must carry. |
-| `<NAME>_LISTEN` | `:8080` | — | Listen address. |
+| `<NAME>_OIDC_ISSUER` | required | none | The `iss` Keycloak stamps into tokens, as `BFF_OIDC_ISSUER` (`backend/cmd/bff/README.md`). |
+| `<NAME>_OIDC_JWKS_URL` | required | none | Where this process fetches the signing keys, as `BFF_OIDC_JWKS_URL`. |
+| `<NAME>_OIDC_AUDIENCE` | `bff` | none | The `aud` a token must carry. |
+| `<NAME>_LISTEN` | `:8080` | none | Listen address. |

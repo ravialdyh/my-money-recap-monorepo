@@ -6,7 +6,7 @@ export function Default() {
   return <div style={ground}><Card><DataRow icon={<Icon name="paw" />} iconTone="violet" label="September 2026" amount="Squirrel" /></Card></div>;
 }
 /**
- * Pressed is a 4% ink wash, no scale and no brightness shift — a row in a list must not shrink while
+ * Pressed is a 4% ink wash, no scale and no brightness shift: a row in a list must not shrink while
  * its neighbours hold still. Shown inside the list it lives in, because alone in a card the wash has
  * no siblings to read against and looks like a nested panel rather than a highlighted row.
  */

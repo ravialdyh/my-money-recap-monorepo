@@ -20,7 +20,7 @@ export interface AmountFieldProps {
 /**
  * Currency-aware amount entry: a TextField with a fixed symbol and the Currency's decimals, both from the
  * platform formatter. The value is Fredoka 48px, or 36 / 28px when the symbol plus value does not fit the
- * field (PRD §11, D71) — measured, not counted.
+ * field (PRD §11, D71), measured, not counted.
  */
 export function AmountField({ value, currency, locale, label, helper, state = 'default', onChange }: AmountFieldProps) {
   ensureStyles();

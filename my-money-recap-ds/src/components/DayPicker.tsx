@@ -14,7 +14,7 @@ export interface DayPickerProps extends Omit<HTMLAttributes<HTMLDivElement>, 'on
   value: PaydayValue;
   onChange?: (value: PaydayValue) => void;
   /**
-   * The three formatted dates that follow `value` — `['30 Nov', '31 Dec', '31 Jan']`. This component
+   * The three formatted dates that follow `value`, as `['30 Nov', '31 Dec', '31 Jan']`. This component
    * does no calendar arithmetic: `min(Payday, days in month)` is the caller's (PRD §8.2, D51).
    * `null`, the default, removes the line.
    */

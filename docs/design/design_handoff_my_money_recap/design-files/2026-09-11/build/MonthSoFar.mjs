@@ -23,7 +23,7 @@ const p2 = col('P2 · Streak', withClose(screen('earning', `${X('ChipRow', '', `
     ${X('StreakDots', 'total="{{ n20 }}" active-range="{{ streakRange }}"', '', '100%,36px')}`, '100%,170px')}
   <div style="margin-top:18px">${X('PageDots', 'count="{{ n4 }}" active="{{ n1 }}" on-light="{{ true }}" on-select="{{ noop }}"', '', 'auto,6px')}</div>`), true), [
   'Same layout as C2 minus the compare card: with Money In 0 there is nothing to hold Kept against, so the streak is the whole screen. Streak = longest run of spend-free days inside the window (PRD §8.5). Maya signed up before September, so the window is 1–20 September on the 20th; nothing is dated 12–20 → 9 days, ≥ 7 → "New badge unlocked." The dot strip stops at today (20 dots, not 30): the app shows no day it has not observed.',
-  'The headline is the card title lifted up, so the card carries only the badge, the date range and the badge copy — the two strings SCREEN-STATES fixes. Yellow ground: the close control is ink, PageDots take onLight.',
+  'The headline is the card title lifted up, so the card carries only the badge, the date range and the badge copy, the two strings SCREEN-STATES fixes. Yellow ground: the close control is ink, PageDots take onLight.',
 ]);
 
 // P3 · spending. Before payday the target card is replaced by "Your salary lands on the 25th." (D55).
@@ -46,7 +46,7 @@ const p3 = col('P3 · Spending', withClose(screen('goal', `${X('ChipRow', '', `$
   </div>
   <div style="margin-top:18px">${X('PageDots', 'count="{{ n4 }}" active="{{ n2 }}" on-select="{{ noop }}"', '', 'auto,6px')}</div>`)), [
   'Same three-bars-plus-roll-up rule and the same Splurge card as C3 (D71). 20 September, £900 across 8 spends: Bills £500 (56%), Clothes £180 (20%), Snacks £160 (18%), Rides £40 and Other £20 rolled into one line (6%). Splurge = largest single spend, £280 phone and internet.',
-  'No percentage headline and no SubCopy — there is no target amount to score against. D55: before Payday the saving-target card is the one line "Your salary lands on the 25th." In a past partial month (situation 3) the card is omitted and the split card takes its height.',
+  'No percentage headline and no SubCopy: there is no target amount to score against. D55: before Payday the saving-target card is the one line "Your salary lands on the 25th." In a past partial month (situation 3) the card is omitted and the split card takes its height.',
 ]);
 
 // P4 · closing. No mascot, no Archetype, no Share. Pills at 40%. Line by situation.
@@ -61,7 +61,7 @@ const p4 = (label, line, notesArr) => col(label, withClose(screen('personality',
 
 const situation1 = [
   p1('P1 · Cover (preview, current month)', 'September so far', 'n900', '£900', '8 spends', [
-    'Opened from the Home preview card on 20 September (D47). StatHero "What you\'ve spent" = Spent £900; the one chip counts spends. No Money In figure anywhere — showing the full Salary would credit money the app has not observed yet (D52).',
+    'Opened from the Home preview card on 20 September (D47). StatHero "What you\'ve spent" = Spent £900; the one chip counts spends. No Money In figure anywhere: showing the full Salary would credit money the app has not observed yet (D52).',
     'Situation 1 of 3: the current month, still running. Only this headline and P4\'s closing line change between the three situations (D64); P2 and P3 are identical in all three.',
     'D46: 44pt close control top-left, `plus` rotated 45°; the chip row shifts 34pt right to clear it. PageDots are tappable.',
   ]),
@@ -80,10 +80,10 @@ const situation23 = [
     'Situation 2 closing line. October is this Member\'s first full month, so its Recap on 1 November is the first with an Archetype.',
   ]),
   p1('P1 · Cover / past month, no salary', 'Your September spending', 'n1760', '£1,760', '15 spends', [
-    'Situation 3: any past month with Money In 0 and at least one Spend — here Maya\'s September with no Salary ever set. Spent £1,760 across 15 spends.',
+    'Situation 3: any past month with Money In 0 and at least one Spend, here Maya\'s September with no Salary ever set. Spent £1,760 across 15 spends.',
   ]),
   p4('P4 · Closing / past month, no salary', 'Set your monthly salary to get a full recap.', [
-    'Situation 3 closing line. The line is a prompt, but this screen stays read-only — the Member sets the Salary in Settings.',
+    'Situation 3 closing line. The line is a prompt, but this screen stays read-only: the Member sets the Salary in Settings.',
   ]),
 ];
 

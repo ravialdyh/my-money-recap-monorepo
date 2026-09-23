@@ -1,6 +1,6 @@
 import { X, col, row, page, screen, withClose, backRow, flow, logicCommon } from './lib.mjs';
 
-const closeNote = 'D46: a 44pt close control top-left (`plus` rotated 45°) and tappable PageDots (`onSelect`). The control belongs to the pager, not the screen component — it is laid over the screen and the first chip row moves 34pt right to clear it.';
+const closeNote = 'D46: a 44pt close control top-left (`plus` rotated 45°) and tappable PageDots (`onSelect`). The control belongs to the pager, not the screen component: it is laid over the screen and the first chip row moves 34pt right to clear it.';
 
 // Row 1 · the four screens, rebuilt on the shipped components, with the close control.
 const c1 = col('C1 · Recap 1, cover', withClose(X('RecapCoverScreen', 'month="September 2026" child-name="Maya" total="{{ n2400 }}" saved="{{ n640 }}" spent="{{ n1760 }}"', '', '390px,844px')), [
@@ -10,7 +10,7 @@ const c2 = col('C2 · Recap 2, kept and streak', withClose(X('RecapEarningScreen
 const c3 = col('C3 · Recap 3, target and spending', withClose(X('RecapGoalScreen', 'saved="{{ n640 }}" target="{{ n480 }}" helper="Target met. £160 to spare." sub-copy="You kept a third more than you set out to keep." spent-total="{{ n1760 }}" categories="{{ septCats }}" splurge="£420 on a flight home. Your biggest single buy."', '', '390px,844px')), [
   `RecapGoalScreen with the close control. Three bars plus the roll-up (D71): Bills 35, Rides 26, Snacks 14, then "Clothes, Gifts, Games, Toys, Other · 25%". "£160 to spare" = Saved − target. Splurge £420 on the 27th.`]);
 const c4 = col('C4 · Recap 4, archetype', withClose(X('RecapPersonalityScreen', 'child-name="Maya" archetype="squirrel" saved="{{ n640 }}" spent="{{ n1760 }}"', '', '390px,844px')), [
-  `Close control only. Still no PageDots — this is the screenshotted screen. Squirrel: Saved £640 ≥ £480 and Streak 9 ≥ 7 (§8.6, first match wins).`]);
+  `Close control only. Still no PageDots: this is the screenshotted screen. Squirrel: Saved £640 ≥ £480 and Streak 9 ≥ 7 (§8.6, first match wins).`]);
 const c7empty = col('C7 · Past recaps / empty', screen('recap', `${backRow('Recaps')}
   <div style="margin-top:16px">${X('Headline', 'size="m"', 'Past recaps', '100%,42px')}</div>
   <div style="flex-grow:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center">
@@ -21,13 +21,13 @@ const c7empty = col('C7 · Past recaps / empty', screen('recap', `${backRow('Rec
 
 // Row 2 · variants.
 const c2NoTarget = col('C2 · Recap 2 / no target set', withClose(X('RecapEarningScreen', 'month="September" money-in="{{ n2400 }}" saved="{{ n640 }}" target-amount="{{ nullValue }}" streak-days="{{ n9 }}" streak-range="{{ septStreak }}" streak-caption="12 to 20 September. New badge unlocked." days-in-month="{{ n30 }}"', '', '390px,844px'), true), [
-  `RecapEarningScreen with targetAmount={null} — never undefined, which the default would replace. The headline drops its second sentence and the compare card becomes the target prompt.`]);
+  `RecapEarningScreen with targetAmount={null}, never undefined, which the default would replace. The headline drops its second sentence and the compare card becomes the target prompt.`]);
 const c3Missed = col('C3 · Recap 3 / target missed', withClose(X('RecapGoalScreen', 'saved="{{ n310 }}" target="{{ n480 }}" helper="£170 short of your target." sub-copy="Close, but the coat tipped it." spent-total="{{ n2090 }}" categories="{{ octCats }}" splurge="£560 on a winter coat. Your biggest single buy."', '', '390px,844px')), [
   `Close control only. October: Saved £310 ÷ £480 = 65%; "£170 short" = target − Saved. Bills 29, Clothes 28, Snacks 16, Rides 14 of £2,090; roll-up "Games, Other · 13%". Splurge £560 = 26.8% of Spent.`]);
 const c3NoSpends = col('C3 · Recap 3 / no spends', withClose(X('RecapGoalScreen', 'saved="{{ n2400 }}" target="{{ n480 }}" helper="Target met. £1,920 to spare." sub-copy="Not a single spend logged this month." spent-total="{{ n0 }}" categories="{{ emptyList }}" splurge="{{ nullValue }}"', '', '390px,844px')), [
-  `Close control, and splurge={null} on the shipped component — its own no-spends branch draws "Nothing spent this month" and hides the splurge. Saved = the whole £2,400; 2,400 ÷ 480 = 500%, the bar clamps at full.`]);
+  `Close control, and splurge={null} on the shipped component: its own no-spends branch draws "Nothing spent this month" and hides the splurge. Saved = the whole £2,400; 2,400 ÷ 480 = 500%, the bar clamps at full.`]);
 const c3NoTarget = col('C3 · Recap 3 / no target set', withClose(X('RecapGoalScreen', 'target="{{ nullValue }}" spent-total="{{ n1760 }}" categories="{{ septCats }}" splurge="£420 on a flight home. Your biggest single buy."', '', '390px,844px')), [
-  `Reachable whenever step 4 was skipped. Headline "Where £1,760 went", SubCopy dropped — there is no percentage to state. The saving-target card becomes PromptCard (136pt, the height of the card it replaces) and opens Settings › Saving target. Bars and Splurge unchanged.`,
+  `Reachable whenever step 4 was skipped. Headline "Where £1,760 went", SubCopy dropped: there is no percentage to state. The saving-target card becomes PromptCard (136pt, the height of the card it replaces) and opens Settings › Saving target. Bars and Splurge unchanged.`,
   'Drawn through the shipped RecapGoalScreen with `target={null}`, the same way C2 takes `targetAmount={null}`.']);
 const c4Variant = (label, archetype, name, saved, spent, noteText) => col(label, withClose(X('RecapPersonalityScreen', `child-name="Maya" archetype="${archetype}" saved="{{ ${saved} }}" spent="{{ ${spent} }}"`, '', '390px,844px')), [noteText]);
 const c4Treat = c4Variant('C4 · Recap 4 / Treat-Yourself', 'treatYourself', 'Maya', 'n310', 'n2090', `RecapPersonalityScreen with archetype="treatYourself". October: Saved £310 < £480 and the £560 coat is 26.8% of Spent, ≥ 25%.`);
@@ -38,7 +38,7 @@ const c4NoArchetype = col('C4 · Recap 4 / no archetype, no target', withClose(s
   <div style="flex-grow:1"></div>
   ${X('Card', 'dc-props="{{ gap14 }}"', X('CompareBars', 'rows="{{ septRows }}"', '', '100%,60px'), '100%,104px')}
   <div style="margin-top:12px;margin-left:18px;opacity:.4">${X('ArchetypeRow', '', `${X('ArchetypePill', 'archetype="squirrel"', '', 'auto,24px')}${X('ArchetypePill', 'archetype="hustler"', '', 'auto,24px')}${X('ArchetypePill', 'archetype="treatYourself"', '', 'auto,24px')}${X('ArchetypePill', 'archetype="slowBurner"', '', 'auto,24px')}`, '100%,24px')}</div>`)), [
-  `§6.14: Money In > 0 but no Saving Target, so no Archetype. PromptCard takes the mascot's place and opens Settings › Saving target; the Share button is hidden; the four pills sit at 40%. Saved vs Spent still compares — both are computable without a target.`,
+  `§6.14: Money In > 0 but no Saving Target, so no Archetype. PromptCard takes the mascot's place and opens Settings › Saving target; the Share button is hidden; the four pills sit at 40%. Saved vs Spent still compares: both are computable without a target.`,
   'The "This month, Maya, you were" line and the archetype name are omitted rather than replaced: the PRD names only the prompt for this state, so no headline copy is invented. The prompt\'s helper is the one shipped with PromptCard\'s preview.']);
 // Row 3 · share images for the other three Archetypes (1080 × 1920, shown at 50%).
 const share = (label, mascotKey, name, title, month, saved, spent, noteText) => col(`${label} <span style="color:var(--mmr-palette-ink-500)">· 1080 × 1920, shown at 50%</span>`, `<div style="width:540px;height:960px;overflow:hidden;flex:none">
@@ -61,8 +61,8 @@ const share = (label, mascotKey, name, title, month, saved, spent, noteText) => 
 </div>
 </div>`, [noteText, 'Same rule as C6: Archetype, month, Display Name, Saved and Spent only. Every mascot is capped at 620px tall inside its 720px slot (object-fit contain), so the four posters keep the name, the line and the card at the same y. That cap is what the Hustler needed.'], 540);
 const c6Hustler = share('C6 · Share image / Hustler', 'hustlerSrc', 'Maya', 'The Hustler', 'September 2026', '£640', '£1,760', `The tallest mascot. Without the 620px cap the bee pushes the stats card 180px down and the footer off the poster.`);
-const c6Treat = share('C6 · Share image / Treat-Yourself', 'treatSrc', 'Maya', 'Treat-Yourself', 'October 2026', '£310', '£2,090', `"Treat-Yourself" has no "The" — the title keeps the ARCHETYPE_TITLE form the component uses. It fits on one 168px line.`);
-const c6Slow = share('C6 · Share image / Slow Burner', 'slowburnerSrc', 'Maya', 'The Slow Burner', 'October 2026', '£310', '£2,090', `The widest title — "The Slow Burner" wraps to two lines at 168px, which is why the mascot cap matters here too.`);
+const c6Treat = share('C6 · Share image / Treat-Yourself', 'treatSrc', 'Maya', 'Treat-Yourself', 'October 2026', '£310', '£2,090', `"Treat-Yourself" has no "The": the title keeps the ARCHETYPE_TITLE form the component uses. It fits on one 168px line.`);
+const c6Slow = share('C6 · Share image / Slow Burner', 'slowburnerSrc', 'Maya', 'The Slow Burner', 'October 2026', '£310', '£2,090', `The widest title: "The Slow Burner" wraps to two lines at 168px, which is why the mascot cap matters here too.`);
 
 // Row 4 · D66 accessibility-size demonstration: the four screens as one vertical scroll.
 const dots = (i, light = false) => `<div style="margin-bottom:14px">${X('PageDots', `count="{{ n4 }}" active="{{ n${i} }}" on-select="{{ noop }}"${light ? ' on-light="{{ true }}"' : ''}`, '', 'auto,6px')}</div>`;

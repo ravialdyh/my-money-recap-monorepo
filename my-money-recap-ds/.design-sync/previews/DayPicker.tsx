@@ -38,7 +38,7 @@ export function FirstOfTheMonth() {
     </Card></div>
   );
 }
-/** `nextPaydays={null}` removes the helper line entirely — pills only, nothing below them. */
+/** `nextPaydays={null}` removes the helper line entirely: pills only, nothing below them. */
 export function NoHelperLine() {
   return (
     <div style={ground}><Card>

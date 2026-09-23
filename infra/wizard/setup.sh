@@ -77,7 +77,7 @@ key_state() {
 
 report() {
   if [ -n "$4" ]; then
-    printf '%2s  %-7s  %s — %s\n' "$1" "$2" "$3" "$4"
+    printf '%2s  %-7s  %s: %s\n' "$1" "$2" "$3" "$4"
   else
     printf '%2s  %-7s  %s\n' "$1" "$2" "$3"
   fi

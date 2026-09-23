@@ -37,7 +37,7 @@ purchase: each one can be declined and picked up later.
 `~/.config/sops/age/keys.txt`, is the path sops itself uses, so a developer may arrive holding a key
 from another project. The wizard never overwrites that key, and never overwrites an existing
 `prod.yaml` either: it derives the recipient with `age-keygen -y` and writes whichever of the two
-files step 1 owes — the creation rule, the secrets file — is still missing. Step 9 runs `ssh-keygen`
+files step 1 owes (the creation rule, the secrets file) is still missing. Step 9 runs `ssh-keygen`
 only once `prod.yaml` exists, so no private key is ever left on disk with nowhere to paste it.
 
 ## How a step is judged done
@@ -59,8 +59,8 @@ and the same attempt is what makes the seven value steps readable, so an absent 
 at. It is reported by hand and never counts toward the exit status (spec #61, testing decision 9).
 
 **The values the stack assembles for itself are checked too.** The twelve `keyset.sh stack` names
-(`infra/secrets/README.md`, "The key set") come from no step — a password chosen once, and for the
-three service databases and the broker a connection string built from it — but the deploy hands whatever they hold to the
+(`infra/secrets/README.md`, "The key set") come from no step: a password chosen once, and for the
+three service databases and the broker a connection string built from it. But the deploy hands whatever they hold to the
 machine, so a placeholder left in one reaches it. They get their own row, below the nine, and they
 count toward the exit status.
 

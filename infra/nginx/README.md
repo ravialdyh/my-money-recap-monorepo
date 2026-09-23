@@ -2,7 +2,7 @@
 
 The edge (`docs/ARCHITECTURE.md` §5, A7). One configuration file, `default.conf`, carries all four
 routes §5 names, the two static files under `html/`, and §5's Limits row. Compose mounts the file at
-`/etc/nginx/conf.d/default.conf` — the path the stock `nginx:stable` image already includes from
+`/etc/nginx/conf.d/default.conf`, the path the stock `nginx:stable` image already includes from
 inside its `http` block, which is why `limit_req_zone` and `limit_conn_zone` can be declared here
 rather than in a second file.
 
@@ -21,7 +21,7 @@ Anything else is `404`. Without that last location the image's own welcome page 
 
 `html/apple-app-site-association` has no extension, so nginx finds no type for it in `mime.types`
 and falls back to the location's `default_type`. That is how the header comes out as exactly
-`application/json`, which Apple requires, with no charset appended — the stock `nginx.conf` sets no
+`application/json`, which Apple requires, with no charset appended: the stock `nginx.conf` sets no
 `charset` directive. It is served from a `location =` with `try_files`, so there is no directory
 index and no trailing-slash redirect; Apple refuses a redirected association file
 (`docs/research/2026-09-14-setup-automation.md` §1.4). Its `appIDs` entry is
@@ -31,7 +31,7 @@ nothing writes it into this file yet: the deploy copies `html/` as it is.
 
 `html/magic.html` is the A3 web fallback page of `docs/SCREEN-STATES.md`: violet ground, an
 envelope, one sentence, no control. It is one self-contained file with no script and no request of
-its own, so tapping the link on a laptop cannot spend the login token — the token is only ever
+its own, so tapping the link on a laptop cannot spend the login token: the token is only ever
 consumed by the app's own POST to the token endpoint (PRD §11, A10). `/magic` and `/magic?lt=…`
 answer the same bytes, which `TestEdge` asserts. The envelope is drawn inline rather than served
 from `my-money-recap/assets/illustrations/`, because the deploy copies only what `compose.yaml`

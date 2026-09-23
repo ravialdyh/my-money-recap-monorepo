@@ -1,4 +1,4 @@
-# Screen states — the design contract
+# Screen states: the design contract
 
 Every screen and every state the app can be in, keyed to the ids in `design/design_handoff_my_money_recap/` so this file can be diffed against what already exists. `PRD.md` owns the rules; this file owns the states and the copy.
 
@@ -45,7 +45,7 @@ Violet ground throughout.
 | A8 | Home, first run | D43. `Streak day 1` for a member who signed up today: the streak window starts at sign-up, not the 1st. |
 | A8 | skipped | D54. The hero card keeps the `StatHero` showing Spent; the salary `PromptCard` sits below it, then the target `PromptCard`. Home scrolls in this state (D69). |
 | A8 | after payday | Money in fills, Saved chip appears, daily line shows. |
-| — | Flow · Launch to Home | Includes the A0b unlock branch and the A7-blocked edge. |
+| none | Flow · Launch to Home | Includes the A0b unlock branch and the A7-blocked edge. |
 
 ---
 
@@ -54,9 +54,9 @@ Violet ground throughout.
 | ID | State | What it must show |
 |---|---|---|
 | B1 | Home | Spent hero, Money in and Saved chips, target card, two buttons, recap list. |
-| B1 | before payday | D41. Before Money In > 0 the chip row carries only `Money in £0` — no Saved chip. Spent hero, countdown eyebrow, bar clamped at zero, `Nothing to keep yet. Your salary lands on the 25th.` |
+| B1 | before payday | D41. Before Money In > 0 the chip row carries only `Money in £0`, no Saved chip. Spent hero, countdown eyebrow, bar clamped at zero, `Nothing to keep yet. Your salary lands on the 25th.` |
 | B1 | no salary set | D54. The hero keeps the `StatHero` with Spent; the salary `PromptCard` sits below it, then the target `PromptCard`. Home scrolls in this state (D69). |
-| B1 | no target set, salary set | The hero card is entirely normal — Spent, `Money in`, `Saved`. Only the target card becomes a 136pt `PromptCard` `Set a saving target`. No daily-allowance sentence, and the Target Warning cannot fire. |
+| B1 | no target set, salary set | The hero card is entirely normal: Spent, `Money in`, `Saved`. Only the target card becomes a 136pt `PromptCard` `Set a saving target`. No daily-allowance sentence, and the Target Warning cannot fire. |
 | B1 | target warning | Coral `Banner`, dismiss × session-only, target card moves up. |
 | B1 | target warning, before payday | D53. Same `Banner`, different copy: `You've spent £2,000 of the £1,920 you meant to spend this month.` |
 | B1 | with past recaps | `DataRowList` of months, See last month enabled. |
@@ -76,7 +76,7 @@ Violet ground throughout.
 | B7 | Spend detail | Prefilled fields, destructive Delete row. |
 | B7 | spend older than 60 days | §6.10. The date row becomes read-only text with `Dates older than 60 days can't be changed.` Amount, Category and Note stay editable. |
 | B8 | Delete confirm | iOS action sheet. |
-| — | Flow · Home and the daily loop | Includes the offline branch, the month switcher and the preview entry. |
+| none | Flow · Home and the daily loop | Includes the offline branch, the month switcher and the preview entry. |
 
 ---
 
@@ -91,8 +91,8 @@ Violet ground throughout.
 | C3 | Recap 3, target and spending | `RecapGoalScreen` with the D46 chrome: three bars plus the roll-up line (D71). |
 | C3 | target missed | Coral part-full bar, `{short} short of your target.` |
 | C3 | no spends | `splurge={null}`: the split card reads `Nothing spent this month`, the splurge block is hidden. |
-| C3 | no target set | `RecapGoalScreen` with `target={null}`. Headline is `Where £1,760 went` and the `SubCopy` is dropped — there is no percentage to state. The saving-target card becomes a `PromptCard` `Set a saving target`. Bars and Splurge unchanged. |
-| C4 | Recap 4, archetype | D46 close control. Still no `PageDots` — this is the screenshotted screen. |
+| C3 | no target set | `RecapGoalScreen` with `target={null}`. Headline is `Where £1,760 went` and the `SubCopy` is dropped: there is no percentage to state. The saving-target card becomes a `PromptCard` `Set a saving target`. Bars and Splurge unchanged. |
+| C4 | Recap 4, archetype | D46 close control. Still no `PageDots`: this is the screenshotted screen. |
 | C4 | Treat-Yourself / Hustler / Slow Burner | `RecapPersonalityScreen` with the `archetype` prop; the mascot's `maxHeight` keeps the Hustler clear of the pill row. |
 | C4 | no archetype, no target | §6.14. `PromptCard` in place of the mascot: `Set a saving target to get an archetype`. Share button hidden. The four pills sit at 40%. |
 | C5 | Share sheet | iOS `UIActivityViewController`, placement only. |
@@ -100,8 +100,8 @@ Violet ground throughout.
 | C6 | Share image, Hustler / Treat-Yourself / Slow Burner | §6.15. Three more, one per Archetype. The four mascots differ in aspect ratio and the Hustler is the tallest, so each composition needs proving at 1080×1920. |
 | C7 | Past recaps | `ListRow`s newest first, current month never listed. |
 | C7 | empty | No months with data yet: a centred line `Your first recap arrives on 1 October.` and a link to the preview. |
-| — | Recap at accessibility text size | D66. One demonstration artboard: the four screens as a single vertical scroll, `PageDots` as section markers. Not four artboards — one, showing the rule. |
-| — | Flow · Recap and share | Includes the close control, the partial-recap branch and the preview entry. |
+| none | Recap at accessibility text size | D66. One demonstration artboard: the four screens as a single vertical scroll, `PageDots` as section markers. One artboard, not four, showing the rule. |
+| none | Flow · Recap and share | Includes the close control, the partial-recap branch and the preview entry. |
 
 ---
 
@@ -112,7 +112,7 @@ Four artboards, three situations (D52, D64). The layout is identical in all thre
 | ID | What it must show |
 |---|---|
 | P1 | Cover. `StatHero` `What you've spent` = Spent. Chip `{n} spends`. **No Money In figure anywhere.** Headline by situation: `{Month} so far` · `Your first {n} days` · `Your {Month} spending`. |
-| P2 | Streak. `StreakBadge`, `StreakDots`, the streak sentence. No `CompareBars` — there is no Money In to compare against. |
+| P2 | Streak. `StreakBadge`, `StreakDots`, the streak sentence. No `CompareBars`: there is no Money In to compare against. |
 | P3 | Spending. `Where {Spent} went`, three `CategoryBar`s plus roll-up, the Splurge card. Before payday the target card is replaced by `Your salary lands on the 25th.` (D55). |
 | P4 | Closing. No mascot, no Archetype, no Share. The four `ArchetypePill`s at 40%. Line by situation: `Your recap arrives on 1 October.` · `Your first full recap arrives on 1 November.` · `Set your monthly salary to get a full recap.` |
 
@@ -130,7 +130,7 @@ White `Sheet variant="full"` on violet.
 | D1 | no salary | Both money rows read `Not set`. |
 | D1 | push denied | The Notifications row reads `Off in iOS Settings` instead of a count. |
 | D1 | offline | Offline `Banner` at top; every row that writes sits at 40%. |
-| D2 | Profile | Name field + `AvatarGrid`. Note that past recaps show the **current** name — nothing about a Recap is stored. |
+| D2 | Profile | Name field + `AvatarGrid`. Note that past recaps show the **current** name: nothing about a Recap is stored. |
 | D3 | Salary and payday | D51 `DayPicker` with `Last day` and the three-date helper. D56: a line under the payday card reading `Your new payday starts in {next month}.` |
 | D3 | which salary is this | D56. Sheet shown only when the current month's payday has passed. Two `ListRow`s: `The £2,800 I was paid on 25 September` and `My new salary, from 25 October`. Cancel returns without saving. |
 | D4 | Saving target | D65. Slider and preview, then the forward-only line `Your new target starts in {next month}.` No sheet. |
@@ -149,7 +149,7 @@ White `Sheet variant="full"` on violet.
 | D11 | Delete confirm | Typed `DELETE` enables the button. |
 | D11b | Restore account | D60. Shown after sign-in when deletion was requested under 24 hours ago. `Sheet variant="full"`, coral tint, headline `Welcome back`, body naming the deletion time and what is lost. `Keep my account` (ink) / `Continue with deletion` (secondary). |
 | D12 | Log out | iOS action sheet. |
-| — | Flow · Settings and account | Includes the which-salary sheet, the restore branch and the offline states. |
+| none | Flow · Settings and account | Includes the which-salary sheet, the restore branch and the offline states. |
 
 ---
 

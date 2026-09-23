@@ -2,18 +2,18 @@
 
 Deployment and infrastructure-as-code.
 
-- `infra/compose/` — the phase-1 `compose.yaml` that a laptop, CI and the machine all run. [`compose/README.md`](compose/README.md) lists its containers and how to start it.
-- `infra/tofu/realm/` — the `mmr` realm in OpenTofu (official `keycloak/keycloak` provider, A13): the realm, the `ios` and `bff` clients, the `login-token` scope, the custom `ios direct grant` flow, the test Member, and the Google and Apple identity providers with their secrets as Keycloak vault references. The Compose stack applies it on every `up`; the lock file covers `linux_amd64`, `linux_arm64` and `darwin_arm64`, which are CI, the one-shot container and a Mac running pre-commit.
-- `infra/secrets/` — every secret, encrypted with SOPS and an age key (A13). The repository holds the shape and no real value: the key set, the decrypt step and its proof (#66, PR #76). See [`secrets/README.md`](secrets/README.md), and "Deploying" below for what reaches the machine.
-- `infra/nginx/` — the edge (§5, A7): one configuration file with the four routes and the per-IP limits, the static `/magic` fallback page and the apple-app-site-association file. Compose mounts both read-only into `nginx:stable`, beside the `acme.sh` certificate sidecar. See [`nginx/README.md`](nginx/README.md).
-- `.github/workflows/deploy.yml` — the deploy (A15); see "Deploying" below.
-- `infra/wizard/` — the one-time script for the nine steps only a human can do (`docs/research/2026-09-14-setup-automation.md` §4), with a non-interactive check mode that reports which are done. See [`wizard/README.md`](wizard/README.md).
+- `infra/compose/`: the phase-1 `compose.yaml` that a laptop, CI and the machine all run. [`compose/README.md`](compose/README.md) lists its containers and how to start it.
+- `infra/tofu/realm/`: the `mmr` realm in OpenTofu (official `keycloak/keycloak` provider, A13): the realm, the `ios` and `bff` clients, the `login-token` scope, the custom `ios direct grant` flow, the test Member, and the Google and Apple identity providers with their secrets as Keycloak vault references. The Compose stack applies it on every `up`; the lock file covers `linux_amd64`, `linux_arm64` and `darwin_arm64`, which are CI, the one-shot container and a Mac running pre-commit.
+- `infra/secrets/`: every secret, encrypted with SOPS and an age key (A13). The repository holds the shape and no real value: the key set, the decrypt step and its proof (#66, PR #76). See [`secrets/README.md`](secrets/README.md), and "Deploying" below for what reaches the machine.
+- `infra/nginx/`: the edge (§5, A7): one configuration file with the four routes and the per-IP limits, the static `/magic` fallback page and the apple-app-site-association file. Compose mounts both read-only into `nginx:stable`, beside the `acme.sh` certificate sidecar. See [`nginx/README.md`](nginx/README.md).
+- `.github/workflows/deploy.yml`: the deploy (A15); see "Deploying" below.
+- `infra/wizard/`: the one-time script for the nine steps only a human can do (`docs/research/2026-09-14-setup-automation.md` §4), with a non-interactive check mode that reports which are done. See [`wizard/README.md`](wizard/README.md).
 
 Planned, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
 
-- `infra/tofu/` — a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root. It is #87's, and is not written until the hosting company is chosen there. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/` (#72).
+- `infra/tofu/`: a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root. It is #87's, and is not written until the hosting company is chosen there. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/` (#72).
 - `infra/compose/` grows to the full §10 set: `currency`, `otel-lgtm`, `pg-backup`.
-- `infra/pg-backup/` — the nightly `pg_dump` image.
+- `infra/pg-backup/`: the nightly `pg_dump` image.
 
 ## Deploying
 
@@ -47,8 +47,8 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
    argument each, and push them to GHCR as `ghcr.io/<owner>/<repository>/<service>:<tag>`. GHCR
    needs no account beyond the repository's own.
 5. Copy to `~/mmr` on the machine, replacing what the last deploy left: `infra/compose/compose.yaml`
-   and everything it bind-mounts relative to itself, in the same layout — `infra/compose/postgres`,
-   `infra/tofu/realm`, `infra/nginx/default.conf`, `infra/nginx/html` — then the machine's `.env`,
+   and everything it bind-mounts relative to itself, in the same layout (`infra/compose/postgres`,
+   `infra/tofu/realm`, `infra/nginx/default.conf`, `infra/nginx/html`), then the machine's `.env`,
    mode 0600, written by `infra/compose/machine-env.sh` from the decrypted values, and Keycloak's two
    vault files, `google_client_secret` and `apple_sign_in_key`, into `infra/compose/vault/` where the
    laptop keeps its placeholders. That directory is mode 0700 and the two files 0644: Keycloak runs as

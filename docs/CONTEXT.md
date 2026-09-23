@@ -55,7 +55,7 @@ The single currency an account holds all amounts in. Changing it converts every 
 _Avoid_: Locale, region
 
 **Saved**:
-The computed amount left over in a month: Money In minus the total of Spends. It is never logged directly, and it is **not shown at all while Money In is 0** — before Payday a Member is spending last month's salary, so a negative Saved would state the opposite of their real position (PRD D41).
+The computed amount left over in a month: Money In minus the total of Spends. It is never logged directly, and it is **not shown at all while Money In is 0**: before Payday a Member is spending last month's salary, so a negative Saved would state the opposite of their real position (PRD D41).
 _Avoid_: Savings, balance, leftover
 
 **Saving Target**:

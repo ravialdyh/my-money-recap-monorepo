@@ -5,7 +5,7 @@ category: Components
 Settings and Currency list rows: a `DataRow` without the `IconWell`, and a chevron or a violet check
 where the amount would be.
 
-**`ListRow` is the currency-list row — there is no `SelectRow`.** PRD §13 lists a fourth new
+**`ListRow` is the currency-list row: there is no `SelectRow`.** PRD §13 lists a fourth new
 component described as "`ListRow` anatomy without the `IconWell`, a violet check in place of the
 value". That is what `ListRow` already is: `trailing="check"` with `selected` draws the violet check
 (`palette.violet.500`), and the row has never had an icon well. Building `SelectRow` would have

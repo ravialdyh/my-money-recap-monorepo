@@ -34,7 +34,7 @@ export type StatHeroProps = StatHeroBase &
 
 /**
  * The one big number on a screen: eyebrow + Fredoka value at 80px, or 56 / 40px when the full
- * string does not fit the card (PRD §11, D71) — measured on the final value, so a count-up never
+ * string does not fit the card (PRD §11, D71), measured on the final value, so a count-up never
  * resizes mid-animation.
  */
 export function StatHero({ eyebrow, value, currency, locale, format, animate = false }: StatHeroProps) {

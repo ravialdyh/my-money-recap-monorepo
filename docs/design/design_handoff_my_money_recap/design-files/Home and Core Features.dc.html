@@ -73,7 +73,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">{{ m.dailyNote }} Days remaining counts today, so {{ m.daysLeft }} on the {{ m.dayOrd }}. The bar reads full all month because Saved starts at the whole salary on payday and only falls.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Spent is the hero number — it is the one figure that changes every day and the one the Member can act on. Money in and Saved sit as chips; Saved = Money In − Spent, computed, never logged. Tapping the hero card opens B6. "See last month" is disabled: August has no data.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Spent is the hero number: it is the one figure that changes every day and the one the Member can act on. Money in and Saved sit as chips; Saved = Money In − Spent, computed, never logged. Tapping the hero card opens B6. "See last month" is disabled: August has no data.</div>
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Month and Settings chips are controls, so they take the tappable variant: the 30 pt pill keeps its size, an invisible 44 pt hit area is added. No tab bar, no nav bar, no header title.</div>
 </div>
 </sc-if>
@@ -270,7 +270,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div>
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">System alert, drawn for placement only — iOS owns this UI. It fires once, after the first Spend is saved, and never again. Either answer returns to B1 with the new numbers already animated in.</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">System alert, drawn for placement only; iOS owns this UI. It fires once, after the first Spend is saved, and never again. Either answer returns to B1 with the new numbers already animated in.</div>
 </sc-if>
 </div>
 
@@ -300,7 +300,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">One Category, newest first; rows carry the date as a small secondary line under the note. The sub-line gives this Category's share of the month so far. Tapping a row opens B7.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Follows whichever Category was tapped in B6 — Snacks by default. Back returns to B6, not Home.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Follows whichever Category was tapped in B6, Snacks by default. Back returns to B6, not Home.</div>
 </div>
 </sc-if>
 </div>
@@ -370,7 +370,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div>
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">iOS action sheet, placement only. Editing or deleting a Spend in a past month immediately changes that month's Recap — the Recap is computed live, never stored. Confirming returns to B6 with the row gone.</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">iOS action sheet, placement only. Editing or deleting a Spend in a past month immediately changes that month's Recap: the Recap is computed live, never stored. Confirming returns to B6 with the row gone.</div>
 </sc-if>
 </div>
 
@@ -427,7 +427,7 @@ input::placeholder{color:#6B6890;font-weight:700}
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:8px">
   <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">October 27. September met its target, so the warning cannot fire there: meeting the target means Spent ≤ Salary − Target, which is the warning line. Money In £2,400, Spent £2,090, Saved £310; £2,090 − £1,920 = £170 over.</div>
-  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Fires once per month, the first time Spent passes Salary − Target (£1,920). Editing or deleting spends never un-fires it. Dismiss lasts for the session only — tap the × to try it; the target card moves up to close the gap.</div>
+  <div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Fires once per month, the first time Spent passes Salary − Target (£1,920). Editing or deleting spends never un-fires it. Dismiss lasts for the session only (tap the × to try it); the target card moves up to close the gap.</div>
 </div>
 </sc-if>
 </div>

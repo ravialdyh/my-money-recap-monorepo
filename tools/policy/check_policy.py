@@ -7,7 +7,7 @@ import re
 import subprocess
 import sys
 
-from scanner import C_FAMILY, group, scan, style_for
+from scanner import group, scan, style_for
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 CONFIG = json.loads((pathlib.Path(__file__).parent / "policy.json").read_text())
@@ -30,7 +30,7 @@ DIRECTIVE = re.compile(
 )
 
 EM_DASH = re.compile(r"\u2014|&mdash;|&#8212;|&#x2014;|\\u\{?2014\}?", re.IGNORECASE)
-PAGE_SUFFIXES = (".html", ".plist", ".strings", ".xcstrings")
+EM_DASH_NAMED_BY = ("tools/policy/check_policy.py", "tools/policy/test_policy.py")
 
 PIN = re.compile(r"^v?\d+(?:\.\d+)*$")
 TRACKER_TAG = re.compile(r"\b(?:TODO|FIXME|XXX|HACK|WIP)\b")
@@ -152,29 +152,10 @@ def _check_comments(rel, text, style, problems):
             )
 
 
-def _comment_spans(lines, comments):
-    spans = {}
-    for comment in comments:
-        first = lines[comment.line - 1]
-        start = comment.column if comment.line == comment.end_line else max(first.find("/*"), 0)
-        for number in range(comment.line, comment.end_line + 1):
-            line = lines[number - 1]
-            begin = start if number == comment.line else 0
-            close = line.find("*/", begin) if comment.marker == "/*" else -1
-            end = close + 2 if close >= 0 and number == comment.end_line else len(line)
-            spans.setdefault(number, []).append((begin, end))
-    return spans
-
-
-def _check_em_dash(rel, text, style, problems):
-    lines = text.split("\n")
-    spans = _comment_spans(lines, scan(text, style)) if style is C_FAMILY else {}
-    for number, line in enumerate(lines, 1):
-        code = list(line)
-        for begin, end in spans.get(number, ()):
-            code[begin:end] = " " * (end - begin)
-        if EM_DASH.search("".join(code)):
-            problems.append(f"{rel}:{number} em dash in a string or a page; the app never shows one to a Member, use a full stop or a comma")
+def _check_em_dash(rel, text, problems):
+    for number, line in enumerate(text.split("\n"), 1):
+        if EM_DASH.search(line):
+            problems.append(f"{rel}:{number} em dash; use a full stop, a comma or a colon")
 
 
 def _check_python(rel, text, problems):
@@ -213,14 +194,16 @@ def check(paths):
     problems = []
     for name in paths:
         rel = _relative(ROOT / name) if not pathlib.Path(name).is_absolute() else _relative(name)
-        if _excluded(rel):
-            continue
         full = ROOT / rel
         if not full.is_file():
             continue
         try:
             text = full.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
+            continue
+        if rel not in EM_DASH_NAMED_BY:
+            _check_em_dash(rel, text, problems)
+        if _excluded(rel):
             continue
         style = style_for(rel)
         if style is not None and _generated(text, style):
@@ -230,8 +213,6 @@ def check(paths):
             _check_python(rel, text, problems)
         if style is not None:
             _check_comments(rel, text, style, problems)
-        if style is C_FAMILY or rel.endswith(PAGE_SUFFIXES):
-            _check_em_dash(rel, text, style, problems)
     return problems
 
 

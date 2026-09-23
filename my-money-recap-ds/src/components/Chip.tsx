@@ -7,7 +7,7 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   variant?: 'onGround' | 'inverse' | 'highlight';
   /**
    * Selection chip tinted by hue: the chip sits on that hue's `*.100` tint with ink text, and flips
-   * to the ink inverse fill when `selected`. This is how the eight Spend Categories are chosen —
+   * to the ink inverse fill when `selected`. This is how the eight Spend Categories are chosen:
    * pair it with `CATEGORY_TONE[category]` and the matching `Icon`.
    */
   tone?: Hue;

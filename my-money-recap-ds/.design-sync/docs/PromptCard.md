@@ -7,7 +7,7 @@ screen would otherwise show a hole: the Home hero with no Salary, the Home targe
 Saving Target, onboarding step 4 when Salary was skipped, Recap screen 4 with no Archetype, a
 Settings row that reads "Not set".
 
-**The whole card is one tap target, not the chevron.** `PromptCard` *is* the `<button>` — do not
+**The whole card is one tap target, not the chevron.** `PromptCard` *is* the `<button>`: do not
 wrap it in one, and do not put a control inside it. Because a `<button>` may not contain an `<h2>`
 or a `<p>`, it renders `Eyebrow`, `CardTitle` and `HelperText` in their `as="span"` form; the drawn
 result is identical to the same three inside a plain `Card`.
@@ -16,10 +16,10 @@ result is identical to the same three inside a plain `Card`.
 card's height and the layout does not jump when the Member fills it in. The height is measured from
 the card it replaces as drawn on this screen, never assumed (PRD D71): the pound Home hero is 191pt,
 the rupiah one 233pt because its stat chips wrap (D45), the Home target card 136pt. Omit `height`
-where there is nothing to stand in for — a Settings row, Recap screen 4 — and the card hugs its
+where there is nothing to stand in for (a Settings row, Recap screen 4) and the card hugs its
 content.
 
-**`eyebrow` and `helper` take `null` to remove them**, and `null` is the default — so a card with
+**`eyebrow` and `helper` take `null` to remove them**, and `null` is the default, so a card with
 neither is `<PromptCard title="…" />` and a card with both names them explicitly.
 
 ```tsx
