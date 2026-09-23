@@ -42,6 +42,9 @@ message HomeView {
   repeated RecapMonth recap_months = 13;
   // ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
   string first_recap_on = 14;
+  // How many decimals the Currency has, as Profile.currency_digits: the Log
+  // a spend amount field allows exactly this many (PRD §6.9).
+  int32 currency_digits = 15;
 }
 
 // One month's Recap as the phone stores it (I4): ledger's Recap for the full

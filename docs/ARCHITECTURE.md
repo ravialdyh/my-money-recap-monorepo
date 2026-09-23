@@ -192,7 +192,7 @@ Before the fan-out, a Member who has not answered onboarding's steps 1 and 2 get
 
 ### 6.2 Flow: LogSpend
 
-1. The phone sends `LogSpend` with an `Idempotency-Key` it generated when the sheet opened. Every write RPC in this document carries one; `LogSpend` is the worked example.
+1. The phone sends `LogSpend` with an `Idempotency-Key`, one per save attempt: a retry of the same values sends the same key, and changed values a new one (IOS I3). Every write RPC in this document carries one; `LogSpend` is the worked example.
 2. The BFF verifies the JWT, checks the per-Member limit, and looks up the key in Redis. A hit returns the stored response without touching `ledger`.
 3. The BFF calls `ledger.LogSpend(key, …)`. Ledger looks up `member_facts`; on a miss (the Spend arrived before `members.created` was consumed) it calls `members.GetProfile` once and upserts, and if that fails it returns a retryable error. It validates D57 and §8.10 in the Member's zone, then in one transaction writes the Spend with the key under the unique `(member_id, idempotency_key)`, the outbox row, and recomputes the month. A duplicate key returns the original Spend's `MonthSummary`, not an error. The response includes `crossed_line`, computed here against the §8.8 line, so no other service does that arithmetic.
 4. The BFF calls `notify.EvaluateWarning(month, crossed_line, warning)` with a 300 ms timeout, `warning` being ledger's §8.8 copy. Notify stamps `month_flag` with that copy if `crossed_line` and no stamp exists, and returns the warning state. On timeout the BFF continues without that month's banner; the event path below will stamp it a second later. `notify` can be down and a Member can still record a coffee.

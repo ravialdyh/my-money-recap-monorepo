@@ -28,6 +28,7 @@ type fakeLedger struct {
 	gotSalary  *moneyrecapv1.SaveSalaryRequest
 	gotTarget  *moneyrecapv1.SaveTargetRequest
 	gotRelabel *moneyrecapv1.RelabelCurrencyRequest
+	gotSpend   *moneyrecapv1.LogSpendRequest
 	settings   int
 	gotMonth   string
 }
@@ -81,6 +82,14 @@ func (f *fakeLedger) RelabelCurrency(_ context.Context, req *connect.Request[mon
 		f.salary.Amount = &moneyrecapv1.Money{Amount: f.salary.Amount.Amount, CurrencyCode: req.Msg.CurrencyCode}
 	}
 	return connect.NewResponse(&moneyrecapv1.RelabelCurrencyResponse{Settings: &moneyrecapv1.LedgerSettings{Salary: f.salary, CurrencyCode: req.Msg.CurrencyCode}}), nil
+}
+
+func (f *fakeLedger) LogSpend(_ context.Context, req *connect.Request[moneyrecapv1.LogSpendRequest]) (*connect.Response[moneyrecapv1.LogSpendResponse], error) {
+	f.gotSpend, f.gotToken = req.Msg, req.Header().Get("Authorization")
+	if f.err != nil {
+		return nil, f.err
+	}
+	return connect.NewResponse(&moneyrecapv1.LogSpendResponse{Spend: &moneyrecapv1.Spend{Id: "s-1", Amount: req.Msg.Amount, Date: req.Msg.Date}, Month: zeroMonth()}), nil
 }
 
 // ledgerClient serves f the way the BFF reaches the real ledger: over Connect, forwarding the caller's token.

@@ -105,6 +105,7 @@ final class SignInUITests: XCTestCase {
         assertHomeAtZero(app, greeting: "Hi, Maya", currency: "IDR", salary: true, target: 3_750_000)
         snapshot("07-home-at-zero-signed-in-by-link")
         sideways(app, reaching: app.buttons["Log a spend"], "home")
+        logASpend(app, rupiah: 25000)
 
         app.terminate()
         app.launch()
@@ -124,6 +125,41 @@ final class SignInUITests: XCTestCase {
             "a Member who finished setup reaches Home from the stored answer with no signal (PRD D61, spec #92)"
         )
         snapshot("09-bff-unreachable-snapshot-still-shown")
+    }
+}
+
+extension SignInUITests {
+    /// PRD §6.9 / SCREEN-STATES B2 to B4: Save off while empty, the amount, one Category, today's date row and its
+    /// picker, a note, the sheet sideways, then Save closes it and the hero shows the Spent the BFF answered.
+    func logASpend(_ app: XCUIApplication, rupiah amount: Int) {
+        app.buttons["Log a spend"].tap()
+        let field = app.textFields["Amount"]
+        XCTAssert(field.waitForExistence(timeout: 10), "Log a spend opens its sheet")
+        XCTAssertFalse(app.buttons["Save"].isEnabled, "B2 empty: Save disabled")
+        snapshot("10-log-a-spend-empty")
+        field.tap()
+        field.typeText(String(amount))
+        let snacks = app.buttons.matching(NSPredicate(format: "label ==[c] 'Snacks'")).firstMatch
+        snacks.tap()
+        XCTAssert(snacks.isSelected, "the tapped Category reads as chosen")
+        let date = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Date' AND label CONTAINS 'Today, '"))
+            .firstMatch
+        XCTAssert(date.exists, "the date defaults to today")
+        date.tap()
+        XCTAssert(app.staticTexts["You can log up to 60 days back, never ahead."].waitForExistence(timeout: 5))
+        XCTAssert(app.datePickers.firstMatch.exists, "B4 the wheel picker")
+        snapshot("11-log-a-spend-date-picker")
+        date.tap()
+        let note = app.textFields["Note"]
+        note.tap()
+        note.typeText("Kopi susu\n")
+        XCTAssert(app.buttons["Save"].isEnabled, "B3 filled")
+        snapshot("12-log-a-spend-filled")
+        sideways(app, reaching: app.buttons["Save"], "log-a-spend")
+        app.buttons["Save"].tap()
+        XCTAssert(app.staticTexts[Self.rupiah(amount)].waitForExistence(timeout: 30), "the hero shows the new Spent")
+        XCTAssertFalse(field.exists, "the sheet closed")
+        snapshot("13-home-after-a-spend")
     }
 }
 

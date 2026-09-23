@@ -2,10 +2,12 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// PRD §6.8 / SCREEN-STATES B1 at zero: the hero, the target card filled or its prompt, and the salary prompt while no
-/// Salary is set (D54, D69). The prompts open steps 3 and 4 (`open`); the chips and Log a spend navigate nowhere yet.
+/// PRD §6.8 / SCREEN-STATES B1: the hero, the target card filled or its prompt, and the salary prompt while no Salary
+/// is set (D54, D69). The prompts open steps 3 and 4 (`open`), Log a spend its sheet (§6.9); the chips nothing yet.
 struct HomeView: View {
     @State private var model: HomeViewModel
+    @State private var logging: LogSpendViewModel?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var open: (Int) -> Void = { _ in }
 
     /// The launch sends the zone (`LaunchView`); Home asks only for itself, once more after the interceptor refreshes
@@ -19,7 +21,9 @@ struct HomeView: View {
         let client = BffClient.make(session: session)
         self.init(model: HomeViewModel(fetch: {
             try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
-        }, context: context, onboardingNeeded: onboardingNeeded))
+        }, context: context, onboardingNeeded: onboardingNeeded, logSpend: { request, headers in
+            await BffClient.retried(session) { await client.logSpend(request: request, headers: headers) }.result
+        }))
         self.open = open
     }
 
@@ -50,7 +54,22 @@ struct HomeView: View {
             }
             .scrollIndicators(.hidden)
         }
+        .contentTransition(reduceMotion ? .opacity : .numericText())
         .task { await model.refresh() }
+        .sheet(item: $logging) { sheet in
+            LogSpendView(model: sheet) { home in
+                logging = nil
+                withAnimation(reveal) { model.replace(with: home) }
+            }
+        }
+    }
+
+    /// `motion.reveal.number` for the numbers a save changed; with Reduce Motion, the 150 ms fade.
+    private var reveal: Animation {
+        reduceMotion
+            ? .easeInOut(duration: Tokens.Motion.Duration.reduced)
+            : .timingCurve(Tokens.Motion.Easing.standard, duration: Tokens.Motion.Duration.revealNumber)
+            .delay(Tokens.Motion.Duration.revealNumberDelay)
     }
 
     @ViewBuilder
@@ -63,17 +82,11 @@ struct HomeView: View {
             }
         }
         Card(minHeight: Tokens.Size.homeHeroCard) {
-            StatHero(eyebrow: model.heroEyebrow, value: Money.format(home.spent.amount, currency: home.currencyCode))
-            HStack(spacing: 8) {
-                StatChip(
-                    tone: .earned,
-                    text: "Money in \(Money.format(home.moneyIn.amount, currency: home.currencyCode))"
-                )
+            StatHero(eyebrow: model.heroEyebrow, value: model.money(home.spent))
+            StatChipRow {
+                StatChip(tone: .earned, text: "Money in \(model.money(home.moneyIn))")
                 if model.showsSavedChip {
-                    StatChip(
-                        tone: .saved,
-                        text: "Saved \(Money.format(home.saved.amount, currency: home.currencyCode))"
-                    )
+                    StatChip(tone: .saved, text: "Saved \(model.money(home.saved))")
                 }
             }
         }
@@ -94,7 +107,7 @@ struct HomeView: View {
                 height: Tokens.Size.homeTargetCard
             ) { open(4) }
         }
-        MMRButton(title: "Log a spend", icon: "plus") {}
+        MMRButton(title: "Log a spend", icon: "plus") { logging = model.logSheet() }
         MMRButton(title: "See last month", variant: .secondary) {}
             .disabled(home.recapMonths.isEmpty)
         if home.recapMonths.isEmpty {
@@ -113,19 +126,32 @@ struct HomeView: View {
     /// PRD §6.8 target card: "{Saved} of {target amount}", the bar filled by Saved, and ledger's §8.7 sentence.
     private func target(_ home: MoneyRecap_V1_HomeView) -> some View {
         Card(minHeight: Tokens.Size.homeTargetCard) {
-            HStack(alignment: .firstTextBaseline) {
-                CardTitle(text: "Saving target")
-                Spacer()
-                Text(model.targetProgress ?? "")
-                    .textStyle(Tokens.TypeRamp.labelM)
-                    .monospacedDigit()
-                    .foregroundStyle(Tokens.Text.secondary)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline) {
+                    CardTitle(text: "Saving target")
+                    Spacer()
+                    progress
+                }
+                VStack(alignment: .leading, spacing: Tokens.Space._1) {
+                    CardTitle(text: "Saving target")
+                    progress
+                }
             }
             ProgressBar(fraction: model.targetFraction, tone: .green)
             Text(home.savingTarget.progressSentence)
                 .textStyle(Tokens.TypeRamp.bodyS)
                 .foregroundStyle(Tokens.Text.secondary)
         }
+    }
+
+    /// "{Saved} of {target amount}", one line; beside the title while both fit, under it otherwise (X3).
+    private var progress: some View {
+        Text(model.targetProgress ?? "")
+            .textStyle(Tokens.TypeRamp.labelM)
+            .monospacedDigit()
+            .lineLimit(1)
+            .fixedSize()
+            .foregroundStyle(Tokens.Text.secondary)
     }
 
     /// PRD §6.19 first load: both cards at their filled heights with `ink.100` blocks in place of numbers. No spinner.
