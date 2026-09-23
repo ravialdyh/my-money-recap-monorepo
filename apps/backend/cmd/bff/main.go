@@ -37,8 +37,8 @@ func run() error {
 	if err := env.Err(); err != nil {
 		return err
 	}
-	limit := redis.NewClient(&redis.Options{Addr: redisAddr})
-	defer func() { _ = limit.Close() }()
+	cache := redis.NewClient(&redis.Options{Addr: redisAddr})
+	defer func() { _ = cache.Close() }()
 	verifier := auth.NewVerifier(ctx, issuer, jwks, audience)
 	svc := &bff.Service{
 		Members: moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, membersURL, connect.WithInterceptors(auth.Forward())),
@@ -48,11 +48,11 @@ func run() error {
 			Realm:        realm,
 			ClientSecret: clientSecret,
 			LinkBase:     linkBase,
-			Limit:        bff.RedisLimiter{Client: limit},
+			Limit:        bff.RedisLimiter{Client: cache},
 			Mail:         moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, notifyURL),
 		},
 	}
 	mux := http.NewServeMux()
-	mux.Handle(moneyrecapv1connect.NewBffServiceHandler(svc, connect.WithInterceptors(verifier.Interceptor(), bff.MemberLimit(bff.RedisLimiter{Client: limit}))))
+	mux.Handle(moneyrecapv1connect.NewBffServiceHandler(svc, connect.WithInterceptors(verifier.Interceptor(), bff.MemberLimit(bff.RedisLimiter{Client: cache}), bff.Replay(cache))))
 	return serve.Run(ctx, "bff", listen, mux, nil)
 }

@@ -21,7 +21,7 @@ var ErrReused = errors.New("idempotency_key was already used for a different req
 // repeat replays the stored answer, a key reused for another request is ErrReused, and keys over a
 // day old (§4.4) are swept first.
 func Write(ctx context.Context, db *pgxpool.Pool, memberID, key string, req, answer proto.Message, write func(pgx.Tx) error) error {
-	sum, err := requestHash(req)
+	sum, err := RequestHash(req)
 	if err != nil {
 		return err
 	}
@@ -55,9 +55,9 @@ func Write(ctx context.Context, db *pgxpool.Pool, memberID, key string, req, ans
 	})
 }
 
-// requestHash identifies a request by its message name and deterministic bytes, so the same key on two
+// RequestHash identifies a request by its message name and deterministic bytes, so the same key on two
 // different calls, or on one call with other values, cannot pass for a retry.
-func requestHash(req proto.Message) ([]byte, error) {
+func RequestHash(req proto.Message) ([]byte, error) {
 	b, err := proto.MarshalOptions{Deterministic: true}.Marshal(req)
 	if err != nil {
 		return nil, err

@@ -58,6 +58,17 @@ request is `resource_exhausted` before any service is called. That one fails ope
 answer within a quarter of a second the request goes on uncounted and a log line records it, so a cache
 that is down never locks a Member out of their money (§4.4, A6).
 
+Redis also answers a retried Member write (#127), after the per-Member limit has counted it. `SetTimezone`,
+`SaveProfile`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend`, `EditSpend` and `DeleteSpend` are
+listed in `internal/bff/replay.go`, and a write is covered by being listed there. A successful answer is kept
+24 hours under `idem:<subject>:<Idempotency-Key>`, its bytes after the request hash `internal/idempotency`
+computes; the same key with the same request gets those bytes back and no service is called, while the same
+key with another request goes on to the owning service, which refuses it. A failed answer is never kept,
+and the handlers set no response headers, so a replay differs from the first answer in nothing. It fails
+open like the per-Member limit: each Redis call has a quarter of a second, and a miss, an error or a timeout
+sends the write to its service and logs the degraded call. The owning services' tables stay the guarantee
+(A14). `RequestMagicLink` is not covered: it has no Member.
+
 `GetHome` first calls `members.GetOrCreateBySubject` with the token's subject and `email` claim (PRD
 §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
 it again, with a one-second timeout; the Profile it answers is the one the HomeView shows. Until the
@@ -98,7 +109,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
 | `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `http://<domain>:80/magic` on the machine today and `https://<domain>/magic` once TLS arrives (#87), `http://localhost:8090/magic` on a laptop, where Nginx serves the fallback page on `NGINX_HOST_PORT` (#72). |
-| `BFF_REDIS_ADDR` | required | Redis for the two limits: `redis:6379` in Compose, `localhost:REDIS_HOST_PORT` from the host. No default, because a BFF that cannot find Redis refuses every magic-link request (§4.4); the per-Member limit lets requests through without it. |
+| `BFF_REDIS_ADDR` | required | Redis for the two limits and the idempotency fast path: `redis:6379` in Compose, `localhost:REDIS_HOST_PORT` from the host. No default, because a BFF that cannot find Redis refuses every magic-link request (§4.4); the per-Member limit and the fast path let requests through without it. |
 | `BFF_LISTEN` | `:8080` | Listen address. |
 
 ## Run
