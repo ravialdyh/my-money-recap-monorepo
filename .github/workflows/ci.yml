@@ -146,6 +146,7 @@ jobs:
       MEMBERS_TEST_BFF_CLIENT_SECRET: ci-throwaway
       BFF_TEST_URL: http://localhost:8082
       BFF_TEST_EDGE: http://localhost:8090
+      BFF_TEST_REDIS: localhost:6379
       NOTIFY_TEST_URL: http://localhost:8083
       NOTIFY_TEST_SMTP: localhost:1025
       NOTIFY_TEST_DATABASE_URL: postgres://notify:ci-throwaway@localhost:5432/notify
