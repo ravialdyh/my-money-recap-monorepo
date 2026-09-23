@@ -33,7 +33,7 @@ Concretely, all of these are rejected:
 | --- | --- |
 | A comment attached to no declaration: a file header, a section banner, a stray note | Delete it. If it carries a decision, the decision belongs in a README or in `docs/`. |
 | A trailing comment after code on the same line | Delete it, or rename the thing it was explaining. `const field = useRef() // the padded row` became `const paddedRow = useRef()`. |
-| A comment inside a function body | Name the code. Extract the step into a function whose name says what the comment said: `lockMigrationLedger`, `daysRemainingInclusive`. |
+| A comment inside a function body | Name the code. Extract the step into a function whose name says what the comment said: `lockMigrationLedger`, `daysRemaining`. |
 | A Python module docstring | The file's name and its code say what it is. |
 | A docstring over 255 characters | State the contract; put the reasoning in the nearest README. |
 | `TODO`, `FIXME`, `XXX`, `HACK`, `WIP` | Open a GitHub issue. A tag in the source has no owner and no date. |

@@ -2,8 +2,9 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Step 2 as drawn (PRD §6.5): the chosen row carries the check, a search that matches nothing draws its line and the
-/// link in place of the list, no connection is drawn in the card, and a list row checks only when chosen.
+/// Step 2 as drawn (PRD §6.5): the chosen row is checked, a search matching nothing draws its line and the link in
+/// place of the list, no connection is drawn in the card, sideways puts the question beside it, and a row checks
+/// only when chosen.
 @MainActor
 final class CurrencyViewTests: XCTestCase {
     private func step(region: String, query: String = "") -> some View {
@@ -28,6 +29,13 @@ final class CurrencyViewTests: XCTestCase {
         _ = await model.next()
         XCTAssertTrue(model.offline)
         XCTAssertNotEqual(before, picture(CurrencyView(model: model, onBack: {}, onSaved: {})))
+    }
+
+    func testSidewaysPutsTheQuestionBesideTheCard() {
+        let upright = picture(step(region: "id_ID"))
+        let sideways = picture(step(region: "id_ID").environment(\.verticalSizeClass, .compact))
+        XCTAssertNotNil(sideways)
+        XCTAssertNotEqual(upright, sideways)
     }
 
     func testAListRowChecksOnlyWhenChosen() {
