@@ -16,33 +16,63 @@ struct CurrencyView: View {
 
     var body: some View {
         Screen {
+            if height == .compact {
+                HStack(alignment: .top, spacing: Tokens.Space._8) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        header
+                        Spacer(minLength: 20)
+                        next
+                    }
+                    .frame(maxWidth: 280)
+                    card
+                }
+                .padding(.bottom, 4)
+            } else {
+                header
+                card.padding(.vertical, 20)
+                if model.noMatch != nil {
+                    Spacer(minLength: 0)
+                }
+                next
+            }
+        }
+    }
+
+    /// Held sideways, the question and Next sit beside the card, so the list keeps the height a stacked column
+    /// would spend on them (PRD §11 "Platform").
+    @Environment(\.verticalSizeClass) private var height
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 0) {
             BackRow(label: "Step 2 of 4", back: onBack)
             Headline(text: "Which currency?").padding(.top, 18)
-            Card {
-                if model.offline {
-                    InlineError(text: NoConnectionView.copy)
-                }
-                search
-                if let noMatch = model.noMatch {
-                    empty(noMatch)
-                } else {
-                    list
-                }
-            }
-            .padding(.vertical, 20)
-            if model.noMatch != nil {
-                Spacer(minLength: 0)
-            }
-            MMRButton(title: "Next", loading: model.isSaving) {
-                searching = false
-                Task {
-                    if await model.next() {
-                        onSaved()
-                    }
-                }
-            }
-            .disabled(!model.canContinue)
         }
+    }
+
+    private var card: some View {
+        Card {
+            if model.offline {
+                InlineError(text: NoConnectionView.copy)
+            }
+            search
+            if let noMatch = model.noMatch {
+                empty(noMatch)
+            } else {
+                list
+            }
+        }
+    }
+
+    private var next: some View {
+        MMRButton(title: "Next", loading: model.isSaving) {
+            searching = false
+            Task {
+                if await model.next() {
+                    onSaved()
+                }
+            }
+        }
+        .disabled(!model.canContinue)
     }
 
     /// The canvas's search pill: a magnifier and the field on the field surface, ringed violet while typing.

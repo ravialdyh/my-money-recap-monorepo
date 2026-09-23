@@ -22,7 +22,7 @@
 - [A4 · Name and avatar] Six avatars at 68 pt: Fox, Otter, Panda, Frog, Owl, Rabbit. Selected avatar gets a 2 px white ring on a violet halo.
 - [A4 · Name and avatar] AvatarGrid: 68 pt circles in a 3 × 2 grid, 88 pt hit area. Selected = 2 px white ring on a violet halo (ArchetypePill's selected treatment).
 - [A5 · Currency] GBP is preselected from the device region. One row is always selected, so Next is always enabled. Search filters by name or ISO code.
-- [A7 · Saving target] Slider 0 to 100 in steps of 5, default 20. Preview recalculates live: target% × salary from A6. If salary was skipped the preview reads "Add a salary to see the amount." Drag the knob to try.
+- [A7 · Saving target] Slider 0 to 100 in steps of 5, default 20. Preview recalculates live: target% × salary from A6. If salary was skipped the slider card is replaced by the D44 prompt back to A6 (A7 · salary skipped). Drag the knob to try.
 - [A7 · Saving target] Slider: ProgressBar track (violet tone) plus a 28 pt ink knob with a 3 px white ring; the hit area is the full 44 pt row.
 - [A7 · Saving target] Done → A8. Skip for now → A8 with the target prompt card.
 - [A1 · Sign in / loading] While the Google sheet is open: the tapped button keeps its label and swaps the G for a 20 pt spinner; the other two drop to 40%. No timeout: the provider sheet owns cancel.

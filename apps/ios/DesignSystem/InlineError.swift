@@ -3,6 +3,8 @@ import SwiftUI
 /// The app's only error surface: a block in the flow inside the card, never an overlay (PRD §6.1).
 struct InlineError: View {
     let text: String
+    /// The block's fill: coral, or white where the ground is coral itself, the restore sheet (D11b), so it still reads.
+    var well = Tokens.Surface.wellCoral
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -16,7 +18,7 @@ struct InlineError: View {
         .padding(.vertical, 12)
         .padding(.horizontal, Tokens.Space._5)
         .background(
-            Tokens.Surface.wellCoral,
+            well,
             in: RoundedRectangle(cornerRadius: Tokens.Radius.inset, style: .continuous)
         )
         .foregroundStyle(Tokens.Text.accentCoral)
