@@ -376,7 +376,7 @@ One Postgres container, five databases, five roles, each role granted only its o
 |---|---|---|---|
 | nginx | nginx:stable | 443, 80 | bff, keycloak |
 | acme | neilpang/acme.sh | — | shares the cert volume with nginx; deploy hook reloads nginx |
-| bff | built from the one Go module `apps/backend`, command `cmd/bff` (the one `Dockerfile`, `CMD=bff`) | 8080 internal | members, redis, and `ledger` and `currency` once built; it calls `notify` without waiting on it (A14) |
+| bff | built from the one Go module `apps/backend`, command `cmd/bff` (the one `Dockerfile`, `CMD=bff`) | 8080 internal | `ledger`, which waits for `members`, and redis, and `currency` once built; it calls `notify` without waiting on it (A14) |
 | members, ledger, notify, currency | built from the one Go module `apps/backend`, command `cmd/<service>` (the one `Dockerfile`, `CMD=<service>`) | 8080 internal each | postgres; rabbitmq for `members` and `ledger` since #101, and for `notify` and `currency` once they publish or consume (A4, A5); redis where §4.4 lists it |
 | keycloak | quay.io/phasetwo/phasetwo-keycloak, pinned tag (§7.5) | 8080 internal | postgres |
 | postgres | postgres:17 | 5432 internal | volume |
