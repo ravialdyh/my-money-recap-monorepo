@@ -214,7 +214,7 @@ func ordinal(d int) string {
 // for a later month, and whether this month's Payday has come, which opens the D56 sheet.
 func (l ledgerOf) settings(today time.Time) *moneyrecapv1.LedgerSettings {
 	now := monthOf(today)
-	st := &moneyrecapv1.LedgerSettings{CurrencyCode: l.cash.code, HasAmountsToConvert: len(l.salaries) > 0}
+	st := &moneyrecapv1.LedgerSettings{CurrencyCode: l.cash.code, HasAmountsToConvert: len(l.salaries)+len(l.spends) > 0}
 	if sal, ok := inForce(l.salaries, salaryFrom, now); ok {
 		st.Salary = l.salarySetting(sal)
 		st.PaydayPassedThisMonth = !today.Before(now.day(effectivePayday(sal.payday, now)))

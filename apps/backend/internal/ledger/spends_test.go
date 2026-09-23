@@ -95,6 +95,9 @@ func TestPastMonthsWithSpends(t *testing.T) {
 			{amount: big.NewRat(50, 1), date: time.Date(2026, 8, 3, 0, 0, 0, 0, time.UTC)},
 			{amount: big.NewRat(2000, 1), date: time.Date(2026, 9, 3, 0, 0, 0, 0, time.UTC)},
 		}}
+	if !(ledgerOf{cash: c, spends: l.spends}).settings(today).HasAmountsToConvert {
+		t.Error("Spends and no Salary: nothing to convert, want something (§8.9 step 2)")
+	}
 	if aug := l.summary(month{2026, time.August}, today); !aug.Partial || aug.StreakDay != 28 {
 		t.Errorf("August: %v, want partial with a 28-day Streak", aug)
 	}
