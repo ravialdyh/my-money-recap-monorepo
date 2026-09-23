@@ -3,6 +3,7 @@ package members
 import (
 	"context"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"google.golang.org/protobuf/proto"
@@ -78,5 +79,72 @@ func TestSaveProfile(t *testing.T) {
 	stored, err := Get(ctx, db, m.ID)
 	if err != nil || stored.DisplayName != "José" || stored.AvatarKey != "fox" || stored.OnboardingStep != 3 {
 		t.Fatalf("stored after the refused calls: %+v, %v", stored, err)
+	}
+}
+
+// CancelDeletion clears a stamp written straight into the row and stages members.deletion.cancelled once; a
+// replay, a Member with no stamp and a stamp past the 24 hours change nothing (D60, ARCHITECTURE §7.1 step 2).
+func TestCancelDeletionClearsAStampUnderADayOld(t *testing.T) {
+	db := testDB(t)
+	subject := "cancel-" + t.Name()
+	ctx := auth.NewContext(context.Background(), auth.Claims{Subject: subject})
+	t.Cleanup(func() {
+		if _, err := db.Exec(context.Background(), `DELETE FROM member WHERE keycloak_subject = $1`, subject); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
+	m, err := Upsert(ctx, db, subject, "cancel@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &Service{DB: db}
+	stamp := func(ago time.Duration) {
+		t.Helper()
+		if _, err := db.Exec(ctx, `UPDATE member SET deletion_requested_at = now() - $2::interval WHERE id = $1`, m.ID, ago.String()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	cancel := func(key string) (*moneyrecapv1.Profile, error) {
+		res, err := s.CancelDeletion(ctx, connect.NewRequest(&moneyrecapv1.CancelDeletionRequest{IdempotencyKey: key, MemberId: m.ID}))
+		if err != nil {
+			return nil, err
+		}
+		return res.Msg.Profile, nil
+	}
+	cancelled := func() int {
+		n := 0
+		for _, e := range outbox(t, db, m.ID) {
+			if e.key == "members.deletion.cancelled" {
+				n++
+			}
+		}
+		return n
+	}
+
+	stamp(23 * time.Hour)
+	if p, err := cancel("k1"); err != nil || p.DeletionRequestedAt != nil || p.MemberId != m.ID {
+		t.Fatalf("23 hours old: %v, %v; want the Profile with no stamp", p, err)
+	}
+	if p, err := cancel("k1"); err != nil || p.DeletionRequestedAt != nil {
+		t.Fatalf("k1 again: %v, %v", p, err)
+	}
+	if p, err := cancel("k2"); err != nil || p.DeletionRequestedAt != nil {
+		t.Fatalf("no stamp: %v, %v", p, err)
+	}
+	if n := cancelled(); n != 1 {
+		t.Errorf("%d members.deletion.cancelled staged, want 1", n)
+	}
+	stamp(25 * time.Hour)
+	if _, err := cancel("k3"); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Errorf("25 hours old: %v, want failed_precondition", err)
+	}
+	if stored, err := Get(ctx, db, m.ID); err != nil || stored.DeletionRequestedAt == nil {
+		t.Errorf("a stamp past the window was cleared: %+v, %v", stored, err)
+	}
+	if _, err := cancel(""); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Errorf("no key: %v, want invalid_argument", err)
+	}
+	if n := cancelled(); n != 1 {
+		t.Errorf("%d members.deletion.cancelled staged after the refusals, want 1", n)
 	}
 }

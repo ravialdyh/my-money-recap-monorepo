@@ -39,3 +39,23 @@ func (s *Service) SetTimezone(ctx context.Context, req *connect.Request[moneyrec
 	}
 	return connect.NewResponse(&moneyrecapv1.BffServiceSetTimezoneResponse{Profile: set.Msg.Profile}), nil
 }
+
+// CancelDeletion is "Keep my account" on the restore sheet (PRD §6.18, D60): members clears the stamp under the
+// phone's key. A stamp past the 24 hours stays failed_precondition.
+func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceCancelDeletionRequest]) (*connect.Response[moneyrecapv1.BffServiceCancelDeletionResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	kept, err := s.Members.CancelDeletion(ctx, connect.NewRequest(&moneyrecapv1.CancelDeletionRequest{IdempotencyKey: key, MemberId: profile.MemberId}))
+	if err != nil {
+		return nil, requiredCallFailed("members.CancelDeletion", connect.CodeOf(err), err)
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceCancelDeletionResponse{Profile: kept.Msg.Profile}), nil
+}

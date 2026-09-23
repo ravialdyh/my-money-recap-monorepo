@@ -355,7 +355,7 @@ Read-only. The close control and tappable `PageDots` from D46 apply.
 
 ### 6.18 Restore account (new, D60)
 
-Shown immediately after a successful sign-in when `deletion_requested_at` is within 24 hours. `Sheet variant="full"`, coral tint. Headline "Welcome back". Body names the deletion time and what will be lost. `Button` "Keep my account" clears the flag and continues to Home; `Button variant="secondary"` "Continue with deletion" signs out.
+Shown immediately after a successful sign-in when `deletion_requested_at` is within 24 hours. `Sheet variant="full"`, coral tint. Headline "Welcome back". Body names the deletion time and what will be lost, in the two lines `SCREEN-STATES.md` D11b carries. `Button` "Keep my account" clears the flag and continues to Home, or to the first unanswered onboarding step; a failure shows one `InlineError` line in the sheet with both buttons still live. `Button variant="secondary"` "Continue with deletion" signs out. No back control: the Member has to answer.
 
 ### 6.19 Loading, offline and error states (new, D49)
 

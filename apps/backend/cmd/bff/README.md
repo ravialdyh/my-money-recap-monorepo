@@ -1,7 +1,7 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
-serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `SaveSalary`, `SaveTarget` and `RequestMagicLink`; the rest of
+serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `SaveSalary`, `SaveTarget`, `CancelDeletion` and `RequestMagicLink`; the rest of
 `BffService` is planned. Every RPC but
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
@@ -45,6 +45,10 @@ as it is.
 setup save while onboarding is unfinished, then step 4 recorded in `members` under the same key, which ends
 onboarding. D44's `failed_precondition`, a Target with no Salary, records no step. After onboarding the first
 Salary or Target starts in the current month and later ones follow D56 and D65 (PRD §8.10).
+
+`CancelDeletion` (#105) is "Keep my account" on the restore sheet: `members.CancelDeletion` under the phone's
+key, whose `failed_precondition` for a stamp past the 24 hours reaches the phone as it is. The sheet itself is
+opened by the stamp in `SetTimezone`'s Profile, the launch call.
 
 Before any of that, the request is counted against its address in Redis, `ml:<address>:<hour>` with
 the address lower-cased: §4.4's magic-link rate limit, five per address per hour (PRD §11), which

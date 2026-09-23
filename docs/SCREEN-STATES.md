@@ -147,7 +147,8 @@ White `Sheet variant="full"` on violet.
 | D9 | no deliverable address | `InlineError`: `We can't reach {email}.` with a link to Profile. |
 | D10 | Delete account | Coral-100 card, explanation, coral button. |
 | D11 | Delete confirm | Typed `DELETE` enables the button. |
-| D11b | Restore account | D60. Shown after sign-in when deletion was requested under 24 hours ago. `Sheet variant="full"`, coral tint, headline `Welcome back`, body naming the deletion time and what is lost. `Keep my account` (ink) / `Continue with deletion` (secondary). |
+| D11b | Restore account | D60. Shown after sign-in when deletion was requested under 24 hours ago. `Sheet variant="full"`, coral tint, headline `Welcome back`, body naming the deletion time and what is lost. `Keep my account` (ink) / `Continue with deletion` (secondary). No back control. Built in #105; until the Settings slice builds Delete account, only a test reaches it. |
+| D11b | keep failed | `InlineError` in the sheet, above the buttons, with both buttons live: `We couldn't keep your account. Try again.` The same line for every failure, a lost connection included. |
 | D12 | Log out | iOS action sheet. |
 | none | Flow · Settings and account | Includes the which-salary sheet, the restore branch and the offline states. |
 
@@ -193,3 +194,6 @@ One string, one place. Where two screens show the same idea, they show the same 
 | No target prompt, helper | `Pick a share of your salary to keep each month.` |
 | Target preview, onboarding | `{amount} of {salary} each month` |
 | Target blocked in onboarding | `Set a salary first` |
+| Restore account, the request | `You asked us to delete this account {day} at {time}. Nothing has gone yet.` ({day} is `today` or `yesterday`) |
+| Restore account, what is lost | `Keep it and every spend, every recap and every setting stays exactly as it was. Continue and it all goes at {time} {day}, for good.` ({day} is `today` or `tomorrow`, 24 hours after the request) |
+| Restore account, keep failed | `We couldn't keep your account. Try again.` |

@@ -65,7 +65,7 @@ const d11b = col('D11b · Restore account', screen('recap', X('Sheet', 'variant=
     <div style="font:700 15px/1.45 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);text-wrap:pretty">Keep it and every spend, every recap and every setting stays exactly as it was. Continue and it all goes at 09:12 tomorrow, for good.</div>
     <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">${X('Button', '', 'Keep my account', '100%,52px')}${X('Button', 'variant="secondary"', 'Continue with deletion', '100%,52px')}</div>`, '100%,100%')), [
   `D60: shown immediately after a sign-in when deletion was requested under 24 hours ago, before Home or onboarding. Sheet variant="full" on the coral-100 tint; "Keep my account" (ink) clears the flag and continues to Home; "Continue with deletion" (secondary) signs out again. No back chevron: the Member has to answer.`,
-  'The two body lines are proposed copy: SCREEN-STATES asks for the deletion time and what is lost, and fixes the headline and the two button labels.']);
+  'The two body lines are SCREEN-STATES copy since #105, their day words following the real times; SCREEN-STATES also fixes the headline, the two button labels and the one line a failed keep shows.']);
 
 const flowD = flow('Flow · Settings and account', 1920, 1000, [
   'M156 484H298', 'M348 380C348 164 440 164 538 164', 'M396 400H677Q707 400 707 370V194Q707 164 737 164H778', 'M396 420H917Q947 420 947 390V194Q947 164 977 164H1018', 'M396 440H1157Q1187 440 1187 410V194Q1187 164 1217 164H1258',
