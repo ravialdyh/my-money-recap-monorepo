@@ -1,8 +1,8 @@
 # members
 
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
-subject. It serves `GetOrCreateBySubject` and `GetProfile` (#15), `SetTimezone` (#96) and `SaveProfile`
-(#98); the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
+subject. It serves `GetOrCreateBySubject` and `GetProfile` (#15), `SetTimezone` (#96), `SaveProfile`
+(#98) and `CancelDeletion` (#105); the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
 (`apps/README.md`, "Every service"), plus one of its own.
 
 | Variable | Default | Meaning |
@@ -57,12 +57,19 @@ keeps `onboarding_step` at the highest step ever saved, so saving an earlier ste
 and it is keyed like `SetTimezone`. Every Profile it answers carries `currency_digits`, the Currency's decimals
 from `internal/cldr`, the data `ledger` rounds with, which step 3's amount field allows (#103).
 
+`CancelDeletion` is "Keep my account" on the restore sheet (PRD §6.18, D60), keyed like `SetTimezone`: it
+clears a `deletion_requested_at` under 24 hours old and stages `members.deletion.cancelled` in the same
+transaction. With no stamp it answers the Profile and changes nothing; a stamp 24 hours old or more is
+`failed_precondition`, since the deletion is then due. Nothing sets the stamp yet: `RequestDeletion`
+arrives with the Settings slice, so the tests write it straight into the row.
+
 ## Events
 
 A first sight stages `members.created`, and a write that changes any of the facts other services copy
 (`MemberFacts`: the Display Name, zone, sign-up date, Currency and email) stages one `members.updated`
 carrying all of them, in the outbox, inside the write's own transaction (ARCHITECTURE §4.3, A4). A write
-that changes none of them stages nothing: an Avatar, a step, the same answer again, a replayed key. The
+that changes none of them stages nothing: an Avatar, a step, the same answer again, a replayed key.
+`CancelDeletion` stages `members.deletion.cancelled` the same way, which nothing consumes yet. The
 relay beside the handler polls the outbox every second, publishes with publisher confirms and marks a row
 sent only once the broker has confirmed it; `FOR UPDATE SKIP LOCKED` keeps two relays off the same row
 (`internal/events`). A relay that loses the broker logs it and dials again five seconds later.

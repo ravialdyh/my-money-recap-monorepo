@@ -8,9 +8,11 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
+	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/answers"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 )
 
@@ -100,6 +102,54 @@ func (s *Service) SaveProfile(ctx context.Context, req *connect.Request[moneyrec
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
 	if err != nil {
+		return nil, storeFailed(ctx, err)
+	}
+	return connect.NewResponse(answer), nil
+}
+
+// restoreWindow is how long after asking a Member can still keep their account (D39, D60).
+const restoreWindow = 24 * time.Hour
+
+var errWindowClosed = errors.New("the deletion request is over 24 hours old")
+
+// CancelDeletion clears a deletion stamp under restoreWindow old and publishes members.deletion.cancelled
+// (ARCHITECTURE §7.1 step 2). With no stamp it answers the Profile unchanged; an older stamp is failed_precondition.
+func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[moneyrecapv1.CancelDeletionRequest]) (*connect.Response[moneyrecapv1.CancelDeletionResponse], error) {
+	if req.Msg.IdempotencyKey == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
+	}
+	m, err := s.own(ctx, req.Msg.MemberId)
+	if err != nil {
+		return nil, err
+	}
+	answer := &moneyrecapv1.CancelDeletionResponse{}
+	err = idempotency.Write(ctx, s.DB, m.ID, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
+		before, err := locked(ctx, tx, m.ID)
+		if err != nil {
+			return err
+		}
+		answer.Profile = profile(before)
+		if before.DeletionRequestedAt == nil {
+			return nil
+		}
+		if time.Since(*before.DeletionRequestedAt) >= restoreWindow {
+			return errWindowClosed
+		}
+		after, err := scanRow(tx.QueryRow(ctx, `UPDATE member SET deletion_requested_at = NULL WHERE id = $1 RETURNING `+rowColumns, m.ID))
+		if err != nil {
+			return err
+		}
+		answer.Profile = profile(after)
+		return events.Stage(ctx, tx, m.ID, "members.deletion.cancelled", func(env *moneyrecapv1.EventEnvelope) proto.Message {
+			return &moneyrecapv1.MembersDeletionCancelled{Envelope: env}
+		})
+	})
+	switch {
+	case errors.Is(err, idempotency.ErrReused):
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	case errors.Is(err, errWindowClosed):
+		return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+	case err != nil:
 		return nil, storeFailed(ctx, err)
 	}
 	return connect.NewResponse(answer), nil

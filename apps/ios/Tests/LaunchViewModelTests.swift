@@ -60,7 +60,7 @@ final class LaunchViewModelTests: XCTestCase {
     func testAMemberHomeAlreadyGreetsOpensHomeAtOnceAndStillSendsTheZone() async {
         var zones = 0
         var asked = 0
-        let model = LaunchViewModel(greetedBefore: true, setZone: { zones += 1 }, state: {
+        let model = LaunchViewModel(greetedBefore: true, setZone: { zones += 1; return nil }, state: {
             asked += 1
             return nil
         })
@@ -71,7 +71,7 @@ final class LaunchViewModelTests: XCTestCase {
     }
 
     func testAnUnansweredStepOneOpensWithTheProvidersName() async {
-        let model = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(1, suggested: "Test") })
+        let model = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(1, suggested: "Test") })
         XCTAssertEqual(model.route, .deciding)
         await model.start()
         XCTAssertEqual(model.route, .stepOne(name: "Test", avatar: ""))
@@ -99,27 +99,27 @@ final class LaunchViewModelTests: XCTestCase {
     func testAResumeOpensTheFirstUnansweredStepWithTheSavedAnswers() async {
         let resumed = LaunchViewModel(
             greetedBefore: false,
-            setZone: {},
+            setZone: { nil },
             state: { self.state(1, name: "Maya", avatar: "otter", suggested: "Test") }
         )
         await resumed.start()
         XCTAssertEqual(resumed.route, .stepOne(name: "Maya", avatar: "otter"), "a saved name wins over the provider's")
-        let currency = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(2) })
+        let currency = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(2) })
         await currency.start()
         XCTAssertEqual(currency.route, .stepTwo(saved: ""))
         let typed = salary("15000000", "IDR")
-        let salaried = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(3, salary: typed) })
+        let salaried = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(3, salary: typed) })
         await salaried.start()
         XCTAssertEqual(salaried.route, .stepThree(currency: "IDR", digits: 0, saved: typed), "a crash after ledger")
         let kept = MoneyRecap_V1_SavingTargetSetting.with { $0.percent = 35 }
         let later = LaunchViewModel(
             greetedBefore: false,
-            setZone: {},
+            setZone: { nil },
             state: { self.state(4, salary: typed, target: kept) }
         )
         await later.start()
         XCTAssertEqual(later.route, .stepFour(salary: typed.amount, digits: 0, saved: kept), "a crash after ledger")
-        let done = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(0) })
+        let done = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(0) })
         await done.start()
         XCTAssertEqual(done.route, .home, "setup over")
     }
@@ -128,7 +128,7 @@ final class LaunchViewModelTests: XCTestCase {
     /// returns to Home, never to step 2, and with no answer Try again reopens the same step (owner 2026-09-23).
     func testHomesPromptsOpenStepsThreeAndFourAndBackReturnsHome() async {
         var next: MoneyRecap_V1_OnboardingState? = state(0)
-        let model = LaunchViewModel(greetedBefore: true, setZone: {}, state: { next })
+        let model = LaunchViewModel(greetedBefore: true, setZone: { nil }, state: { next })
         await model.start()
         await model.open(step: 3)
         XCTAssertEqual(model.route, .stepThree(currency: "IDR", digits: 0, saved: nil))
@@ -153,7 +153,7 @@ final class LaunchViewModelTests: XCTestCase {
     func testGoingBackReselectsTheSavedAnswersAndNextReturnsToStepTwo() async {
         let model = LaunchViewModel(
             greetedBefore: false,
-            setZone: {},
+            setZone: { nil },
             state: { self.state(2, name: "Maya", avatar: "otter") }
         )
         await model.start()
@@ -171,7 +171,7 @@ final class LaunchViewModelTests: XCTestCase {
     /// fills in again in the new Currency with its decimals, and a later save without a Salary keeps it (spec #92).
     func testGoingBackFromStepThreeKeepsTheSalaryRelabelled() async {
         let typed = salary("15000000", "IDR")
-        let model = LaunchViewModel(greetedBefore: false, setZone: {}, state: { self.state(3, salary: typed) })
+        let model = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(3, salary: typed) })
         await model.start()
         model.back()
         XCTAssertEqual(model.route, .stepTwo(saved: "IDR"))
@@ -194,7 +194,7 @@ final class LaunchViewModelTests: XCTestCase {
         var next: MoneyRecap_V1_OnboardingState?
         var retryingWhileAsked = false
         var model: LaunchViewModel?
-        model = LaunchViewModel(greetedBefore: false, setZone: { zones += 1 }, state: {
+        model = LaunchViewModel(greetedBefore: false, setZone: { zones += 1; return nil }, state: {
             retryingWhileAsked = model?.isRetrying ?? false
             return next
         })
@@ -212,7 +212,7 @@ final class LaunchViewModelTests: XCTestCase {
     /// stored Home greeted; with no answer, the no-connection state rather than a Home that would refuse again.
     func testARefusedHomeReopensTheUnansweredStep() async {
         var next: MoneyRecap_V1_OnboardingState? = state(2)
-        let model = LaunchViewModel(greetedBefore: true, setZone: {}, state: { next })
+        let model = LaunchViewModel(greetedBefore: true, setZone: { nil }, state: { next })
         await model.start()
         XCTAssertEqual(model.route, .home)
         await model.homeRefused()

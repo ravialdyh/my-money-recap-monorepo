@@ -27,6 +27,16 @@ type fakeMembers struct {
 	gotToken    string
 	gotZone     *moneyrecapv1.SetTimezoneRequest
 	gotProfile  *moneyrecapv1.SaveProfileRequest
+	gotCancel   *moneyrecapv1.CancelDeletionRequest
+	cancelErr   error
+}
+
+func (f *fakeMembers) CancelDeletion(_ context.Context, req *connect.Request[moneyrecapv1.CancelDeletionRequest]) (*connect.Response[moneyrecapv1.CancelDeletionResponse], error) {
+	f.gotCancel = req.Msg
+	if f.cancelErr != nil {
+		return nil, f.cancelErr
+	}
+	return connect.NewResponse(&moneyrecapv1.CancelDeletionResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId}}), nil
 }
 
 // SaveProfile writes the answers sent over the stored profile and keeps the highest step, as members does.
@@ -247,5 +257,24 @@ func TestSetTimezoneNeedsTheKeyAndCreatesTheMemberFirst(t *testing.T) {
 	}
 	if got := members.gotZone; members.gotToken != "Bearer tok" || got.IdempotencyKey != "key-1" || got.MemberId != "m-1" || got.Timezone != "Asia/Jakarta" {
 		t.Fatalf("members got token %q and %v, want the caller's token, key-1, m-1 and Asia/Jakarta", members.gotToken, got)
+	}
+}
+
+// CancelDeletion refuses a keyless call before members, hands members the key and the Member's id, and keeps
+// members' failed_precondition for a stamp past the 24 hours (D60, #105).
+func TestCancelDeletionNeedsTheKeyAndKeepsTheCode(t *testing.T) {
+	members := &fakeMembers{}
+	s := newService(t, members, StubNotify{})
+	req := connect.NewRequest(&moneyrecapv1.BffServiceCancelDeletionRequest{})
+	if _, err := s.CancelDeletion(ctx, req); connect.CodeOf(err) != connect.CodeInvalidArgument || members.gotCancel != nil {
+		t.Fatalf("no key: %v, members reached %v; want invalid_argument and no call", err, members.gotCancel != nil)
+	}
+	req.Header().Set("Idempotency-Key", "key-1")
+	if res, err := s.CancelDeletion(ctx, req); err != nil || res.Msg.Profile.MemberId != "m-1" || members.gotCancel.IdempotencyKey != "key-1" || members.gotCancel.MemberId != "m-1" {
+		t.Fatalf("CancelDeletion: %v, %v; members got %v", res, err, members.gotCancel)
+	}
+	members.cancelErr = connect.NewError(connect.CodeFailedPrecondition, errors.New("the deletion request is over 24 hours old"))
+	if _, err := s.CancelDeletion(ctx, req); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Errorf("a stamp past the window: %v, want failed_precondition", err)
 	}
 }
