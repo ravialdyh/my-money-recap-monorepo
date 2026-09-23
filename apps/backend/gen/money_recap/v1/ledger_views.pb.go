@@ -95,8 +95,8 @@ type MonthSummary struct {
 	// (PRD §8.4), so a present target always has percent above 0.
 	SavingTarget *SavingTargetFacts `protobuf:"bytes,6,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
 	// The month's Streak so far (PRD §8.5, D43): the longest spend-free run in
-	// the window to today. With no Spends it is the elapsed days, which Home
-	// prints as "Streak day {n}"; 1 on the first-run Home.
+	// the window to today. With no Spends it is the elapsed days, which the
+	// empty Spend list prints as "Streak day {n}"; 1 on the sign-up day.
 	StreakDay int32 `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
 	// Days left in the month counting today, never below 1 (PRD §8.7).
 	DaysRemaining int32 `protobuf:"varint,8,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`

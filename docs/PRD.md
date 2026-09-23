@@ -246,13 +246,13 @@ Rules
 | Ground | violet |
 | Layout, top to bottom | `ChipRow` with month chip and a Settings chip (both `tappable`); optional offline `Banner`; greeting `Headline` size m "Hi, {Display Name}" with `Avatar` at 56pt; hero `Card` `underIllustration`; optional Target Warning `Banner`; target `Card`; two `Button`s; Recap list |
 
-**Hero card (D42, D54).** `StatHero` eyebrow "Spent so far", value = **Spent**. Before the effective Payday the eyebrow extends: "Spent so far · salary lands in {n} days". `StatChipRow` beneath: `Money in {amount}` and, **only when Money In > 0**, `Saved {amount}` (D41). Tapping the hero card opens the Spend list (§6.10). With no Salary set the hero still shows Spent, and a `PromptCard` "Set your monthly salary" sits below it (D54).
+**Hero card (D42, D54).** `StatHero` eyebrow "Spent so far", value = **Spent**. Before the effective Payday the eyebrow extends: "Spent so far · salary lands in {n} days". `StatChipRow` beneath: `Money in {amount}` and, **only when Money In > 0**, `Saved {amount}` (D41). Tapping the hero card opens the Spend list (§6.10). With no Salary set the hero still shows Spent, and a `PromptCard` sits below it (D54): `Eyebrow` "Salary", "Set your monthly salary", helper "We'll show what you kept once we know what came in." It opens onboarding step 3 (§6.6), which leads on to step 4; back returns to Home.
 
 **Why the Saved chip is hidden before Payday (D41).** A Member paid on the 25th spends the first three weeks of the month from last month's salary. Money In is 0, so Saved computes to a negative number, and showing `Saved −£900` on a green chip states the opposite of the Member's actual position. Spent and Money In together already say everything true.
 
-**Target card.** `CardTitle` "Saving target", right-aligned "{Saved} of {target amount}". `ProgressBar` value = Saved (clamped at 0), max = target amount. `HelperText` = one sentence from §8.7. No Spends this month: "Nothing spent yet. Streak day {n}."
+**Target card.** `CardTitle` "Saving target", right-aligned "{Saved} of {target amount}". `ProgressBar` value = Saved (clamped at 0), max = target amount. `HelperText` = one sentence from §8.7, which before Payday, the Member's first included, is "Nothing to keep yet. Your salary lands on the {payday}." "Nothing spent yet. Streak day {n}." is the empty Spend list's line (SCREEN-STATES B6), not this card's.
 
-**Target card, no Saving Target set.** The whole card becomes a `PromptCard` "Set a saving target" at the same 136pt height. The daily-allowance sentence is omitted (it is derived from the target amount) and the Target Warning cannot fire (§8.8). The hero card is unaffected: Spent, Money In and Saved are all computable without a target.
+**Target card, no Saving Target set.** The whole card becomes a `PromptCard` "Set a saving target", helper "Pick a share of your salary to keep each month.", at the same 136pt height. It opens onboarding step 4 (§6.7); back returns to Home. The daily-allowance sentence is omitted (it is derived from the target amount) and the Target Warning cannot fire (§8.8). The hero card is unaffected: Spent, Money In and Saved are all computable without a target.
 
 **Month chip.** Tappable. It opens the Spend list at the month switcher (§6.10, D59), which is the only place in the app where a Member changes which month they are looking at.
 
@@ -372,8 +372,8 @@ Amounts are exact decimals (`NUMERIC`, never a float or an integer count of mino
 | Entity | Fields | Notes |
 |---|---|---|
 | Member | id, keycloak_subject, email, display_name, avatar_key (one of six), currency_code, **timezone**, **created_at**, **signed_up_on**, **deletion_requested_at**, deleted_at, onboarding_step | One per Keycloak user. `email` is the token's OIDC `email` claim, saved on first sign-in and refreshed on each; it is where the magic link and the CSV export are addressed. `created_at` is load-bearing: it bounds the Streak (D43) and identifies the sign-up month (D52). `deletion_requested_at` drives D60; `deleted_at` is the tombstone the 24-hour deletion job sets (§9; `ARCHITECTURE.md` §7.1). `onboarding_step` records onboarding progress (§6.4). `timezone` is an IANA name sent by the app on each launch; every "today" in §8 and every local time in §10 is evaluated in it (`ARCHITECTURE.md` A3). **`signed_up_on`** is the local date at sign-up, fixed forever, so a later timezone change cannot move the Streak window or the partial-month test by a day. |
-| SalarySetting | member_id, amount, **original_amount, original_currency**, payday (1–31 **or the token `last`**), effective_from (year-month) | Append-only. `original_*` hold the value as typed and are never touched by a currency change (§8.9). The row with the latest effective_from ≤ a month is the one in force for that month. D56 decides which month a new row starts from. |
-| SavingTargetSetting | member_id, percent (0–100), effective_from (year-month) | Same append-only pattern, always effective from the **next** month (D65). |
+| SalarySetting | member_id, amount, **original_amount, original_currency**, payday (1–31 **or the token `last`**), effective_from (year-month) | Append-only. `original_*` hold the value as typed and are never touched by a currency change (§8.9). The row with the latest effective_from ≤ a month is the one in force for that month. §8.10 decides which month a new row starts from. |
+| SavingTargetSetting | member_id, percent (0–100), effective_from (year-month) | Same append-only pattern; §8.10 decides which month a new row starts from. |
 | Spend | id, member_id, amount, **original_amount, original_currency**, category (enum of eight), date, note, created_at, updated_at | Soft-deleted rows are excluded from every computation. `original_*` hold the value as typed and are never touched by a currency change (§8.9). |
 | CurrencyConversion | member_id, from_code, to_code, rate, source (provider or manual), applied_at | Audit record of each rewrite. |
 | NotificationPreference | member_id, recap_ready, daily_reminder, daily_reminder_time, target_warning | One per Member. |
@@ -479,6 +479,7 @@ Copy depends on whether Payday has passed (D53):
 
 - Spend date must be within the last 60 days including today; never in the future. A Spend already older than that keeps its date and shows it read-only (§6.10).
 - Amount must be > 0 and at most 11 digits before the separator (D57).
+- **First saves are not edits.** A Salary or Saving Target saved during onboarding takes effect from the sign-up month, and saving it again before onboarding ends replaces it. The first one saved after onboarding, from Home's prompt, takes effect from the current month, so a month already recapped never gains one. The rules below govern every later save.
 - **Salary edits (D56).** Saving before the current month's effective Payday creates a row effective from the current month, with no sheet. Saving on or after it opens the "which salary is this" sheet; the answer decides whether the new row is effective from the current month or the next one.
 - **Payday edits (D56).** Always effective from the next month. The screen says so: "Your new payday starts in {next month}."
 - **Saving Target edits (D65).** Always effective from the next month, no sheet. The screen says so.
@@ -542,7 +543,7 @@ A partial month still sends "Recap ready": there is something to see (§6.17). P
 8. Switching Currency from BHD to IDR rewrites all amounts at the shown rate, records one CurrencyConversion row, and leaves percentages unchanged.
 9. Deleting the account signs the Member out immediately; signing in within 24 hours offers to restore and, when accepted, leaves all data intact; otherwise the Keycloak user and all rows are gone within 24 hours.
 10. Sharing from screen 4 produces an image containing no Salary or Money In figure, and the Share button is absent on a partial month.
-11. **A Member who signs up on 4 September and logs a first Spend on the 10th sees "Streak day 1" on first-run Home and a 6-day Streak in the September Recap, not 9.**
+11. **A Member who signs up on 4 September and logs a first Spend on the 10th sees "Streak day 1" on the empty Spend list the day they sign up and a 6-day Streak in the September Recap, not 9.**
 12. **A Member who signs up on 27 September with Payday 25 gets a Partial Recap on 1 October headed "Your first 4 days", with no Archetype and no Share, and a full Recap on 1 November.**
 13. **Selecting Payday 31 in September shows `Next paydays: 30 Sep · 31 Oct · 30 Nov` and credits Money In on 30 September.**
 14. **Editing Salary from £2,400 to £2,800 on 27 September opens the "which salary" sheet; choosing "from next payday" leaves the September Recap at £2,400.**

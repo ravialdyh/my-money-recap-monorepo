@@ -18,3 +18,20 @@ struct TextLink: View {
         .buttonStyle(PressableStyle())
     }
 }
+
+/// The white text button on the violet ground under a step's primary button (the canvases' "Skip for now"): the
+/// ground's
+/// ink, a 44pt tap target, full width.
+struct GroundLink: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(title, action: action)
+            .textStyle(Tokens.TypeRamp.bodyM)
+            .fontWeight(.heavy)
+            .foregroundStyle(Tokens.Text.onGround)
+            .frame(maxWidth: .infinity, minHeight: Tokens.Size.touchTargetMin)
+            .buttonStyle(PressableStyle())
+    }
+}

@@ -40,10 +40,10 @@ Violet ground throughout.
 | A4–A7 | no connection | Setup needs a connection, since every answer is saved as it is given. A step whose save cannot reach the server shows `InlineError` in its card: `No connection. We need one to save your answers.` The answers stay and Next tries again. A launch that cannot learn the next step shows the same `InlineError` in a card on the violet ground, with `Try again`. A Member who finished setup never meets it: Home opens from the stored answer (B1 offline). |
 | A6 | Salary and payday | A 44pt back chevron to step 2, then `Chip` label `Step 3 of 4`. `AmountField` labelled `Amount, after tax`, empty, with the Currency's symbol fixed in front and at most the Currency's decimals; Next stays disabled until the amount is above zero. D51: `DayPicker` on 25, with a `Last day` option after 31 and a computed helper below it: `Next paydays: 25 Sep · 25 Oct · 25 Nov`, updating on every tap, today counting. No other helper line. `Skip for now` under Next records the skip. |
 | A6 | amount too long | D57. At 11 digits the field stops accepting keystrokes and shows `That's more than the app can store.` |
-| A7 | Saving target | Slider, live amount preview. |
-| A7 | salary skipped | D44. The slider card is replaced by a `PromptCard`: `Set a salary first` / `A target is a share of your salary, so we need the salary first.` Tapping returns to A6. The primary button reads `Skip for now`. A percentage can never be set without a salary. |
-| A8 | Home, first run | D43. `Streak day 1` for a member who signed up today: the streak window starts at sign-up, not the 1st. |
-| A8 | skipped | D54. The hero card keeps the `StatHero` showing Spent; the salary `PromptCard` sits below it, then the target `PromptCard`. Home scrolls in this state (D69). |
+| A7 | Saving target | A 44pt back chevron to step 3, then `Chip` label `Step 4 of 4`. A card: `Share of salary to keep`, the percentage at 80pt, the `Slider` 0 to 100 in steps of 5 on 20, `0%` and `100%` under its ends, and the live preview `£480 of £2,400 each month`, worked out on the phone for display only (ARCHITECTURE A2). `Done`, then `Skip for now` under it. |
+| A7 | salary skipped | D44. The slider card is replaced by a `PromptCard`: `Set a salary first` / `A target is a share of your salary, so we need the salary first.` Tapping returns to A6. The primary button reads `Skip for now`, the only one on the screen. A percentage can never be set without a salary. |
+| A8 | Home, first run | The target card's helper is §8.7's `Nothing to keep yet. Your salary lands on the 25th.` until the first Payday (spec #92). `Streak day 1` for a Member who signed up today is the empty Spend list's line (B6, D43), not Home's. |
+| A8 | skipped | D54. As B1 no salary set. |
 | A8 | after payday | Money in fills, Saved chip appears, daily line shows. |
 | none | Flow · Launch to Home | Includes the A0b unlock branch and the A7-blocked edge. |
 
@@ -55,8 +55,8 @@ Violet ground throughout.
 |---|---|---|
 | B1 | Home | Spent hero, Money in and Saved chips, target card, two buttons, recap list. |
 | B1 | before payday | D41. Before Money In > 0 the chip row carries only `Money in £0`, no Saved chip. Spent hero, countdown eyebrow, bar clamped at zero, `Nothing to keep yet. Your salary lands on the 25th.` |
-| B1 | no salary set | D54. The hero keeps the `StatHero` with Spent; the salary `PromptCard` sits below it, then the target `PromptCard`. Home scrolls in this state (D69). |
-| B1 | no target set, salary set | The hero card is entirely normal: Spent, `Money in`, `Saved`. Only the target card becomes a 136pt `PromptCard` `Set a saving target`. No daily-allowance sentence, and the Target Warning cannot fire. |
+| B1 | no salary set | D54. The hero keeps the `StatHero` with Spent; the salary `PromptCard` (eyebrow `Salary`, with its helper) sits below it at 191pt and opens A6, then the target `PromptCard` (with its helper) at 136pt, which opens A7. Back from a step opened here returns to Home. Home scrolls in this state (D69). |
+| B1 | no target set, salary set | The hero card is entirely normal: Spent, `Money in`, `Saved`. Only the target card becomes a 136pt `PromptCard` `Set a saving target`, which opens A7. No daily-allowance sentence, and the Target Warning cannot fire. |
 | B1 | target warning | Coral `Banner`, dismiss × session-only, target card moves up. |
 | B1 | target warning, before payday | D53. Same `Banner`, different copy: `You've spent £2,000 of the £1,920 you meant to spend this month.` |
 | B1 | with past recaps | `DataRowList` of months, See last month enabled. |
@@ -186,7 +186,10 @@ One string, one place. Where two screens show the same idea, they show the same 
 | Amount label, Salary | `Amount, after tax` |
 | Amount cap | `That's more than the app can store.` |
 | Payday preview | `Next paydays: {d1} · {d2} · {d3}` |
+| No salary prompt, eyebrow | `Salary` |
 | No salary prompt | `Set your monthly salary` |
 | No salary prompt, helper | `We'll show what you kept once we know what came in.` |
 | No target prompt | `Set a saving target` |
+| No target prompt, helper | `Pick a share of your salary to keep each month.` |
+| Target preview, onboarding | `{amount} of {salary} each month` |
 | Target blocked in onboarding | `Set a salary first` |

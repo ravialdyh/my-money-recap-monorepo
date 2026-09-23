@@ -44,8 +44,8 @@ func idr(amount string) *moneyrecapv1.Money {
 	return &moneyrecapv1.Money{Amount: amount, CurrencyCode: "IDR"}
 }
 
-// The first Salary and the first Target take effect in the sign-up month (spec #92); later rows follow D56
-// and D65; two rows sharing a month resolve newest first; a key replays, and a reused key is refused.
+// After setup the first Salary and the first Target take effect this month (owner 2026-09-23); later rows follow
+// D56 and D65; two rows sharing a month resolve newest first; a key replays, and a reused key is refused.
 func TestSalaryAndTargetRows(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a001"
@@ -160,9 +160,9 @@ func TestTheReplicaIsFilledUnderTheCallersToken(t *testing.T) {
 	if err := get(stranger); connect.CodeOf(err) != connect.CodeNotFound {
 		t.Fatalf("a token that does not own the Member, before any fill: %v, want not_found", err)
 	}
-	res, err := s.SaveSalary(owner, connect.NewRequest(&moneyrecapv1.SaveSalaryRequest{IdempotencyKey: "k1", MemberId: id, Amount: idr("3000000"), Payday: "25"}))
+	res, err := s.SaveSalary(owner, connect.NewRequest(&moneyrecapv1.SaveSalaryRequest{IdempotencyKey: "k1", MemberId: id, Amount: idr("3000000"), Payday: "25", Setup: true}))
 	if err != nil || res.Msg.Settings.GetSalary().GetEffectiveFrom() != "2026-08" {
-		t.Fatalf("first Salary on 2 September for a 30 August sign-up: %v, %v, want effective 2026-08", res, err)
+		t.Fatalf("a setup Salary on 2 September for a 30 August sign-up: %v, %v, want effective 2026-08", res, err)
 	}
 	var subject string
 	if err := db.QueryRow(context.Background(), `SELECT keycloak_subject FROM member_facts WHERE member_id = $1`, id).Scan(&subject); err != nil || subject != "owner" {

@@ -120,8 +120,10 @@ type BffServiceClient interface {
 	// During onboarding it is a setup save, and step 3 is then recorded in
 	// members, after ledger answers (spec #92).
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
-	// ledger.SaveTarget: the first takes effect in the sign-up month, later ones
-	// next month (D65); failed_precondition without a Salary (D44).
+	// ledger.SaveTarget, during onboarding a setup save, and step 4 then
+	// recorded in members after ledger answers, as SaveSalary; a first Target
+	// after setup starts this month, later ones next month (D65);
+	// failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
 	// currency.Quote then ledger.PreviewConversion; unavailable when the rate
 	// fetch fails, the Retry InlineError (PRD §8.9 step 1).
@@ -443,8 +445,10 @@ type BffServiceHandler interface {
 	// During onboarding it is a setup save, and step 3 is then recorded in
 	// members, after ledger answers (spec #92).
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
-	// ledger.SaveTarget: the first takes effect in the sign-up month, later ones
-	// next month (D65); failed_precondition without a Salary (D44).
+	// ledger.SaveTarget, during onboarding a setup save, and step 4 then
+	// recorded in members after ledger answers, as SaveSalary; a first Target
+	// after setup starts this month, later ones next month (D65);
+	// failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
 	// currency.Quote then ledger.PreviewConversion; unavailable when the rate
 	// fetch fails, the Retry InlineError (PRD §8.9 step 1).

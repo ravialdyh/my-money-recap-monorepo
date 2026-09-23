@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// Empty-state card: the whole card is one tap target (PRD §13, D50). It holds the filled `Card`'s
-/// height so nothing moves when the Member fills it in (PRD §6.8, D54, D69). `dashed` is the Home
-/// preview card (D47), drawn as an outline on the ground.
+/// Empty-state card, one tap target (PRD §13, D50): eyebrow, title and helper beside a chevron well, at the filled
+/// `Card`'s height so nothing moves when filled in (§6.8, D54, D69). `dashed` is Home's preview card (D47).
 struct PromptCard: View {
+    var eyebrow: String?
     let title: String
+    var helper: String?
     var height: CGFloat?
     var dashed = false
     var action: () -> Void = {}
@@ -12,8 +13,19 @@ struct PromptCard: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
-                CardTitle(text: title)
-                    .multilineTextAlignment(.leading)
+                VStack(alignment: .leading, spacing: Tokens.Space._2) {
+                    if let eyebrow {
+                        Eyebrow(text: eyebrow)
+                    }
+                    CardTitle(text: title)
+                    if let helper {
+                        Text(helper)
+                            .textStyle(Tokens.TypeRamp.bodyS)
+                            .foregroundStyle(dashed ? Tokens.Text.onGround : Tokens.Text.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .multilineTextAlignment(.leading)
                 Spacer(minLength: 0)
                 Circle()
                     .fill(dashed ? Tokens.Surface.chipOnGround.opacity(0.2) : Tokens.Surface.wellViolet)
@@ -33,5 +45,7 @@ struct PromptCard: View {
             .contentShape(RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous))
         }
         .buttonStyle(PressableStyle())
+        .accessibilityLabel(title)
+        .accessibilityHint(helper ?? "")
     }
 }

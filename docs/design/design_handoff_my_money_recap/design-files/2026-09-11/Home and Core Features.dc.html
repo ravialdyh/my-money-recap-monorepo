@@ -156,7 +156,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <x-import component-from-global-scope="MMR.StatChipRow"  hint-size="100%,34px"><x-import component-from-global-scope="MMR.StatChip" tone="earned" hint-size="auto,34px">Money in £0</x-import></x-import></x-import></div>
   <div style="margin-top:12px"><x-import component-from-global-scope="MMR.Card"  hint-size="100%,136px"><div style="display:flex;justify-content:space-between;align-items:baseline"><x-import component-from-global-scope="MMR.CardTitle"  hint-size="auto,22px">Saving target</x-import><span style="font:800 14px/1.2 var(--mmr-font-family-text);color:var(--mmr-color-text-secondary);font-variant-numeric:tabular-nums">£0 of £480</span></div>
     <x-import component-from-global-scope="MMR.ProgressBar" value="{{ n0 }}" max="{{ n480 }}" tone="green" hint-size="100%,22px"></x-import>
-    <x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,20px">Nothing spent yet. Streak day 1.</x-import></x-import></div>
+    <x-import component-from-global-scope="MMR.HelperText"  hint-size="100%,20px">Nothing to keep yet. Your salary lands on the 25th.</x-import></x-import></div>
   <div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">
     <x-import component-from-global-scope="MMR.Button" icon="{{ plusIcon }}" hint-size="100%,52px">Log a spend</x-import>
     <x-import component-from-global-scope="MMR.Button" variant="secondary" hint-size="100%,52px">See last month</x-import>
@@ -166,7 +166,7 @@ input::placeholder{color:#6B6890;font-weight:700}
     <x-import component-from-global-scope="MMR.Card" dc-props="{{ tightCard }}" hint-size="100%,120px"><x-import component-from-global-scope="MMR.DataRowList"  hint-size="100%,112px"><x-import component-from-global-scope="MMR.ListRow" label="September 2026" value="The Squirrel" trailing="chevron" hint-size="100%,56px"></x-import><x-import component-from-global-scope="MMR.ListRow" label="August 2026" value="Partial" trailing="chevron" hint-size="100%,56px"></x-import></x-import></x-import>
   </div></x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;flex-direction:column;gap:8px"><div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">§8.11: a partial month shows "Partial" as its value instead of an Archetype name and opens P1–P4 (situation 2 or 3). Here August was the sign-up month with the 25th already past. Newest first; the current month is never listed.</div>
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">1 October: Money In is £0 until the 25th, so no Saved chip and "salary lands in 24 days"; the streak window starts on the 1st, so "Streak day 1".</div></div></sc-if>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">1 October: Money In is £0 until the 25th, so no Saved chip, "salary lands in 24 days" and the target card's "Nothing to keep yet. Your salary lands on the 25th."</div></div></sc-if>
 </div>
 </div>
 </div>

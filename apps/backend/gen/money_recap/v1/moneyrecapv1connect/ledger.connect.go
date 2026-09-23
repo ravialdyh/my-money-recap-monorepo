@@ -93,17 +93,19 @@ type LedgerServiceClient interface {
 	// Soft-deletes; the row leaves every computation (PRD §7).
 	DeleteSpend(context.Context, *connect.Request[v1.DeleteSpendRequest]) (*connect.Response[v1.DeleteSpendResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
-	// Appends a salary_setting row. The first, and any setup save, takes effect
-	// in the sign-up month, as neither is an edit (spec #92); later ones from
-	// the month applies_from names (PRD D56, §8.10), a new Payday next month.
+	// Appends a salary_setting row. A setup save takes effect in the sign-up
+	// month, a first save after setup this month, as neither is an edit (PRD
+	// §8.10); later ones from the month applies_from names (D56), a new Payday
+	// next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
 	// Onboarding's Currency change (spec #92): every Salary row takes the new
 	// code, originals included, each amount re-rounded half up to its decimals;
 	// no rate and no CurrencyConversion row. The replica takes the code at once.
 	RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error)
-	// Appends a saving_target_setting row: the first takes effect in the sign-up
-	// month (spec #92), later ones next month (PRD D65); failed_precondition
-	// without a Salary (D44).
+	// Appends a saving_target_setting row: a setup save takes effect in the
+	// sign-up month and a first save after setup this month (spec #92, owner
+	// 2026-09-23), later ones next month (PRD D65); failed_precondition without
+	// a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error)
 	// The before-and-after values for the confirm sheet; nothing is written.
 	PreviewConversion(context.Context, *connect.Request[v1.PreviewConversionRequest]) (*connect.Response[v1.PreviewConversionResponse], error)
@@ -330,17 +332,19 @@ type LedgerServiceHandler interface {
 	// Soft-deletes; the row leaves every computation (PRD §7).
 	DeleteSpend(context.Context, *connect.Request[v1.DeleteSpendRequest]) (*connect.Response[v1.DeleteSpendResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
-	// Appends a salary_setting row. The first, and any setup save, takes effect
-	// in the sign-up month, as neither is an edit (spec #92); later ones from
-	// the month applies_from names (PRD D56, §8.10), a new Payday next month.
+	// Appends a salary_setting row. A setup save takes effect in the sign-up
+	// month, a first save after setup this month, as neither is an edit (PRD
+	// §8.10); later ones from the month applies_from names (D56), a new Payday
+	// next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
 	// Onboarding's Currency change (spec #92): every Salary row takes the new
 	// code, originals included, each amount re-rounded half up to its decimals;
 	// no rate and no CurrencyConversion row. The replica takes the code at once.
 	RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error)
-	// Appends a saving_target_setting row: the first takes effect in the sign-up
-	// month (spec #92), later ones next month (PRD D65); failed_precondition
-	// without a Salary (D44).
+	// Appends a saving_target_setting row: a setup save takes effect in the
+	// sign-up month and a first save after setup this month (spec #92, owner
+	// 2026-09-23), later ones next month (PRD D65); failed_precondition without
+	// a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error)
 	// The before-and-after values for the confirm sheet; nothing is written.
 	PreviewConversion(context.Context, *connect.Request[v1.PreviewConversionRequest]) (*connect.Response[v1.PreviewConversionResponse], error)

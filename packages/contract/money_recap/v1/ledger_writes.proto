@@ -114,6 +114,9 @@ message SaveTargetRequest {
   string member_id = 2;
   // 0 to 100; 0 clears the Saving Target (PRD §8.4).
   int32 percent = 3;
+  // True while onboarding is unfinished, as SaveSalaryRequest.setup: the row
+  // starts in the sign-up month, replacing the setup Target (spec #92).
+  bool setup = 4;
 }
 
 // The settings after the append and the recomputed current month.

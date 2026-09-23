@@ -66,6 +66,23 @@ final class HomeViewModel {
         return (Decimal(string: home.moneyIn.amount) ?? 0) > 0
     }
 
+    /// "Rp0 of Rp3.000.000", Saved against the Target's amount (PRD §6.8); Saved reads 0 while the server omits it
+    /// (D41).
+    var targetProgress: String? {
+        guard let home, home.hasSavingTarget else { return nil }
+        let code = home.currencyCode
+        let saved = Money.format(home.hasSaved ? home.saved.amount : "0", currency: code)
+        return "\(saved) of \(Money.format(home.savingTarget.amount.amount, currency: code))"
+    }
+
+    /// How far the target bar is drawn: Saved over the Target's amount, clamped to the track. Drawing, not a figure.
+    var targetFraction: Double {
+        guard let home, home.hasSavingTarget, home.hasSaved,
+              let saved = Double(home.saved.amount), let whole = Double(home.savingTarget.amount.amount), whole > 0
+        else { return 0 }
+        return min(max(saved / whole, 0), 1)
+    }
+
     /// The month chip: the Recap Month's name.
     var monthLabel: String? {
         home.flatMap { ISODate.month($0.month) }.map { $0.formatted(dates.month(.wide)) }

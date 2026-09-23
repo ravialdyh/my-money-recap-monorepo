@@ -3,8 +3,8 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// The launch after sign-in (spec #92): the zone first (A3), then Home at once, with no round trip, for a Member the
-/// stored Home greets (I4), else the first unanswered step with its saved answers; with no answer, no connection.
+/// The launch after sign-in (spec #92): the zone (A3), then Home at once for a Member the stored Home greets (I4),
+/// else the first unanswered step with its answers; with no answer, no connection. Home's prompts reopen steps 3 and 4.
 @Observable
 @MainActor
 final class LaunchViewModel {
@@ -14,6 +14,7 @@ final class LaunchViewModel {
         case stepOne(name: String, avatar: String)
         case stepTwo(saved: String)
         case stepThree(currency: String, digits: Int, saved: MoneyRecap_V1_SalarySetting?)
+        case stepFour(salary: MoneyRecap_V1_Money?, digits: Int, saved: MoneyRecap_V1_SavingTargetSetting?)
         case home
     }
 
@@ -23,6 +24,9 @@ final class LaunchViewModel {
     private var profile = MoneyRecap_V1_Profile()
     /// Step 3's saved Salary, relabelled whenever step 2 is saved again (spec #92).
     private var salary: MoneyRecap_V1_SalarySetting?
+    private var target: MoneyRecap_V1_SavingTargetSetting?
+    /// The step a Home prompt opened, which Try again opens again; nil during setup.
+    private var openedFromHome: Int?
     private let setZone: () async -> Void
     private let state: () async -> MoneyRecap_V1_OnboardingState?
 
@@ -42,12 +46,28 @@ final class LaunchViewModel {
         route = await decided()
     }
 
-    /// Try again on the no-connection state: the whole launch once more, zone included.
+    /// Try again on the no-connection state: the whole launch once more, zone included, or the step Home opened.
     func retry() async {
         isRetrying = true
         defer { isRetrying = false }
+        if let step = openedFromHome {
+            await open(step: step)
+            return
+        }
         await setZone()
         route = await decided()
+    }
+
+    /// A Home prompt: step 3 or 4 with the saved answers, which only the onboarding state carries (spec #92).
+    func open(step: Int) async {
+        openedFromHome = step
+        route = .deciding
+        guard let state = await state() else {
+            route = .noConnection
+            return
+        }
+        remember(state)
+        route = step == 3 ? stepThree : stepFour
     }
 
     /// A save the BFF answered, whose profile is what the steps re-select when the Member goes back. A Currency save
@@ -67,17 +87,41 @@ final class LaunchViewModel {
         route = stepThree
     }
 
-    /// Step 3 saved or skipped. Step 4 arrives with #104.
+    /// Step 3's Salary as ledger answered it, the one step 4 takes a share of.
+    func salarySaved(_ settings: MoneyRecap_V1_LedgerSettings) {
+        salary = settings.hasSalary ? settings.salary : salary
+    }
+
+    /// Step 3 saved or skipped: step 4, as during setup, blocked when no Salary was ever saved (D44).
     func stepThreeDone() {
+        route = stepFour
+    }
+
+    /// Step 4's prompt back to step 3 (D44).
+    func setSalary() {
+        route = stepThree
+    }
+
+    /// Step 4 saved or skipped: setup is over.
+    func stepFourDone() {
+        openedFromHome = nil
         route = .home
     }
 
     /// The back chevron: the step before, with its saved answers. Saving it again leaves later answers and the saved
     /// progress as they are (members keeps the highest step), and Next returns to the step after it.
     func back() {
-        if case .stepThree = route {
+        if openedFromHome != nil {
+            openedFromHome = nil
+            route = .home
+            return
+        }
+        switch route {
+        case .stepFour:
+            route = stepThree
+        case .stepThree:
             route = .stepTwo(saved: profile.currencyCode)
-        } else {
+        default:
             route = .stepOne(name: profile.displayName, avatar: profile.avatarKey)
         }
     }
@@ -90,8 +134,7 @@ final class LaunchViewModel {
 
     private func decided() async -> Route {
         guard let state = await state() else { return .noConnection }
-        profile = state.profile
-        salary = state.hasSalary ? state.salary : nil
+        remember(state)
         switch state.nextStep {
         case 1:
             let saved = profile.displayName
@@ -100,13 +143,25 @@ final class LaunchViewModel {
             return .stepTwo(saved: profile.currencyCode)
         case 3:
             return stepThree
+        case 4:
+            return stepFour
         default:
             return .home
         }
     }
 
+    private func remember(_ state: MoneyRecap_V1_OnboardingState) {
+        profile = state.profile
+        salary = state.hasSalary ? state.salary : nil
+        target = state.hasSavingTarget ? state.savingTarget : nil
+    }
+
     private var stepThree: Route {
         .stepThree(currency: profile.currencyCode, digits: Int(profile.currencyDigits), saved: salary)
+    }
+
+    private var stepFour: Route {
+        .stepFour(salary: salary?.amount, digits: Int(profile.currencyDigits), saved: target)
     }
 }
 
@@ -172,10 +227,25 @@ struct LaunchView: View {
                     onBack: model.back,
                     onDone: model.stepThreeDone
                 )
+            case let .stepFour(salary, digits, saved):
+                TargetView(
+                    model: TargetViewModel(
+                        salary: salary,
+                        digits: digits,
+                        saved: saved,
+                        saveTarget: saveTarget,
+                        saveProfile: saveProfile
+                    ),
+                    onBack: model.back,
+                    onSetSalary: model.setSalary,
+                    onDone: model.stepFourDone
+                )
             case .home:
-                HomeView(session: session, context: context) {
+                HomeView(session: session, context: context, open: { step in
+                    Task { await model.open(step: step) }
+                }, onboardingNeeded: {
                     Task { await model.homeRefused() }
-                }
+                })
             }
         }
         .task { await model.start() }
@@ -194,12 +264,24 @@ struct LaunchView: View {
         return SaveResult(saved.result)
     }
 
-    /// Step 3's Salary, retried once after the token refreshes (IOS I3).
+    /// Step 3's Salary, retried once after the token refreshes (IOS I3); step 4 takes a share of what ledger saved.
     private func saveSalary(
         _ request: MoneyRecap_V1_BffServiceSaveSalaryRequest,
         _ headers: Headers
     ) async -> SaveResult {
-        await SaveResult(BffClient.retried(session) { await client.saveSalary(request: request, headers: headers) }
+        let saved = await BffClient.retried(session) { await client.saveSalary(request: request, headers: headers) }
+        if case let .success(answer) = saved.result {
+            model.salarySaved(answer.settings.ledgerSettings)
+        }
+        return SaveResult(saved.result)
+    }
+
+    /// Step 4's Saving Target, retried once after the token refreshes (IOS I3).
+    private func saveTarget(
+        _ request: MoneyRecap_V1_BffServiceSaveTargetRequest,
+        _ headers: Headers
+    ) async -> SaveResult {
+        await SaveResult(BffClient.retried(session) { await client.saveTarget(request: request, headers: headers) }
             .result)
     }
 }

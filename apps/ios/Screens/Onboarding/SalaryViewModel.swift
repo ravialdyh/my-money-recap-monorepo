@@ -96,7 +96,8 @@ final class SalaryViewModel {
         return await saving(Answers(amount: sent, payday: payday)) { await self.saveSalary(request, $0) }
     }
 
-    /// True once the skip is recorded: step 3 with no Salary, so Home shows the salary prompt (D44, D54).
+    /// True once the skip is recorded: step 3 with no Salary, so step 4 is blocked and Home shows the salary prompt
+    /// (D44, D54).
     func skip() async -> Bool {
         guard !isSaving else { return false }
         let request = MoneyRecap_V1_BffServiceSaveProfileRequest.with { $0.onboardingStep = 3 }

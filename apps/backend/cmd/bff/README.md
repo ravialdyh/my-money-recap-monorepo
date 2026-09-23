@@ -41,6 +41,11 @@ Salary saved and step 3 next, and saving again leaves the newest row in force. `
 `invalid_argument` for an amount with too many decimals or the D56 `failed_precondition`, reaches the phone
 as it is.
 
+`SaveTarget` (#104) is step 4, and later Settings' Saving Target, the same way: `ledger.SaveTarget` marked as a
+setup save while onboarding is unfinished, then step 4 recorded in `members` under the same key, which ends
+onboarding. D44's `failed_precondition`, a Target with no Salary, records no step. After onboarding the first
+Salary or Target starts in the current month and later ones follow D56 and D65 (PRD §8.10).
+
 Before any of that, the request is counted against its address in Redis, `ml:<address>:<hour>` with
 the address lower-cased: §4.4's magic-link rate limit, five per address per hour (PRD §11), which
 fails closed with `resource_exhausted` (§4.4, A6). It is the BFF's one Redis client.

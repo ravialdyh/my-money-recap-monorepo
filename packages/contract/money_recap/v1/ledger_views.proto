@@ -25,8 +25,8 @@ message MonthSummary {
   // (PRD §8.4), so a present target always has percent above 0.
   optional SavingTargetFacts saving_target = 6;
   // The month's Streak so far (PRD §8.5, D43): the longest spend-free run in
-  // the window to today. With no Spends it is the elapsed days, which Home
-  // prints as "Streak day {n}"; 1 on the first-run Home.
+  // the window to today. With no Spends it is the elapsed days, which the
+  // empty Spend list prints as "Streak day {n}"; 1 on the sign-up day.
   int32 streak_day = 7;
   // Days left in the month counting today, never below 1 (PRD §8.7).
   int32 days_remaining = 8;

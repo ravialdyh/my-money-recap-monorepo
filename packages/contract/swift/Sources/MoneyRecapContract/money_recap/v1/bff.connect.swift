@@ -71,8 +71,10 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `saveSalary`(request: MoneyRecap_V1_BffServiceSaveSalaryRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveSalaryResponse>
 
-    /// ledger.SaveTarget: the first takes effect in the sign-up month, later ones
-    /// next month (D65); failed_precondition without a Salary (D44).
+    /// ledger.SaveTarget, during onboarding a setup save, and step 4 then
+    /// recorded in members after ledger answers, as SaveSalary; a first Target
+    /// after setup starts this month, later ones next month (D65);
+    /// failed_precondition without a Salary (D44).
     @available(iOS 13, *)
     func `saveTarget`(request: MoneyRecap_V1_BffServiceSaveTargetRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveTargetResponse>
 

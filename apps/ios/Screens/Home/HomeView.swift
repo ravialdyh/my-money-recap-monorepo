@@ -2,18 +2,25 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// PRD §6.8 / SCREEN-STATES B1 at zero, the "no salary set" layout (D54, D69). The filled salary and target cards
-/// arrive with the screens that set them; the chips, Log a spend and the cards navigate nowhere yet.
+/// PRD §6.8 / SCREEN-STATES B1 at zero: the hero, the target card filled or its prompt, and the salary prompt while no
+/// Salary is set (D54, D69). The prompts open steps 3 and 4 (`open`); the chips and Log a spend navigate nowhere yet.
 struct HomeView: View {
     @State private var model: HomeViewModel
+    private var open: (Int) -> Void = { _ in }
 
     /// The launch sends the zone (`LaunchView`); Home asks only for itself, once more after the interceptor refreshes
     /// the token on `unauthenticated` (IOS I3), and hands `onboardingNeeded` back to the launch when refused.
-    init(session: AuthSession, context: ModelContext, onboardingNeeded: @escaping () -> Void) {
+    init(
+        session: AuthSession,
+        context: ModelContext,
+        open: @escaping (Int) -> Void,
+        onboardingNeeded: @escaping () -> Void
+    ) {
         let client = BffClient.make(session: session)
         self.init(model: HomeViewModel(fetch: {
             try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
         }, context: context, onboardingNeeded: onboardingNeeded))
+        self.open = open
     }
 
     /// Home over a given model, as the render tests draw it.
@@ -71,10 +78,21 @@ struct HomeView: View {
             }
         }
         if !home.hasSalary {
-            PromptCard(title: "Set your monthly salary", height: Tokens.Size.homeHeroCard)
+            PromptCard(
+                eyebrow: "Salary",
+                title: "Set your monthly salary",
+                helper: "We'll show what you kept once we know what came in.",
+                height: Tokens.Size.homeHeroCard
+            ) { open(3) }
         }
-        if !home.hasSavingTarget {
-            PromptCard(title: "Set a saving target", height: Tokens.Size.homeTargetCard)
+        if home.hasSavingTarget {
+            target(home)
+        } else {
+            PromptCard(
+                title: "Set a saving target",
+                helper: "Pick a share of your salary to keep each month.",
+                height: Tokens.Size.homeTargetCard
+            ) { open(4) }
         }
         MMRButton(title: "Log a spend", icon: "plus") {}
         MMRButton(title: "See last month", variant: .secondary) {}
@@ -89,6 +107,24 @@ struct HomeView: View {
                     ListRow(label: model.recapLabel(month), value: month.label)
                 }
             }
+        }
+    }
+
+    /// PRD §6.8 target card: "{Saved} of {target amount}", the bar filled by Saved, and ledger's §8.7 sentence.
+    private func target(_ home: MoneyRecap_V1_HomeView) -> some View {
+        Card(minHeight: Tokens.Size.homeTargetCard) {
+            HStack(alignment: .firstTextBaseline) {
+                CardTitle(text: "Saving target")
+                Spacer()
+                Text(model.targetProgress ?? "")
+                    .textStyle(Tokens.TypeRamp.labelM)
+                    .monospacedDigit()
+                    .foregroundStyle(Tokens.Text.secondary)
+            }
+            ProgressBar(fraction: model.targetFraction, tone: .green)
+            Text(home.savingTarget.progressSentence)
+                .textStyle(Tokens.TypeRamp.bodyS)
+                .foregroundStyle(Tokens.Text.secondary)
         }
     }
 

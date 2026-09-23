@@ -716,7 +716,10 @@ type SaveTargetRequest struct {
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// 0 to 100; 0 clears the Saving Target (PRD §8.4).
-	Percent       int32 `protobuf:"varint,3,opt,name=percent,proto3" json:"percent,omitempty"`
+	Percent int32 `protobuf:"varint,3,opt,name=percent,proto3" json:"percent,omitempty"`
+	// True while onboarding is unfinished, as SaveSalaryRequest.setup: the row
+	// starts in the sign-up month, replacing the setup Target (spec #92).
+	Setup         bool `protobuf:"varint,4,opt,name=setup,proto3" json:"setup,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -770,6 +773,13 @@ func (x *SaveTargetRequest) GetPercent() int32 {
 		return x.Percent
 	}
 	return 0
+}
+
+func (x *SaveTargetRequest) GetSetup() bool {
+	if x != nil {
+		return x.Setup
+	}
+	return false
 }
 
 // The settings after the append and the recomputed current month.
@@ -1012,11 +1022,12 @@ const file_money_recap_v1_ledger_writes_proto_rawDesc = "" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12#\n" +
 	"\rcurrency_code\x18\x03 \x01(\tR\fcurrencyCode\"U\n" +
 	"\x17RelabelCurrencyResponse\x12:\n" +
-	"\bsettings\x18\x01 \x01(\v2\x1e.money_recap.v1.LedgerSettingsR\bsettings\"s\n" +
+	"\bsettings\x18\x01 \x01(\v2\x1e.money_recap.v1.LedgerSettingsR\bsettings\"\x89\x01\n" +
 	"\x11SaveTargetRequest\x12'\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x18\n" +
-	"\apercent\x18\x03 \x01(\x05R\apercent\"\x84\x01\n" +
+	"\apercent\x18\x03 \x01(\x05R\apercent\x12\x14\n" +
+	"\x05setup\x18\x04 \x01(\bR\x05setup\"\x84\x01\n" +
 	"\x12SaveTargetResponse\x12:\n" +
 	"\bsettings\x18\x01 \x01(\v2\x1e.money_recap.v1.LedgerSettingsR\bsettings\x122\n" +
 	"\x05month\x18\x02 \x01(\v2\x1c.money_recap.v1.MonthSummaryR\x05month\"\xd8\x01\n" +

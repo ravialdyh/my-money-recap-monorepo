@@ -11,7 +11,7 @@ import (
 )
 
 // GetOnboardingState is where onboarding resumes (PRD §6.4): the first unanswered step, the answers saved so far,
-// step 3's from ledger once steps 3 or 4 are next, and the given_name the Member's own token carries for step 1.
+// steps 3 and 4's from ledger once either is next, and the given_name the Member's own token carries for step 1.
 func (s *Service) GetOnboardingState(ctx context.Context, _ *connect.Request[moneyrecapv1.BffServiceGetOnboardingStateRequest]) (*connect.Response[moneyrecapv1.BffServiceGetOnboardingStateResponse], error) {
 	p, err := s.member(ctx)
 	if err != nil {
@@ -25,7 +25,7 @@ func (s *Service) GetOnboardingState(ctx context.Context, _ *connect.Request[mon
 		if err != nil {
 			return nil, requiredCallFailed("ledger.GetSettings", connect.CodeUnavailable, err)
 		}
-		state.Salary = settings.Msg.Settings.GetSalary()
+		state.Salary, state.SavingTarget = settings.Msg.Settings.GetSalary(), settings.Msg.Settings.GetSavingTarget()
 	}
 	return connect.NewResponse(&moneyrecapv1.BffServiceGetOnboardingStateResponse{State: state}), nil
 }
