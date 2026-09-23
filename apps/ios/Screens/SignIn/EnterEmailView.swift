@@ -19,7 +19,7 @@ struct EnterEmailView: View {
 
     var body: some View {
         Screen {
-            EmailHeader { path.removeAll() }
+            BackRow(label: "Email") { path.removeAll() }
             Headline(text: "Where should we send your link?", size: .m).padding(.top, 18)
             Card {
                 if let error = model.errorMessage {

@@ -103,24 +103,3 @@ enum EmailStep: Hashable {
     case enterEmail
     case checkInbox(String)
 }
-
-/// The 44pt back chevron and the "Email" chip both screens carry, with no header title
-/// (`docs/design/design_handoff_my_money_recap/README.md`, A2 and A3).
-struct EmailHeader: View {
-    let back: () -> Void
-
-    var body: some View {
-        HStack(spacing: Tokens.Space._1) {
-            Button(action: back) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 20, weight: .bold))
-                    .frame(width: Tokens.Size.touchTargetMin, height: Tokens.Size.touchTargetMin)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(PressableStyle())
-            .accessibilityLabel("Back")
-            Chip(text: "Email")
-        }
-        .padding(.leading, -Tokens.Space._5)
-    }
-}

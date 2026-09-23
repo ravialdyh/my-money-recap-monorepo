@@ -7,7 +7,7 @@ import MoneyRecapContract
 @Observable
 @MainActor
 final class CurrencyViewModel {
-    typealias Save = (MoneyRecap_V1_BffServiceSaveProfileRequest, Headers) async -> Bool
+    typealias Save = (MoneyRecap_V1_BffServiceSaveProfileRequest, Headers) async -> SaveResult
 
     /// One row, as the canvas labels it: "IDR · Indonesian Rupiah".
     struct Option: Equatable, Identifiable {
@@ -35,14 +35,23 @@ final class CurrencyViewModel {
     var query = ""
     private(set) var selected: String?
     private(set) var isSaving = false
+    /// The last save could not reach the BFF: the step says so and Next tries again (`NoConnectionView.copy`).
+    private(set) var offline = false
     private var attempt: SaveAttempt<String>?
     private let save: Save
 
-    /// `region` is the device's: its currency starts chosen when the list has it, and otherwise nothing does.
-    init(region: Locale = .autoupdatingCurrent, options: [Option] = CurrencyViewModel.options(), save: @escaping Save) {
+    /// `saved` is the Currency already saved, which starts chosen (spec #92: going back or resuming re-selects it);
+    /// empty, the device `region`'s starts chosen when the list has it, and otherwise nothing does.
+    init(
+        saved: String = "",
+        region: Locale = .autoupdatingCurrent,
+        options: [Option] = CurrencyViewModel.options(),
+        save: @escaping Save
+    ) {
         self.options = options
         let own = region.currency?.identifier
-        selected = options.contains { $0.code == own } ? own : nil
+        let listed = options.contains { $0.code == own } ? own : nil
+        selected = saved.isEmpty ? listed : saved
         self.save = save
     }
 
@@ -88,6 +97,8 @@ final class CurrencyViewModel {
             $0.currencyCode = selected
             $0.onboardingStep = 2
         }
-        return await save(request, current.headers)
+        let result = await save(request, current.headers)
+        offline = result == .offline
+        return result == .saved
     }
 }

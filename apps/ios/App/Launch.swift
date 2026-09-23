@@ -3,19 +3,23 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// What the app opens on after sign-in (spec #92): the zone first on every launch (A3), then Home at once for a
-/// Member the stored Home already greets (I4), else the first unanswered of steps 1 and 2. No answer at all: Home.
+/// The launch after sign-in (spec #92): the zone first (A3), then Home at once, with no round trip, for a Member the
+/// stored Home greets (I4), else the first unanswered step with its saved answers; with no answer, no connection.
 @Observable
 @MainActor
 final class LaunchViewModel {
     enum Route: Equatable {
         case deciding
+        case noConnection
         case stepOne(name: String, avatar: String)
-        case stepTwo
+        case stepTwo(saved: String)
         case home
     }
 
     private(set) var route: Route
+    private(set) var isRetrying = false
+    /// The answers saved so far, the server's copy: from the onboarding state, then from each save's answer.
+    private var profile = MoneyRecap_V1_Profile()
     private let setZone: () async -> Void
     private let state: () async -> MoneyRecap_V1_OnboardingState?
 
@@ -32,32 +36,51 @@ final class LaunchViewModel {
     func start() async {
         await setZone()
         guard route == .deciding else { return }
-        route = await decided(orElse: .home)
+        route = await decided()
+    }
+
+    /// Try again on the no-connection state: the whole launch once more, zone included.
+    func retry() async {
+        isRetrying = true
+        defer { isRetrying = false }
+        await setZone()
+        route = await decided()
+    }
+
+    /// A save the BFF answered, whose profile is what the steps re-select when the Member goes back.
+    func saved(_ profile: MoneyRecap_V1_Profile) {
+        self.profile = profile
     }
 
     func stepOneSaved() {
-        route = .stepTwo
+        route = .stepTwo(saved: profile.currencyCode)
     }
 
     func stepTwoSaved() {
         route = .home
     }
 
-    /// Home answered failed_precondition: step 1 or 2 is unanswered, so that step opens (spec #92). With no answer
-    /// the screen stays blank rather than returning to a Home that would refuse again.
-    func homeRefused() async {
-        route = .deciding
-        route = await decided(orElse: .deciding)
+    /// Step 2's back chevron: step 1 with the saved name and Avatar. Saving it again leaves later answers and the
+    /// saved progress as they are (members keeps the highest step), and Next returns to step 2.
+    func back() {
+        route = .stepOne(name: profile.displayName, avatar: profile.avatarKey)
     }
 
-    private func decided(orElse fallback: Route) async -> Route {
-        guard let state = await state() else { return fallback }
+    /// Home answered failed_precondition: step 1 or 2 is unanswered, so that step opens (spec #92).
+    func homeRefused() async {
+        route = .deciding
+        route = await decided()
+    }
+
+    private func decided() async -> Route {
+        guard let state = await state() else { return .noConnection }
+        profile = state.profile
         switch state.nextStep {
         case 1:
-            let saved = state.profile.displayName
-            return .stepOne(name: saved.isEmpty ? state.suggestedName : saved, avatar: state.profile.avatarKey)
+            let saved = profile.displayName
+            return .stepOne(name: saved.isEmpty ? state.suggestedName : saved, avatar: profile.avatarKey)
         case 2:
-            return .stepTwo
+            return .stepTwo(saved: profile.currencyCode)
         default:
             return .home
         }
@@ -99,13 +122,21 @@ struct LaunchView: View {
             switch model.route {
             case .deciding:
                 Screen {}
+            case .noConnection:
+                NoConnectionView(retrying: model.isRetrying) {
+                    Task { await model.retry() }
+                }
             case let .stepOne(name, avatar):
                 NameAvatarView(
                     model: NameAvatarViewModel(name: name, avatar: avatar, save: saveProfile),
                     onSaved: model.stepOneSaved
                 )
-            case .stepTwo:
-                CurrencyView(model: CurrencyViewModel(save: saveProfile), onSaved: model.stepTwoSaved)
+            case let .stepTwo(saved):
+                CurrencyView(
+                    model: CurrencyViewModel(saved: saved, save: saveProfile),
+                    onBack: model.back,
+                    onSaved: model.stepTwoSaved
+                )
             case .home:
                 HomeView(session: session, context: context) {
                     Task { await model.homeRefused() }
@@ -115,9 +146,16 @@ struct LaunchView: View {
         .task { await model.start() }
     }
 
-    /// One onboarding save, retried once after the token refreshes (IOS I3); true once the BFF has it.
-    private func saveProfile(_ request: MoneyRecap_V1_BffServiceSaveProfileRequest, _ headers: Headers) async -> Bool {
+    /// One onboarding save, retried once after the token refreshes (IOS I3). The profile the BFF answers is what the
+    /// steps re-select when the Member goes back.
+    private func saveProfile(
+        _ request: MoneyRecap_V1_BffServiceSaveProfileRequest,
+        _ headers: Headers
+    ) async -> SaveResult {
         let saved = await BffClient.retried(session) { await client.saveProfile(request: request, headers: headers) }
-        return (try? saved.result.get()) != nil
+        if case let .success(answer) = saved.result {
+            model.saved(answer.profile)
+        }
+        return SaveResult(saved.result)
     }
 }

@@ -22,3 +22,22 @@ struct SaveAttempt<Values: Equatable> {
         ["Idempotency-Key": [key]]
     }
 }
+
+/// How one save ended: `offline` when the BFF could not be reached, which Connect reports as `unavailable` or, for a
+/// dropped network, `deadline_exceeded` (spec #92: the step says so and its Next tries again), `failed` otherwise.
+enum SaveResult: Equatable {
+    case saved
+    case offline
+    case failed
+
+    init(_ result: Result<some Any, ConnectError>) {
+        switch result {
+        case .success:
+            self = .saved
+        case let .failure(error) where error.code == .unavailable || error.code == .deadlineExceeded:
+            self = .offline
+        case .failure:
+            self = .failed
+        }
+    }
+}

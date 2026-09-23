@@ -1,22 +1,27 @@
 import SwiftUI
 
-/// PRD §6.5 / SCREEN-STATES A5, step 2 of onboarding: the step pill, the question, the search and the list in one
-/// card, then Next. The back chevron arrives with going back (#102).
+/// PRD §6.5 / SCREEN-STATES A5, step 2 of onboarding: the back chevron to step 1 and the step pill, the question, the
+/// search and the list in one card, then Next.
 struct CurrencyView: View {
     @State private var model: CurrencyViewModel
+    private let onBack: () -> Void
     private let onSaved: () -> Void
     @FocusState private var searching: Bool
 
-    init(model: CurrencyViewModel, onSaved: @escaping () -> Void) {
+    init(model: CurrencyViewModel, onBack: @escaping () -> Void, onSaved: @escaping () -> Void) {
         _model = State(initialValue: model)
+        self.onBack = onBack
         self.onSaved = onSaved
     }
 
     var body: some View {
         Screen {
-            Chip(text: "Step 2 of 4", asLabel: true).padding(.top, 8)
+            BackRow(label: "Step 2 of 4", back: onBack)
             Headline(text: "Which currency?", size: .m).padding(.top, 18)
             Card {
+                if model.offline {
+                    InlineError(text: NoConnectionView.copy)
+                }
                 search
                 if let noMatch = model.noMatch {
                     empty(noMatch)

@@ -53,13 +53,49 @@ final class SignInUITests: XCTestCase {
         app.launch()
         let nameField = app.textFields["First name"]
         XCTAssert(nameField.waitForExistence(timeout: 30), "a force-quit on step 1 reopens step 1")
+        XCTAssertFalse(app.buttons["Back"].exists, "step 1 has no back chevron (SCREEN-STATES A4)")
         nameField.tap()
         nameField.typeText("Maya2")
         XCTAssertEqual(nameField.value as? String, "Maya", "the field refuses a digit (PRD §6.4)")
         answerStepOne(app, avatar: "Otter")
+        backToStepOne(app, finding: "Maya", "Otter")
+        app.buttons["Next"].tap()
+        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "Next returns to step 2")
+
+        app.terminate()
+        app.launch()
+        XCTAssert(
+            app.staticTexts["Which currency?"].waitForExistence(timeout: 30),
+            "a force-quit on step 2 reopens step 2, the first unanswered (spec #92)"
+        )
+        backToStepOne(app, finding: "Maya", "Otter")
+        snapshot("05-resumed-answers-restored")
+        app.buttons["Next"].tap()
+        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30))
+
+        let offline = "No connection. We need one to save your answers."
+        app.launchEnvironment["MMR_BFF_URL"] = "http://localhost:1"
+        app.terminate()
+        app.launch()
+        XCTAssert(
+            app.staticTexts[offline].waitForExistence(timeout: 30),
+            "part-way through setup with no signal: the named state, never Home (spec #92)"
+        )
+        app.buttons["Try again"].tap()
+        let settled = expectation(
+            for: NSPredicate(format: "isEnabled == true"),
+            evaluatedWith: app.buttons["Try again"]
+        )
+        await fulfillment(of: [settled], timeout: 30)
+        XCTAssert(app.staticTexts[offline].exists, "still no connection, still the state and its Try again")
+        snapshot("06-no-connection-part-way-through-setup")
+
+        app.launchEnvironment = Self.appEnvironment
+        app.terminate()
+        app.launch()
         searchStepTwo(app, for: "rupiah", choosing: "Indonesian Rupiah, IDR")
         assertHomeAtZero(app, greeting: "Hi, Maya", currency: "IDR")
-        snapshot("05-home-at-zero-signed-in-by-link")
+        snapshot("07-home-at-zero-signed-in-by-link")
 
         app.terminate()
         app.launch()
@@ -68,7 +104,7 @@ final class SignInUITests: XCTestCase {
             app.buttons["Continue with email"].exists,
             "the Keychain session skips Sign in on relaunch (IOS I2)"
         )
-        snapshot("06-relaunched-home-from-snapshot")
+        snapshot("08-relaunched-home-from-snapshot")
 
         app.launchEnvironment["MMR_BFF_URL"] = "http://localhost:1"
         app.terminate()
@@ -76,21 +112,9 @@ final class SignInUITests: XCTestCase {
         XCTAssert(app.staticTexts["Spent so far"].waitForExistence(timeout: 10))
         XCTAssert(
             app.staticTexts["Money in \(Self.zero("IDR"))"].exists,
-            "an unreachable BFF leaves the last snapshot on screen (PRD D61)"
+            "a Member who finished setup reaches Home from the stored answer with no signal (PRD D61, spec #92)"
         )
-        snapshot("07-bff-unreachable-snapshot-still-shown")
-
-        app.launchArguments = ["--reset-snapshot"]
-        app.terminate()
-        app.launch()
-        XCTAssert(app.otherElements["home-skeleton"].waitForExistence(timeout: 10))
-        XCTAssertEqual(
-            app.activityIndicators.count,
-            0,
-            "no snapshot and no answer is the §6.19 skeleton, never a spinner"
-        )
-        XCTAssertFalse(app.staticTexts["Spent so far"].exists)
-        snapshot("08-first-load-skeleton")
+        snapshot("09-bff-unreachable-snapshot-still-shown")
     }
 }
 
@@ -117,6 +141,18 @@ extension XCTestCase {
         XCTAssert(app.buttons["Next"].isEnabled)
         snapshot("step-1-answered")
         app.buttons["Next"].tap()
+    }
+
+    /// Step 2's back chevron (spec #92): step 1 again, its saved name in the field and its Avatar re-selected.
+    @MainActor
+    func backToStepOne(_ app: XCUIApplication, finding name: String, _ avatar: String) {
+        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2 (PRD §6.5)")
+        app.buttons["Back"].tap()
+        let field = app.textFields["First name"]
+        XCTAssert(field.waitForExistence(timeout: 10), "Back returns to step 1")
+        XCTAssertEqual(field.value as? String, name, "the saved name")
+        XCTAssert(app.buttons[avatar].isSelected, "the saved Avatar, re-selected")
+        XCTAssert(app.buttons["Next"].isEnabled)
     }
 
     /// Onboarding step 2 (PRD §6.5, SCREEN-STATES A5): a search that matches nothing says so and clears, a search by

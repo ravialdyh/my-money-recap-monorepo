@@ -17,8 +17,8 @@ import (
 )
 
 // TestOnboardingEndToEnd walks steps 1 and 2 through the BFF and members containers as the realm's test Member:
-// Home refused until the Currency, an unknown code refused, then Home by name, Avatar and Currency. Skips like
-// TestEndToEnd.
+// Home refused until the Currency, an unknown code refused, Home by name, Avatar and Currency, then going back to
+// step 1. Skips like TestEndToEnd.
 func TestOnboardingEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
@@ -83,4 +83,12 @@ func TestOnboardingEndToEnd(t *testing.T) {
 		t.Fatalf("Home after step 2 shows the %q Avatar, want owl", home.Msg.Home.AvatarKey)
 	}
 	t.Logf("steps 1 and 2 saved through the containers; Home greets %q with the %s in %s", home.Msg.Home.DisplayName, home.Msg.Home.AvatarKey, home.Msg.Home.CurrencyCode)
+
+	if err := save(&moneyrecapv1.BffServiceSaveProfileRequest{DisplayName: proto.String("Tess"), AvatarKey: proto.String("fox"), OnboardingStep: proto.Int32(1)}); err != nil {
+		t.Fatal(err)
+	}
+	if s := state(); s.NextStep != 3 || s.Profile.DisplayName != "Tess" || s.Profile.AvatarKey != "fox" || s.Profile.CurrencyCode != "IDR" || s.Profile.OnboardingStep != 2 {
+		t.Fatalf("after going back to step 1: %v, want Tess and fox with IDR kept and progress still at step 2 (#102)", s)
+	}
+	t.Log("going back to step 1 changed only its answers: the Currency and the saved progress stayed")
 }

@@ -20,6 +20,16 @@ final class HomeViewModelTests: XCTestCase {
         ))
     }
 
+    /// Sign-out erases what the device holds (PRD §9), and the stored Home is the only setup progress it holds: it is
+    /// what opens Home with no round trip (spec #92).
+    func testEraseEmptiesTheStoreAsSignOutDoes() throws {
+        let context = try freshContext()
+        try HomeSnapshot.replace(with: recordedHome(), in: context)
+        XCTAssertNotNil(HomeSnapshot.load(from: context))
+        HomeSnapshot.erase(from: context)
+        XCTAssertNil(HomeSnapshot.load(from: context))
+    }
+
     func testZeroHomeGreetsTheMemberWithoutASavedChip() async throws {
         let home = try recordedHome()
         let model = try HomeViewModel(fetch: { home }, context: freshContext(), locale: Locale(identifier: "en_GB"))

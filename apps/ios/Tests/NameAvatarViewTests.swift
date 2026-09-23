@@ -6,18 +6,6 @@ import XCTest
 /// a Member's answers are drawn in place. The UI tests read the same screen through VoiceOver's labels.
 @MainActor
 final class NameAvatarViewTests: XCTestCase {
-    /// `view` as it draws in a 393 × 852 window, the size of the iPhone the UI tests run on.
-    private func picture(_ view: some View) -> Data? {
-        let host = UIHostingController(rootView: view)
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
-        window.rootViewController = host
-        window.makeKeyAndVisible()
-        host.view.layoutIfNeeded()
-        return UIGraphicsImageRenderer(bounds: host.view.bounds).image { _ in
-            host.view.drawHierarchy(in: host.view.bounds, afterScreenUpdates: true)
-        }.pngData()
-    }
-
     func testTheAppShipsTheSixAvatarsUnderTheContractsKeys() {
         XCTAssertEqual(AvatarGrid.keys, ["fox", "otter", "panda", "frog", "owl", "rabbit"], "Profile.avatar_key's list")
         for key in AvatarGrid.keys {
@@ -36,7 +24,7 @@ final class NameAvatarViewTests: XCTestCase {
 
     func testAResumingMembersAnswersAreDrawnInPlace() {
         let step = { (name: String, avatar: String) in
-            NameAvatarView(model: NameAvatarViewModel(name: name, avatar: avatar) { _, _ in true }) {}
+            NameAvatarView(model: NameAvatarViewModel(name: name, avatar: avatar) { _, _ in .saved }) {}
         }
         let empty = picture(step("", ""))
         let answered = picture(step("Maya", "otter"))
