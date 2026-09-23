@@ -69,8 +69,9 @@ prints every amount in that Currency, so neither has a fallback. Then the
 code, a failed `ledger` call as `unavailable`, each with a message naming only the call; the upstream
 text, which can hold a host or a database name, goes to the log. `ledger` is the real service since #103;
 `notify` is still the in-process stub `internal/bff/bff.go` describes, answering "no warning". The join
-stamps each amount left without a code with the Member's Currency. `days_remaining` and `first_recap_on`
-come from the server clock in UTC until `ledger` computes them in the Member's zone (A3).
+stamps each amount left without a code with the Member's Currency. The month asked for, the month shown and
+`first_recap_on` are read in the Profile's zone, the one `ledger` reads "today" in, and `days_remaining` is
+`ledger`'s (A2, A3), so a Member in Jakarta just past midnight on the 1st sees the new month.
 
 | Path | Holds |
 | --- | --- |

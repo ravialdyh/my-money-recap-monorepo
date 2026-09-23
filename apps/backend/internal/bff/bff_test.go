@@ -229,15 +229,25 @@ func TestGetHomeKeepsTheCodeAndDropsTheUpstreamText(t *testing.T) {
 	}
 }
 
-func TestDaysRemainingOnTheLastDay(t *testing.T) {
-	s := newService(t, &fakeMembers{profile: onboarded()}, StubNotify{})
-	s.Now = func() time.Time { return time.Date(2026, 2, 28, 23, 59, 0, 0, time.UTC) }
-	res, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if h := res.Msg.Home; h.DaysRemaining != 1 || h.FirstRecapOn != "2026-03-01" {
-		t.Fatalf("days_remaining %d, first_recap_on %s", h.DaysRemaining, h.FirstRecapOn)
+// Home's month is the Member's (A3): just past midnight on 1 October in Jakarta it is still 30 September in UTC,
+// and ledger is asked for October, whose days left are ledger's figure, never the BFF's own clock.
+func TestGetHomeReadsTheMonthInTheMembersZone(t *testing.T) {
+	for zone, want := range map[string][2]string{"Asia/Jakarta": {"2026-10", "2026-11-01"}, "": {"2026-09", "2026-10-01"}} {
+		profile := onboarded()
+		profile.Timezone = zone
+		ledger := &fakeLedger{}
+		s := newService(t, &fakeMembers{profile: profile}, StubNotify{})
+		s.Ledger = ledgerClient(t, ledger)
+		s.Now = func() time.Time { return time.Date(2026, 9, 30, 18, 30, 0, 0, time.UTC) }
+		res, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		h := res.Msg.Home
+		if ledger.gotMonth != want[0] || h.Month != want[0] || h.FirstRecapOn != want[1] || h.DaysRemaining != 15 {
+			t.Errorf("zone %q: asked ledger for %s, Home %s, first recap %s, %d days left; want %s, %s, ledger's 15",
+				zone, ledger.gotMonth, h.Month, h.FirstRecapOn, h.DaysRemaining, want[0], want[1])
+		}
 	}
 }
 
