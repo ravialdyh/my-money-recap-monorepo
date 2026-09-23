@@ -57,14 +57,24 @@ struct AmountField: View {
         return formatter.currencySymbol
     }
 
-    /// The largest amount step at which the symbol, a space and the grouped amount fit the row; 48pt before the row
-    /// is measured.
     private var fitted: CGFloat {
-        let line = symbol + " " + AmountText.shown(amount, locale: locale)
+        Self.size(for: symbol + " " + AmountText.shown(amount, locale: locale), in: width)
+    }
+
+    /// The largest amount step at which `line`, the symbol, a space and the grouped amount, drawn in Fredoka bold,
+    /// fits `width`; 48pt before the row is measured, and 28pt when nothing fits.
+    static func size(for line: String, in width: CGFloat) -> CGFloat {
         let steps = [Tokens.Size.amountL, Tokens.Size.amountM, Tokens.Size.amountS]
-        return steps.first { width == 0 || (line as NSString).size(withAttributes: [.font: AmountInput.font(of: $0)])
-            .width <= width
-        } ?? Tokens.Size.amountS
+        return steps
+            .first { width == 0 || (line as NSString).size(withAttributes: [.font: font(of: $0)]).width <= width }
+            ?? Tokens.Size.amountS
+    }
+
+    /// Fredoka at the bold weight the symbol is drawn in, which the typed amount is drawn and measured in.
+    static func font(of size: CGFloat) -> UIFont {
+        let family = UIFontDescriptor(fontAttributes: [.family: Tokens.FontFamily.display])
+        let bold = family.addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: UIFont.Weight.bold]])
+        return UIFont(descriptor: bold, size: size)
     }
 }
 
@@ -77,10 +87,6 @@ private struct AmountInput: UIViewRepresentable {
     let digits: Int
     let locale: Locale
     let size: CGFloat
-
-    static func font(of size: CGFloat) -> UIFont {
-        UIFont(name: Tokens.FontFamily.display, size: size) ?? .monospacedDigitSystemFont(ofSize: size, weight: .bold)
-    }
 
     func makeUIView(context: Context) -> UITextField {
         let field = UITextField()
@@ -96,7 +102,7 @@ private struct AmountInput: UIViewRepresentable {
 
     func updateUIView(_ field: UITextField, context: Context) {
         context.coordinator.input = self
-        field.font = Self.font(of: size)
+        field.font = AmountField.font(of: size)
         let shown = AmountText.shown(amount, locale: locale)
         if field.text != shown {
             field.text = shown

@@ -160,7 +160,7 @@ White `Sheet variant="full"` on violet.
 |---|---|
 | X1 | **iPad portrait.** D40 as amended by D68: the single column, capped at 600pt, centred on a full-bleed ground. One artboard, Home. |
 | X2 | **iPad landscape.** Same column, same centring, `Sheet`s anchored to the bottom of the column rather than the screen. One artboard, Log a spend over Home. |
-| X3 | **IDR proof · Home.** D45. B1 with Salary Rp 15.000.000, Spent Rp 9.400.000. Proves that `StatHero` shrinks to fit (80 → 56 → 40pt) and that separators follow the device language (D71). |
+| X3 | **IDR proof · Home.** D45. B1 with Salary Rp15.000.000, Spent Rp9.400.000. Proves that `StatHero` shrinks to fit (80 → 56 → 40pt) and that separators follow the device language (D71). |
 | X4 | **IDR proof · Recap cover.** C1 with the same ledger. |
 | X5 | **IDR proof · Share image.** C6 with the same ledger, at 1080×1920. |
 

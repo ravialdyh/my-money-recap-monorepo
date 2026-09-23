@@ -12,7 +12,7 @@ struct CheckInboxView: View {
     }
 
     var body: some View {
-        Screen {
+        Screen(scrolls: true) {
             BackRow(label: "Email", back: useAnotherEmail)
             Image("ill-envelope")
                 .resizable()
@@ -20,7 +20,7 @@ struct CheckInboxView: View {
                 .frame(width: 240)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .accessibilityHidden(true)
-            Headline(text: CheckInboxViewModel.title, size: .m)
+            Headline(text: CheckInboxViewModel.title)
             SubCopy(text: model.subCopy).padding(.top, Tokens.Space._4)
             VStack(alignment: .leading, spacing: Tokens.Space._1) {
                 Button(model.resendTitle) {

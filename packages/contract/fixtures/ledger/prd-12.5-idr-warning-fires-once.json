@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §12 criterion 5 and §8.8: after the Rp 2.400.001 crossing on the 20th, a fourth Spend of Rp 300.000 on 22 September takes Spent to Rp 2.700.001, already past the line, so it did not cross and the warning does not fire again; the banner copy still names the month's Spent (before Payday, D53). Money In Rp 0 (§8.2); Streak 3 (§8.5); days remaining 30 − 22 + 1 = 9 (§8.7).",
+  "doc": "PRD §12 criterion 5 and §8.8: after the Rp2.400.001 crossing on the 20th, a fourth Spend of Rp300.000 on 22 September takes Spent to Rp2.700.001, already past the line, so it did not cross and the warning does not fire again; the banner copy still names the month's Spent (before Payday, D53). Money In Rp0 (§8.2); Streak 3 (§8.5); days remaining 30 − 22 + 1 = 9 (§8.7).",
   "timezone": "Asia/Jakarta",
   "signedUpOn": "2026-09-10",
   "currencyCode": "IDR",
@@ -109,7 +109,7 @@
       "daysRemaining": 9,
       "partial": false,
       "targetWarning": {
-        "message": "You've spent Rp 2.700.001 of the Rp 2.400.000 you meant to spend this month."
+        "message": "You've spent Rp2.700.001 of the Rp2.400.000 you meant to spend this month."
       }
     }
   ],

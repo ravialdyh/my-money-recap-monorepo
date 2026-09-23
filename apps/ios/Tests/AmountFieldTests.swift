@@ -50,4 +50,25 @@ final class AmountFieldTests: XCTestCase {
         XCTAssertNotEqual(picture(field("9999999999", "IDR")), picture(field("99999999999", "IDR")), "the D57 line")
         XCTAssertNotEqual(picture(field("15000000", "IDR")), picture(field("15000000", "JPY")), "IDR against ¥")
     }
+
+    /// #106: the size comes from the printed width in Fredoka bold, not from a count of characters: a long rupiah
+    /// Salary steps down from 48 through 36 to 28pt, and two lines of one length but different widths size apart.
+    func testTheAmountStepsDownByItsPrintedWidth() {
+        XCTAssertEqual(AmountField.font(of: 48).familyName, "Fredoka", "the bundled face is the one measured")
+        let short = "Rp 15.000.000"
+        let long = "Rp 99.999.999.999"
+        let width = { (line: String, size: CGFloat) in
+            ceil((line as NSString).size(withAttributes: [.font: AmountField.font(of: size)]).width)
+        }
+        XCTAssertEqual(AmountField.size(for: short, in: width(short, 48)), 48)
+        XCTAssertEqual(AmountField.size(for: long, in: width(long, 48) - 1), 36)
+        XCTAssertEqual(AmountField.size(for: long, in: width(long, 36) - 1), 28)
+        XCTAssertEqual(AmountField.size(for: long, in: 10), 28, "the smallest step when nothing fits")
+        XCTAssertEqual(AmountField.size(for: long, in: 0), 48, "48 before the row is measured")
+        let narrow = String(repeating: "1", count: 12)
+        let wide = String(repeating: "W", count: 12)
+        let room = width(narrow, 48)
+        XCTAssertEqual(AmountField.size(for: narrow, in: room), 48)
+        XCTAssertLessThan(AmountField.size(for: wide, in: room), 48, "same count, wider print, smaller step")
+    }
 }

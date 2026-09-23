@@ -20,6 +20,13 @@
 	     physical device (MMR_ISSUER / MMR_BFF_URL). NSAllowsLocalNetworking covers both (unqualified hosts
 	     and private addresses). The laptop stack keeps plain HTTP and TLS arrives only on the VM, where
 	     Nginx terminates it (ARCHITECTURE A7), so this exception stays for the development stack. -->
+	<!-- The two typefaces of the design system (tokens.json font.family), from github.com/google/fonts under the
+	     SIL Open Font License, whose text ships beside them in Resources/Fonts. Each is one variable font. -->
+	<key>UIAppFonts</key>
+	<array>
+		<string>Fredoka.ttf</string>
+		<string>Nunito.ttf</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

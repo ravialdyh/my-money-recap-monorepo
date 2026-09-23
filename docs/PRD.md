@@ -89,7 +89,7 @@ Every design question raised while writing this document, with the decision take
 | **D42** | **What is the hero number on Home?** | **Spent.** It is the figure that changes daily and the only one the Member can act on. Money In and Saved are chips beneath it. This matches the drawn design (B1, A8). |
 | **D43** | **Where does the Streak start in the Member's first month?** | **`max(1st of the month, the Member's sign-up date)`.** Counting from the 1st awards no-spend days from before the app existed. Applies to the sign-up month only; every later month starts on the 1st. |
 | **D44** | **Can a Saving Target be set without a Salary?** | **No.** If Salary was skipped, onboarding step 4 shows a prompt back to step 3 and Done goes to Home. A percentage of an unknown Salary has no amount, no `kept%`, no progress bar and no Archetype; forbidding the state removes four undrawn screens. |
-| **D45** | **Which currency do the screens support?** | **The full ISO 4217 list (D12 stands), plus a long-number rule.** `StatHero` sizes itself to fit its card, 80 → 56 → 40pt (§11). Home, the Recap cover and the share image must each be drawn in IDR as proof before new work lands; every artboard to date is GBP, and `Rp 3.000.000` is three times the width of `£900`. |
+| **D45** | **Which currency do the screens support?** | **The full ISO 4217 list (D12 stands), plus a long-number rule.** `StatHero` sizes itself to fit its card, 80 → 56 → 40pt (§11). Home, the Recap cover and the share image must each be drawn in IDR as proof before new work lands; every artboard to date is GBP, and `Rp3.000.000` is three times the width of `£900`. |
 | **D46** | **How does a Member leave a Recap?** | **A 44pt close control, top-left of Recap screens 1–4, and tappable `PageDots`.** The drawn design has no exit control of any kind. |
 | **D47** | **What does a Member look at before their first Recap?** | **A "month so far" preview**, reachable from the Home card that currently reads "Your first recap arrives on 1 October". Read-only, no Archetype, no Share. See D64 for its artboards. |
 | **D48** | **Where does the screen-by-screen contract live?** | **`SCREEN-STATES.md`**, keyed to the handoff's screen ids (A0–A8, B1–B8, C1–C7, D1–D12). This document owns the rules; that file owns the states and the copy. The 2026-09-08 gaps list was closed out against both and has since been deleted; its decisions are D41–D67. |
@@ -389,7 +389,7 @@ The Recap has no table. It is a computation over the above (D22). Nothing about 
 Every rule below is followed by a worked example against one shared ledger, so a number copied from an artboard can be checked against the rule that produced it.
 
 **The canonical ledger.** Maya. Salary £2,400, Payday 25, Saving Target 20%. September 2026 (30 days). Signed up before September. Spends totalling £1,760, none dated 12–20 September, largest single Spend £420 on the 27th.
-**The IDR ledger** (for D45 proofs). Budi. Salary Rp 15.000.000, Payday 25, Target 20% → target Rp 3.000.000. Spends Rp 9.400.000.
+**The IDR ledger** (for D45 proofs). Budi. Salary Rp15.000.000, Payday 25, Target 20% → target Rp3.000.000. Spends Rp9.400.000.
 
 ### 8.1 Month
 
@@ -415,7 +415,7 @@ A **Recap Month** is a calendar month in local dates (D33, D41). Everything belo
 
 Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Currency's decimals in the CLDR data `ledger` keeps (§7, D71); the server rounds and stores, the phone only prints (`ARCHITECTURE.md` §7.2). `kept%` = `round(Saved ÷ Target amount × 100)`, clamped 0 to 999. A Target of 0% means no Target: the component's `targetAmount <= 0` branch is the "not set" state.
 
-*Worked:* £2,400 × 20 ÷ 100 = £480. Saved £640 ÷ £480 × 100 = 133%. Budi: Rp 15.000.000 × 20 ÷ 100 = Rp 3.000.000.
+*Worked:* £2,400 × 20 ÷ 100 = £480. Saved £640 ÷ £480 × 100 = 133%. Budi: Rp15.000.000 × 20 ÷ 100 = Rp3.000.000.
 
 ### 8.5 Streak
 
@@ -473,7 +473,7 @@ Copy depends on whether Payday has passed (D53):
 5. Saving Target percentages are untouched.
 6. Not reversible except by converting again at a new rate.
 
-*Worked:* GBP → IDR at 20,150. £2,400 → Rp 48.360.000. £1,760 → Rp 35.464.000. The percentage stays 20%.
+*Worked:* GBP → IDR at 20,150. £2,400 → Rp48.360.000. £1,760 → Rp35.464.000. The percentage stays 20%.
 
 ### 8.10 Editing rules
 
@@ -526,7 +526,7 @@ A partial month still sends "Recap ready": there is something to see (§6.17). P
 - **Connectivity (D61):** reading works offline from the cache; every write requires the network. A failed write shows an inline error and keeps the sheet open with the values intact.
 - **Long numbers (D45, D57, D71):** `StatHero` draws the printed amount at 80pt, or 56 / 40pt when the full string does not fit its card, measured on screen (SwiftUI `.minimumScaleFactor` over the same three sizes). `AmountField` takes 48, 36 or 28pt, measuring its line the same way (a text field cannot scale, so it measures with the platform's font metrics, IOS I7). Amounts are capped at 11 digits before the decimal separator, the most the hero shows at 40pt in every currency. Home, the Recap cover and the share image must each be proven in IDR.
 - **Accessibility:** Dynamic Type up to the "Large" accessibility size; **at accessibility sizes the four Recap screens become one vertical scroll with `PageDots` as section markers** (D66). VoiceOver labels on every chip, bar and button: a `CategoryBar` reads "Bills, 35 percent, £616"; a `StatChip` reads "Money in, zero pounds"; the hidden Saved chip is absent from the accessibility tree, not present-and-empty. All tappable elements at least 44 × 44pt, except page dots, which own their slice of a 44pt-tall row like the system page control (D71). Reduce Motion replaces reveals with 150ms fades.
-- **Localisation:** v1 ships en-GB copy only. Money is printed by the platform formatter from the amount and the Member's currency code: the decimals are those the amount carries (D71), the symbol comes from the currency's CLDR data, separators from the device language (an Indonesian phone prints `Rp 15.000.000`, a British phone printing rupiah `Rp 15,000,000`). Dates follow the device locale.
+- **Localisation:** v1 ships en-GB copy only. Money is printed by the platform formatter from the amount and the Member's currency code: the decimals are those the amount carries (D71), the symbol comes from the currency's CLDR data, separators from the device language (an Indonesian phone prints `Rp15.000.000` with no space after the symbol, a British phone printing rupiah `IDR 15,000,000`). `ledger`'s sentences print an amount the way an Indonesian phone does, with a space only after a three-letter code. Dates follow the device locale.
 - **Privacy:** no analytics SDK in v1. Data stored server-side in one region and cached on device inside the app's container, protected by the device passcode and erased on log out or deletion. The share image never contains Salary or Money In.
 - **Security:** TLS everywhere, JWT verification on every request, no secrets in the binary, rate limiting on magic-link requests (5 per email per hour, enforced by the backend since neither Keycloak nor the extension limits sends), biometric gate on the persisted session.
 - **App Store compliance:** Sign in with Apple present (4.8), in-app account deletion (5.1.1(v)), privacy nutrition label listing email and financial data as linked to the user.
@@ -536,7 +536,7 @@ A partial month still sends "Recap ready": there is something to see (§6.17). P
 1. A new Member signing in with Google reaches Home with a Display Name, Avatar and Currency in under three minutes, with Salary and Saving Target skipped, and Home shows the Spent hero at 0 plus both prompts.
 2. Tapping a magic link on the phone opens the app signed in; tapping it on a laptop shows the fallback page.
 3. Force-quitting and relaunching asks for Face ID and returns to Home without a network round-trip. After 30 days of no use, the same launch shows Sign in.
-4. Setting Salary 3,000,000 IDR, Payday 25, target 20% on the 10th shows a hero of `Rp 0` with the eyebrow "Spent so far · salary lands in 15 days", a `Money in Rp 0` chip and **no Saved chip**; on the 25th the Saved chip appears and the target reads Rp 600,000.
+4. Setting Salary 3,000,000 IDR, Payday 25, target 20% on the 10th shows a hero of `Rp0` with the eyebrow "Spent so far · salary lands in 15 days", a `Money in Rp0` chip and **no Saved chip**; on the 25th the Saved chip appears and the target reads Rp600,000.
 5. Logging Spends totalling 2,400,001 IDR in that month fires the Target Warning exactly once, even after further Spends, with the before-Payday wording if it happens before the 25th.
 6. A month with Money In 36, Spent 11 across Snacks 5, Games 4, Toys 2, and a 9-day Streak, target 60%, yields Archetype Squirrel, Splurge 4 on Games, kept% 116.
 7. Backdating a Spend into last month changes last month's Recap numbers on next open, with no manual refresh.

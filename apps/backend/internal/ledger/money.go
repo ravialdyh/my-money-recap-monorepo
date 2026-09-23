@@ -4,7 +4,6 @@ import (
 	"errors"
 	"math/big"
 	"strings"
-	"unicode"
 
 	"golang.org/x/text/currency"
 	"golang.org/x/text/language"
@@ -45,8 +44,8 @@ func (c cash) rounded(r *big.Rat) *big.Rat {
 	return v
 }
 
-// printed is an amount in a sentence as the PRD prints one (§8.7): the home locale's symbol and grouping, a space
-// only after a letter, no fraction when whole: "£320", "Rp 400.000"; the code where x/text lacks one: "VES 1.500".
+// printed is an amount in a sentence as the phone prints one (§8.7, #106): the home locale's symbol and grouping, a
+// space only after a code, no fraction when whole: "£320", "Rp400.000"; the code where x/text lacks one: "VES 1.500".
 func (c cash) printed(r *big.Rat) string {
 	region, _ := language.ParseRegion(c.code[:2])
 	base, _ := language.Make("und-" + region.String()).Base()
@@ -62,8 +61,7 @@ func (c cash) printed(r *big.Rat) string {
 	}
 	f, _ := c.rounded(r).Float64()
 	amount := p.Sprint(number.Decimal(f, number.Scale(digits)))
-	last := []rune(symbol)[len([]rune(symbol))-1]
-	if unicode.IsLetter(last) {
+	if symbol == c.code {
 		return symbol + " " + amount
 	}
 	return strings.TrimSpace(symbol) + amount

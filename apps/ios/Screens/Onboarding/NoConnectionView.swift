@@ -9,7 +9,7 @@ struct NoConnectionView: View {
     let retry: () -> Void
 
     var body: some View {
-        Screen {
+        Screen(scrolls: true) {
             Spacer(minLength: 0)
             Card {
                 InlineError(text: Self.copy)

@@ -12,7 +12,7 @@ func rat(s string) *big.Rat {
 }
 
 // Amounts carry the decimals CLDR gives the Currency (package cldr), rounded half up (PRD §8.4), and a sentence
-// prints them as the PRD does: "£320", "Rp 400.000", a fraction only when there is one.
+// prints them as the phone does: "£320", "Rp400.000", a fraction only when there is one (#106).
 func TestAmountsFollowTheCurrencysDecimals(t *testing.T) {
 	gbp, err := currencyOf("GBP")
 	if err != nil || gbp.scale != 2 {
@@ -28,7 +28,7 @@ func TestAmountsFollowTheCurrencysDecimals(t *testing.T) {
 		{idr.money(rat("600000.5")).Amount, "600001"},
 		{gbp.printed(rat("320")), "£320"},
 		{gbp.printed(rat("1920.4")), "£1,920.40"},
-		{idr.printed(rat("400000")), "Rp 400.000"},
+		{idr.printed(rat("400000")), "Rp400.000"},
 	} {
 		if c.got != c.want {
 			t.Errorf("got %q, want %q", c.got, c.want)

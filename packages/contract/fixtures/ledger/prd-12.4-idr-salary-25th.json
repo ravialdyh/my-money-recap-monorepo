@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §12 criterion 4, a Member who signs up on 10 September and sets Salary Rp 3.000.000, Payday 25, target 20%, read on the 25th: target Rp 3.000.000 × 20 ÷ 100 = Rp 600.000 (§8.4, D45); Payday is today, so Money In Rp 3.000.000, Saved Rp 3.000.000 and the Saved chip appears (§8.2, §8.3); allowance floor((3.000.000 − 600.000 − 0) ÷ 6) = Rp 400.000 (§8.7); Streak 16, the 10th to the 25th with no Spends (§8.5).",
+  "doc": "PRD §12 criterion 4, a Member who signs up on 10 September and sets Salary Rp3.000.000, Payday 25, target 20%, read on the 25th: target Rp3.000.000 × 20 ÷ 100 = Rp600.000 (§8.4, D45); Payday is today, so Money In Rp3.000.000, Saved Rp3.000.000 and the Saved chip appears (§8.2, §8.3); allowance floor((3.000.000 − 600.000 − 0) ÷ 6) = Rp400.000 (§8.7); Streak 16, the 10th to the 25th with no Spends (§8.5).",
   "timezone": "Asia/Jakarta",
   "signedUpOn": "2026-09-10",
   "currencyCode": "IDR",
@@ -54,7 +54,7 @@
           "amount": "600000",
           "currencyCode": "IDR"
         },
-        "progressSentence": "Keep spending under Rp 400.000 a day and you'll make it."
+        "progressSentence": "Keep spending under Rp400.000 a day and you'll make it."
       },
       "streakDay": 16,
       "daysRemaining": 6,

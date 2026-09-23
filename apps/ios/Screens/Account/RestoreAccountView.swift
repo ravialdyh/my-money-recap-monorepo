@@ -8,9 +8,9 @@ struct RestoreAccountView: View {
     let onContinue: () -> Void
 
     var body: some View {
-        Screen {
+        Screen(scrolls: true) {
             VStack(alignment: .leading, spacing: Tokens.Space._6) {
-                Headline(text: "Welcome back", size: .m)
+                Headline(text: "Welcome back")
                     .accessibilityAddTraits(.isHeader)
                 Text(model.askedLine)
                     .textStyle(Tokens.TypeRamp.bodyM).fontWeight(.heavy)
