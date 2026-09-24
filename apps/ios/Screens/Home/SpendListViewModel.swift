@@ -41,7 +41,21 @@ final class SpendListViewModel: Identifiable {
     /// Asks for `month`; the answer replaces its snapshot, and the list while that month is shown. A failure keeps what
     /// is shown, offline included.
     func refresh() async {
-        let asked = month
+        await refresh(month)
+    }
+
+    /// After a write, asks for the month shown and every month the write changed (`LogSpendViewModel.months`), so each
+    /// stored snapshot is the server's (IOS I4). A Category left with no Spend closes its detail.
+    func refresh(_ months: Set<String>) async {
+        for asked in months.union([month]).sorted() {
+            await refresh(asked)
+        }
+        if let category, share(category) == nil {
+            self.category = nil
+        }
+    }
+
+    private func refresh(_ asked: String) async {
         guard let fresh = try? await fetch(asked), fresh.month == asked else { return }
         try? SpendListSnapshot.replace(with: fresh, in: context)
         if month == asked {

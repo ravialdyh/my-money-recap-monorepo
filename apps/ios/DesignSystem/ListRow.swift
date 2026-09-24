@@ -1,22 +1,24 @@
 import SwiftUI
 
 /// Settings, Recap and Currency list row (`ListRow.tsx`): label, a right-aligned secondary value, then a chevron that
-/// opens a screen or, for a choice, the violet check a selected row shows; a divider below.
+/// opens a screen, the violet check a selected row shows, or nothing; a divider below. A destructive label is coral.
 struct ListRow: View {
     enum Trailing {
-        case chevron, check
+        case chevron, check, none
     }
 
     let label: String
     var value: String?
     var trailing = Trailing.chevron
     var selected = false
+    var destructive = false
     var action: () -> Void = {}
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Text(label).textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.primary)
+                Text(label).textStyle(Tokens.TypeRamp.labelM)
+                    .foregroundStyle(destructive ? Tokens.Text.accentCoral : Tokens.Text.primary)
                 Spacer(minLength: 0)
                 if let value {
                     Text(value).textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)
@@ -27,6 +29,8 @@ struct ListRow: View {
                         .foregroundStyle(Tokens.Text.secondary)
                 case .check:
                     check.opacity(selected ? 1 : 0)
+                case .none:
+                    EmptyView()
                 }
             }
             .padding(.vertical, Tokens.Space._5)

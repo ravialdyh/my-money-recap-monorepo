@@ -166,7 +166,13 @@ func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyreca
 	return connect.NewResponse(answer), nil
 }
 
+// writeFailed is a write's error as the caller sees it: a connect error raised inside the write as it is, a reused
+// key as invalid_argument, anything else as the store failing.
 func writeFailed(ctx context.Context, err error) error {
+	var ce *connect.Error
+	if errors.As(err, &ce) {
+		return ce
+	}
 	if errors.Is(err, idempotency.ErrReused) {
 		return connect.NewError(connect.CodeInvalidArgument, err)
 	}

@@ -27,6 +27,10 @@ struct HomeView: View {
         }, listSpends: { month in
             try await BffClient.retried(session) { await client.listSpends(request: .with { $0.month = month }) }
                 .result.get().spends
+        }, editSpend: { request, headers in
+            await BffClient.retried(session) { await client.editSpend(request: request, headers: headers) }.result
+        }, deleteSpend: { request, headers in
+            await BffClient.retried(session) { await client.deleteSpend(request: request, headers: headers) }.result
         }))
         self.open = open
     }
@@ -67,7 +71,7 @@ struct HomeView: View {
             }
         }
         .sheet(item: $listing) { list in
-            SpendListView(model: list, log: { model.logSheet() }, onSaved: { home in
+            SpendListView(model: list, log: { model.logSheet() }, edit: model.editSheet, onSaved: { home in
                 withAnimation(reveal) { model.replace(with: home) }
             })
         }

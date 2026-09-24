@@ -8,16 +8,20 @@ struct SpendListView: View {
     @State private var logging: LogSpendViewModel?
     @Environment(\.dismiss) private var dismiss
     private let log: () -> LogSpendViewModel?
+    private let edit: (MoneyRecap_V1_Spend) -> LogSpendViewModel?
     private let onSaved: (MoneyRecap_V1_HomeView) -> Void
 
-    /// `log` is Home's Log a spend sheet; `onSaved` hands its fresh Home back, and the list asks for its month again.
+    /// `log` and `edit` are Home's Log a spend and Edit spend sheets; `onSaved` hands a write's fresh Home back, and
+    /// the list asks again for every month the write changed.
     init(
         model: SpendListViewModel,
         log: @escaping () -> LogSpendViewModel? = { nil },
+        edit: @escaping (MoneyRecap_V1_Spend) -> LogSpendViewModel? = { _ in nil },
         onSaved: @escaping (MoneyRecap_V1_HomeView) -> Void = { _ in }
     ) {
         _model = State(initialValue: model)
         self.log = log
+        self.edit = edit
         self.onSaved = onSaved
     }
 
@@ -43,14 +47,16 @@ struct SpendListView: View {
                     }
             }
             .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(item: $model.category) { CategoryView(model: model, category: $0) }
+            .navigationDestination(item: $model.category) { category in
+                CategoryView(model: model, category: category) { logging = edit($0) }
+            }
         }
         .task { await model.refresh() }
         .sheet(item: $logging) { sheet in
             LogSpendView(model: sheet) { home in
                 logging = nil
                 onSaved(home)
-                Task { await model.refresh() }
+                Task { await model.refresh(sheet.months) }
             }
         }
         .presentationDetents([.large])
@@ -115,10 +121,11 @@ struct SpendListView: View {
 }
 
 /// B6b Category detail: that Category's Spends, newest first, each its note or Category, its date and amount, under its
-/// share of the month. Back returns to the list.
+/// share of the month. A Spend opens its edit sheet (B7); back returns to the list.
 struct CategoryView: View {
     let model: SpendListViewModel
     let category: Icon.Name
+    var open: (MoneyRecap_V1_Spend) -> Void = { _ in }
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -140,7 +147,7 @@ struct CategoryView: View {
                             label: model.title(spend),
                             detail: model.day(spend),
                             amount: model.money(spend.amount)
-                        )
+                        ) { open(spend) }
                     }
                 }
             }

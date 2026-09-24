@@ -107,6 +107,7 @@ final class SignInUITests: XCTestCase {
         sideways(app, reaching: app.buttons["Log a spend"], "home")
         logASpend(app, rupiah: 25000)
         openTheSpendList(app, rupiah: 25000)
+        editAndDeleteTheSpend(app, from: 25000, to: 40000)
 
         app.terminate()
         app.launch()

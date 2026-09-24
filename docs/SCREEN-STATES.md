@@ -74,9 +74,9 @@ Violet ground throughout.
 | B6 | empty | D43. Centred `Nothing spent yet. Streak day {n}.` and a plus button; the streak counts from sign-up (23 on 26 September for a 4 September sign-up). |
 | B6 | empty, past month | A past month with Money In and no Spend: `Nothing spent in {Month}.`, no streak; the plus button still opens Log a spend (owner, 2026-09-24). |
 | B6b | Category detail | One category, newest first, each Spend by its note or else its Category on one line, the date under it; sub-line `{amount} · {n}% of {Month} so far` (`of {Month}` for a past month). Back returns to B6. |
-| B7 | Spend detail | Prefilled fields, destructive Delete row. |
+| B7 | Spend detail | Opened from a B6b row: the log sheet titled `Edit spend`, prefilled, `Save changes`, and the destructive row `Delete this spend`. A failed save keeps the sheet and its values with `We couldn't save this spend. Try again.`; a failed delete keeps the Spend with `We couldn't delete this spend. Try again.` After either write, Home and every month it changed are refreshed from the answers. |
 | B7 | spend older than 60 days | §6.10. The date row becomes read-only text with `Dates older than 60 days can't be changed.` Amount, Category and Note stay editable. |
-| B8 | Delete confirm | iOS action sheet. |
+| B8 | Delete confirm | iOS action sheet anchored on the row: `Delete this spend?`, `You can't undo this.`, red `Delete`, `Cancel`. A confirmed delete returns to the list with the row gone; a Category left empty returns to B6. |
 | none | Flow · Home and the daily loop | Includes the offline branch, the month switcher and the preview entry. |
 
 ---

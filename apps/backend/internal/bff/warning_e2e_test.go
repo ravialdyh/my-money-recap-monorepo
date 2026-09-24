@@ -17,8 +17,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestTargetWarningEndToEnd (#132): notify down at save time still answers Home, without the banner; the warning
-// fires once and keeps its first words after more Spends; another Member's warning is not_found. Skips like TestEndToEnd.
+// TestTargetWarningEndToEnd (#132, #133): notify down still answers Home, bannerless; the warning fires once and keeps
+// its first words after more Spends and after deletes take Spent back under the line; another Member's is not_found.
 func TestTargetWarningEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	membersURL, ledgerURL, notifyURL := os.Getenv("MEMBERS_TEST_URL"), os.Getenv("LEDGER_TEST_URL"), os.Getenv("NOTIFY_TEST_URL")
@@ -43,7 +43,7 @@ func TestTargetWarningEndToEnd(t *testing.T) {
 	}
 	signedIn := auth.NewContext(ctx, auth.Claims{Subject: sub, Email: claims.Email, Raw: tok})
 	today := time.Now().UTC().Format(dateLayout)
-	spend := func(s spender, amount string) *moneyrecapv1.HomeView {
+	spend := func(s spender, amount string) *moneyrecapv1.BffServiceLogSpendResponse {
 		t.Helper()
 		req := connect.NewRequest(&moneyrecapv1.BffServiceLogSpendRequest{
 			Amount: &moneyrecapv1.Money{Amount: amount, CurrencyCode: "IDR"}, Category: moneyrecapv1.Category_CATEGORY_SNACKS, Date: today,
@@ -53,34 +53,42 @@ func TestTargetWarningEndToEnd(t *testing.T) {
 		if err != nil {
 			t.Fatalf("a Spend of %s: %v", amount, err)
 		}
-		return res.Msg.Home
+		return res.Msg
 	}
 
 	freshMemberOverTheLine(ctx, t, db, client, base, tok, sub)
-	if h := spend(client, "400000"); h.TargetWarning != nil {
+	if h := spend(client, "400000").Home; h.TargetWarning != nil {
 		t.Fatalf("400000 of a 500000 line: banner %v, want none", h.TargetWarning)
 	}
-	if h := spend(notifyDown, "150000"); h.TargetWarning != nil || h.Spent.GetAmount() != "550000" {
+	if h := spend(notifyDown, "150000").Home; h.TargetWarning != nil || h.Spent.GetAmount() != "550000" {
 		t.Fatalf("the crossing Spend with notify down: %v, want Spent 550000 and no banner", h)
 	}
 
 	freshMemberOverTheLine(ctx, t, db, client, base, tok, sub)
-	spend(client, "400000")
+	early := spend(client, "400000").Spend
 	first := "You've spent Rp550.000 of the Rp500.000 you meant to spend this month."
 	if time.Now().UTC().Day() == 1 {
 		first = "You've passed your saving line. Rp50.000 over."
 	}
-	if h := spend(client, "150000"); h.TargetWarning.GetMessage() != first {
+	crossing := spend(client, "150000")
+	if h := crossing.Home; h.TargetWarning.GetMessage() != first {
 		t.Fatalf("the crossing Spend: banner %v, want %q", h.TargetWarning, first)
 	}
-	if h := spend(client, "100000"); h.TargetWarning.GetMessage() != first || h.Spent.GetAmount() != "650000" {
+	if h := spend(client, "100000").Home; h.TargetWarning.GetMessage() != first || h.Spent.GetAmount() != "650000" {
 		t.Fatalf("a Spend after the stamp: %v, want Spent 650000 under the first words", h)
 	}
-	home, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
-	if err != nil || home.Msg.Home.TargetWarning.GetMessage() != first {
-		t.Fatalf("GetHome after the stamp: %v, %v, want the first words", home, err)
+	for _, id := range []string{early.Id, crossing.Spend.Id} {
+		req := connect.NewRequest(&moneyrecapv1.BffServiceDeleteSpendRequest{SpendId: id})
+		req.Header().Set("Idempotency-Key", rand.Text())
+		if _, err := client.DeleteSpend(ctx, req); err != nil {
+			t.Fatal(err)
+		}
 	}
-	t.Logf("fired once with %q, kept after Spent moved to 650000", first)
+	home, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	if err != nil || home.Msg.Home.TargetWarning.GetMessage() != first || home.Msg.Home.Spent.GetAmount() != "100000" {
+		t.Fatalf("GetHome after deletes back under the line: %v, %v, want Spent 100000 under the first words", home, err)
+	}
+	t.Logf("fired once with %q, kept after Spent moved to 650000 and back to 100000", first)
 
 	notify := moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, notifyURL, testauth.Bearer(tok))
 	state := func(memberID string) error {

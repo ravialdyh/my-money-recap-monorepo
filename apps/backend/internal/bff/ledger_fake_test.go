@@ -18,7 +18,7 @@ import (
 var errLedgerDown = errors.New("dial tcp 172.18.0.5:5432: connect: connection refused")
 
 // fakeLedger is ledger as the BFF sees it: a zero month with 15 days left, settings holding salary and target, each
-// read month and write recorded with its token; err fails every call. LogSpend answers warning and crossed.
+// read month and write recorded with its token; err fails every call. LogSpend and EditSpend answer warning and crossed.
 type fakeLedger struct {
 	moneyrecapv1connect.UnimplementedLedgerServiceHandler
 	err        error
@@ -29,6 +29,8 @@ type fakeLedger struct {
 	gotTarget  *moneyrecapv1.SaveTargetRequest
 	gotRelabel *moneyrecapv1.RelabelCurrencyRequest
 	gotSpend   *moneyrecapv1.LogSpendRequest
+	gotEdit    *moneyrecapv1.EditSpendRequest
+	gotDelete  *moneyrecapv1.DeleteSpendRequest
 	crossed    bool
 	warning    *moneyrecapv1.TargetWarning
 	settings   int
@@ -95,6 +97,24 @@ func (f *fakeLedger) LogSpend(_ context.Context, req *connect.Request[moneyrecap
 	month := zeroMonth()
 	month.Month, month.TargetWarning = req.Msg.Date[:7], f.warning
 	return connect.NewResponse(&moneyrecapv1.LogSpendResponse{Spend: &moneyrecapv1.Spend{Id: "s-1", Amount: req.Msg.Amount, Date: req.Msg.Date}, Month: month, CrossedLine: f.crossed}), nil
+}
+
+func (f *fakeLedger) EditSpend(_ context.Context, req *connect.Request[moneyrecapv1.EditSpendRequest]) (*connect.Response[moneyrecapv1.EditSpendResponse], error) {
+	f.gotEdit, f.gotToken = req.Msg, req.Header().Get("Authorization")
+	if f.err != nil {
+		return nil, f.err
+	}
+	month := zeroMonth()
+	month.Month, month.TargetWarning = req.Msg.Date[:7], f.warning
+	return connect.NewResponse(&moneyrecapv1.EditSpendResponse{Spend: &moneyrecapv1.Spend{Id: req.Msg.SpendId, Amount: req.Msg.Amount, Date: req.Msg.Date}, Month: month, CrossedLine: f.crossed}), nil
+}
+
+func (f *fakeLedger) DeleteSpend(_ context.Context, req *connect.Request[moneyrecapv1.DeleteSpendRequest]) (*connect.Response[moneyrecapv1.DeleteSpendResponse], error) {
+	f.gotDelete, f.gotToken = req.Msg, req.Header().Get("Authorization")
+	if f.err != nil {
+		return nil, f.err
+	}
+	return connect.NewResponse(&moneyrecapv1.DeleteSpendResponse{Spend: &moneyrecapv1.Spend{Id: req.Msg.SpendId}, Month: zeroMonth()}), nil
 }
 
 func (f *fakeLedger) ListSpends(_ context.Context, req *connect.Request[moneyrecapv1.ListSpendsRequest]) (*connect.Response[moneyrecapv1.ListSpendsResponse], error) {
