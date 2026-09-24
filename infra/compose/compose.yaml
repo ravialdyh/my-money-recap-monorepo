@@ -163,9 +163,7 @@ services:
     environment:
       NOTIFY_DATABASE_URL_FILE: &notify-db-file /run/secrets/notify_database_url
     secrets: &notify-db-secret [notify_database_url]
-    depends_on:
-      postgres:
-        condition: service_healthy
+    depends_on: { postgres: { condition: service_healthy } }
 
   notify:
     build:
@@ -178,6 +176,7 @@ services:
       NOTIFY_OIDC_JWKS_URL: *jwks
       NOTIFY_SMTP_ADDR: mailpit:1025
       NOTIFY_MAIL_FROM: no-reply@mymoneyrecap.test
+      NOTIFY_MEMBERS_URL: http://members:8080
     ports:
       - "127.0.0.1:${NOTIFY_HOST_PORT:-8083}:8080"
     secrets: *notify-db-secret
