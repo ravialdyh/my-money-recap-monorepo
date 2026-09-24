@@ -94,4 +94,33 @@ final class SpendListViewModelTests: XCTestCase {
         HomeSnapshot.erase(from: context)
         XCTAssertNil(SpendListSnapshot.load("2026-08", from: context))
     }
+
+    /// The month line under the switcher (owner ruling 2026-09-24): Spent and the count, "so far" only this month.
+    func testTheMonthLineInItsFourForms() async throws {
+        let many = try recorded()
+        var one = many
+        one.spends = [many.spends[2]]
+        one.spent = many.spends[2].amount
+        var none = many
+        none.spends = []
+        none.categories = []
+        none.spent.amount = "0"
+        var past = many
+        past.month = "2026-08"
+        past.months = ["2026-09", "2026-08"]
+        var lines: [String?] = []
+        for list in [many, one, none, past] {
+            let model = try SpendListViewModel(
+                month: list.month,
+                fetch: { _ in list },
+                context: freshContext(),
+                locale: locale
+            )
+            await model.refresh()
+            lines.append(model.monthLine)
+        }
+        XCTAssertEqual(lines, [
+            "Rp193.000 so far, 3 spends", "Rp25.000 so far, 1 spend", "Rp0 so far, no spends", "Rp193.000, 3 spends",
+        ])
+    }
 }

@@ -30,6 +30,9 @@ struct SpendListView: View {
                     .padding(.top, Tokens.Space._6)
                 Chip(text: model.label(model.month), tappable: true, opens: true) { model.switching.toggle() }
                     .padding(.top, Tokens.Space._4)
+                if let line = model.monthLine {
+                    SubCopy(text: line).padding(.top, Tokens.Space._4)
+                }
                 content
                     .opacity(model.switching ? Tokens.State.disabledOpacity : 1)
                     .disabled(model.switching)

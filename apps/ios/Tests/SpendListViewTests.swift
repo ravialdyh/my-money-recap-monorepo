@@ -5,7 +5,7 @@ import XCTest
 @testable import MyMoneyRecap
 
 /// The Spend list and Category detail as drawn (SCREEN-STATES B6, B6b): the rows, the switcher open, both empty months
-/// and the detail each differ. The magic-link UI test turns them sideways.
+/// and the detail each differ, and the month line is drawn. The magic-link UI test turns them sideways.
 @MainActor
 final class SpendListViewTests: XCTestCase {
     func testEveryStateIsDrawnApart() async throws {
@@ -41,5 +41,9 @@ final class SpendListViewTests: XCTestCase {
         let detail = picture(CategoryView(model: model, category: .snacks))
         XCTAssertNotNil(rows)
         XCTAssertEqual(Set([rows, switcher, thisMonth, lastMonth, detail]).count, 5)
+        var otherSpent = list
+        otherSpent.spent.amount = "1"
+        let otherLine = await drawn(otherSpent, false)
+        XCTAssertNotEqual(rows, otherLine, "the month line under the switcher is drawn")
     }
 }

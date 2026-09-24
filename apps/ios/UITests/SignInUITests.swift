@@ -173,6 +173,7 @@ extension SignInUITests {
             .firstMatch
         XCTAssert(snacks.waitForExistence(timeout: 30), "the hero opens the Spend list with the Spend under Snacks")
         XCTAssert(app.staticTexts["Spends"].exists)
+        XCTAssert(app.staticTexts["\(Self.rupiah(amount)) so far, 1 spend"].exists, "the month line under the switcher")
         snapshot("14-spend-list")
         sideways(app, reaching: snacks, "spend-list")
         snacks.tap()

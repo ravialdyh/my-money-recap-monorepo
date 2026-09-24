@@ -83,6 +83,15 @@ final class SpendListViewModel: Identifiable {
         return isCurrent ? "Nothing spent yet. Streak day \(list.streakDay)." : "Nothing spent in \(monthName)."
     }
 
+    /// The month line under the switcher: "{spent} so far, {n} spends" ("1 spend", "no spends"); a past month drops
+    /// "so far" (owner ruling 2026-09-24).
+    var monthLine: String? {
+        guard let list else { return nil }
+        let count = list.spends.count
+        let spends = count == 0 ? "no spends" : count == 1 ? "1 spend" : "\(count) spends"
+        return "\(money(list.spent))\(isCurrent ? " so far" : ""), \(spends)"
+    }
+
     func money(_ amount: MoneyRecap_V1_Money) -> String {
         Money.format(amount.amount, currency: list?.currencyCode ?? amount.currencyCode, locale: locale)
     }
