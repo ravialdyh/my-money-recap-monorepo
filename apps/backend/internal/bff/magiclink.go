@@ -19,8 +19,7 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// Mailer is the part of moneyrecapv1connect.NotifyServiceClient RequestMagicLink needs (§7.3): the
-// real notify (#68), where GetHome's Notify is still a stub.
+// Mailer is the part of moneyrecapv1connect.NotifyServiceClient RequestMagicLink needs (§7.3).
 type Mailer interface {
 	EmailMagicLink(ctx context.Context, req *connect.Request[moneyrecapv1.EmailMagicLinkRequest]) (*connect.Response[moneyrecapv1.EmailMagicLinkResponse], error)
 }

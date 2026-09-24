@@ -44,7 +44,7 @@ func replayClient(t *testing.T, members *fakeMembers, cache redis.UniversalClien
 		}
 	})
 	mux := http.NewServeMux()
-	mux.Handle(moneyrecapv1connect.NewBffServiceHandler(newService(t, members, StubNotify{}), connect.WithInterceptors(signedIn, Replay(cache))))
+	mux.Handle(moneyrecapv1connect.NewBffServiceHandler(newService(t, members, &fakeNotify{}), connect.WithInterceptors(signedIn, Replay(cache))))
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
 	return moneyrecapv1connect.NewBffServiceClient(srv.Client(), srv.URL)

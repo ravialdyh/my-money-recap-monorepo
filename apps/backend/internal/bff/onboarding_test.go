@@ -28,7 +28,7 @@ func TestNextStepFollowsTheAnswers(t *testing.T) {
 
 // The state carries the given_name the caller's own token holds, which fills step 1 in (PRD §6.4).
 func TestGetOnboardingStateCarriesTheGivenName(t *testing.T) {
-	s := newService(t, &fakeMembers{}, StubNotify{})
+	s := newService(t, &fakeMembers{}, &fakeNotify{})
 	named := auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com", GivenName: "Test", Raw: "tok"})
 	res, err := s.GetOnboardingState(named, connect.NewRequest(&moneyrecapv1.BffServiceGetOnboardingStateRequest{}))
 	if err != nil || res.Msg.State.NextStep != 1 || res.Msg.State.SuggestedName != "Test" || res.Msg.State.Profile.MemberId != "m-1" {
@@ -40,7 +40,7 @@ func TestGetOnboardingStateCarriesTheGivenName(t *testing.T) {
 // phone's key, the Member's id and the answers as sent (A14).
 func TestSaveProfileChecksBeforeAnyCall(t *testing.T) {
 	members := &fakeMembers{}
-	s := newService(t, members, StubNotify{})
+	s := newService(t, members, &fakeNotify{})
 	send := func(key string, msg *moneyrecapv1.BffServiceSaveProfileRequest) error {
 		req := connect.NewRequest(msg)
 		if key != "" {

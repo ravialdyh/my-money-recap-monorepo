@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -61,7 +62,7 @@ func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[money
 }
 
 // LogSpend is the Log a spend sheet's Save (PRD §6.9, ARCHITECTURE §6.2): ledger writes the Spend under the phone's
-// key, then the answer carries the current month's Home, whichever month the Spend is dated in.
+// key, notify hears a current-month Spend's crossed_line, then the answer carries the current month's Home.
 func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceLogSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceLogSpendResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -79,9 +80,31 @@ func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv
 	if err != nil {
 		return nil, requiredCallFailed("ledger.LogSpend", connect.CodeOf(err), err)
 	}
-	home, err := s.home(ctx, profile)
+	home, err := s.home(ctx, profile, s.evaluateWarning(ctx, key, profile, logged.Msg.Month, logged.Msg.CrossedLine))
 	if err != nil {
 		return nil, err
 	}
 	return connect.NewResponse(&moneyrecapv1.BffServiceLogSpendResponse{Home: home, Spend: logged.Msg.Spend}), nil
+}
+
+// evaluateTimeout bounds §6.2 step 4: a slow notify must not hold up a Spend already saved.
+const evaluateTimeout = 300 * time.Millisecond
+
+// evaluateWarning is §6.2 step 4: for a write in the current month, notify stamps it when ledger says the write
+// crossed the line. nil for a past month or a failed call, and home then reads GetWarningState instead.
+func (s *Service) evaluateWarning(ctx context.Context, key string, profile *moneyrecapv1.Profile, month *moneyrecapv1.MonthSummary, crossed bool) *moneyrecapv1.EvaluateWarningResponse {
+	current := s.now().In(zone(profile)).Format(monthLayout)
+	if month.GetMonth() != current {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(ctx, evaluateTimeout)
+	defer cancel()
+	res, err := s.Notify.EvaluateWarning(ctx, connect.NewRequest(&moneyrecapv1.EvaluateWarningRequest{
+		IdempotencyKey: key, MemberId: profile.MemberId, Month: current, CrossedLine: crossed, Warning: month.GetTargetWarning(),
+	}))
+	if err != nil {
+		logOptionalCallDegraded("notify.EvaluateWarning", "the banner read from GetWarningState", err)
+		return nil
+	}
+	return res.Msg
 }

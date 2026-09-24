@@ -78,22 +78,24 @@ prints every amount in that Currency, so neither has a fallback. Then the
 §6.1 fan-out runs in parallel with a one-second timeout each: `ledger.GetMonthSummary` (required) and
 `notify.GetWarningState` (optional). A failed `members` call reaches the phone with its own Connect
 code, a failed `ledger` call as `unavailable`, each with a message naming only the call; the upstream
-text, which can hold a host or a database name, goes to the log. `ledger` is the real service since #103;
-`notify` is still the in-process stub `internal/bff/bff.go` describes, answering "no warning". The join
+text, which can hold a host or a database name, goes to the log. `ledger` is the real service since #103,
+`notify` since #132, whose kept copy is the banner and whose failure is Home without it. The join
 stamps each amount left without a code with the Member's Currency. The month asked for, the month shown and
 `first_recap_on` are read in the Profile's zone, the one `ledger` reads "today" in, and `days_remaining` is
 `ledger`'s (A2, A3), so a Member in Jakarta just past midnight on the 1st sees the new month. The HomeView also
 carries the Currency's decimals from the Profile, so the Log a spend amount field allows exactly that many, and
 `ledger`'s earliest Spend date (D72), where the sheet's date picker starts.
 
-`LogSpend` (#129) is ARCHITECTURE §6.2 without its warning step: `ledger.LogSpend` under the phone's key, its
-Connect code passed through, then the same join `GetHome` makes, so the answer is the Spend and the current
-month's Home even for a Spend dated in a past month. `notify.EvaluateWarning` joins with the Target Warning.
+`LogSpend` (#129) is ARCHITECTURE §6.2: `ledger.LogSpend` under the phone's key, its Connect code passed
+through; for a Spend in the current month, `notify.EvaluateWarning` with ledger's `crossed_line` and copy under
+the same key, within 300 ms (#132); then the same join `GetHome` makes, so the answer is the Spend and the
+current month's Home even for a Spend dated in a past month. The banner is `EvaluateWarning`'s kept copy when it
+answered, and `GetWarningState`'s otherwise, a past-month Spend included, which stamps nothing.
 
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary; serves on `BFF_LISTEN` (default `:8080`). No subcommands, and its own start-up rather than `serve.Main` (see below). |
-| `../../internal/bff/` | The handlers, the Salary save in `salary.go`, the `Notify` interface and its stub, the magic-link path in `magiclink.go`, `LogSpend` beside the other Member writes in `writes.go`, the unit tests with a fake `ledger` served over Connect, and the end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestOnboardingEndToEnd`, `TestLogSpendEndToEnd`, `TestEdge`). |
+| `../../internal/bff/` | The handlers, the Salary save in `salary.go`, the `Notify` interface, the magic-link path in `magiclink.go`, `LogSpend` beside the other Member writes in `writes.go`, the unit tests with a fake `ledger` served over Connect, and the end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestOnboardingEndToEnd`, `TestLogSpendEndToEnd`, `TestTargetWarningEndToEnd`, `TestEdge`). |
 | `../../internal/auth/` | The JWT interceptor and the token-forwarding client interceptor. |
 
 The BFF keeps its own `main.go` rather than `serve.Main` (`apps/README.md`, "Every service") because
@@ -111,7 +113,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry. |
 | `BFF_MEMBERS_URL` | required | The `members` service: `http://members:8080` in Compose. |
 | `BFF_LEDGER_URL` | required | The `ledger` service: `http://ledger:8080` in Compose. `GetHome`, `GetOnboardingState`, `SaveProfile`, `SaveSalary`, `SaveTarget` and `LogSpend` call it, forwarding the caller's token. |
-| `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. Only `RequestMagicLink` calls it; `GetHome`'s `notify` is still the in-process stub. |
+| `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. `RequestMagicLink` calls it, and `GetHome` and `LogSpend` for the Target Warning, forwarding the caller's token. |
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
 | `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `http://<domain>:80/magic` on the machine today and `https://<domain>/magic` once TLS arrives (#87), `http://localhost:8090/magic` on a laptop, where Nginx serves the fallback page on `NGINX_HOST_PORT` (#72). |

@@ -96,8 +96,8 @@ func (x *BffServiceLogSpendRequest) GetNote() string {
 
 // The fresh HomeView of ARCHITECTURE §6.2 step 5 and the Spend as stored. Its
 // target_warning is, for a Spend in the current month,
-// EvaluateWarningResponse.warning (absent if notify timed out, step 4);
-// otherwise GetWarningState(current)'s.
+// EvaluateWarningResponse.warning (step 4); when that call failed, or for a
+// Spend in a past month, GetWarningState(current)'s.
 type BffServiceLogSpendResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Home          *HomeView              `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`

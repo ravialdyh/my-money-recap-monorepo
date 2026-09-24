@@ -1,5 +1,5 @@
-// Package bff is the API the phone talks to (ARCHITECTURE §6): GetHome joins members and ledger with the
-// in-process notify stub; RequestMagicLink (magiclink.go) calls the realm and the real notify.
+// Package bff is the API the phone talks to (ARCHITECTURE §6): GetHome joins members, ledger and notify;
+// RequestMagicLink (magiclink.go) calls the realm and notify.
 package bff
 
 import (
@@ -18,17 +18,10 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Notify is the part of moneyrecapv1connect.NotifyServiceClient GetHome needs (§7.3), StubNotify until
-// notify serves GetWarningState.
+// Notify is the part of moneyrecapv1connect.NotifyServiceClient the Member paths need (§7.3): the Target Warning.
 type Notify interface {
 	GetWarningState(ctx context.Context, req *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error)
-}
-
-// StubNotify answers "not fired".
-type StubNotify struct{}
-
-func (StubNotify) GetWarningState(context.Context, *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error) {
-	return connect.NewResponse(&moneyrecapv1.GetWarningStateResponse{}), nil
+	EvaluateWarning(ctx context.Context, req *connect.Request[moneyrecapv1.EvaluateWarningRequest]) (*connect.Response[moneyrecapv1.EvaluateWarningResponse], error)
 }
 
 // Service implements BffService. Every RPC but RequestMagicLink runs behind auth.Interceptor;
@@ -100,7 +93,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	if step := nextStep(profile); step == 1 || step == 2 {
 		return nil, connect.NewError(connect.CodeFailedPrecondition, errNotOnboarded)
 	}
-	home, err := s.home(ctx, profile)
+	home, err := s.home(ctx, profile, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +101,8 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 }
 
 // home is the current month's HomeView in the Member's zone: ledger's month, required, joined with notify's banner,
-// optional, both asked at once.
-func (s *Service) home(ctx context.Context, profile *moneyrecapv1.Profile) (*moneyrecapv1.HomeView, error) {
+// optional, both asked at once. A write's EvaluateWarning answer, when there is one, is the banner instead (§6.2).
+func (s *Service) home(ctx context.Context, profile *moneyrecapv1.Profile, evaluated *moneyrecapv1.EvaluateWarningResponse) (*moneyrecapv1.HomeView, error) {
 	timeout := s.timeout()
 	memberID := profile.MemberId
 	now := s.now().In(zone(profile))
@@ -133,17 +126,24 @@ func (s *Service) home(ctx context.Context, profile *moneyrecapv1.Profile) (*mon
 	call(func(ctx context.Context) {
 		ledgerRes, ledgerErr = s.Ledger.GetMonthSummary(ctx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: memberID, Month: month}))
 	})
-	call(func(ctx context.Context) {
-		notifyRes, notifyErr = s.Notify.GetWarningState(ctx, connect.NewRequest(&moneyrecapv1.GetWarningStateRequest{MemberId: memberID, Month: month}))
-	})
+	if evaluated == nil {
+		call(func(ctx context.Context) {
+			notifyRes, notifyErr = s.Notify.GetWarningState(ctx, connect.NewRequest(&moneyrecapv1.GetWarningStateRequest{MemberId: memberID, Month: month}))
+		})
+	}
 	wg.Wait()
 	if ledgerErr != nil {
 		return nil, requiredCallFailed("ledger.GetMonthSummary", connect.CodeUnavailable, ledgerErr)
 	}
 	var warning *moneyrecapv1.TargetWarning
-	if notifyErr != nil {
+	switch {
+	case evaluated != nil:
+		if evaluated.GetFired() {
+			warning = evaluated.GetWarning()
+		}
+	case notifyErr != nil:
 		logOptionalCallDegraded("notify.GetWarningState", "HomeView returned without a banner", notifyErr)
-	} else if notifyRes.Msg.GetFired() {
+	case notifyRes.Msg.GetFired():
 		warning = notifyRes.Msg.GetWarning()
 	}
 	home := homeView(profile, ledgerRes.Msg.GetSummary(), ledgerRes.Msg.GetRecapMonths(), warning, now)
