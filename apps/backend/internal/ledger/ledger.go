@@ -1,5 +1,5 @@
 // Package ledger is the money service (ARCHITECTURE §7.2): the Salary, Saving Target and Spend rows, the
-// settings read and every Home figure of PRD §8 over them.
+// settings read, and every Home and Recap figure of PRD §8 over them.
 package ledger
 
 import (
@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
@@ -85,7 +86,7 @@ func (s *Service) load(ctx context.Context, id string) (member, error) {
 	if m.targets, err = targets(ctx, s.DB, id); err != nil {
 		return member{}, storeFailed(ctx, err)
 	}
-	if m.spends, err = spends(ctx, s.DB, id); err != nil {
+	if m.spends, err = spends(ctx, s.DB, id, c); err != nil {
 		return member{}, storeFailed(ctx, err)
 	}
 	return m, nil
@@ -157,18 +158,28 @@ func salaries(ctx context.Context, db querier, id string) ([]salaryRow, error) {
 	})
 }
 
-// spends reads every Spend of the Member that is not deleted (PRD §7).
-func spends(ctx context.Context, db querier, id string) ([]spendRow, error) {
-	rows, err := db.Query(ctx, `SELECT amount::text, spent_on FROM spend WHERE member_id = $1 AND deleted_at IS NULL`, id)
+// spends reads every Spend of the Member that is not deleted (PRD §7), oldest date first and, within a day, in the
+// order they were logged, so the first of two equal Spends is the earlier one (§8.3's Splurge).
+func spends(ctx context.Context, db querier, id string, c cash) ([]spendRow, error) {
+	rows, err := db.Query(ctx, `SELECT id::text, amount::text, original_amount::text, original_currency, category, spent_on, note, created_at, updated_at
+		FROM spend WHERE member_id = $1 AND deleted_at IS NULL ORDER BY spent_on, created_at`, id)
 	if err != nil {
 		return nil, err
 	}
 	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (spendRow, error) {
-		var amount string
-		var row spendRow
-		err := r.Scan(&amount, &row.date)
+		var amount, original, originalCode string
+		var category int16
+		var created, updated time.Time
+		row := spendRow{spend: &moneyrecapv1.Spend{}}
+		if err := r.Scan(&row.spend.Id, &amount, &original, &originalCode, &category, &row.date, &row.spend.Note, &created, &updated); err != nil {
+			return row, err
+		}
 		row.amount, _ = new(big.Rat).SetString(amount)
-		return row, err
+		typed, _ := new(big.Rat).SetString(original)
+		originalCash, _ := currencyOf(originalCode)
+		row.spend.Amount, row.spend.OriginalAmount, row.spend.Category = c.money(row.amount), originalCash.money(typed), moneyrecapv1.Category(category)
+		row.spend.Date, row.spend.CreatedAt, row.spend.UpdatedAt = row.date.Format(time.DateOnly), timestamppb.New(created), timestamppb.New(updated)
+		return row, nil
 	})
 }
 
@@ -196,7 +207,7 @@ func (s *Service) GetMonthSummary(ctx context.Context, req *connect.Request[mone
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: l.summary(m, l.today)}), nil
+	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: l.summary(m, l.today), RecapMonths: l.recapMonths(l.today)}), nil
 }
 
 func (s *Service) GetSettings(ctx context.Context, req *connect.Request[moneyrecapv1.GetSettingsRequest]) (*connect.Response[moneyrecapv1.GetSettingsResponse], error) {

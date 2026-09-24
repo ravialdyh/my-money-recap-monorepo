@@ -29,6 +29,7 @@ func (m month) String() string      { return fmt.Sprintf("%04d-%02d", m.year, m.
 func (m month) day(d int) time.Time { return time.Date(m.year, m.mon, d, 0, 0, 0, 0, time.UTC) }
 func (m month) days() int           { return m.day(1).AddDate(0, 1, -1).Day() }
 func (m month) next() month         { return monthOf(m.day(1).AddDate(0, 1, 0)) }
+func (m month) prev() month         { return monthOf(m.day(1).AddDate(0, -1, 0)) }
 func (m month) before(o month) bool { return m.day(1).Before(o.day(1)) }
 
 // effectivePayday is PRD §8.2: the token "last" is the month's last day, and so is a Payday past it.
@@ -69,10 +70,12 @@ func inForce[T any](rows []T, from func(T) month, m month) (T, bool) {
 func salaryFrom(r salaryRow) month { return r.from }
 func targetFrom(r targetRow) month { return r.from }
 
-// spendRow is what every figure reads of a Spend that is not deleted (PRD §7): its amount and its local date.
+// spendRow is a Spend that is not deleted (PRD §7): its amount and local date as every figure reads them, and the
+// Spend as ledger answers it.
 type spendRow struct {
 	amount *big.Rat
 	date   time.Time
+	spend  *moneyrecapv1.Spend
 }
 
 // ledgerOf is one Member's rows and replica facts, what every computation reads.
@@ -161,13 +164,7 @@ func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 // streak is PRD §8.5: the longest run of spend-free days in the window, which starts on the later of the 1st and
 // the sign-up date and ends today in the current month or on the month's last day before it.
 func (l ledgerOf) streak(m month, today time.Time) int32 {
-	start, end := m.day(1), m.day(m.days())
-	if l.signedUp.After(start) {
-		start = l.signedUp
-	}
-	if m == monthOf(today) {
-		end = today
-	}
+	start, end := l.window(m, today)
 	spendDays := map[time.Time]bool{}
 	for _, s := range l.spends {
 		spendDays[s.date] = true
@@ -181,6 +178,18 @@ func (l ledgerOf) streak(m month, today time.Time) int32 {
 		best = max(best, run)
 	}
 	return best
+}
+
+// window is the Streak window of month m on today (PRD §8.5, D43).
+func (l ledgerOf) window(m month, today time.Time) (start, end time.Time) {
+	start, end = m.day(1), m.day(m.days())
+	if l.signedUp.After(start) {
+		start = l.signedUp
+	}
+	if m == monthOf(today) {
+		end = today
+	}
+	return start, end
 }
 
 // daysRemaining counts today and is never below 1 (PRD §8.7), so a past month answers 1.

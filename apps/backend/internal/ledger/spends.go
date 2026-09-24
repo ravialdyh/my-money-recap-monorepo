@@ -35,7 +35,7 @@ func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv
 		if _, err := tx.Exec(ctx, `SELECT 1 FROM member_facts WHERE member_id = $1 FOR UPDATE`, l.id); err != nil {
 			return err
 		}
-		if l.spends, err = spends(ctx, tx, l.id); err != nil {
+		if l.spends, err = spends(ctx, tx, l.id, l.cash); err != nil {
 			return err
 		}
 		m := monthOf(date)
@@ -49,7 +49,7 @@ func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv
 			return err
 		}
 		spend.CreatedAt, spend.UpdatedAt = timestamppb.New(created), timestamppb.New(created)
-		l.spends = append(l.spends, spendRow{amount: amount, date: date})
+		l.spends = append(l.spends, spendRow{amount: amount, date: date, spend: spend})
 		answer.Spend, answer.Month = spend, l.summary(m, l.today)
 		answer.CrossedLine = m == monthOf(l.today) && before.TargetWarning == nil && answer.Month.TargetWarning != nil
 		return nil
