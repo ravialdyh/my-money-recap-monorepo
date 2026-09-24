@@ -22,12 +22,13 @@ final class EditSpendViewModelTests: XCTestCase {
         edit: @escaping LogSpendViewModel.Edit = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         delete: @escaping LogSpendViewModel
             .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        connection: Connection = Connection(online: true)
+        connection: Connection? = nil
     ) throws -> LogSpendViewModel {
         let today = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 9, day: 26, hour: 9)))
         return LogSpendViewModel(
             editing: spend, currency: "IDR", digits: 0, earliest: "2026-07-29", today: today, calendar: calendar,
-            locale: Locale(identifier: "en_GB"), connection: connection, edit: edit, delete: delete
+            locale: Locale(identifier: "en_GB"), connection: connection ?? Connection(online: true), edit: edit,
+            delete: delete
         )
     }
 
