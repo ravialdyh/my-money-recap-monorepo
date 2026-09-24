@@ -10,7 +10,7 @@ import XCTest
 final class HomeViewTests: XCTestCase {
     func testTheFirstLoadIsTheSkeleton() throws {
         let context = try ModelContext(ModelContainer(
-            for: HomeSnapshot.self,
+            for: HomeSnapshot.self, SpendListSnapshot.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
         let waiting = HomeViewModel(fetch: {
@@ -34,7 +34,7 @@ final class HomeViewTests: XCTestCase {
 
     func testASetTargetFillsItsCardInPlaceOfThePrompt() throws {
         let context = try ModelContext(ModelContainer(
-            for: HomeSnapshot.self,
+            for: HomeSnapshot.self, SpendListSnapshot.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
         let unset = MoneyRecap_V1_HomeView.with {
@@ -64,7 +64,7 @@ final class HomeViewTests: XCTestCase {
     /// row whole, the stat chips wrapping and "{Saved} of {target}" under its title. The picture is kept as evidence.
     func testTheRupiahHomeFitsWithoutClipping() throws {
         let context = try ModelContext(ModelContainer(
-            for: HomeSnapshot.self,
+            for: HomeSnapshot.self, SpendListSnapshot.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
         let rupiah = { (amount: String) in MoneyRecap_V1_Money.with { $0.amount = amount; $0.currencyCode = "IDR" } }

@@ -1,6 +1,7 @@
 package bff
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -81,5 +82,37 @@ func TestLogSpendEvaluatesTheWarningForThisMonthOnly(t *testing.T) {
 	start := time.Now()
 	if h := spend("k4", "2026-09-16"); h.TargetWarning != nil || h.Spent == nil || time.Since(start) > time.Second {
 		t.Errorf("notify hanging: %v after %v, want Home without a banner within the timeouts", h, time.Since(start))
+	}
+}
+
+// ListSpends asks ledger for the month given, or with none the current month in the Member's zone, and joins its Spends,
+// the switcher's months, the month's Streak and the Currency's decimals; ledger's refusal keeps its code.
+func TestListSpendsJoinsLedgersMonth(t *testing.T) {
+	profile := onboarded()
+	profile.Timezone, profile.CurrencyDigits = "Asia/Jakarta", 0
+	ledger := &fakeLedger{}
+	s := newService(t, &fakeMembers{profile: profile}, &fakeNotify{})
+	s.Ledger = ledgerClient(t, ledger)
+	s.Now = func() time.Time { return time.Date(2026, 9, 30, 20, 0, 0, 0, time.UTC) }
+	res, err := s.ListSpends(ctx, connect.NewRequest(&moneyrecapv1.BffServiceListSpendsRequest{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	v := res.Msg.Spends
+	if ledger.gotList != "2026-10" || ledger.gotMonth != "2026-10" || v.Month != "2026-10" || ledger.gotToken != "Bearer tok" {
+		t.Errorf("asked %q and %q for %q with %q, want Jakarta's October with the caller's token", ledger.gotList, ledger.gotMonth, v.Month, ledger.gotToken)
+	}
+	if v.CurrencyCode != "IDR" || v.CurrencyDigits != 0 || v.StreakDay != 1 || len(v.Months) != 2 || v.Spent.Amount != "25000" ||
+		len(v.Spends) != 1 || v.Categories[0].SpendCount != 1 {
+		t.Errorf("view %v, want ledger's month in IDR with 0 decimals and streak day 1", v)
+	}
+	if _, err := s.ListSpends(ctx, connect.NewRequest(&moneyrecapv1.BffServiceListSpendsRequest{Month: "2026-08"})); err != nil || ledger.gotList != "2026-08" {
+		t.Errorf("August: %v, asked %q, want the month given", err, ledger.gotList)
+	}
+
+	s.Ledger = ledgerClient(t, &fakeLedger{err: connect.NewError(connect.CodeInvalidArgument, errLedgerDown)})
+	_, err = s.ListSpends(ctx, connect.NewRequest(&moneyrecapv1.BffServiceListSpendsRequest{Month: "August"}))
+	if connect.CodeOf(err) != connect.CodeInvalidArgument || strings.Contains(err.Error(), "5432") {
+		t.Errorf("a refused month: %v, want invalid_argument naming only the call", err)
 	}
 }

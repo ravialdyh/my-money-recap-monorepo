@@ -16,8 +16,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestLogSpendEndToEnd logs Spends through the BFF and ledger with the generated client (#129): today's moves
-// Home's Spent; one before the sign-up month (D72) and one with no Category are refused. Skips like TestEndToEnd.
+// TestLogSpendEndToEnd logs and lists Spends through the BFF and ledger (#129, #131): the empty month, today's Spend
+// moving Home and the list, an empty past month; a Spend before the sign-up month (D72) or with no Category is refused.
 func TestLogSpendEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
@@ -47,7 +47,19 @@ func TestLogSpendEndToEnd(t *testing.T) {
 		return res.Msg, nil
 	}
 
+	list := func(month string) *moneyrecapv1.SpendListView {
+		t.Helper()
+		res, err := client.ListSpends(ctx, connect.NewRequest(&moneyrecapv1.BffServiceListSpendsRequest{Month: month}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return res.Msg.Spends
+	}
+
 	today := time.Now().UTC()
+	if v := list(""); v.Month != today.Format(monthLayout) || len(v.Spends) != 0 || v.Spent.Amount != "0" || v.StreakDay != 1 || v.CurrencyDigits != 0 {
+		t.Fatalf("the empty month: %v, want this month at 0 on streak day 1, IDR's 0 decimals", v)
+	}
 	logged, err := log(today, moneyrecapv1.Category_CATEGORY_SNACKS)
 	if err != nil {
 		t.Fatal(err)
@@ -65,7 +77,16 @@ func TestLogSpendEndToEnd(t *testing.T) {
 	if home.Msg.Home.Spent.Amount != "25000" {
 		t.Fatalf("GetHome Spent %v, want the 25000 just logged", home.Msg.Home.Spent)
 	}
+	v := list("")
+	if len(v.Spends) != 1 || v.Spends[0].Id != logged.Spend.Id || len(v.Categories) != 1 || v.Categories[0].Percent != 100 ||
+		v.Categories[0].SpendCount != 1 || v.Spent.Amount != "25000" || len(v.Months) != 1 || v.Months[0] != v.Month {
+		t.Fatalf("this month's list: %v, want the Spend as Snacks at 100%% and only this month to switch to", v)
+	}
 	first := time.Date(today.Year(), today.Month(), 1, 0, 0, 0, 0, time.UTC)
+	last := first.AddDate(0, -1, 0).Format(monthLayout)
+	if v := list(last); v.Month != last || len(v.Spends)+len(v.Categories) != 0 || v.Spent.Amount != "0" || v.StreakDay != 0 {
+		t.Fatalf("last month, before sign-up: %v, want nothing and no Streak", v)
+	}
 	if home.Msg.Home.EarliestSpendDate != first.Format(dateLayout) {
 		t.Fatalf("earliest date %q, want the 1st of the sign-up month (D72)", home.Msg.Home.EarliestSpendDate)
 	}

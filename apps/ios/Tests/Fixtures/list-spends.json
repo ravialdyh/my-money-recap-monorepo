@@ -1,0 +1,82 @@
+{
+    "spends": {
+        "month": "2026-09",
+        "currencyCode": "IDR",
+        "months": [
+            "2026-09"
+        ],
+        "spent": {
+            "amount": "193000",
+            "currencyCode": "IDR"
+        },
+        "categories": [
+            {
+                "category": "CATEGORY_BILLS",
+                "amount": {
+                    "amount": "150000",
+                    "currencyCode": "IDR"
+                },
+                "percent": 78,
+                "spendCount": 1
+            },
+            {
+                "category": "CATEGORY_SNACKS",
+                "amount": {
+                    "amount": "43000",
+                    "currencyCode": "IDR"
+                },
+                "percent": 22,
+                "spendCount": 2
+            }
+        ],
+        "spends": [
+            {
+                "id": "aff4a799-b896-440e-a23c-a3237831e806",
+                "amount": {
+                    "amount": "18000",
+                    "currencyCode": "IDR"
+                },
+                "originalAmount": {
+                    "amount": "18000",
+                    "currencyCode": "IDR"
+                },
+                "category": "CATEGORY_SNACKS",
+                "date": "2026-09-24",
+                "createdAt": "2026-09-24T02:17:24.505759Z",
+                "updatedAt": "2026-09-24T02:17:24.505759Z"
+            },
+            {
+                "id": "d2d12658-73ae-4bc6-a884-1fe77692e94e",
+                "amount": {
+                    "amount": "150000",
+                    "currencyCode": "IDR"
+                },
+                "originalAmount": {
+                    "amount": "150000",
+                    "currencyCode": "IDR"
+                },
+                "category": "CATEGORY_BILLS",
+                "date": "2026-09-24",
+                "note": "Listrik",
+                "createdAt": "2026-09-24T02:17:24.361115Z",
+                "updatedAt": "2026-09-24T02:17:24.361115Z"
+            },
+            {
+                "id": "b2a8f54e-3663-404a-84a6-d9adc7d621dd",
+                "amount": {
+                    "amount": "25000",
+                    "currencyCode": "IDR"
+                },
+                "originalAmount": {
+                    "amount": "25000",
+                    "currencyCode": "IDR"
+                },
+                "category": "CATEGORY_SNACKS",
+                "date": "2026-09-24",
+                "note": "Kopi susu",
+                "createdAt": "2026-09-24T02:17:06.242058Z",
+                "updatedAt": "2026-09-24T02:17:06.242058Z"
+            }
+        ]
+    }
+}

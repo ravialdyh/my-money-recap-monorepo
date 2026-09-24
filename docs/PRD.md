@@ -282,9 +282,9 @@ Rules
 
 Reached by tapping the Home hero card (D42 makes the hero the Spent figure, so the hero is the natural way in).
 
-**Spend list.** `Sheet variant="full"`. A **month switcher** sits under the title (D59): the current month by default, tapping it lists every month with data, newest first. Below it, one `DataRow` per Category with Spends that month, largest first, `IconWell` in the Category tone, sub-line "{spent} so far, {n} spends". Empty month: a centred prompt and a plus button that opens 6.9, plus the streak line.
+**Spend list.** `Sheet variant="full"`. A **month switcher** sits under the title (D59): the current month by default, tapping it lists every month with data, newest first. Below it, one `DataRow` per Category with Spends that month, largest first, `IconWell` in the Category tone, its name over the sub-line "{n} spends" ("1 spend") and its total on the right (canvas copy, ruled 2026-09-24). Empty month: a centred prompt and a plus button that opens 6.9, plus the streak line.
 
-**Category detail.** One Category, newest first, date as a secondary line, and that Category's share of the month.
+**Category detail.** One Category, newest first, date as a secondary line, and that Category's share of the month: "{amount} · {n}% of {Month} so far", or "{amount} · {n}% of {Month}" for a past month.
 
 **Spend detail.** Same fields as 6.9, prefilled, plus a destructive "Delete" `ListRow` with a single confirm (iOS action sheet). Deleting is not undoable in v1.
 

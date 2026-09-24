@@ -301,9 +301,12 @@ type SpendListView struct {
 	// The month's Streak so far (PRD §8.5, D43): MonthSummary.streak_day for
 	// the current month, Recap.streak.days for a past one; what the empty
 	// month's "Nothing spent yet. Streak day {n}." line prints.
-	StreakDay     int32 `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	StreakDay int32 `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
+	// How many decimals the Currency has, as HomeView.currency_digits: the
+	// Log a spend and Edit spend amount fields opened here allow this many.
+	CurrencyDigits int32 `protobuf:"varint,8,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SpendListView) Reset() {
@@ -381,6 +384,13 @@ func (x *SpendListView) GetSpends() []*Spend {
 func (x *SpendListView) GetStreakDay() int32 {
 	if x != nil {
 		return x.StreakDay
+	}
+	return 0
+}
+
+func (x *SpendListView) GetCurrencyDigits() int32 {
+	if x != nil {
+		return x.CurrencyDigits
 	}
 	return 0
 }
@@ -680,7 +690,7 @@ const file_money_recap_v1_bff_views_proto_rawDesc = "" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
 	"avatar_key\x18\x03 \x01(\tR\tavatarKey\x12#\n" +
-	"\rcurrency_code\x18\x04 \x01(\tR\fcurrencyCode\"\x9c\x02\n" +
+	"\rcurrency_code\x18\x04 \x01(\tR\fcurrencyCode\"\xc5\x02\n" +
 	"\rSpendListView\x12\x14\n" +
 	"\x05month\x18\x01 \x01(\tR\x05month\x12#\n" +
 	"\rcurrency_code\x18\x02 \x01(\tR\fcurrencyCode\x12\x16\n" +
@@ -691,7 +701,8 @@ const file_money_recap_v1_bff_views_proto_rawDesc = "" +
 	"categories\x12-\n" +
 	"\x06spends\x18\x06 \x03(\v2\x15.money_recap.v1.SpendR\x06spends\x12\x1d\n" +
 	"\n" +
-	"streak_day\x18\a \x01(\x05R\tstreakDay\"\xdc\x01\n" +
+	"streak_day\x18\a \x01(\x05R\tstreakDay\x12'\n" +
+	"\x0fcurrency_digits\x18\b \x01(\x05R\x0ecurrencyDigits\"\xdc\x01\n" +
 	"\fSettingsView\x121\n" +
 	"\aprofile\x18\x01 \x01(\v2\x17.money_recap.v1.ProfileR\aprofile\x12G\n" +
 	"\x0fledger_settings\x18\x02 \x01(\v2\x1e.money_recap.v1.LedgerSettingsR\x0eledgerSettings\x12P\n" +

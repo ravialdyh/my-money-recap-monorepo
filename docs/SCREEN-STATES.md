@@ -70,9 +70,10 @@ Violet ground throughout.
 | B3 | Log a spend, filled | £12.40 + Snacks, Save enabled. |
 | B4 | Date picker | Last 60 days, never before the 1st of the sign-up month (D72), future at 40%. Helper `You can log up to 60 days back, never ahead.` |
 | B5 | Push permission | iOS alert, once, after the first spend. |
-| B6 | Spend list | D59. Title `Spends` with a **month switcher** under it: current month by default; tapping lists every month with data, newest first, as `ListRow trailing="check"`. |
+| B6 | Spend list | D59. Title `Spends` with a **month switcher** under it: current month by default; tapping lists every month with data, newest first, as `ListRow trailing="check"`. One `DataRow` per Category, largest first: `IconWell`, the name over `{n} spends` (`1 spend`), the total on the right. |
 | B6 | empty | D43. Centred `Nothing spent yet. Streak day {n}.` and a plus button; the streak counts from sign-up (23 on 26 September for a 4 September sign-up). |
-| B6b | Category detail | One category, newest first, share of month. |
+| B6 | empty, past month | A past month with Money In and no Spend: `Nothing spent in {Month}.`, no streak; the plus button still opens Log a spend (owner, 2026-09-24). |
+| B6b | Category detail | One category, newest first, each Spend by its note or else its Category on one line, the date under it; sub-line `{amount} · {n}% of {Month} so far` (`of {Month}` for a past month). Back returns to B6. |
 | B7 | Spend detail | Prefilled fields, destructive Delete row. |
 | B7 | spend older than 60 days | §6.10. The date row becomes read-only text with `Dates older than 60 days can't be changed.` Amount, Category and Note stay editable. |
 | B8 | Delete confirm | iOS action sheet. |
@@ -174,6 +175,10 @@ One string, one place. Where two screens show the same idea, they show the same 
 |---|---|
 | Before payday, target helper | `Nothing to keep yet. Your salary lands on the {payday}.` |
 | Nothing spent yet | `Nothing spent yet. Streak day {n}.` |
+| Nothing spent, past month | `Nothing spent in {Month}.` |
+| Spend list title | `Spends` |
+| Category row sub-line | `{n} spends` / `1 spend` |
+| Category detail sub-line | `{amount} · {n}% of {Month} so far` (past month: `{amount} · {n}% of {Month}`) |
 | On track | `Keep spending under {amount} a day and you'll make it.` |
 | Over the line, current month | `You're {over} past your line. Next month is a fresh start.` |
 | Past month, met | `Target met. {spare} to spare.` |

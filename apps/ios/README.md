@@ -21,7 +21,9 @@ The SwiftUI app (`docs/IOS.md`), iOS 17+, iPhone and iPad. Built so far:
   Member by name with their Avatar and printing every figure in their Currency, with the Saving Target's card
   filled in once one is set. A `failed_precondition` from `GetHome`, step 1 or 2 unanswered, deletes the stored
   Home and reopens that step. The two prompt cards reopen step 3 and step 4, whose back chevron then returns to
-  Home. The sheets and screens behind the other chips and buttons arrive with their own tickets.
+  Home. The hero opens the Spend list (§6.10, #131), and the month chip opens it at its month switcher (D59): one
+  row per Category, largest first, each opening its Spends, and a month already opened reads offline from its
+  `SpendListSnapshot`. The sheets and screens behind the other chips and buttons arrive with their own tickets.
 
 ## Open
 

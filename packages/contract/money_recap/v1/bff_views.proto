@@ -84,6 +84,9 @@ message SpendListView {
   // the current month, Recap.streak.days for a past one; what the empty
   // month's "Nothing spent yet. Streak day {n}." line prints.
   int32 streak_day = 7;
+  // How many decimals the Currency has, as HomeView.currency_digits: the
+  // Log a spend and Edit spend amount fields opened here allow this many.
+  int32 currency_digits = 8;
 }
 
 // Everything Settings draws (PRD §6.16): the profile from members, the rows

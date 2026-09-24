@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"math/big"
-	"slices"
 	"strconv"
 	"time"
 
@@ -56,35 +55,14 @@ func (l ledgerOf) recap(m month, today time.Time) *moneyrecapv1.Recap {
 		r.Situation = moneyrecapv1.PartialSituation_PARTIAL_SITUATION_NO_MONEY_IN
 		r.ClosingLine = "Set your monthly salary to get a full recap."
 	}
-	spent, _ := l.spent(m)
-	shares := map[moneyrecapv1.Category]*moneyrecapv1.CategoryShare{}
-	sums := map[moneyrecapv1.Category]*big.Rat{}
+	spent, count := l.spent(m)
+	r.SpendCount, r.Categories = int32(count), l.split(m, spent)
 	var splurge spendRow
 	for _, sp := range l.spends {
-		if monthOf(sp.date) != m {
-			continue
-		}
-		r.SpendCount++
-		c := sp.spend.Category
-		if shares[c] == nil {
-			shares[c], sums[c] = &moneyrecapv1.CategoryShare{Category: c}, new(big.Rat)
-		}
-		shares[c].SpendCount++
-		sums[c].Add(sums[c], sp.amount)
-		if splurge.spend == nil || sp.amount.Cmp(splurge.amount) > 0 {
+		if monthOf(sp.date) == m && (splurge.spend == nil || sp.amount.Cmp(splurge.amount) > 0) {
 			splurge = sp
 		}
 	}
-	for c, share := range shares {
-		share.Amount, share.Percent = l.cash.money(sums[c]), percentOf(sums[c], spent)
-		r.Categories = append(r.Categories, share)
-	}
-	slices.SortFunc(r.Categories, func(a, b *moneyrecapv1.CategoryShare) int {
-		if n := sums[b.Category].Cmp(sums[a.Category]); n != 0 {
-			return n
-		}
-		return int(a.Category - b.Category)
-	})
 	r.Splurge = splurge.spend
 	if s.Saved == nil || s.SavingTarget == nil {
 		return r
@@ -136,27 +114,12 @@ func (l ledgerOf) streakFacts(m month, today time.Time) *moneyrecapv1.StreakFact
 // dayMonth is a date as the §6.17 closing line prints it: "1 November".
 func dayMonth(d time.Time) string { return strconv.Itoa(d.Day()) + " " + d.Month().String() }
 
-// recapMonths is Home's past-Recap list on today (PRD §6.8, §8.11): every month before the current one with a Spend
-// or Money In, newest first, labelled by its Archetype name or "Partial".
+// recapMonths is Home's past-Recap list on today (PRD §6.8, §8.11): pastMonths, each labelled by its Archetype name
+// or "Partial".
 func (l ledgerOf) recapMonths(today time.Time) []*moneyrecapv1.RecapMonth {
-	first := monthOf(today)
-	for _, s := range l.spends {
-		if monthOf(s.date).before(first) {
-			first = monthOf(s.date)
-		}
-	}
-	for _, s := range l.salaries {
-		if s.from.before(first) {
-			first = s.from
-		}
-	}
 	var list []*moneyrecapv1.RecapMonth
-	for m := monthOf(today).prev(); !m.before(first); m = m.prev() {
-		r := l.recap(m, today)
-		if r.SpendCount == 0 && r.Saved == nil {
-			continue
-		}
-		label := r.ArchetypeName
+	for _, m := range l.pastMonths(today) {
+		label := l.recap(m, today).ArchetypeName
 		if label == "" {
 			label = "Partial"
 		}

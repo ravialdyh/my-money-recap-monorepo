@@ -12,6 +12,7 @@ final class HomeViewModel {
     private(set) var home: MoneyRecap_V1_HomeView?
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
     private let logSpend: LogSpendViewModel.Send
+    private let listSpends: SpendListViewModel.Fetch
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -27,10 +28,12 @@ final class HomeViewModel {
         dismissals: WarningDismissals? = nil,
         onboardingNeeded: @escaping () -> Void = {},
         logSpend: @escaping LogSpendViewModel
-            .Send = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
+            .Send = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        listSpends: @escaping SpendListViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) }
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
+        self.listSpends = listSpends
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -63,6 +66,18 @@ final class HomeViewModel {
                 send: logSpend
             )
         }
+    }
+
+    /// The Spend list of Home's month (PRD §6.10), its switcher open when the month chip opened it (D59); nil before
+    /// Home has an answer.
+    func spendList(switching: Bool) -> SpendListViewModel? {
+        home.map { SpendListViewModel(
+            month: $0.month,
+            switching: switching,
+            fetch: listSpends,
+            context: context,
+            locale: locale
+        ) }
     }
 
     /// A write's answer replaces the stored Home whole, as a refresh does (IOS I4).
