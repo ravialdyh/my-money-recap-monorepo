@@ -1,8 +1,8 @@
 import XCTest
 
 extension SignInUITests {
-    /// PRD §6.10 / SCREEN-STATES B7, B8: the logged Spend opens Edit spend prefilled; a new amount and Category saved
-    /// move Home and the list; its Delete this spend confirm deletes it, and the list and Home are back at nothing.
+    /// PRD §6.10 / SCREEN-STATES B7, B8: the logged Spend opens Edit spend prefilled; a new amount and Category move
+    /// Home and the list; the delete alert cancels, then deletes it, and the list and Home are back at nothing.
     func editAndDeleteTheSpend(_ app: XCUIApplication, from amount: Int, to edited: Int) {
         spentSoFar(app).tap()
         openTheSpend(app, in: "Snacks")
@@ -26,10 +26,16 @@ extension SignInUITests {
         openTheSpend(app, in: "Rides")
         XCTAssert(app.buttons["Delete this spend"].waitForExistence(timeout: 10))
         app.buttons["Delete this spend"].tap()
-        XCTAssert(app.staticTexts["Delete this spend?"].waitForExistence(timeout: 10), "B8 the one confirm")
-        XCTAssert(app.staticTexts["You can't undo this."].exists)
+        let alert = app.alerts["Delete this spend?"]
+        XCTAssert(alert.waitForExistence(timeout: 10), "B8 the one confirm, an alert")
+        XCTAssert(alert.staticTexts["You can't undo this."].exists)
+        XCTAssert(alert.buttons["Cancel"].exists, "both buttons shown (owner, 2026-09-24)")
         snapshot("19-delete-confirm")
-        app.buttons["Delete"].tap()
+        alert.buttons["Cancel"].tap()
+        XCTAssert(app.staticTexts["Edit spend"].waitForExistence(timeout: 10), "Cancel keeps the Spend and its sheet")
+        app.buttons["Delete this spend"].tap()
+        XCTAssert(alert.waitForExistence(timeout: 10))
+        alert.buttons["Delete"].tap()
         let empty = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Nothing spent yet. Streak day '"))
             .firstMatch
         XCTAssert(empty.waitForExistence(timeout: 30), "the delete returns to the list with the row gone")

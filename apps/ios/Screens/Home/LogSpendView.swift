@@ -53,9 +53,9 @@ struct LogSpendView: View {
                         confirming = true
                     }
                     .disabled(model.isSaving)
-                    .confirmationDialog("Delete this spend?", isPresented: $confirming, titleVisibility: .visible) {
-                        Button("Delete", role: .destructive) { remove() }
+                    .alert("Delete this spend?", isPresented: $confirming) {
                         Button("Cancel", role: .cancel) {}
+                        Button("Delete", role: .destructive) { remove() }
                     } message: {
                         Text("You can't undo this.")
                     }

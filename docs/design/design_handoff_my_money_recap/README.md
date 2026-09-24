@@ -22,7 +22,7 @@ The design-system bundle (`_ds/…/_ds_bundle.js`, `styles.css`) is **not** incl
 
 ## Fidelity
 
-**High-fidelity.** Colours, type, spacing, radii and copy are final and come from the design system tokens. Recreate pixel-exact using the design system's own SwiftUI/React equivalents. Exceptions drawn "for placement only" (iOS-owned UI): push-permission alert (B5), action sheets (B8, D12), share sheet (C5), numeric keyboard (B3), date wheel (B4, D8 time). Use the native controls there.
+**High-fidelity.** Colours, type, spacing, radii and copy are final and come from the design system tokens. Recreate pixel-exact using the design system's own SwiftUI/React equivalents. Exceptions drawn "for placement only" (iOS-owned UI): push-permission alert (B5), the delete alert (B8, an iOS alert since 2026-09-24), the log-out action sheet (D12), share sheet (C5), numeric keyboard (B3), date wheel (B4, D8 time). Use the native controls there.
 
 ## Screen index
 
@@ -53,7 +53,7 @@ Each entry: purpose · composition · notable rules. Exact copy is in the HTML. 
 - **B6 Spend list**: in `2026-09-11/`.
 - **B6b Category detail**: one Category, newest first, date as secondary line, share of month; tap → B7. Back → B6.
 - **B7 Spend detail**: same fields as B2 prefilled (10 Sep Clothes £180 jacket), Save, destructive ListRow "Delete".
-- **B8 Delete confirm**: iOS action sheet. Deleting a past-month spend recomputes that Recap live.
+- **B8 Delete confirm**: an iOS alert (owner, 2026-09-24; the handoff drew an action sheet). Deleting a past-month spend recomputes that Recap live.
 - **Flow · Home and the daily loop**: in `2026-09-11/`.
 
 ### C · Recap and share
