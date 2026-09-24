@@ -80,9 +80,12 @@ type GetMonthSummaryResponse struct {
 	Summary *MonthSummary          `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`
 	// Past months with a Recap, newest first, labelled by Archetype or
 	// "Partial" (PRD §6.8, §8.11).
-	RecapMonths   []*RecapMonth `protobuf:"bytes,2,rep,name=recap_months,json=recapMonths,proto3" json:"recap_months,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	RecapMonths []*RecapMonth `protobuf:"bytes,2,rep,name=recap_months,json=recapMonths,proto3" json:"recap_months,omitempty"`
+	// "YYYY-MM-DD", the earliest date LogSpend takes today in the Member's zone:
+	// 59 days back, or the 1st of the sign-up month when later (PRD D72).
+	EarliestSpendDate string `protobuf:"bytes,3,opt,name=earliest_spend_date,json=earliestSpendDate,proto3" json:"earliest_spend_date,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *GetMonthSummaryResponse) Reset() {
@@ -127,6 +130,13 @@ func (x *GetMonthSummaryResponse) GetRecapMonths() []*RecapMonth {
 		return x.RecapMonths
 	}
 	return nil
+}
+
+func (x *GetMonthSummaryResponse) GetEarliestSpendDate() string {
+	if x != nil {
+		return x.EarliestSpendDate
+	}
+	return ""
 }
 
 type GetRecapRequest struct {
@@ -877,10 +887,11 @@ const file_money_recap_v1_ledger_proto_rawDesc = "" +
 	"\x1bmoney_recap/v1/ledger.proto\x12\x0emoney_recap.v1\x1a!money_recap/v1/ledger_views.proto\x1a\"money_recap/v1/ledger_writes.proto\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/shared.proto\"K\n" +
 	"\x16GetMonthSummaryRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12\x14\n" +
-	"\x05month\x18\x02 \x01(\tR\x05month\"\x90\x01\n" +
+	"\x05month\x18\x02 \x01(\tR\x05month\"\xc0\x01\n" +
 	"\x17GetMonthSummaryResponse\x126\n" +
 	"\asummary\x18\x01 \x01(\v2\x1c.money_recap.v1.MonthSummaryR\asummary\x12=\n" +
-	"\frecap_months\x18\x02 \x03(\v2\x1a.money_recap.v1.RecapMonthR\vrecapMonths\"D\n" +
+	"\frecap_months\x18\x02 \x03(\v2\x1a.money_recap.v1.RecapMonthR\vrecapMonths\x12.\n" +
+	"\x13earliest_spend_date\x18\x03 \x01(\tR\x11earliestSpendDate\"D\n" +
 	"\x0fGetRecapRequest\x12\x1b\n" +
 	"\tmember_id\x18\x01 \x01(\tR\bmemberId\x12\x14\n" +
 	"\x05month\x18\x02 \x01(\tR\x05month\"?\n" +

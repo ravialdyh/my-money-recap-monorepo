@@ -143,6 +143,13 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
     set {_uniqueStorage()._currencyDigits = newValue}
   }
 
+  /// "YYYY-MM-DD", ledger's earliest date a Spend may carry, today being the
+  /// latest: the Log a spend date picker's range (PRD §6.9, D72).
+  public var earliestSpendDate: String {
+    get {_storage._earliestSpendDate}
+    set {_uniqueStorage()._earliestSpendDate = newValue}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -409,7 +416,7 @@ fileprivate nonisolated let _protobuf_package = "money_recap.v1"
 
 nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".HomeView"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0\u{1}month\0\u{1}spent\0\u{3}money_in\0\u{1}saved\0\u{1}salary\0\u{3}saving_target\0\u{3}streak_day\0\u{3}days_remaining\0\u{3}target_warning\0\u{3}recap_months\0\u{3}first_recap_on\0\u{3}currency_digits\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0\u{1}month\0\u{1}spent\0\u{3}money_in\0\u{1}saved\0\u{1}salary\0\u{3}saving_target\0\u{3}streak_day\0\u{3}days_remaining\0\u{3}target_warning\0\u{3}recap_months\0\u{3}first_recap_on\0\u{3}currency_digits\0\u{3}earliest_spend_date\0")
 
   fileprivate class _StorageClass {
     var _displayName: String = String()
@@ -427,6 +434,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
     var _recapMonths: [MoneyRecap_V1_RecapMonth] = []
     var _firstRecapOn: String = String()
     var _currencyDigits: Int32 = 0
+    var _earliestSpendDate: String = String()
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -452,6 +460,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
       _recapMonths = source._recapMonths
       _firstRecapOn = source._firstRecapOn
       _currencyDigits = source._currencyDigits
+      _earliestSpendDate = source._earliestSpendDate
     }
   }
 
@@ -485,6 +494,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
         case 13: try { try decoder.decodeRepeatedMessageField(value: &_storage._recapMonths) }()
         case 14: try { try decoder.decodeSingularStringField(value: &_storage._firstRecapOn) }()
         case 15: try { try decoder.decodeSingularInt32Field(value: &_storage._currencyDigits) }()
+        case 16: try { try decoder.decodeSingularStringField(value: &_storage._earliestSpendDate) }()
         default: break
         }
       }
@@ -542,6 +552,9 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
       if _storage._currencyDigits != 0 {
         try visitor.visitSingularInt32Field(value: _storage._currencyDigits, fieldNumber: 15)
       }
+      if !_storage._earliestSpendDate.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._earliestSpendDate, fieldNumber: 16)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -566,6 +579,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
         if _storage._recapMonths != rhs_storage._recapMonths {return false}
         if _storage._firstRecapOn != rhs_storage._firstRecapOn {return false}
         if _storage._currencyDigits != rhs_storage._currencyDigits {return false}
+        if _storage._earliestSpendDate != rhs_storage._earliestSpendDate {return false}
         return true
       }
       if !storagesAreEqual {return false}

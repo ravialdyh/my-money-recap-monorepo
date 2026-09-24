@@ -146,7 +146,9 @@ func (s *Service) home(ctx context.Context, profile *moneyrecapv1.Profile) (*mon
 	} else if notifyRes.Msg.GetFired() {
 		warning = notifyRes.Msg.GetWarning()
 	}
-	return homeView(profile, ledgerRes.Msg.GetSummary(), ledgerRes.Msg.GetRecapMonths(), warning, now), nil
+	home := homeView(profile, ledgerRes.Msg.GetSummary(), ledgerRes.Msg.GetRecapMonths(), warning, now)
+	home.EarliestSpendDate = ledgerRes.Msg.GetEarliestSpendDate()
+	return home, nil
 }
 
 // homeView joins the Profile and ledger's month into the HomeView, stamping money ledger left without a code with the

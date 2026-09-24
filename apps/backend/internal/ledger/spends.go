@@ -61,7 +61,7 @@ func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv
 }
 
 // spendFields checks a Spend as sent (PRD §8.10, §6.9): the amount as a Salary's, one of the eight Categories, a
-// date in the last 60 days including today in the Member's zone (A3), and a note of at most 80 NFC code points.
+// date from earliestSpend to today in the Member's zone (A3), and a note of at most 80 NFC code points.
 func (l member) spendFields(m *moneyrecapv1.Money, c moneyrecapv1.Category, day, note string) (*big.Rat, time.Time, string, error) {
 	amount, err := l.amount(m)
 	if err != nil {
@@ -71,12 +71,22 @@ func (l member) spendFields(m *moneyrecapv1.Money, c moneyrecapv1.Category, day,
 		return nil, time.Time{}, "", errors.New("category is not one of the eight")
 	}
 	date, err := time.Parse(time.DateOnly, day)
-	if err != nil || date.After(l.today) || date.Before(l.today.AddDate(0, 0, -59)) {
-		return nil, time.Time{}, "", errors.New("date is not YYYY-MM-DD in the last 60 days including today")
+	if err != nil || date.After(l.today) || date.Before(l.earliestSpend()) {
+		return nil, time.Time{}, "", errors.New("date is not YYYY-MM-DD in the last 60 days including today, from the sign-up month on")
 	}
 	note = norm.NFC.String(note)
 	if utf8.RuneCountInString(note) > 80 {
 		return nil, time.Time{}, "", errors.New("note is more than 80 characters")
 	}
 	return amount, date, note, nil
+}
+
+// earliestSpend is the first date a Spend may carry (PRD §8.10, D72): 59 days before today, or the 1st of the
+// sign-up month when that is later.
+func (l member) earliestSpend() time.Time {
+	first := monthOf(l.signedUp).day(1)
+	if back := l.today.AddDate(0, 0, -59); back.After(first) {
+		return back
+	}
+	return first
 }

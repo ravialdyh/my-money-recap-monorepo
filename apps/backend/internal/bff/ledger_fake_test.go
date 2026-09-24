@@ -44,7 +44,7 @@ func (f *fakeLedger) GetMonthSummary(_ context.Context, req *connect.Request[mon
 	}
 	summary := zeroMonth()
 	summary.DaysRemaining = 15
-	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: summary}), nil
+	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: summary, EarliestSpendDate: "2026-07-19"}), nil
 }
 
 func (f *fakeLedger) GetSettings(context.Context, *connect.Request[moneyrecapv1.GetSettingsRequest]) (*connect.Response[moneyrecapv1.GetSettingsResponse], error) {

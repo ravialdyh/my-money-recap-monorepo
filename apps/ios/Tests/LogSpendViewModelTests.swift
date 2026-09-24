@@ -29,8 +29,8 @@ final class LogSpendViewModelTests: XCTestCase {
             minute: 30
         )))
         return LogSpendViewModel(
-            currency: "IDR", digits: 0, today: today, calendar: calendar, locale: Locale(identifier: "en_GB"),
-            send: send
+            currency: "IDR", digits: 0, earliest: "2026-07-29", today: today, calendar: calendar,
+            locale: Locale(identifier: "en_GB"), send: send
         )
     }
 
@@ -82,16 +82,17 @@ final class LogSpendViewModelTests: XCTestCase {
         XCTAssertNotEqual(sent[2].1, sent[1].1, "changed values start a new attempt")
     }
 
-    func testTheDateIsTodayOrOneOfTheFiftyNineDaysBefore() throws {
+    /// The picker runs from the earliest date ledger answered to today (D72); the phone computes neither end.
+    func testTheDatesRunFromLedgersEarliestToToday() throws {
         let model = try sheet { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
         XCTAssertEqual(model.dateLabel, "Today, 26 September")
-        XCTAssertEqual(
-            calendar.dateComponents([.day], from: model.dates.lowerBound, to: model.dates.upperBound).day,
-            59
-        )
         model.date = model.dates.lowerBound
-        XCTAssertEqual(model.dateLabel, "29 July", "60 days counting today")
+        XCTAssertEqual(model.dateLabel, "29 July", "ledger's earliest date")
         XCTAssertEqual(LogSpendViewModel.dateHelper, "You can log up to 60 days back, never ahead.")
+        let unknown = LogSpendViewModel(currency: "IDR", digits: 0, earliest: "") { _, _ in
+            .failure(ConnectError(code: .unavailable, message: nil))
+        }
+        XCTAssertEqual(unknown.dates.lowerBound, unknown.dates.upperBound, "today alone before Home names a date")
     }
 
     /// PRD §6.9: at most 80 characters, counted as ledger counts them, code points of the NFC form.
@@ -119,12 +120,15 @@ final class LogSpendViewModelTests: XCTestCase {
         var gbp = recorded.home
         gbp.currencyCode = "GBP"
         gbp.currencyDigits = 2
+        gbp.earliestSpendDate = "2026-09-01"
         let home = HomeViewModel(fetch: { gbp }, context: context, logSpend: { _, _ in .success(recorded) })
         XCTAssertNil(home.logSheet(), "no sheet before Home has an answer")
         await home.refresh()
         let sheet = try XCTUnwrap(home.logSheet())
         XCTAssertEqual(sheet.currency, "GBP")
         XCTAssertEqual(sheet.digits, 2)
+        let iso = Date.ISO8601FormatStyle(timeZone: .current).year().month().day()
+        XCTAssertEqual(sheet.dates.lowerBound.formatted(iso), "2026-09-01", "ledger's earliest date (D72)")
         sheet.amount = "12.40"
         sheet.choose(.snacks)
         let saved = await sheet.save()

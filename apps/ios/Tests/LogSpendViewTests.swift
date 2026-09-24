@@ -12,7 +12,7 @@ final class LogSpendViewTests: XCTestCase {
     }
 
     func testEveryStateIsDrawnApart() async {
-        let model = LogSpendViewModel(currency: "IDR", digits: 0) { _, _ in .failure(ConnectError(
+        let model = LogSpendViewModel(currency: "IDR", digits: 0, earliest: "") { _, _ in .failure(ConnectError(
             code: .unavailable,
             message: nil
         )) }

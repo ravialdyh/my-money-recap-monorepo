@@ -17,8 +17,7 @@ import (
 )
 
 // TestLogSpendEndToEnd logs Spends through the BFF and ledger with the generated client (#129): today's moves
-// Home's Spent, one 40 days back answers this month's Home unchanged, a bad Category is refused. Skips like
-// TestEndToEnd.
+// Home's Spent; one before the sign-up month (D72) and one with no Category are refused. Skips like TestEndToEnd.
 func TestLogSpendEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
@@ -66,15 +65,14 @@ func TestLogSpendEndToEnd(t *testing.T) {
 	if home.Msg.Home.Spent.Amount != "25000" {
 		t.Fatalf("GetHome Spent %v, want the 25000 just logged", home.Msg.Home.Spent)
 	}
-	past, err := log(today.AddDate(0, 0, -40), moneyrecapv1.Category_CATEGORY_RIDES)
-	if err != nil {
-		t.Fatal(err)
+	first := time.Date(today.Year(), today.Month(), 1, 0, 0, 0, 0, time.UTC)
+	if home.Msg.Home.EarliestSpendDate != first.Format(dateLayout) {
+		t.Fatalf("earliest date %q, want the 1st of the sign-up month (D72)", home.Msg.Home.EarliestSpendDate)
 	}
-	if h := past.Home; h.Month != today.Format(monthLayout) || h.Spent.Amount != "25000" {
-		t.Fatalf("Home after a Spend 40 days back: %v, want this month's, Spent still 25000", h)
+	if _, err := log(first.AddDate(0, 0, -1), moneyrecapv1.Category_CATEGORY_RIDES); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Fatalf("a Spend before the sign-up month: %v, want invalid_argument (D72)", err)
 	}
 	if _, err := log(today, moneyrecapv1.Category_CATEGORY_UNSPECIFIED); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Fatalf("a Spend with no Category: %v, want invalid_argument", err)
 	}
-	t.Logf("logged today and 40 days back; Home Spent %s", past.Home.Spent.Amount)
 }

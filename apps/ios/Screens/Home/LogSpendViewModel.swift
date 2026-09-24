@@ -30,7 +30,7 @@ final class LogSpendViewModel: Identifiable {
     private(set) var note = ""
     private(set) var isSaving = false
     private(set) var failed = false
-    /// Today and the 59 days before it, the dates ledger takes (PRD §8.10).
+    /// Ledger's earliest date to today, the dates it takes (PRD §8.10, D72); today alone before Home names one.
     let dates: ClosedRange<Date>
     private var attempt: SaveAttempt<Values>?
     private let calendar: Calendar
@@ -40,6 +40,7 @@ final class LogSpendViewModel: Identifiable {
     init(
         currency: String,
         digits: Int,
+        earliest: String,
         today: Date = .now,
         calendar: Calendar = .autoupdatingCurrent,
         locale: Locale = .autoupdatingCurrent,
@@ -49,7 +50,8 @@ final class LogSpendViewModel: Identifiable {
         self.digits = digits
         let day = calendar.startOfDay(for: today)
         date = day
-        dates = (calendar.date(byAdding: .day, value: -59, to: day) ?? day) ... day
+        let iso = Date.ISO8601FormatStyle(timeZone: calendar.timeZone).year().month().day()
+        dates = min((try? Date(earliest, strategy: iso)) ?? day, day) ... day
         self.calendar = calendar
         self.locale = locale
         self.send = send

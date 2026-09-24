@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft v2. Decisions D1–D40 from 2026-09-04; D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11. Rows rewritten by the architecture work of 2026-09-12 to 2026-09-16 are marked in place. |
+| Status | Draft v2. Decisions D1–D40 from 2026-09-04; D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11; D72 from the owner's slice 5 ruling of 2026-09-24. Rows rewritten by the architecture work of 2026-09-12 to 2026-09-16 are marked in place. |
 | Platform | Native iOS 17+, iPhone and iPad |
 | Vocabulary | `CONTEXT.md` (beside this file) is the glossary. Terms in **bold caps** below are defined there. |
 | Design system | `../my-money-recap-ds/` (`@my-money-recap/ui`). Its `README.md` carries the visual rules; `src/tokens/tokens.json` the values. |
@@ -116,6 +116,7 @@ Every design question raised while writing this document, with the decision take
 | **D69** | **Home with no Salary set** (2026-09-11) | **It scrolls.** The Spent hero (191pt) plus the salary `PromptCard` (191pt) plus the target `PromptCard` (136pt) put the buttons at 740–856pt. `Log a spend` stays above the fold; the layout keeps the prompts at full height so nothing jumps when they are filled in. |
 | **D70** | **Category chips on the Log-a-spend sheet** (2026-09-11) | **The shipped `Chip` tone variant** (30pt uppercase pill, 44pt hit area via `tappable`), not the 44pt mixed-case pill the 2026-09-08 B2/B3 sheets hand-drew. |
 | **D71** | **Long numbers and money, without hand-written rules** (2026-09-11) | Amounts are exact decimals with an ISO 4217 code (§7); the platform formatter prints them with the viewer's locale and exactly the decimals each amount carries, which `ledger` rounded it to from Unicode CLDR's currency data, kept unedited, so no hand-written table says how many decimals a currency has. `StatHero` and `AmountField` **measure** the printed string and draw it at the largest of 80/56/40pt (48/36/28pt) that fits, never a character count, which was shown to shrink a rupiah salary that fit. `PromptCard` takes the measured height of the card it replaces. `RecapGoalScreen` draws three bars in every currency. Page dots are tappable in their own slice of the row, the one exception to the 44pt width rule. **Rewritten 2026-09-23 (#100); the original said the platform formatter supplies the currency's decimals and no table in the system holds them, but iOS 26.0 and 27.0 disagree on the forint's, and `ledger` has to round.** |
+| **D72** | **Spend dates start in the sign-up month** (owner, 2026-09-24) | A Spend may be dated from the 1st of the Member's sign-up month onward, still within the last 60 days including today and never ahead. Days before the sign-up day in that month are allowed and count in its Spent; the Streak still starts at sign-up (D43). `ledger` owns the rule and answers the earliest allowed date with Home, and the Log a spend picker starts there (§6.9, §8.10). |
 
 ## 5. End-to-end flow
 
@@ -271,7 +272,7 @@ Rules
 | | |
 |---|---|
 | Presentation | `Sheet` over Home, white surface, `radius.card` top corners, drag handle, scrim |
-| Fields | `AmountField` (numeric keypad, currency symbol fixed, decimals from the Currency, 11-digit cap per D57), Category (eight `Chip tone={hue}` in a wrapping row, one selected, 44pt), Date (defaults to today, picker limited to the last 60 days and today), Note (optional, 80 characters) |
+| Fields | `AmountField` (numeric keypad, currency symbol fixed, decimals from the Currency, 11-digit cap per D57), Category (eight `Chip tone={hue}` in a wrapping row, one selected, 44pt), Date (defaults to today, picker limited to the last 60 days and today, and to no earlier than the 1st of the sign-up month, D72), Note (optional, 80 characters) |
 | Action | `Button` "Save". Disabled until amount > 0 and a Category is selected. |
 | After save | Sheet closes, Home numbers animate with `motion.reveal.number`. First ever Spend saved: the push-permission prompt appears after the sheet closes. |
 | Write failure | `InlineError` in the sheet, sheet stays open, values intact, Save stays enabled. |
@@ -477,7 +478,7 @@ Copy depends on whether Payday has passed (D53):
 
 ### 8.10 Editing rules
 
-- Spend date must be within the last 60 days including today; never in the future. A Spend already older than that keeps its date and shows it read-only (§6.10).
+- Spend date must be within the last 60 days including today, and no earlier than the 1st of the sign-up month (D72); never in the future. A Spend already older than that keeps its date and shows it read-only (§6.10).
 - Amount must be > 0 and at most 11 digits before the separator (D57).
 - **First saves are not edits.** A Salary or Saving Target saved during onboarding takes effect from the sign-up month, and saving it again before onboarding ends replaces it. The first one saved after onboarding, from Home's prompt, takes effect from the current month, so a month already recapped never gains one. The rules below govern every later save.
 - **Salary edits (D56).** Saving before the current month's effective Payday creates a row effective from the current month, with no sheet. Saving on or after it opens the "which salary is this" sheet; the answer decides whether the new row is effective from the current month or the next one.

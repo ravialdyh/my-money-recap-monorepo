@@ -83,7 +83,8 @@ text, which can hold a host or a database name, goes to the log. `ledger` is the
 stamps each amount left without a code with the Member's Currency. The month asked for, the month shown and
 `first_recap_on` are read in the Profile's zone, the one `ledger` reads "today" in, and `days_remaining` is
 `ledger`'s (A2, A3), so a Member in Jakarta just past midnight on the 1st sees the new month. The HomeView also
-carries the Currency's decimals from the Profile, so the Log a spend amount field allows exactly that many.
+carries the Currency's decimals from the Profile, so the Log a spend amount field allows exactly that many, and
+`ledger`'s earliest Spend date (D72), where the sheet's date picker starts.
 
 `LogSpend` (#129) is ARCHITECTURE §6.2 without its warning step: `ledger.LogSpend` under the phone's key, its
 Connect code passed through, then the same join `GetHome` makes, so the answer is the Spend and the current

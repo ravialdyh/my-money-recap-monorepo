@@ -57,8 +57,11 @@ type HomeView struct {
 	// How many decimals the Currency has, as Profile.currency_digits: the Log
 	// a spend amount field allows exactly this many (PRD §6.9).
 	CurrencyDigits int32 `protobuf:"varint,15,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// "YYYY-MM-DD", ledger's earliest date a Spend may carry, today being the
+	// latest: the Log a spend date picker's range (PRD §6.9, D72).
+	EarliestSpendDate string `protobuf:"bytes,16,opt,name=earliest_spend_date,json=earliestSpendDate,proto3" json:"earliest_spend_date,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *HomeView) Reset() {
@@ -194,6 +197,13 @@ func (x *HomeView) GetCurrencyDigits() int32 {
 		return x.CurrencyDigits
 	}
 	return 0
+}
+
+func (x *HomeView) GetEarliestSpendDate() string {
+	if x != nil {
+		return x.EarliestSpendDate
+	}
+	return ""
 }
 
 // One month's Recap as the phone stores it (I4): ledger's Recap for the full
@@ -640,7 +650,7 @@ var File_money_recap_v1_bff_views_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_bff_views_proto_rawDesc = "" +
 	"\n" +
-	"\x1emoney_recap/v1/bff_views.proto\x12\x0emoney_recap.v1\x1a!money_recap/v1/ledger_views.proto\x1a\x1cmoney_recap/v1/members.proto\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/notify.proto\x1a\x1bmoney_recap/v1/shared.proto\"\xf8\x05\n" +
+	"\x1emoney_recap/v1/bff_views.proto\x12\x0emoney_recap.v1\x1a!money_recap/v1/ledger_views.proto\x1a\x1cmoney_recap/v1/members.proto\x1a\x1amoney_recap/v1/money.proto\x1a\x1bmoney_recap/v1/notify.proto\x1a\x1bmoney_recap/v1/shared.proto\"\xa8\x06\n" +
 	"\bHomeView\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
@@ -659,7 +669,8 @@ const file_money_recap_v1_bff_views_proto_rawDesc = "" +
 	"\x0etarget_warning\x18\f \x01(\v2\x1d.money_recap.v1.TargetWarningH\x03R\rtargetWarning\x88\x01\x01\x12=\n" +
 	"\frecap_months\x18\r \x03(\v2\x1a.money_recap.v1.RecapMonthR\vrecapMonths\x12$\n" +
 	"\x0efirst_recap_on\x18\x0e \x01(\tR\ffirstRecapOn\x12'\n" +
-	"\x0fcurrency_digits\x18\x0f \x01(\x05R\x0ecurrencyDigitsB\b\n" +
+	"\x0fcurrency_digits\x18\x0f \x01(\x05R\x0ecurrencyDigits\x12.\n" +
+	"\x13earliest_spend_date\x18\x10 \x01(\tR\x11earliestSpendDateB\b\n" +
 	"\x06_savedB\t\n" +
 	"\a_salaryB\x10\n" +
 	"\x0e_saving_targetB\x11\n" +

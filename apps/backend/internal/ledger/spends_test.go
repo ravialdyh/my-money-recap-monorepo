@@ -75,6 +75,28 @@ func TestLogSpend(t *testing.T) {
 	if _, err := log("b10", "1", "2026-07-23", ""); err != nil {
 		t.Errorf("60 days back including today: %v", err)
 	}
+
+	joiner := "00000000-0000-4000-8000-00000000a502"
+	joined := seed(t, db, joiner, "joiner", "Asia/Jakarta", "2026-09-10", "IDR", nil, nil)
+	early := func(key, date string) error {
+		_, err := s.LogSpend(joined, connect.NewRequest(&moneyrecapv1.LogSpendRequest{
+			IdempotencyKey: key, MemberId: joiner, Amount: idr("1"), Category: 1, Date: date,
+		}))
+		return err
+	}
+	if err := early("j1", "2026-08-31"); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Errorf("a Spend before the sign-up month (D72): %v, want invalid_argument", err)
+	}
+	if err := early("j2", "2026-09-01"); err != nil {
+		t.Errorf("the 1st of the sign-up month, before the sign-up day (D72): %v", err)
+	}
+	month, err := s.GetMonthSummary(joined, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: joiner, Month: "2026-09"}))
+	if err != nil || month.Msg.EarliestSpendDate != "2026-09-01" || month.Msg.Summary.Spent.Amount != "1" {
+		t.Errorf("the joiner's September: %v, %v, want 2026-09-01 as the earliest date and the Spend counted", month, err)
+	}
+	if month, err := s.GetMonthSummary(ctx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: id, Month: "2026-09"})); err != nil || month.Msg.EarliestSpendDate != "2026-07-23" {
+		t.Errorf("a Member since July: %v, %v, want 59 days back, 2026-07-23", month, err)
+	}
 	withMembers(t, s, nil)
 	stranger := auth.NewContext(context.Background(), auth.Claims{Subject: "stranger", Raw: "stranger"})
 	if _, err := s.LogSpend(stranger, connect.NewRequest(&moneyrecapv1.LogSpendRequest{

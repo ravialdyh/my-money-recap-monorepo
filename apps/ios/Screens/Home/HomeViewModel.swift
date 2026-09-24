@@ -51,9 +51,15 @@ final class HomeViewModel {
         }
     }
 
-    /// The Log a spend sheet in the Member's Currency and its decimals, or nil before Home has an answer.
+    /// The Log a spend sheet in the Member's Currency, its decimals and ledger's date range, or nil before Home has an
+    /// answer.
     func logSheet() -> LogSpendViewModel? {
-        home.map { LogSpendViewModel(currency: $0.currencyCode, digits: Int($0.currencyDigits), send: logSpend) }
+        home.map {
+            LogSpendViewModel(
+                currency: $0.currencyCode, digits: Int($0.currencyDigits), earliest: $0.earliestSpendDate,
+                send: logSpend
+            )
+        }
     }
 
     /// A write's answer replaces the stored Home whole, as a refresh does (IOS I4).

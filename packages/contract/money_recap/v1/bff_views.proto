@@ -45,6 +45,9 @@ message HomeView {
   // How many decimals the Currency has, as Profile.currency_digits: the Log
   // a spend amount field allows exactly this many (PRD §6.9).
   int32 currency_digits = 15;
+  // "YYYY-MM-DD", ledger's earliest date a Spend may carry, today being the
+  // latest: the Log a spend date picker's range (PRD §6.9, D72).
+  string earliest_spend_date = 16;
 }
 
 // One month's Recap as the phone stores it (I4): ledger's Recap for the full
