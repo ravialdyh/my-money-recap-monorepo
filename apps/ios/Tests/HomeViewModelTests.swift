@@ -15,7 +15,7 @@ final class HomeViewModelTests: XCTestCase {
 
     private func freshContext() throws -> ModelContext {
         try ModelContext(ModelContainer(
-            for: HomeSnapshot.self,
+            for: HomeSnapshot.self, SpendListSnapshot.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
     }

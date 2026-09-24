@@ -2,7 +2,8 @@
 
 The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary, Saving Target and Spends and every
 figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #128 and Recaps since #130: it serves `SaveSalary`,
-`RelabelCurrency`, `SaveTarget`, `LogSpend`, `GetSettings`, `GetMonthSummary` and `GetRecap`, and the rest of
+`RelabelCurrency`, `SaveTarget`, `LogSpend`, `GetSettings`, `GetMonthSummary`, `GetRecap`, `ListSpends` and
+`ListMonthsWithData` (#131), and the rest of
 `LedgerService` is planned. The BFF calls it since #103: Home's month,
 onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
@@ -15,7 +16,7 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary: its name, its schema step, its handler and its consumer, handed to `serve.Main`. |
-| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
+| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `list.go` (`ListSpends`, `ListMonthsWithData`, the Category split and the months with data both lists share), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
 
 ## What it keeps
 

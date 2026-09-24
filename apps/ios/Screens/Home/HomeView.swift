@@ -2,11 +2,12 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// PRD §6.8 / SCREEN-STATES B1: the hero, the Target Warning, the target card or its prompt, and the salary prompt
-/// while no Salary is set (D54, D69). The prompts open steps 3 and 4 (`open`), Log a spend its sheet (§6.9).
+/// PRD §6.8 / SCREEN-STATES B1: the hero, the Target Warning, the target card or its prompt, the salary prompt (D54,
+/// D69). The prompts open steps 3 and 4, Log a spend its sheet, the hero and month chip the Spend list (D59).
 struct HomeView: View {
     @State private var model: HomeViewModel
     @State private var logging: LogSpendViewModel?
+    @State private var listing: SpendListViewModel?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var open: (Int) -> Void = { _ in }
 
@@ -23,6 +24,9 @@ struct HomeView: View {
             try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
         }, context: context, onboardingNeeded: onboardingNeeded, logSpend: { request, headers in
             await BffClient.retried(session) { await client.logSpend(request: request, headers: headers) }.result
+        }, listSpends: { month in
+            try await BffClient.retried(session) { await client.listSpends(request: .with { $0.month = month }) }
+                .result.get().spends
         }))
         self.open = open
     }
@@ -38,7 +42,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: Tokens.Space._5) {
                     HStack(spacing: 8) {
                         if let month = model.monthLabel {
-                            Chip(text: month, tappable: true)
+                            Chip(text: month, tappable: true) { listing = model.spendList(switching: true) }
                         }
                         Spacer()
                         Chip(text: "Settings", tappable: true)
@@ -61,6 +65,11 @@ struct HomeView: View {
                 logging = nil
                 withAnimation(reveal) { model.replace(with: home) }
             }
+        }
+        .sheet(item: $listing) { list in
+            SpendListView(model: list, log: { model.logSheet() }, onSaved: { home in
+                withAnimation(reveal) { model.replace(with: home) }
+            })
         }
     }
 
@@ -90,6 +99,9 @@ struct HomeView: View {
                 }
             }
         }
+        .contentShape(Rectangle())
+        .onTapGesture { listing = model.spendList(switching: false) }
+        .accessibilityAction(named: "Show spends") { listing = model.spendList(switching: false) }
         if !home.hasSalary {
             PromptCard(
                 eyebrow: "Salary",

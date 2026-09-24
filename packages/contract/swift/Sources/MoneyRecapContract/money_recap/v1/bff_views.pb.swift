@@ -229,6 +229,10 @@ public nonisolated struct MoneyRecap_V1_SpendListView: Sendable {
   /// month's "Nothing spent yet. Streak day {n}." line prints.
   public var streakDay: Int32 = 0
 
+  /// How many decimals the Currency has, as HomeView.currency_digits: the
+  /// Log a spend and Edit spend amount fields opened here allow this many.
+  public var currencyDigits: Int32 = 0
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -640,7 +644,7 @@ nonisolated extension MoneyRecap_V1_RecapView: SwiftProtobuf.Message, SwiftProto
 
 nonisolated extension MoneyRecap_V1_SpendListView: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".SpendListView"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}month\0\u{3}currency_code\0\u{1}months\0\u{1}spent\0\u{1}categories\0\u{1}spends\0\u{3}streak_day\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}month\0\u{3}currency_code\0\u{1}months\0\u{1}spent\0\u{1}categories\0\u{1}spends\0\u{3}streak_day\0\u{3}currency_digits\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -655,6 +659,7 @@ nonisolated extension MoneyRecap_V1_SpendListView: SwiftProtobuf.Message, SwiftP
       case 5: try { try decoder.decodeRepeatedMessageField(value: &self.categories) }()
       case 6: try { try decoder.decodeRepeatedMessageField(value: &self.spends) }()
       case 7: try { try decoder.decodeSingularInt32Field(value: &self.streakDay) }()
+      case 8: try { try decoder.decodeSingularInt32Field(value: &self.currencyDigits) }()
       default: break
       }
     }
@@ -686,6 +691,9 @@ nonisolated extension MoneyRecap_V1_SpendListView: SwiftProtobuf.Message, SwiftP
     if self.streakDay != 0 {
       try visitor.visitSingularInt32Field(value: self.streakDay, fieldNumber: 7)
     }
+    if self.currencyDigits != 0 {
+      try visitor.visitSingularInt32Field(value: self.currencyDigits, fieldNumber: 8)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -697,6 +705,7 @@ nonisolated extension MoneyRecap_V1_SpendListView: SwiftProtobuf.Message, SwiftP
     if lhs.categories != rhs.categories {return false}
     if lhs.spends != rhs.spends {return false}
     if lhs.streakDay != rhs.streakDay {return false}
+    if lhs.currencyDigits != rhs.currencyDigits {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

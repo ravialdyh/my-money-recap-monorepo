@@ -106,6 +106,7 @@ final class SignInUITests: XCTestCase {
         snapshot("07-home-at-zero-signed-in-by-link")
         sideways(app, reaching: app.buttons["Log a spend"], "home")
         logASpend(app, rupiah: 25000)
+        openTheSpendList(app, rupiah: 25000)
 
         app.terminate()
         app.launch()
@@ -160,6 +161,45 @@ extension SignInUITests {
         XCTAssert(app.staticTexts[Self.rupiah(amount)].waitForExistence(timeout: 30), "the hero shows the new Spent")
         XCTAssertFalse(field.exists, "the sheet closed")
         snapshot("13-home-after-a-spend")
+    }
+}
+
+extension SignInUITests {
+    /// PRD §6.10 / SCREEN-STATES B6, B6b: the hero opens the Spend list with the Spend under Snacks, its Category
+    /// opens the detail naming it by its note, back returns to the list, and the month chip opens the switcher.
+    func openTheSpendList(_ app: XCUIApplication, rupiah amount: Int) {
+        spentSoFar(app).tap()
+        let snacks = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Snacks' AND label CONTAINS '1 spend'"))
+            .firstMatch
+        XCTAssert(snacks.waitForExistence(timeout: 30), "the hero opens the Spend list with the Spend under Snacks")
+        XCTAssert(app.staticTexts["Spends"].exists)
+        XCTAssert(app.staticTexts["\(Self.rupiah(amount)) so far, 1 spend"].exists, "the month line under the switcher")
+        snapshot("14-spend-list")
+        sideways(app, reaching: snacks, "spend-list")
+        snacks.tap()
+        XCTAssert(app.staticTexts["Kopi susu"].waitForExistence(timeout: 10), "B6b lists the Spend by its note")
+        let share = NSPredicate(
+            format: "label BEGINSWITH %@ AND label ENDSWITH ' so far'",
+            "\(Self.rupiah(amount)) · 100% of "
+        )
+        XCTAssert(app.staticTexts.matching(share).firstMatch.exists, "the Category's share of this month")
+        snapshot("15-category-detail")
+        sideways(app, reaching: app.staticTexts["Kopi susu"], "category-detail")
+        app.buttons["Back"].tap()
+        XCTAssert(snacks.waitForExistence(timeout: 10), "back returns to the list, not Home")
+        app.buttons["Back"].tap()
+        XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "back from the list returns to Home")
+
+        let now = Date()
+        app.buttons[now.formatted(.dateTime.month(.wide))].tap()
+        let shown = now.formatted(.dateTime.month(.wide).year())
+        let current = app.buttons.matching(NSPredicate(format: "label == %@ AND selected == true", shown)).firstMatch
+        XCTAssert(current.waitForExistence(timeout: 10), "the month chip opens the switcher, this month checked")
+        snapshot("16-month-switcher")
+        current.tap()
+        XCTAssert(snacks.waitForExistence(timeout: 10))
+        app.buttons["Back"].tap()
+        XCTAssert(spentSoFar(app).waitForExistence(timeout: 10))
     }
 }
 

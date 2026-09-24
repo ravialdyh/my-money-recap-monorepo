@@ -114,7 +114,7 @@ final class LogSpendViewModelTests: XCTestCase {
     func testHomeOpensTheSheetAndStoresTheAnswer() async throws {
         let recorded = try Self.recordedAnswer()
         let context = try ModelContext(ModelContainer(
-            for: HomeSnapshot.self,
+            for: HomeSnapshot.self, SpendListSnapshot.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
         var gbp = recorded.home

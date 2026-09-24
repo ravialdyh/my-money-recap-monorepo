@@ -33,6 +33,7 @@ type fakeLedger struct {
 	warning    *moneyrecapv1.TargetWarning
 	settings   int
 	gotMonth   string
+	gotList    string
 }
 
 func zeroMonth() *moneyrecapv1.MonthSummary {
@@ -94,6 +95,24 @@ func (f *fakeLedger) LogSpend(_ context.Context, req *connect.Request[moneyrecap
 	month := zeroMonth()
 	month.Month, month.TargetWarning = req.Msg.Date[:7], f.warning
 	return connect.NewResponse(&moneyrecapv1.LogSpendResponse{Spend: &moneyrecapv1.Spend{Id: "s-1", Amount: req.Msg.Amount, Date: req.Msg.Date}, Month: month, CrossedLine: f.crossed}), nil
+}
+
+func (f *fakeLedger) ListSpends(_ context.Context, req *connect.Request[moneyrecapv1.ListSpendsRequest]) (*connect.Response[moneyrecapv1.ListSpendsResponse], error) {
+	f.gotList, f.gotToken = req.Msg.Month, req.Header().Get("Authorization")
+	if f.err != nil {
+		return nil, f.err
+	}
+	spend := &moneyrecapv1.Spend{Id: "s-1", Amount: &moneyrecapv1.Money{Amount: "25000", CurrencyCode: "IDR"}, Category: moneyrecapv1.Category_CATEGORY_SNACKS}
+	return connect.NewResponse(&moneyrecapv1.ListSpendsResponse{Spends: []*moneyrecapv1.Spend{spend}, Spent: spend.Amount, Categories: []*moneyrecapv1.CategoryShare{
+		{Category: spend.Category, Amount: spend.Amount, Percent: 100, SpendCount: 1},
+	}}), nil
+}
+
+func (f *fakeLedger) ListMonthsWithData(context.Context, *connect.Request[moneyrecapv1.ListMonthsWithDataRequest]) (*connect.Response[moneyrecapv1.ListMonthsWithDataResponse], error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	return connect.NewResponse(&moneyrecapv1.ListMonthsWithDataResponse{Months: []string{"2026-10", "2026-09"}}), nil
 }
 
 // ledgerClient serves f the way the BFF reaches the real ledger: over Connect, forwarding the caller's token.
