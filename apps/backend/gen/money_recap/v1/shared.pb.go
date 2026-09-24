@@ -441,7 +441,8 @@ type SalaryFacts struct {
 	Amount *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
 	// 1 to 31, or "last" for the Last day token (PRD D51).
 	Payday string `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
-	// Days until the effective Payday; 0 when it has passed or is today.
+	// Days until the effective Payday; in a partial sign-up month (D52), until
+	// next month's; 0 otherwise once it has passed or is today.
 	DaysUntilPayday int32 `protobuf:"varint,3,opt,name=days_until_payday,json=daysUntilPayday,proto3" json:"days_until_payday,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache

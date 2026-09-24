@@ -121,8 +121,11 @@ func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 		s.MoneyIn, s.Saved = l.cash.money(sal.amount), l.cash.money(saved)
 	}
 	s.Salary = &moneyrecapv1.SalaryFacts{Amount: l.cash.money(sal.amount), Payday: sal.payday}
-	if current && today.Before(payday) {
+	switch {
+	case current && today.Before(payday):
 		s.Salary.DaysUntilPayday = int32(payday.Sub(today).Hours() / 24)
+	case current && s.Partial:
+		s.Salary.DaysUntilPayday = int32(m.next().day(effectivePayday(sal.payday, m.next())).Sub(today).Hours() / 24)
 	}
 	tgt, ok := inForce(l.targets, targetFrom, m)
 	if !ok || tgt.percent == 0 {
