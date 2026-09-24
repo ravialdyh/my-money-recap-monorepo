@@ -32,7 +32,10 @@ struct LogSpendView: View {
                     }
                 }
                 VStack(alignment: .leading, spacing: 0) {
-                    ListRow(label: "Date", value: model.dateLabel) { picking.toggle() }
+                    ListRow(label: "Date", value: model.dateLabel) {
+                        endEditing()
+                        picking.toggle()
+                    }
                     if picking {
                         DatePicker("Date", selection: $model.date, in: model.dates, displayedComponents: .date)
                             .datePickerStyle(.wheel)
@@ -69,8 +72,13 @@ struct LogSpendView: View {
         .presentationBackground(Tokens.Surface.sheet)
     }
 
-    private func save() {
+    /// Puts the keyboard away, so the wheel picker and Save are not under it.
+    private func endEditing() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
+    private func save() {
+        endEditing()
         Task {
             if let home = await model.save() {
                 onSaved(home)
