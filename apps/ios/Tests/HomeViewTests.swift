@@ -111,4 +111,56 @@ final class HomeViewTests: XCTestCase {
         attachment.lifetime = .keepAlways
         add(attachment)
     }
+
+    /// B1's coral Banner above the target card, in each of D53's two wordings, and gone when dismissed: the dismissed
+    /// Home draws as the one with no warning. The pictures are kept as evidence.
+    func testTheWarningBannerDrawsAboveTheTargetUntilDismissed() throws {
+        let context = try ModelContext(ModelContainer(
+            for: HomeSnapshot.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        ))
+        let calm = MoneyRecap_V1_HomeView.with {
+            $0.displayName = "Maya"
+            $0.avatarKey = "fox"
+            $0.currencyCode = "GBP"
+            $0.month = "2026-09"
+            $0.spent = .with { $0.amount = "2000"; $0.currencyCode = "GBP" }
+            $0.moneyIn = .with { $0.amount = "0"; $0.currencyCode = "GBP" }
+            $0.salary = .with { $0.amount.amount = "2400"; $0.payday = "25"; $0.daysUntilPayday = 5 }
+            $0.savingTarget = .with {
+                $0.percent = 20
+                $0.amount.amount = "480"
+                $0.progressSentence = "Nothing to keep yet. Your salary lands on the 25th."
+            }
+        }
+        let draw = { (home: MoneyRecap_V1_HomeView, dismissed: Bool) -> Data? in
+            try? HomeSnapshot.replace(with: home, in: context)
+            let model = HomeViewModel(
+                fetch: { home }, context: context, locale: Locale(identifier: "en_GB"), dismissals: WarningDismissals()
+            )
+            if dismissed {
+                model.dismissWarning()
+            }
+            return self.picture(HomeView(model: model))
+        }
+        var beforePayday = calm
+        beforePayday.targetWarning.message = "You've spent £2,000 of the £1,920 you meant to spend this month."
+        var afterPayday = calm
+        afterPayday.salary.daysUntilPayday = 0
+        afterPayday.moneyIn.amount = "2400"
+        afterPayday.targetWarning.message = "You've passed your saving line. £80 over."
+
+        let none = draw(calm, false)
+        let before = draw(beforePayday, false)
+        let after = draw(afterPayday, false)
+        XCTAssertNotEqual(before, none, "the banner draws")
+        XCTAssertNotEqual(before, after)
+        XCTAssertEqual(draw(beforePayday, true), none, "dismissed, Home draws as with no warning")
+        for (name, png) in [("b1-warning-before-payday", before), ("b1-warning-after-payday", after)] {
+            let attachment = try XCTAttachment(data: XCTUnwrap(png), uniformTypeIdentifier: "public.png")
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
 }
