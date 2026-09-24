@@ -156,7 +156,7 @@ func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 	}
 	switch {
 	case over.Sign() <= 0:
-	case current && today.Before(payday):
+	case current && !paid:
 		s.TargetWarning = &moneyrecapv1.TargetWarning{Message: "You've spent " + l.cash.printed(spent) + " of the " + l.cash.printed(line) + " you meant to spend this month."}
 	default:
 		s.TargetWarning = &moneyrecapv1.TargetWarning{Message: "You've passed your saving line. " + l.cash.printed(over) + " over."}

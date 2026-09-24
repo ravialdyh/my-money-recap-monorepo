@@ -66,7 +66,10 @@ func TestTargetWarningEndToEnd(t *testing.T) {
 
 	freshMemberOverTheLine(ctx, t, db, client, base, tok, sub)
 	spend(client, "400000")
-	const first = "You've passed your saving line. Rp50.000 over."
+	first := "You've spent Rp550.000 of the Rp500.000 you meant to spend this month."
+	if time.Now().UTC().Day() == 1 {
+		first = "You've passed your saving line. Rp50.000 over."
+	}
 	if h := spend(client, "150000"); h.TargetWarning.GetMessage() != first {
 		t.Fatalf("the crossing Spend: banner %v, want %q", h.TargetWarning, first)
 	}
@@ -102,7 +105,7 @@ type spender interface {
 }
 
 // freshMemberOverTheLine makes the test Member anew, onboarded in UTC with a 1,000,000 Salary paid on the 1st and a
-// 50% Target, so this month's warning line is 500,000 and the day is past Payday.
+// 50% Target, so the warning line is 500,000: after the 1st a partial sign-up month warns as before Payday (§8.8).
 func freshMemberOverTheLine(ctx context.Context, t *testing.T, db *pgxpool.Pool, client moneyrecapv1connect.BffServiceClient, base, tok, sub string) {
 	t.Helper()
 	if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, sub); err != nil {

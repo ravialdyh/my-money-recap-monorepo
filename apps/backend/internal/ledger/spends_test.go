@@ -128,3 +128,20 @@ func TestPastMonthsWithSpends(t *testing.T) {
 		t.Errorf("September: %v", sep)
 	}
 }
+
+// A partial sign-up month waits for next month's Payday, so its warning reads the before-Payday copy (§8.8, D52).
+func TestAPartialMonthWarnsBeforePayday(t *testing.T) {
+	db := testDB(t)
+	id := "00000000-0000-4000-8000-00000000a509"
+	ctx := seed(t, db, id, "late-joiner", "Asia/Jakarta", "2026-09-24", "IDR",
+		[]*moneyrecapv1.SalarySetting{{Amount: idr("3000000"), OriginalAmount: idr("3000000"), Payday: "1", EffectiveFrom: "2026-09"}},
+		[]*moneyrecapv1.SavingTargetSetting{{Percent: 20, EffectiveFrom: "2026-09"}})
+	s := &Service{DB: db, Now: func() time.Time { return at(t, "2026-09-24", "Asia/Jakarta") }}
+	res, err := s.LogSpend(ctx, connect.NewRequest(&moneyrecapv1.LogSpendRequest{
+		IdempotencyKey: "p1", MemberId: id, Amount: idr("2400001"), Category: moneyrecapv1.Category_CATEGORY_BILLS, Date: "2026-09-24",
+	}))
+	want := "You've spent Rp2.400.001 of the Rp2.400.000 you meant to spend this month."
+	if err != nil || !res.Msg.CrossedLine || !res.Msg.Month.Partial || res.Msg.Month.TargetWarning.GetMessage() != want {
+		t.Fatalf("past the line in a partial sign-up month: %v, %v; want crossed with %q", res, err, want)
+	}
+}
