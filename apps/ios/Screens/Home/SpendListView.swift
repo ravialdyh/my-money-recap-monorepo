@@ -82,6 +82,7 @@ struct SpendListView: View {
                         .background(Tokens.Surface.buttonPrimary, in: Circle())
                 }
                 .buttonStyle(PressableStyle())
+                .disabled(model.offline)
                 .accessibilityLabel("Log a spend")
             }
             .frame(maxWidth: .infinity)

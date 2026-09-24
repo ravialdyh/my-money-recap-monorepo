@@ -166,6 +166,7 @@ final class HomeViewModelTests: XCTestCase {
         path.online = false
         wait(for: [lost], timeout: 0)
         XCTAssertTrue(model.offline)
+        XCTAssertEqual(model.spendList(switching: false)?.offline, true, "the list's plus button follows the same path")
         XCTAssertEqual(model.home?.month, "2026-09", "the stored numbers stay readable")
         XCTAssertEqual(model.warning, home.targetWarning.message)
         let back = expectation(description: "and come back")
@@ -173,5 +174,6 @@ final class HomeViewModelTests: XCTestCase {
         path.online = true
         wait(for: [back], timeout: 0)
         XCTAssertFalse(model.offline)
+        XCTAssertEqual(model.spendList(switching: false)?.offline, false)
     }
 }

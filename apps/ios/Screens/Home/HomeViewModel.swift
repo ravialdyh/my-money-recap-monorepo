@@ -98,7 +98,8 @@ final class HomeViewModel {
             switching: switching,
             fetch: listSpends,
             context: context,
-            locale: locale
+            locale: locale,
+            connection: connection
         ) }
     }
 

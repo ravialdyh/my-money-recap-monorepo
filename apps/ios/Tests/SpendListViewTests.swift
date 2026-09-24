@@ -46,4 +46,27 @@ final class SpendListViewTests: XCTestCase {
         let otherLine = await drawn(otherSpent, false)
         XCTAssertNotEqual(rows, otherLine, "the month line under the switcher is drawn")
     }
+
+    /// D58: with no network path the empty month's plus button draws at 40%, and back online as before.
+    func testThePlusButtonDimsOffline() async throws {
+        let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "list-spends", withExtension: "json"))
+        var empty = try MoneyRecap_V1_BffServiceListSpendsResponse(
+            jsonString: String(contentsOf: url, encoding: .utf8)
+        ).spends
+        empty.categories = []
+        empty.spends = []
+        let context = try ModelContext(ModelContainer(
+            for: HomeSnapshot.self, SpendListSnapshot.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        ))
+        let path = Connection(online: true)
+        let model = SpendListViewModel(month: empty.month, fetch: { _ in empty }, context: context, connection: path)
+        await model.refresh()
+        let online = picture(SpendListView(model: model))
+        path.online = false
+        XCTAssertTrue(model.offline)
+        XCTAssertNotEqual(picture(SpendListView(model: model)), online)
+        path.online = true
+        XCTAssertEqual(picture(SpendListView(model: model)), online)
+    }
 }
