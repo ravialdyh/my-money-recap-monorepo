@@ -12,6 +12,8 @@ final class HomeViewModel {
     private(set) var home: MoneyRecap_V1_HomeView?
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
     private let logSpend: LogSpendViewModel.Send
+    private let editSpend: LogSpendViewModel.Edit
+    private let deleteSpend: LogSpendViewModel.Delete
     private let listSpends: SpendListViewModel.Fetch
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
@@ -29,10 +31,16 @@ final class HomeViewModel {
         onboardingNeeded: @escaping () -> Void = {},
         logSpend: @escaping LogSpendViewModel
             .Send = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        listSpends: @escaping SpendListViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) }
+        listSpends: @escaping SpendListViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) },
+        editSpend: @escaping LogSpendViewModel
+            .Edit = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        deleteSpend: @escaping LogSpendViewModel
+            .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
+        self.editSpend = editSpend
+        self.deleteSpend = deleteSpend
         self.listSpends = listSpends
         self.context = context
         self.onboardingNeeded = onboardingNeeded
@@ -64,6 +72,17 @@ final class HomeViewModel {
             LogSpendViewModel(
                 currency: $0.currencyCode, digits: Int($0.currencyDigits), earliest: $0.earliestSpendDate,
                 send: logSpend
+            )
+        }
+    }
+
+    /// B7 Edit spend for one of the list's Spends, in the Member's Currency, its decimals and ledger's date range; nil
+    /// before Home has an answer.
+    func editSheet(_ spend: MoneyRecap_V1_Spend) -> LogSpendViewModel? {
+        home.map {
+            LogSpendViewModel(
+                editing: spend, currency: $0.currencyCode, digits: Int($0.currencyDigits),
+                earliest: $0.earliestSpendDate, locale: locale, edit: editSpend, delete: deleteSpend
             )
         }
     }

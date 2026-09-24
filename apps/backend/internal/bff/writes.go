@@ -87,6 +87,55 @@ func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv
 	return connect.NewResponse(&moneyrecapv1.BffServiceLogSpendResponse{Home: home, Spend: logged.Msg.Spend}), nil
 }
 
+// EditSpend is the edit sheet's Save changes (PRD §6.10): ledger rewrites the Spend under the phone's key, notify hears
+// crossed_line when the Spend now sits in the current month, then the answer carries the current month's Home (§6.2).
+func (s *Service) EditSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceEditSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceEditSpendResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ledgerCtx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	edited, err := s.Ledger.EditSpend(ledgerCtx, connect.NewRequest(&moneyrecapv1.EditSpendRequest{
+		IdempotencyKey: key, MemberId: profile.MemberId, SpendId: req.Msg.SpendId, Amount: req.Msg.Amount, Category: req.Msg.Category, Date: req.Msg.Date, Note: req.Msg.Note,
+	}))
+	if err != nil {
+		return nil, requiredCallFailed("ledger.EditSpend", connect.CodeOf(err), err)
+	}
+	home, err := s.home(ctx, profile, s.evaluateWarning(ctx, key, profile, edited.Msg.Month, edited.Msg.CrossedLine))
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceEditSpendResponse{Home: home, Spend: edited.Msg.Spend}), nil
+}
+
+// DeleteSpend is the confirmed Delete this spend (PRD §6.10, D21): ledger stamps the Spend deleted under the phone's
+// key. A delete never crosses the line, so notify is not told and Home's banner is GetWarningState's (§6.2).
+func (s *Service) DeleteSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceDeleteSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceDeleteSpendResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ledgerCtx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	if _, err := s.Ledger.DeleteSpend(ledgerCtx, connect.NewRequest(&moneyrecapv1.DeleteSpendRequest{IdempotencyKey: key, MemberId: profile.MemberId, SpendId: req.Msg.SpendId})); err != nil {
+		return nil, requiredCallFailed("ledger.DeleteSpend", connect.CodeOf(err), err)
+	}
+	home, err := s.home(ctx, profile, nil)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceDeleteSpendResponse{Home: home}), nil
+}
+
 // evaluateTimeout bounds §6.2 step 4: a slow notify must not hold up a Spend already saved.
 const evaluateTimeout = 300 * time.Millisecond
 

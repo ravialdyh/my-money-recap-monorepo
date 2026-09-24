@@ -286,7 +286,7 @@ Reached by tapping the Home hero card (D42 makes the hero the Spent figure, so t
 
 **Category detail.** One Category, newest first, date as a secondary line, and that Category's share of the month: "{amount} · {n}% of {Month} so far", or "{amount} · {n}% of {Month}" for a past month.
 
-**Spend detail.** Same fields as 6.9, prefilled, plus a destructive "Delete" `ListRow` with a single confirm (iOS action sheet). Deleting is not undoable in v1.
+**Spend detail.** Same fields as 6.9, prefilled, plus a destructive "Delete" `ListRow` with a single confirm (an iOS alert, owner 2026-09-24). Deleting is not undoable in v1.
 
 **Editing an old Spend.** The date field offers only the last 60 days. A Spend dated earlier than that keeps its date, shown as read-only text with the helper "Dates older than 60 days can't be changed." Amount, Category and Note stay editable. Editing or deleting a Spend in a past month immediately changes that month's Recap (D22).
 

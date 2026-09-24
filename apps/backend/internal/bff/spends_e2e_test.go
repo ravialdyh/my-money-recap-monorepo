@@ -16,8 +16,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestLogSpendEndToEnd logs and lists Spends through the BFF and ledger (#129, #131): the empty month, today's Spend
-// moving Home and the list, an empty past month; a Spend before the sign-up month (D72) or with no Category is refused.
+// TestLogSpendEndToEnd logs, lists, edits and deletes a Spend through the BFF and ledger (#129, #131, #133); a Spend
+// before the sign-up month (D72) or with no Category is refused.
 func TestLogSpendEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
@@ -95,5 +95,47 @@ func TestLogSpendEndToEnd(t *testing.T) {
 	}
 	if _, err := log(today, moneyrecapv1.Category_CATEGORY_UNSPECIFIED); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Fatalf("a Spend with no Category: %v, want invalid_argument", err)
+	}
+	editAndDelete(ctx, t, client, logged.Spend.Id, first)
+}
+
+// editAndDelete edits the Spend with id to 40000 of Rides on the 1st, which D72 allows the test Member who signs up
+// this month, refuses a move to last month, then deletes it: Home and the list follow, and it is gone for good (#133).
+func editAndDelete(ctx context.Context, t *testing.T, client moneyrecapv1connect.BffServiceClient, id string, first time.Time) {
+	t.Helper()
+	edit := func(day time.Time) (*moneyrecapv1.BffServiceEditSpendResponse, error) {
+		req := connect.NewRequest(&moneyrecapv1.BffServiceEditSpendRequest{
+			SpendId: id, Amount: &moneyrecapv1.Money{Amount: "40000", CurrencyCode: "IDR"}, Category: moneyrecapv1.Category_CATEGORY_RIDES, Date: day.Format(dateLayout), Note: "Ojek",
+		})
+		req.Header().Set("Idempotency-Key", rand.Text())
+		res, err := client.EditSpend(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return res.Msg, nil
+	}
+	del := func() error {
+		req := connect.NewRequest(&moneyrecapv1.BffServiceDeleteSpendRequest{SpendId: id})
+		req.Header().Set("Idempotency-Key", rand.Text())
+		_, err := client.DeleteSpend(ctx, req)
+		return err
+	}
+	edited, err := edit(first)
+	if err != nil || edited.Home.Spent.Amount != "40000" || edited.Spend.Id != id || edited.Spend.Date != first.Format(dateLayout) ||
+		edited.Spend.Category != moneyrecapv1.Category_CATEGORY_RIDES || edited.Spend.Note != "Ojek" {
+		t.Fatalf("the Spend edited to 40000 of Rides on the 1st: %v, %v", edited, err)
+	}
+	if _, err := edit(first.AddDate(0, 0, -1)); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Fatalf("the Spend moved before the sign-up month: %v, want invalid_argument (D72)", err)
+	}
+	if err := del(); err != nil {
+		t.Fatal(err)
+	}
+	list, err := client.ListSpends(ctx, connect.NewRequest(&moneyrecapv1.BffServiceListSpendsRequest{}))
+	if err != nil || len(list.Msg.Spends.Spends) != 0 || list.Msg.Spends.Spent.Amount != "0" {
+		t.Fatalf("the list after the delete: %v, %v, want it empty", list, err)
+	}
+	if err := del(); connect.CodeOf(err) != connect.CodeNotFound {
+		t.Fatalf("the deleted Spend deleted again: %v, want not_found", err)
 	}
 }

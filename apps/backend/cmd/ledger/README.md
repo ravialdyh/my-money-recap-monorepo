@@ -2,7 +2,7 @@
 
 The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary, Saving Target and Spends and every
 figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #128 and Recaps since #130: it serves `SaveSalary`,
-`RelabelCurrency`, `SaveTarget`, `LogSpend`, `GetSettings`, `GetMonthSummary`, `GetRecap`, `ListSpends` and
+`RelabelCurrency`, `SaveTarget`, `LogSpend`, `EditSpend` and `DeleteSpend` (#133), `GetSettings`, `GetMonthSummary`, `GetRecap`, `ListSpends` and
 `ListMonthsWithData` (#131), and the rest of
 `LedgerService` is planned. The BFF calls it since #103: Home's month,
 onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
@@ -16,7 +16,7 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary: its name, its schema step, its handler and its consumer, handed to `serve.Main`. |
-| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `list.go` (`ListSpends`, `ListMonthsWithData`, the Category split and the months with data both lists share), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
+| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`, `EditSpend`, `DeleteSpend`), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `list.go` (`ListSpends`, `ListMonthsWithData`, the Category split and the months with data both lists share), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
 
 ## What it keeps
 
@@ -63,6 +63,11 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
   as NFC code points like a Display Name. `LogSpend` locks the Member's replica row and reads the Spends
   again inside its transaction, so `crossed_line` is true for exactly the log that first takes this month's
   Spent past Salary minus the target amount (PRD §8.8), never for a Spend in another month.
+- `EditSpend` validates as `LogSpend` does, locks and reads again the same way and answers the month the Spend
+  now sits in, `crossed_line` computed as for a log. A date outside the last 60 days (or before the sign-up
+  month, D72) may stay unchanged, but no edit moves a Spend to or from one. `DeleteSpend` stamps `deleted_at`
+  and answers the Spend as it was and the month it left, `crossed_line` always false. Another Member's Spend,
+  or one already deleted, is `not_found`.
 - A Recap is any month up to the current one (PRD §6.11 to §6.14, §8): the current month is the preview and a
   partial month (§8.11) is in its §6.17 situation, each with its closing line and no Archetype. `GetMonthSummary`
   also lists every earlier month with a Spend or Money In for Home, newest first, labelled by its Archetype
