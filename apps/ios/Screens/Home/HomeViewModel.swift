@@ -85,7 +85,8 @@ final class HomeViewModel {
         home.map {
             LogSpendViewModel(
                 editing: spend, currency: $0.currencyCode, digits: Int($0.currencyDigits),
-                earliest: $0.earliestSpendDate, locale: locale, edit: editSpend, delete: deleteSpend
+                earliest: $0.earliestSpendDate, locale: locale, connection: connection, edit: editSpend,
+                delete: deleteSpend
             )
         }
     }

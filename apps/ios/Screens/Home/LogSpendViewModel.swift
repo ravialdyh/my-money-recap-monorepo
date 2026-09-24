@@ -49,6 +49,8 @@ final class LogSpendViewModel: Identifiable {
     private let locale: Locale
     private let write: Write
     private let delete: Delete?
+    /// The network path an edit follows; nil for Log a spend, which Home already keeps closed offline (D58).
+    private let connection: Connection?
 
     /// Log a spend: the Date row reads today until the Member picks another day.
     convenience init(
@@ -62,7 +64,7 @@ final class LogSpendViewModel: Identifiable {
     ) {
         self.init(
             currency: currency, digits: digits, earliest: earliest, today: today, calendar: calendar, locale: locale,
-            spend: nil, delete: nil
+            spend: nil, delete: nil, connection: nil
         ) { values, headers in
             await send(.with {
                 $0.amount = Self.money(values.amount, currency)
@@ -82,12 +84,13 @@ final class LogSpendViewModel: Identifiable {
         today: Date = .now,
         calendar: Calendar = .autoupdatingCurrent,
         locale: Locale = .autoupdatingCurrent,
+        connection: Connection? = nil,
         edit: @escaping Edit,
         delete: @escaping Delete
     ) {
         self.init(
             currency: currency, digits: digits, earliest: earliest, today: today, calendar: calendar, locale: locale,
-            spend: spend, delete: delete
+            spend: spend, delete: delete, connection: connection ?? .shared
         ) { values, headers in
             await edit(.with {
                 $0.spendID = spend.id
@@ -111,6 +114,7 @@ final class LogSpendViewModel: Identifiable {
         locale: Locale,
         spend: MoneyRecap_V1_Spend?,
         delete: Delete?,
+        connection: Connection?,
         write: @escaping Write
     ) {
         self.currency = currency
@@ -123,6 +127,7 @@ final class LogSpendViewModel: Identifiable {
         self.locale = locale
         self.spend = spend
         self.delete = delete
+        self.connection = connection
         self.write = write
     }
 
@@ -158,7 +163,12 @@ final class LogSpendViewModel: Identifiable {
     }
 
     var canSave: Bool {
-        (Decimal(string: amount) ?? 0) > 0 && category != nil && !isSaving
+        (Decimal(string: amount) ?? 0) > 0 && category != nil && !isSaving && !offline
+    }
+
+    /// No network path while editing: Save changes and Delete this spend sit at 40%, the Spend stays readable (D58).
+    var offline: Bool {
+        !(connection?.online ?? true)
     }
 
     /// The fresh Home once saved. A retry of the same values sends the same key; changed values a new one (IOS I3).
@@ -187,7 +197,7 @@ final class LogSpendViewModel: Identifiable {
 
     /// B8 confirmed: the fresh Home once deleted, or nil after a failure, the Spend kept. A retry sends the same key.
     func deleteSpend() async -> MoneyRecap_V1_HomeView? {
-        guard let spend, let delete, !isSaving else { return nil }
+        guard let spend, let delete, !isSaving, !offline else { return nil }
         let current = deletion ?? SaveAttempt(spend.id)
         deletion = current
         isSaving = true
