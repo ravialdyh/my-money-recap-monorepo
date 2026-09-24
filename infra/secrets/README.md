@@ -54,7 +54,7 @@ mode weighs them alongside the steps.
 | `ledger_db_password` | The same init script, which creates the `ledger` role the same way |
 | `ledger_database_url` | `ledger` and `ledger migrate`, as `LEDGER_DATABASE_URL_FILE` |
 | `rabbitmq_password` | RabbitMQ's first boot, which creates the user `mmr` with it (`RABBITMQ_DEFAULT_PASS`) |
-| `amqp_url` | `members`' outbox relay and `ledger`'s consumer, as `MEMBERS_AMQP_URL_FILE` and `LEDGER_AMQP_URL_FILE` |
+| `amqp_url` | `members`' outbox relay, `ledger`'s consumer and relay, and `notify`'s consumer, as `MEMBERS_AMQP_URL_FILE`, `LEDGER_AMQP_URL_FILE` and `NOTIFY_AMQP_URL_FILE` |
 | `postgres_password` | The Postgres superuser, `POSTGRES_PASSWORD` |
 | `keycloak_db_password` | The init script's `keycloak` role and Keycloak itself, `KEYCLOAK_DB_PASSWORD` |
 | `kc_bootstrap_admin_password` | Keycloak's first admin, whose username is the literal `admin`, and `realm-apply`'s login |

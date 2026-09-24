@@ -1,5 +1,12 @@
 name: ${COMPOSE_PROJECT_NAME:-mmr}
 
+x-migrate: &migrate
+  pull_policy: never
+  command: ["migrate"]
+  depends_on:
+    postgres:
+      condition: service_healthy
+
 services:
   postgres:
     image: postgres:17
@@ -108,15 +115,11 @@ services:
       start_period: 20s
 
   members-migrate:
+    <<: *migrate
     image: ${COMPOSE_PROJECT_NAME:-mmr}-members
-    pull_policy: never
-    command: ["migrate"]
     environment:
       MEMBERS_DATABASE_URL_FILE: &members-db-file /run/secrets/members_database_url
     secrets: [members_database_url]
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   members:
     build:
@@ -157,13 +160,11 @@ services:
       retries: 12
 
   notify-migrate:
+    <<: *migrate
     image: ${COMPOSE_PROJECT_NAME:-mmr}-notify
-    pull_policy: never
-    command: ["migrate"]
     environment:
       NOTIFY_DATABASE_URL_FILE: &notify-db-file /run/secrets/notify_database_url
-    secrets: &notify-db-secret [notify_database_url]
-    depends_on: { postgres: { condition: service_healthy } }
+    secrets: [notify_database_url]
 
   notify:
     build:
@@ -177,10 +178,13 @@ services:
       NOTIFY_SMTP_ADDR: mailpit:1025
       NOTIFY_MAIL_FROM: no-reply@mymoneyrecap.test
       NOTIFY_MEMBERS_URL: http://members:8080
+      NOTIFY_AMQP_URL_FILE: *amqp-file
     ports:
       - "127.0.0.1:${NOTIFY_HOST_PORT:-8083}:8080"
-    secrets: *notify-db-secret
+    secrets: [notify_database_url, amqp_url]
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       notify-migrate:
         condition: service_completed_successfully
       realm-apply:
@@ -188,15 +192,11 @@ services:
     healthcheck: *go-healthcheck
 
   ledger-migrate:
+    <<: *migrate
     image: ${COMPOSE_PROJECT_NAME:-mmr}-ledger
-    pull_policy: never
-    command: ["migrate"]
     environment:
       LEDGER_DATABASE_URL_FILE: &ledger-db-file /run/secrets/ledger_database_url
     secrets: [ledger_database_url]
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   ledger:
     build:

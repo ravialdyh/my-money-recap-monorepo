@@ -1,5 +1,6 @@
 // Package notify is the notify service (ARCHITECTURE §7.3): the magic-link email since #68 and the
-// Target Warning's month flag since #132, with the replica row that proves a Member's owner.
+// Target Warning's month flag since #132, stamped from ledger's Spend events too since #135, with the replica row
+// that proves a Member's owner.
 package notify
 
 import (

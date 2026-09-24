@@ -11,9 +11,11 @@ import (
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/text/unicode/norm"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 )
 
@@ -53,7 +55,7 @@ func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv
 		l.spends = append(l.spends, spendRow{amount: amount, date: date, spend: spend})
 		answer.Spend, answer.Month = spend, l.summary(m, l.today)
 		answer.CrossedLine = l.crossed(m, before, answer.Month)
-		return nil
+		return l.announce(ctx, tx, "ledger.spend.logged", spend, answer.Month, answer.CrossedLine)
 	})
 	if err != nil {
 		return nil, writeFailed(ctx, err)
@@ -100,7 +102,7 @@ func (s *Service) EditSpend(ctx context.Context, req *connect.Request[moneyrecap
 		l.spends[i] = spendRow{amount: amount, date: date, spend: spend}
 		answer.Spend, answer.Month = spend, l.summary(m, l.today)
 		answer.CrossedLine = l.crossed(m, before, answer.Month)
-		return nil
+		return l.announce(ctx, tx, "ledger.spend.edited", spend, answer.Month, answer.CrossedLine)
 	})
 	if err != nil {
 		return nil, writeFailed(ctx, err)
@@ -130,12 +132,26 @@ func (s *Service) DeleteSpend(ctx context.Context, req *connect.Request[moneyrec
 		}
 		l.spends = slices.Delete(l.spends, i, i+1)
 		answer.Spend, answer.Month = gone.spend, l.summary(monthOf(gone.date), l.today)
-		return nil
+		return l.announce(ctx, tx, "ledger.spend.deleted", gone.spend, answer.Month, false)
 	})
 	if err != nil {
 		return nil, writeFailed(ctx, err)
 	}
 	return connect.NewResponse(answer), nil
+}
+
+// announce stages the Spend write's event in its transaction, with the answer's Spend, month and crossed_line, so
+// notify stamps the warning even when the BFF's direct call never happened (ARCHITECTURE §4.3, §6.2 step 6).
+func (l member) announce(ctx context.Context, tx pgx.Tx, key string, spend *moneyrecapv1.Spend, month *moneyrecapv1.MonthSummary, crossed bool) error {
+	return events.Stage(ctx, tx, l.id, key, func(env *moneyrecapv1.EventEnvelope) proto.Message {
+		switch key {
+		case "ledger.spend.logged":
+			return &moneyrecapv1.LedgerSpendLogged{Envelope: env, Spend: spend, Month: month, CrossedLine: crossed}
+		case "ledger.spend.edited":
+			return &moneyrecapv1.LedgerSpendEdited{Envelope: env, Spend: spend, Month: month, CrossedLine: crossed}
+		}
+		return &moneyrecapv1.LedgerSpendDeleted{Envelope: env, Spend: spend, Month: month}
+	})
 }
 
 // crossed is PRD §8.8's crossed_line for a write in month m: only the current month, and only when the write took

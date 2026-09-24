@@ -11,12 +11,12 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `LEDGER_MEMBERS_URL` | required | `members`, for the profile read that fills the replica: `http://members:8080` in Compose. |
-| `LEDGER_AMQP_URL` | required | The broker its consumer reads `members`' events from: the `amqp_url` secret in Compose. |
+| `LEDGER_AMQP_URL` | required | The broker its consumer reads `members`' events from and its outbox relay publishes the spend events to: the `amqp_url` secret in Compose. |
 
 | Path | Holds |
 | --- | --- |
-| `main.go` | The binary: its name, its schema step, its handler and its consumer, handed to `serve.Main`. |
-| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`, `EditSpend`, `DeleteSpend`), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `list.go` (`ListSpends`, `ListMonthsWithData`, the Category split and the months with data both lists share), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
+| `main.go` | The binary: its name, its schema step, its handler, its consumer and its outbox relay, handed to `serve.Main`. |
+| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`, `EditSpend`, `DeleteSpend` and the events they stage), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `list.go` (`ListSpends`, `ListMonthsWithData`, the Category split and the months with data both lists share), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
 
 ## What it keeps
 
@@ -74,6 +74,9 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
   name or `Partial`, which a full month without an Archetype reads too (§6.14).
 - Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
   (`internal/idempotency`, A14), as `members` does.
+- Each Spend write stages `ledger.spend.logged`, `ledger.spend.edited` or `ledger.spend.deleted` in `outbox`
+  inside that same transaction (#135, ARCHITECTURE §4.3), carrying the answer's Spend, month and `crossed_line`;
+  a replayed key stages nothing more. The relay beside the handler publishes it as `members`' does.
 
 ## Tests
 
