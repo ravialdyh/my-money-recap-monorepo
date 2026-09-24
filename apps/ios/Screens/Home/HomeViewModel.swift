@@ -18,11 +18,13 @@ final class HomeViewModel {
     /// change the copy.
     private let dates: Date.FormatStyle
     private let locale: Locale
+    private let dismissals: WarningDismissals
 
     init(
         fetch: @escaping () async throws -> MoneyRecap_V1_HomeView,
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
+        dismissals: WarningDismissals? = nil,
         onboardingNeeded: @escaping () -> Void = {},
         logSpend: @escaping LogSpendViewModel
             .Send = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
@@ -33,6 +35,7 @@ final class HomeViewModel {
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
         self.locale = locale
+        self.dismissals = dismissals ?? .session
         if let snapshot = HomeSnapshot.load(from: context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
         }
@@ -108,6 +111,18 @@ final class HomeViewModel {
         return min(max(saved / whole, 0), 1)
     }
 
+    /// The Target Warning's kept copy (PRD §8.8), until the Member dismisses this month's for the session (§6.8).
+    var warning: String? {
+        guard let home, home.hasTargetWarning, !dismissals.months.contains(home.month) else { return nil }
+        return home.targetWarning.message
+    }
+
+    func dismissWarning() {
+        if let month = home?.month {
+            dismissals.months.insert(month)
+        }
+    }
+
     /// The month chip: the Recap Month's name.
     var monthLabel: String? {
         home.flatMap { ISODate.month($0.month) }.map { $0.formatted(dates.month(.wide)) }
@@ -122,6 +137,15 @@ final class HomeViewModel {
     func recapLabel(_ month: MoneyRecap_V1_RecapMonth) -> String {
         ISODate.month(month.month).map { $0.formatted(dates.month(.wide).year()) } ?? month.month
     }
+}
+
+/// The months whose Target Warning the Member dismissed: one set per run of the app, so the banner is back on the next
+/// launch while the month is stamped (PRD §6.8).
+@Observable
+@MainActor
+final class WarningDismissals {
+    static let session = WarningDismissals()
+    var months: Set<String> = []
 }
 
 /// The server's "YYYY-MM-DD" and "YYYY-MM" strings are calendar dates, not instants, so they are read and printed

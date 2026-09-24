@@ -17,8 +17,8 @@ import (
 // errLedgerDown is how a ledger whose database is gone fails, naming the address.
 var errLedgerDown = errors.New("dial tcp 172.18.0.5:5432: connect: connection refused")
 
-// fakeLedger is ledger as the BFF sees it: a zero month with 15 days left, settings holding salary and target, the
-// month GetHome asked for and each write recorded with the token it came with; err fails every call.
+// fakeLedger is ledger as the BFF sees it: a zero month with 15 days left, settings holding salary and target, each
+// read month and write recorded with its token; err fails every call. LogSpend answers warning and crossed.
 type fakeLedger struct {
 	moneyrecapv1connect.UnimplementedLedgerServiceHandler
 	err        error
@@ -29,6 +29,8 @@ type fakeLedger struct {
 	gotTarget  *moneyrecapv1.SaveTargetRequest
 	gotRelabel *moneyrecapv1.RelabelCurrencyRequest
 	gotSpend   *moneyrecapv1.LogSpendRequest
+	crossed    bool
+	warning    *moneyrecapv1.TargetWarning
 	settings   int
 	gotMonth   string
 }
@@ -89,7 +91,9 @@ func (f *fakeLedger) LogSpend(_ context.Context, req *connect.Request[moneyrecap
 	if f.err != nil {
 		return nil, f.err
 	}
-	return connect.NewResponse(&moneyrecapv1.LogSpendResponse{Spend: &moneyrecapv1.Spend{Id: "s-1", Amount: req.Msg.Amount, Date: req.Msg.Date}, Month: zeroMonth()}), nil
+	month := zeroMonth()
+	month.Month, month.TargetWarning = req.Msg.Date[:7], f.warning
+	return connect.NewResponse(&moneyrecapv1.LogSpendResponse{Spend: &moneyrecapv1.Spend{Id: "s-1", Amount: req.Msg.Amount, Date: req.Msg.Date}, Month: month, CrossedLine: f.crossed}), nil
 }
 
 // ledgerClient serves f the way the BFF reaches the real ledger: over Connect, forwarding the caller's token.

@@ -81,21 +81,6 @@ func (f *fakeMembers) GetOrCreateBySubject(ctx context.Context, req *connect.Req
 	return connect.NewResponse(&moneyrecapv1.GetOrCreateBySubjectResponse{Profile: profile}), nil
 }
 
-// hangingNotify never answers, like a notify container that is stopped.
-type hangingNotify struct{}
-
-func (hangingNotify) GetWarningState(ctx context.Context, _ *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error) {
-	<-ctx.Done()
-	return nil, ctx.Err()
-}
-
-// firedNotify says the Target Warning fired and carries the §8.8 copy it kept (PRD §6.8).
-type firedNotify struct{}
-
-func (firedNotify) GetWarningState(context.Context, *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error) {
-	return connect.NewResponse(&moneyrecapv1.GetWarningStateResponse{Fired: true, Warning: &moneyrecapv1.TargetWarning{Message: "You've passed your saving line."}}), nil
-}
-
 func newService(t *testing.T, members *fakeMembers, notify Notify) *Service {
 	t.Helper()
 	mux := http.NewServeMux()
@@ -131,7 +116,7 @@ func assertZeroHome(t *testing.T, h *moneyrecapv1.HomeView, name, currency strin
 
 func TestGetHomeZeros(t *testing.T) {
 	members := &fakeMembers{profile: onboarded()}
-	res, err := newService(t, members, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	res, err := newService(t, members, &fakeNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +138,7 @@ func TestGetHomeRefusesBeforeStepsOneAndTwo(t *testing.T) {
 		"no Avatar":    {MemberId: "m-1", DisplayName: "Maya", CurrencyCode: "IDR"},
 		"no Currency":  {MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox"},
 	} {
-		s := newService(t, &fakeMembers{profile: p}, hangingNotify{})
+		s := newService(t, &fakeMembers{profile: p}, &fakeNotify{hang: true})
 		s.Ledger = ledgerClient(t, &fakeLedger{err: errLedgerDown})
 		if _, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
 			t.Errorf("%s: %v, want failed_precondition before the fan-out", name, err)
@@ -164,7 +149,7 @@ func TestGetHomeRefusesBeforeStepsOneAndTwo(t *testing.T) {
 // GetHome builds the HomeView from the Profile GetOrCreateBySubject answers, with no second members read.
 func TestGetHomeReadsTheProfileGetOrCreateReturned(t *testing.T) {
 	members := &fakeMembers{profile: &moneyrecapv1.Profile{MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox", CurrencyCode: "IDR"}}
-	res, err := newService(t, members, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	res, err := newService(t, members, &fakeNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -174,7 +159,7 @@ func TestGetHomeReadsTheProfileGetOrCreateReturned(t *testing.T) {
 }
 
 func TestGetHomeNotifyTimeoutStillAnswers(t *testing.T) {
-	res, err := newService(t, &fakeMembers{profile: onboarded()}, hangingNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	res, err := newService(t, &fakeMembers{profile: onboarded()}, &fakeNotify{hang: true}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +169,7 @@ func TestGetHomeNotifyTimeoutStillAnswers(t *testing.T) {
 }
 
 func TestGetHomeBannerOnlyWhenNotifySaysFired(t *testing.T) {
-	s := newService(t, &fakeMembers{profile: onboarded()}, StubNotify{})
+	s := newService(t, &fakeMembers{profile: onboarded()}, &fakeNotify{})
 	res, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if err != nil {
 		t.Fatal(err)
@@ -192,7 +177,7 @@ func TestGetHomeBannerOnlyWhenNotifySaysFired(t *testing.T) {
 	if res.Msg.Home.TargetWarning != nil {
 		t.Fatalf("not fired: %v", res.Msg.Home.TargetWarning)
 	}
-	s.Notify = firedNotify{}
+	s.Notify = &fakeNotify{kept: &moneyrecapv1.TargetWarning{Message: "You've passed your saving line."}}
 	if res, err = s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{})); err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +188,7 @@ func TestGetHomeBannerOnlyWhenNotifySaysFired(t *testing.T) {
 
 func TestGetHomeGetOrCreateTimeoutIsAnError(t *testing.T) {
 	start := time.Now()
-	_, err := newService(t, &fakeMembers{createDelay: 2 * time.Second}, StubNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	_, err := newService(t, &fakeMembers{createDelay: 2 * time.Second}, &fakeNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 	if elapsed := time.Since(start); connect.CodeOf(err) != connect.CodeDeadlineExceeded || elapsed > 500*time.Millisecond {
 		t.Fatalf("GetOrCreateBySubject timeout: %v after %v, want deadline_exceeded near the 100ms bound", err, elapsed)
 	}
@@ -220,7 +205,7 @@ func TestGetHomeKeepsTheCodeAndDropsTheUpstreamText(t *testing.T) {
 		"GetMonthSummary":      {&fakeMembers{profile: onboarded()}, &fakeLedger{err: errLedgerDown}, connect.CodeUnavailable},
 	}
 	for name, c := range cases {
-		s := newService(t, c.members, StubNotify{})
+		s := newService(t, c.members, &fakeNotify{})
 		s.Ledger = ledgerClient(t, c.ledger)
 		_, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
 		if connect.CodeOf(err) != c.want || strings.Contains(err.Error(), host) {
@@ -236,7 +221,7 @@ func TestGetHomeReadsTheMonthInTheMembersZone(t *testing.T) {
 		profile := onboarded()
 		profile.Timezone = zone
 		ledger := &fakeLedger{}
-		s := newService(t, &fakeMembers{profile: profile}, StubNotify{})
+		s := newService(t, &fakeMembers{profile: profile}, &fakeNotify{})
 		s.Ledger = ledgerClient(t, ledger)
 		s.Now = func() time.Time { return time.Date(2026, 9, 30, 18, 30, 0, 0, time.UTC) }
 		res, err := s.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
@@ -255,7 +240,7 @@ func TestGetHomeReadsTheMonthInTheMembersZone(t *testing.T) {
 // Member first and hands members the phone's key, that Member's id and the zone (A14, #96).
 func TestSetTimezoneNeedsTheKeyAndCreatesTheMemberFirst(t *testing.T) {
 	members := &fakeMembers{}
-	s := newService(t, members, StubNotify{})
+	s := newService(t, members, &fakeNotify{})
 	req := connect.NewRequest(&moneyrecapv1.BffServiceSetTimezoneRequest{Timezone: "Asia/Jakarta"})
 	if _, err := s.SetTimezone(ctx, req); connect.CodeOf(err) != connect.CodeInvalidArgument || members.gotToken != "" || members.gotZone != nil {
 		t.Fatalf("no key: %v, members reached: %v; want invalid_argument and no members call", err, members.gotToken != "" || members.gotZone != nil)
@@ -274,7 +259,7 @@ func TestSetTimezoneNeedsTheKeyAndCreatesTheMemberFirst(t *testing.T) {
 // members' failed_precondition for a stamp past the 24 hours (D60, #105).
 func TestCancelDeletionNeedsTheKeyAndKeepsTheCode(t *testing.T) {
 	members := &fakeMembers{}
-	s := newService(t, members, StubNotify{})
+	s := newService(t, members, &fakeNotify{})
 	req := connect.NewRequest(&moneyrecapv1.BffServiceCancelDeletionRequest{})
 	if _, err := s.CancelDeletion(ctx, req); connect.CodeOf(err) != connect.CodeInvalidArgument || members.gotCancel != nil {
 		t.Fatalf("no key: %v, members reached %v; want invalid_argument and no call", err, members.gotCancel != nil)

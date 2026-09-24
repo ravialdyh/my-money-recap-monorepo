@@ -2,6 +2,7 @@ package bff
 
 import (
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -17,7 +18,7 @@ func TestLogSpendWritesLedgerThenAnswersThisMonthsHome(t *testing.T) {
 	profile := onboarded()
 	profile.CurrencyCode, profile.CurrencyDigits = "GBP", 2
 	ledger := &fakeLedger{}
-	s := newService(t, &fakeMembers{profile: profile}, StubNotify{})
+	s := newService(t, &fakeMembers{profile: profile}, &fakeNotify{})
 	s.Ledger = ledgerClient(t, ledger)
 	if _, err := s.LogSpend(ctx, keyed(msg, "")); connect.CodeOf(err) != connect.CodeInvalidArgument || ledger.gotSpend != nil {
 		t.Fatalf("no key: %v, ledger reached %v; want invalid_argument before any call", err, ledger.gotSpend != nil)
@@ -40,5 +41,45 @@ func TestLogSpendWritesLedgerThenAnswersThisMonthsHome(t *testing.T) {
 	s.Ledger = ledgerClient(t, &fakeLedger{err: connect.NewError(connect.CodeInvalidArgument, errLedgerDown)})
 	if _, err := s.LogSpend(ctx, keyed(msg, "k2")); connect.CodeOf(err) != connect.CodeInvalidArgument || err.Error() != "invalid_argument: ledger.LogSpend failed" {
 		t.Errorf("a refused Spend: %v, want invalid_argument naming only the call", err)
+	}
+}
+
+// A current-month Spend tells notify ledger's crossed_line and copy under the phone's key, and Home's banner is the
+// copy notify kept; a past-month Spend stamps nothing and reads the state; notify hanging still answers, without it.
+func TestLogSpendEvaluatesTheWarningForThisMonthOnly(t *testing.T) {
+	first, later := &moneyrecapv1.TargetWarning{Message: "You've passed your saving line. Rp50.000 over."}, &moneyrecapv1.TargetWarning{Message: "You've passed your saving line. Rp150.000 over."}
+	notify := &fakeNotify{}
+	s := newService(t, &fakeMembers{profile: onboarded()}, notify)
+	ledger := &fakeLedger{crossed: true, warning: first}
+	s.Ledger = ledgerClient(t, ledger)
+	spend := func(key, date string) *moneyrecapv1.HomeView {
+		t.Helper()
+		res, err := s.LogSpend(ctx, keyed(&moneyrecapv1.BffServiceLogSpendRequest{
+			Amount: &moneyrecapv1.Money{Amount: "50000", CurrencyCode: "IDR"}, Category: moneyrecapv1.Category_CATEGORY_SNACKS, Date: date,
+		}, key))
+		if err != nil {
+			t.Fatalf("%s: %v", key, err)
+		}
+		return res.Msg.Home
+	}
+
+	if h := spend("k1", "2026-09-16"); h.TargetWarning.GetMessage() != first.Message || notify.reads != 0 {
+		t.Fatalf("the crossing Spend: banner %v after %d state reads, want the kept copy from EvaluateWarning alone", h.TargetWarning, notify.reads)
+	}
+	if got := notify.evaluated; got.IdempotencyKey != "k1" || got.MemberId != "m-1" || got.Month != "2026-09" || !got.CrossedLine || got.Warning.GetMessage() != first.Message {
+		t.Errorf("notify got %v, want k1 for m-1 in 2026-09 with ledger's verdict and copy", got)
+	}
+	ledger.crossed, ledger.warning = false, later
+	if h := spend("k2", "2026-09-16"); h.TargetWarning.GetMessage() != first.Message {
+		t.Errorf("a later Spend: banner %v, want the first words kept", h.TargetWarning)
+	}
+	notify.evaluated = nil
+	if h := spend("k3", "2026-08-30"); notify.evaluated != nil || notify.reads != 1 || h.TargetWarning.GetMessage() != first.Message {
+		t.Errorf("a Spend in August: evaluated %v, %d state reads, banner %v; want no stamp and the state read", notify.evaluated, notify.reads, h.TargetWarning)
+	}
+	s.Notify = &fakeNotify{hang: true}
+	start := time.Now()
+	if h := spend("k4", "2026-09-16"); h.TargetWarning != nil || h.Spent == nil || time.Since(start) > time.Second {
+		t.Errorf("notify hanging: %v after %v, want Home without a banner within the timeouts", h, time.Since(start))
 	}
 }

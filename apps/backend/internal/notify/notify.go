@@ -1,5 +1,5 @@
-// Package notify is the notify service (ARCHITECTURE §7.3). Since #68 it sends the magic-link
-// email and nothing else: its schema, its SMTP client and its Connect handler.
+// Package notify is the notify service (ARCHITECTURE §7.3): the magic-link email since #68 and the
+// Target Warning's month flag since #132, with the replica row that proves a Member's owner.
 package notify
 
 import (
@@ -43,11 +43,12 @@ var errAddressRefused = errors.New("the mail host refused the address")
 // Migrate applies this service's embedded migrations to the notify database (internal/migrate).
 func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
-// Service implements NotifyService. It serves EmailMagicLink alone (#68), which is the one procedure
-// outside the bearer check (internal/auth); every other RPC is planned (§7.3) and sits behind it.
+// Service implements NotifyService. EmailMagicLink is the one procedure outside the bearer check
+// (internal/auth); Members answers the profile read that fills the replica, under the caller's token.
 type Service struct {
 	moneyrecapv1connect.UnimplementedNotifyServiceHandler
-	DB *pgxpool.Pool
+	DB      *pgxpool.Pool
+	Members moneyrecapv1connect.MembersServiceClient
 	// SMTP is the mail host as host:port: Mailpit on a laptop and in CI. The machine has none until
 	// #87's provider, which also needs SMTP AUTH (§7.3).
 	SMTP string

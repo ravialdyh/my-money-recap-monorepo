@@ -2,8 +2,8 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// PRD §6.8 / SCREEN-STATES B1: the hero, the target card filled or its prompt, and the salary prompt while no Salary
-/// is set (D54, D69). The prompts open steps 3 and 4 (`open`), Log a spend its sheet (§6.9); the chips nothing yet.
+/// PRD §6.8 / SCREEN-STATES B1: the hero, the Target Warning, the target card or its prompt, and the salary prompt
+/// while no Salary is set (D54, D69). The prompts open steps 3 and 4 (`open`), Log a spend its sheet (§6.9).
 struct HomeView: View {
     @State private var model: HomeViewModel
     @State private var logging: LogSpendViewModel?
@@ -97,6 +97,9 @@ struct HomeView: View {
                 helper: "We'll show what you kept once we know what came in.",
                 height: Tokens.Size.homeHeroCard
             ) { open(3) }
+        }
+        if let warning = model.warning {
+            Banner(text: warning) { withAnimation(reveal) { model.dismissWarning() } }
         }
         if home.hasSavingTarget {
             target(home)

@@ -43,7 +43,7 @@ func run() error {
 	svc := &bff.Service{
 		Members: moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, membersURL, connect.WithInterceptors(auth.Forward())),
 		Ledger:  moneyrecapv1connect.NewLedgerServiceClient(http.DefaultClient, ledgerURL, connect.WithInterceptors(auth.Forward())),
-		Notify:  bff.StubNotify{},
+		Notify:  moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, notifyURL, connect.WithInterceptors(auth.Forward())),
 		MagicLink: bff.MagicLink{
 			Realm:        realm,
 			ClientSecret: clientSecret,

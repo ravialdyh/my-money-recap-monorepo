@@ -115,4 +115,36 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(try MoneyRecap_V1_HomeView(serializedBytes: rows[0].bytes).month, "2026-10")
     }
+
+    /// The Target Warning is the server's kept copy, before or after Payday (D53), gone once dismissed for the rest of
+    /// the run, even on a Home built again, and back on the next launch or in a month the Member has not dismissed.
+    func testTheWarningStaysDismissedForTheSessionOnly() async throws {
+        var home = try recordedHome()
+        home.month = "2026-09"
+        let session = WarningDismissals()
+        let model = try HomeViewModel(fetch: { home }, context: freshContext(), dismissals: session)
+        await model.refresh()
+        XCTAssertNil(model.warning, "no stamp, no banner")
+        let before = "You've spent Rp2.500.000 of the Rp2.400.000 you meant to spend this month."
+        home.targetWarning = .with { $0.message = before }
+        await model.refresh()
+        XCTAssertEqual(model.warning, before)
+        home.targetWarning.message = "You've passed your saving line. Rp100.000 over."
+        await model.refresh()
+        XCTAssertEqual(model.warning, "You've passed your saving line. Rp100.000 over.")
+
+        model.dismissWarning()
+        XCTAssertNil(model.warning)
+        await model.refresh()
+        XCTAssertNil(model.warning, "a refresh does not bring it back")
+        let rebuilt = try HomeViewModel(fetch: { home }, context: freshContext(), dismissals: session)
+        await rebuilt.refresh()
+        XCTAssertNil(rebuilt.warning, "Home built again in the same run")
+        let relaunched = try HomeViewModel(fetch: { home }, context: freshContext(), dismissals: WarningDismissals())
+        await relaunched.refresh()
+        XCTAssertNotNil(relaunched.warning, "the next launch shows it while the month is stamped")
+        home.month = "2026-10"
+        await model.refresh()
+        XCTAssertNotNil(model.warning, "October's warning is not September's")
+    }
 }

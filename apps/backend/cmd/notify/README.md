@@ -1,9 +1,9 @@
 # notify
 
 The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and every outbound email.
-It serves `EmailMagicLink` alone (#68, PR #77); the Target Warning state, preferences, device
-registration, the CSV export email, the schedulers, the RabbitMQ consumers and the outbox are
-planned. Its image, bearer check, start-up, migrations and shared variables are every service's
+It serves `EmailMagicLink` (#68, PR #77) and, since #132, the Target Warning state:
+`GetWarningState` and `EvaluateWarning`. Preferences, device registration, pushes, the CSV export
+email, the schedulers, the RabbitMQ consumers and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
 
 `EmailMagicLink` is exempt from the bearer check by procedure name, never by service, because the
@@ -15,16 +15,17 @@ host rolls it back. An empty key is `invalid_argument`.
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary: its name, its schema step and its handler, handed to `serve.Main`. |
-| `../../internal/notify/` | The store, the SMTP client, the Connect handler and `migrations/*.sql` (embedded). |
+| `../../internal/notify/` | `notify.go` (the magic-link email and its SMTP client), `warning.go` (the Target Warning and the ownership check) and `migrations/*.sql` (embedded). |
 
 ## Environment
 
-Its own two, besides the shared `NOTIFY_*` set:
+Its own three, besides the shared `NOTIFY_*` set:
 
 | Variable | Serve | Migrate | Meaning |
 | --- | --- | --- | --- |
 | `NOTIFY_SMTP_ADDR` | required | none | The mail host as `host:port`: `mailpit:1025` in Compose. Mailpit runs only on a laptop and in CI, behind the `mail` profile the deploy never passes, so the machine has no mail host until #87 item 8's provider, which also needs SMTP AUTH `notify` does not send yet. |
 | `NOTIFY_MAIL_FROM` | required | none | The envelope sender and the `From` header. |
+| `NOTIFY_MEMBERS_URL` | required | none | `members`, for the profile read that proves a Member's owner: `http://members:8080` in Compose. |
 
 ## Run
 
@@ -38,14 +39,28 @@ By hand, against that stack's Postgres, Keycloak and Mailpit, on a port the stac
 cd apps/backend
 export NOTIFY_DATABASE_URL="postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify"
 go run ./cmd/notify migrate
-NOTIFY_OIDC_ISSUER=http://localhost:8080/realms/mmr NOTIFY_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs NOTIFY_SMTP_ADDR=localhost:1025 NOTIFY_MAIL_FROM=no-reply@mymoneyrecap.test NOTIFY_LISTEN=:8085 go run ./cmd/notify
+NOTIFY_OIDC_ISSUER=http://localhost:8080/realms/mmr NOTIFY_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs NOTIFY_SMTP_ADDR=localhost:1025 NOTIFY_MAIL_FROM=no-reply@mymoneyrecap.test NOTIFY_MEMBERS_URL=http://localhost:8081 NOTIFY_LISTEN=:8085 go run ./cmd/notify
 ```
 
 The call and the message it produces are in `infra/compose/README.md`, "Mailpit".
 
-## The table
+## The Target Warning
 
-The one table is `magic_link_send`, unique on `(email, idempotency_key)` (§8). A14's `(member_id,
+`month_flag` holds one row per Member and month, primary key `(member_id, year_month)`, stamped once
+with the time and ledger's warning copy as it read then (PRD §8.8). `EvaluateWarning` stamps it only
+when `crossed_line` is true and the month is unstamped, and answers `fired`, `fired_now` and the kept
+copy; the primary key is its A14 guarantee, so a repeat answers the same copy and only the stamping
+call sees `fired_now`. It needs a key, and ledger's copy whenever `crossed_line` is true. It sends
+nothing yet: pushes are slice 7. `GetWarningState` answers the same two facts for a month.
+
+Both check ARCHITECTURE §4.2 point 3 as ledger does: `member_facts` keeps the subject whose token
+`members.GetProfile` last answered for the Member, and any other token is a miss that `members`
+answers under that token, so a Member it does not own is `not_found` and `members` down is
+`unavailable`. Feeding the replica from `members` events is slice 7.
+
+## The magic-link table
+
+The magic-link table is `magic_link_send`, unique on `(email, idempotency_key)` (§8). A14's `(member_id,
 idempotency_key)` has no Member on this path, and the key alone was worse than no dedupe at all: a
 key already claimed for one address answered success for a different address and sent nothing, so
 `0002` moved the primary key onto the pair.
@@ -59,6 +74,6 @@ bound off notify's planned scheduler.
 ## Tests
 
 `go test ./internal/notify/` runs them; each test's name and doc comment say what it proves. Only the
-empty-key test needs nothing: the tests against fake mail hosts need the `notify` database, and the
-rest also send through Mailpit. The variables are in `infra/compose/README.md`, "Running the Go tests
+empty-key test needs nothing: the Target Warning tests and the tests against fake mail hosts need the
+`notify` database, and the rest also send through Mailpit. The variables are in `infra/compose/README.md`, "Running the Go tests
 against this stack".
