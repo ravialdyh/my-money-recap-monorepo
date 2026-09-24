@@ -163,4 +163,54 @@ final class HomeViewTests: XCTestCase {
             add(attachment)
         }
     }
+
+    /// B1 offline (D58): the grey Banner at the top and Log a spend at 40%, with and without the coral warning, over
+    /// the stored numbers; back online, Home draws as it did. The pictures are kept as evidence.
+    func testOfflineHomeDrawsTheGreyBannerWithAndWithoutTheWarning() throws {
+        let context = try ModelContext(ModelContainer(
+            for: HomeSnapshot.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        ))
+        let calm = MoneyRecap_V1_HomeView.with {
+            $0.displayName = "Maya"
+            $0.avatarKey = "fox"
+            $0.currencyCode = "GBP"
+            $0.month = "2026-09"
+            $0.spent = .with { $0.amount = "2000"; $0.currencyCode = "GBP" }
+            $0.moneyIn = .with { $0.amount = "0"; $0.currencyCode = "GBP" }
+            $0.salary = .with { $0.amount.amount = "2400"; $0.payday = "25"; $0.daysUntilPayday = 5 }
+            $0.savingTarget = .with {
+                $0.percent = 20
+                $0.amount.amount = "480"
+                $0.progressSentence = "Nothing to keep yet. Your salary lands on the 25th."
+            }
+        }
+        var warned = calm
+        warned.targetWarning.message = "You've spent £2,000 of the £1,920 you meant to spend this month."
+        let path = Connection(online: true)
+        let draw = { (home: MoneyRecap_V1_HomeView) -> Data? in
+            try? HomeSnapshot.replace(with: home, in: context)
+            let model = HomeViewModel(
+                fetch: { throw URLError(.notConnectedToInternet) }, context: context,
+                locale: Locale(identifier: "en_GB"), dismissals: WarningDismissals(), connection: path
+            )
+            return self.picture(HomeView(model: model))
+        }
+        let online = draw(calm)
+        let onlineWarned = draw(warned)
+        path.online = false
+        let offline = draw(calm)
+        let offlineWarned = draw(warned)
+        XCTAssertNotEqual(offline, online, "the banner draws")
+        XCTAssertNotEqual(offlineWarned, offline, "the warning still draws offline")
+        XCTAssertNotEqual(offlineWarned, onlineWarned)
+        path.online = true
+        XCTAssertEqual(draw(calm), online, "back online, Home draws as before")
+        for (name, png) in [("b1-offline", offline), ("b1-offline-with-warning", offlineWarned)] {
+            let attachment = try XCTAttachment(data: XCTUnwrap(png), uniformTypeIdentifier: "public.png")
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
 }
