@@ -52,7 +52,7 @@ struct LogSpendView: View {
                         endEditing()
                         confirming = true
                     }
-                    .disabled(model.isSaving)
+                    .disabled(model.isSaving || model.offline)
                     .alert("Delete this spend?", isPresented: $confirming) {
                         Button("Cancel", role: .cancel) {}
                         Button("Delete", role: .destructive) { remove() }

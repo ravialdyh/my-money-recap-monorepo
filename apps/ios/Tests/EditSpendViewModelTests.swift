@@ -21,13 +21,41 @@ final class EditSpendViewModelTests: XCTestCase {
         _ spend: MoneyRecap_V1_Spend,
         edit: @escaping LogSpendViewModel.Edit = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         delete: @escaping LogSpendViewModel
-            .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
+            .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        connection: Connection = Connection(online: true)
     ) throws -> LogSpendViewModel {
         let today = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 9, day: 26, hour: 9)))
         return LogSpendViewModel(
             editing: spend, currency: "IDR", digits: 0, earliest: "2026-07-29", today: today, calendar: calendar,
-            locale: Locale(identifier: "en_GB"), edit: edit, delete: delete
+            locale: Locale(identifier: "en_GB"), connection: connection, edit: edit, delete: delete
         )
+    }
+
+    /// No network path: Save changes and Delete this spend are refused before any request, the Spend stays readable,
+    /// and the path coming back opens both again with no relaunch (D58, owner 2026-09-25).
+    func testOfflineTheEditCanBeReadButNotSavedOrDeleted() async throws {
+        let recorded = try LogSpendViewModelTests.recordedAnswer()
+        var calls = 0
+        let connection = Connection(online: false)
+        let model = try sheet(recorded.spend, edit: { _, _ in
+            calls += 1
+            return .failure(self.unavailable)
+        }, delete: { _, _ in
+            calls += 1
+            return .failure(self.unavailable)
+        }, connection: connection)
+        XCTAssertTrue(model.offline)
+        XCTAssertEqual(model.amount, "25000", "the Spend stays readable")
+        XCTAssertFalse(model.canSave)
+        let saved = await model.save()
+        let deleted = await model.deleteSpend()
+        XCTAssertNil(saved)
+        XCTAssertNil(deleted)
+        XCTAssertEqual(calls, 0, "nothing is sent with no network path")
+        XCTAssertFalse(model.failed || model.deleteFailed, "no failure line: nothing was tried")
+        connection.online = true
+        XCTAssertFalse(model.offline)
+        XCTAssertTrue(model.canSave)
     }
 
     func testTheSheetIsPrefilledAndSavesEveryFieldUnderOneKeyPerAttempt() async throws {
