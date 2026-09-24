@@ -22,12 +22,14 @@ final class HomeViewModel {
     private let dates: Date.FormatStyle
     private let locale: Locale
     private let dismissals: WarningDismissals
+    private let connection: Connection
 
     init(
         fetch: @escaping () async throws -> MoneyRecap_V1_HomeView,
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
         dismissals: WarningDismissals? = nil,
+        connection: Connection? = nil,
         onboardingNeeded: @escaping () -> Void = {},
         logSpend: @escaping LogSpendViewModel
             .Send = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
@@ -47,6 +49,7 @@ final class HomeViewModel {
         dates = ISODate.style(locale: locale)
         self.locale = locale
         self.dismissals = dismissals ?? .session
+        self.connection = connection ?? .shared
         if let snapshot = HomeSnapshot.load(from: context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
         }
@@ -95,7 +98,8 @@ final class HomeViewModel {
             switching: switching,
             fetch: listSpends,
             context: context,
-            locale: locale
+            locale: locale,
+            connection: connection
         ) }
     }
 
@@ -103,6 +107,11 @@ final class HomeViewModel {
     func replace(with fresh: MoneyRecap_V1_HomeView) {
         try? HomeSnapshot.replace(with: fresh, in: context)
         home = fresh
+    }
+
+    /// No network path: the grey Banner at the top and Log a spend at 40% (D58), over the stored numbers.
+    var offline: Bool {
+        !connection.online
     }
 
     /// "Hi, {Display Name}": Home is only served once step 1 has the name (spec #92).

@@ -147,4 +147,33 @@ final class HomeViewModelTests: XCTestCase {
         await model.refresh()
         XCTAssertNotNil(model.warning, "October's warning is not September's")
     }
+
+    /// D58: losing the network path turns Home offline over the stored numbers, warning included, and regaining it
+    /// turns it back; each change reaches a drawn Home through observation, with no relaunch.
+    func testHomeFollowsTheNetworkPathOverTheStoredNumbers() throws {
+        let context = try freshContext()
+        var home = try recordedHome()
+        home.targetWarning.message = "You've passed your saving line. Rp100.000 over."
+        try HomeSnapshot.replace(with: home, in: context)
+        let path = Connection(online: true)
+        let model = HomeViewModel(
+            fetch: { throw URLError(.notConnectedToInternet) }, context: context, dismissals: WarningDismissals(),
+            connection: path
+        )
+        XCTAssertFalse(model.offline)
+        let lost = expectation(description: "the drawn Home hears the path go")
+        withObservationTracking { _ = model.offline } onChange: { lost.fulfill() }
+        path.online = false
+        wait(for: [lost], timeout: 0)
+        XCTAssertTrue(model.offline)
+        XCTAssertEqual(model.spendList(switching: false)?.offline, true, "the list's plus button follows the same path")
+        XCTAssertEqual(model.home?.month, "2026-09", "the stored numbers stay readable")
+        XCTAssertEqual(model.warning, home.targetWarning.message)
+        let back = expectation(description: "and come back")
+        withObservationTracking { _ = model.offline } onChange: { back.fulfill() }
+        path.online = true
+        wait(for: [back], timeout: 0)
+        XCTAssertFalse(model.offline)
+        XCTAssertEqual(model.spendList(switching: false)?.offline, false)
+    }
 }

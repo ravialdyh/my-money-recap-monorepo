@@ -21,19 +21,22 @@ final class SpendListViewModel: Identifiable {
     private let context: ModelContext
     private let dates: Date.FormatStyle
     private let locale: Locale
+    private let connection: Connection
 
     init(
         month: String,
         switching: Bool = false,
         fetch: @escaping Fetch,
         context: ModelContext,
-        locale: Locale = .autoupdatingCurrent
+        locale: Locale = .autoupdatingCurrent,
+        connection: Connection? = nil
     ) {
         self.month = month
         self.switching = switching
         self.fetch = fetch
         self.context = context
         self.locale = locale
+        self.connection = connection ?? .shared
         dates = ISODate.style(locale: locale)
         list = SpendListSnapshot.load(month, from: context)
     }
@@ -61,6 +64,11 @@ final class SpendListViewModel: Identifiable {
         if month == asked {
             list = fresh
         }
+    }
+
+    /// No network path: the empty month's plus button is disabled at 40%, as Home's Log a spend is (D58).
+    var offline: Bool {
+        !connection.online
     }
 
     /// The switcher's pick: that month's snapshot at once, then its answer.

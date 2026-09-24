@@ -3,7 +3,8 @@ import SwiftData
 import SwiftUI
 
 /// PRD §6.8 / SCREEN-STATES B1: the hero, the Target Warning, the target card or its prompt, the salary prompt (D54,
-/// D69). The prompts open steps 3 and 4, Log a spend its sheet, the hero and month chip the Spend list (D59).
+/// D69). The prompts open steps 3 and 4, Log a spend its sheet unless offline (D58), the hero and month chip the Spend
+/// list (D59).
 struct HomeView: View {
     @State private var model: HomeViewModel
     @State private var logging: LogSpendViewModel?
@@ -52,6 +53,9 @@ struct HomeView: View {
                         Chip(text: "Settings", tappable: true)
                     }
                     .padding(.top, 8)
+                    if model.offline {
+                        Banner(tone: .offline, text: "No connection. You can look, but not log.")
+                    }
                     if let home = model.home {
                         filled(home)
                     } else {
@@ -127,6 +131,7 @@ struct HomeView: View {
             ) { open(4) }
         }
         MMRButton(title: "Log a spend", icon: "plus") { logging = model.logSheet() }
+            .disabled(model.offline)
         MMRButton(title: "See last month", variant: .secondary) {}
             .disabled(home.recapMonths.isEmpty)
         if home.recapMonths.isEmpty {
