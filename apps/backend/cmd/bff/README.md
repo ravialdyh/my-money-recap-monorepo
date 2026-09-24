@@ -1,7 +1,7 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
-serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `SaveSalary`, `SaveTarget`, `CancelDeletion` and `RequestMagicLink`; the rest of
+serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend` and `RequestMagicLink`; the rest of
 `BffService` is planned. Every RPC but
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
@@ -82,12 +82,18 @@ text, which can hold a host or a database name, goes to the log. `ledger` is the
 `notify` is still the in-process stub `internal/bff/bff.go` describes, answering "no warning". The join
 stamps each amount left without a code with the Member's Currency. The month asked for, the month shown and
 `first_recap_on` are read in the Profile's zone, the one `ledger` reads "today" in, and `days_remaining` is
-`ledger`'s (A2, A3), so a Member in Jakarta just past midnight on the 1st sees the new month.
+`ledger`'s (A2, A3), so a Member in Jakarta just past midnight on the 1st sees the new month. The HomeView also
+carries the Currency's decimals from the Profile, so the Log a spend amount field allows exactly that many, and
+`ledger`'s earliest Spend date (D72), where the sheet's date picker starts.
+
+`LogSpend` (#129) is ARCHITECTURE §6.2 without its warning step: `ledger.LogSpend` under the phone's key, its
+Connect code passed through, then the same join `GetHome` makes, so the answer is the Spend and the current
+month's Home even for a Spend dated in a past month. `notify.EvaluateWarning` joins with the Target Warning.
 
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary; serves on `BFF_LISTEN` (default `:8080`). No subcommands, and its own start-up rather than `serve.Main` (see below). |
-| `../../internal/bff/` | The handlers, the Salary save in `salary.go`, the `Notify` interface and its stub, the magic-link path in `magiclink.go`, the unit tests with a fake `ledger` served over Connect, and the end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestOnboardingEndToEnd`, `TestEdge`). |
+| `../../internal/bff/` | The handlers, the Salary save in `salary.go`, the `Notify` interface and its stub, the magic-link path in `magiclink.go`, `LogSpend` beside the other Member writes in `writes.go`, the unit tests with a fake `ledger` served over Connect, and the end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestOnboardingEndToEnd`, `TestLogSpendEndToEnd`, `TestEdge`). |
 | `../../internal/auth/` | The JWT interceptor and the token-forwarding client interceptor. |
 
 The BFF keeps its own `main.go` rather than `serve.Main` (`apps/README.md`, "Every service") because
@@ -104,7 +110,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_OIDC_JWKS_URL` | required | Where to fetch the signing keys from this process: `http://keycloak:8080/realms/mmr/protocol/openid-connect/certs` inside the Compose network, `http://localhost:8080/...` from the host. The two are separate settings because the phone and a container reach Keycloak by different hostnames. |
 | `BFF_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry. |
 | `BFF_MEMBERS_URL` | required | The `members` service: `http://members:8080` in Compose. |
-| `BFF_LEDGER_URL` | required | The `ledger` service: `http://ledger:8080` in Compose. `GetHome`, `GetOnboardingState`, `SaveProfile`, `SaveSalary` and `SaveTarget` call it, forwarding the caller's token. |
+| `BFF_LEDGER_URL` | required | The `ledger` service: `http://ledger:8080` in Compose. `GetHome`, `GetOnboardingState`, `SaveProfile`, `SaveSalary`, `SaveTarget` and `LogSpend` call it, forwarding the caller's token. |
 | `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. Only `RequestMagicLink` calls it; `GetHome`'s `notify` is still the in-process stub. |
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |

@@ -1,5 +1,5 @@
-// Package bff is the API the phone talks to (ARCHITECTURE §6): GetHome joins members with the
-// in-process ledger and notify stubs; RequestMagicLink (magiclink.go) calls the realm and the real notify.
+// Package bff is the API the phone talks to (ARCHITECTURE §6): GetHome joins members and ledger with the
+// in-process notify stub; RequestMagicLink (magiclink.go) calls the realm and the real notify.
 package bff
 
 import (
@@ -93,7 +93,6 @@ func (s *Service) member(ctx context.Context) (*moneyrecapv1.Profile, error) {
 }
 
 func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.GetHomeRequest]) (*connect.Response[moneyrecapv1.GetHomeResponse], error) {
-	timeout := s.timeout()
 	profile, err := s.member(ctx)
 	if err != nil {
 		return nil, err
@@ -101,6 +100,17 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	if step := nextStep(profile); step == 1 || step == 2 {
 		return nil, connect.NewError(connect.CodeFailedPrecondition, errNotOnboarded)
 	}
+	home, err := s.home(ctx, profile)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&moneyrecapv1.GetHomeResponse{Home: home}), nil
+}
+
+// home is the current month's HomeView in the Member's zone: ledger's month, required, joined with notify's banner,
+// optional, both asked at once.
+func (s *Service) home(ctx context.Context, profile *moneyrecapv1.Profile) (*moneyrecapv1.HomeView, error) {
+	timeout := s.timeout()
 	memberID := profile.MemberId
 	now := s.now().In(zone(profile))
 	month := now.Format(monthLayout)
@@ -130,15 +140,15 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	if ledgerErr != nil {
 		return nil, requiredCallFailed("ledger.GetMonthSummary", connect.CodeUnavailable, ledgerErr)
 	}
-	summary := ledgerRes.Msg.GetSummary()
 	var warning *moneyrecapv1.TargetWarning
 	if notifyErr != nil {
 		logOptionalCallDegraded("notify.GetWarningState", "HomeView returned without a banner", notifyErr)
 	} else if notifyRes.Msg.GetFired() {
 		warning = notifyRes.Msg.GetWarning()
 	}
-
-	return connect.NewResponse(&moneyrecapv1.GetHomeResponse{Home: homeView(profile, summary, ledgerRes.Msg.GetRecapMonths(), warning, now)}), nil
+	home := homeView(profile, ledgerRes.Msg.GetSummary(), ledgerRes.Msg.GetRecapMonths(), warning, now)
+	home.EarliestSpendDate = ledgerRes.Msg.GetEarliestSpendDate()
+	return home, nil
 }
 
 // homeView joins the Profile and ledger's month into the HomeView, stamping money ledger left without a code with the
@@ -152,20 +162,21 @@ func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recap
 	}
 	firstOfNext := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location())
 	return &moneyrecapv1.HomeView{
-		DisplayName:   p.DisplayName,
-		AvatarKey:     p.AvatarKey,
-		CurrencyCode:  p.CurrencyCode,
-		Month:         now.Format(monthLayout),
-		Spent:         stamp(summary.GetSpent()),
-		MoneyIn:       stamp(summary.GetMoneyIn()),
-		Saved:         stamp(summary.GetSaved()),
-		Salary:        summary.GetSalary(),
-		SavingTarget:  summary.GetSavingTarget(),
-		StreakDay:     summary.GetStreakDay(),
-		DaysRemaining: summary.GetDaysRemaining(),
-		TargetWarning: warning,
-		RecapMonths:   recaps,
-		FirstRecapOn:  firstOfNext.Format(dateLayout),
+		DisplayName:    p.DisplayName,
+		AvatarKey:      p.AvatarKey,
+		CurrencyCode:   p.CurrencyCode,
+		CurrencyDigits: p.CurrencyDigits,
+		Month:          now.Format(monthLayout),
+		Spent:          stamp(summary.GetSpent()),
+		MoneyIn:        stamp(summary.GetMoneyIn()),
+		Saved:          stamp(summary.GetSaved()),
+		Salary:         summary.GetSalary(),
+		SavingTarget:   summary.GetSavingTarget(),
+		StreakDay:      summary.GetStreakDay(),
+		DaysRemaining:  summary.GetDaysRemaining(),
+		TargetWarning:  warning,
+		RecapMonths:    recaps,
+		FirstRecapOn:   firstOfNext.Format(dateLayout),
 	}
 }
 

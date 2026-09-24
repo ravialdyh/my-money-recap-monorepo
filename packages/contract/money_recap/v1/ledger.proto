@@ -21,6 +21,9 @@ message GetMonthSummaryResponse {
   // Past months with a Recap, newest first, labelled by Archetype or
   // "Partial" (PRD §6.8, §8.11).
   repeated RecapMonth recap_months = 2;
+  // "YYYY-MM-DD", the earliest date LogSpend takes today in the Member's zone:
+  // 59 days back, or the 1st of the sign-up month when later (PRD D72).
+  string earliest_spend_date = 3;
 }
 
 message GetRecapRequest {

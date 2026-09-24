@@ -11,22 +11,28 @@ import SwiftData
 final class HomeViewModel {
     private(set) var home: MoneyRecap_V1_HomeView?
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
+    private let logSpend: LogSpendViewModel.Send
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
-    /// Dates print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot change the
-    /// copy.
+    /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
+    /// change the copy.
     private let dates: Date.FormatStyle
+    private let locale: Locale
 
     init(
         fetch: @escaping () async throws -> MoneyRecap_V1_HomeView,
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
-        onboardingNeeded: @escaping () -> Void = {}
+        onboardingNeeded: @escaping () -> Void = {},
+        logSpend: @escaping LogSpendViewModel
+            .Send = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
     ) {
         self.fetch = fetch
+        self.logSpend = logSpend
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
+        self.locale = locale
         if let snapshot = HomeSnapshot.load(from: context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
         }
@@ -36,15 +42,30 @@ final class HomeViewModel {
     /// offline or unauthenticated (D58, D61); failed_precondition, step 1 or 2 unanswered, deletes it (spec #92).
     func refresh() async {
         do {
-            let fresh = try await fetch()
-            try HomeSnapshot.replace(with: fresh, in: context)
-            home = fresh
+            try await replace(with: fetch())
         } catch let error as ConnectError where error.code == .failedPrecondition {
             HomeSnapshot.erase(from: context)
             onboardingNeeded()
         } catch {
             return
         }
+    }
+
+    /// The Log a spend sheet in the Member's Currency, its decimals and ledger's date range, or nil before Home has an
+    /// answer.
+    func logSheet() -> LogSpendViewModel? {
+        home.map {
+            LogSpendViewModel(
+                currency: $0.currencyCode, digits: Int($0.currencyDigits), earliest: $0.earliestSpendDate,
+                send: logSpend
+            )
+        }
+    }
+
+    /// A write's answer replaces the stored Home whole, as a refresh does (IOS I4).
+    func replace(with fresh: MoneyRecap_V1_HomeView) {
+        try? HomeSnapshot.replace(with: fresh, in: context)
+        home = fresh
     }
 
     /// "Hi, {Display Name}": Home is only served once step 1 has the name (spec #92).
@@ -59,6 +80,11 @@ final class HomeViewModel {
         return "Spent so far · salary lands in \(days) \(days == 1 ? "day" : "days")"
     }
 
+    /// An amount in the Member's Currency, printed in the locale Home was given (`Money`).
+    func money(_ amount: MoneyRecap_V1_Money) -> String {
+        Money.format(amount.amount, currency: home?.currencyCode ?? amount.currencyCode, locale: locale)
+    }
+
     /// The Saved chip exists only while Money In > 0 (PRD D41): the server omits `saved` then, and the phone checks the
     /// sign too.
     var showsSavedChip: Bool {
@@ -70,9 +96,8 @@ final class HomeViewModel {
     /// (D41).
     var targetProgress: String? {
         guard let home, home.hasSavingTarget else { return nil }
-        let code = home.currencyCode
-        let saved = Money.format(home.hasSaved ? home.saved.amount : "0", currency: code)
-        return "\(saved) of \(Money.format(home.savingTarget.amount.amount, currency: code))"
+        let saved = Money.format(home.hasSaved ? home.saved.amount : "0", currency: home.currencyCode, locale: locale)
+        return "\(saved) of \(money(home.savingTarget.amount))"
     }
 
     /// How far the target bar is drawn: Saved over the Target's amount, clamped to the track. Drawing, not a figure.

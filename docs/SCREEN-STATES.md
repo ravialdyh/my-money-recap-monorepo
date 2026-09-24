@@ -68,7 +68,7 @@ Violet ground throughout.
 | B2 | write failed | `InlineError`, sheet open, values intact, Save enabled. |
 | B2 | amount too long | D57. Same rule as A6. |
 | B3 | Log a spend, filled | £12.40 + Snacks, Save enabled. |
-| B4 | Date picker | Last 60 days, future at 40%. |
+| B4 | Date picker | Last 60 days, never before the 1st of the sign-up month (D72), future at 40%. Helper `You can log up to 60 days back, never ahead.` |
 | B5 | Push permission | iOS alert, once, after the first spend. |
 | B6 | Spend list | D59. Title `Spends` with a **month switcher** under it: current month by default; tapping lists every month with data, newest first, as `ListRow trailing="check"`. |
 | B6 | empty | D43. Centred `Nothing spent yet. Streak day {n}.` and a plus button; the streak counts from sign-up (23 on 26 September for a 4 September sign-up). |

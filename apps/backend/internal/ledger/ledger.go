@@ -207,7 +207,9 @@ func (s *Service) GetMonthSummary(ctx context.Context, req *connect.Request[mone
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: l.summary(m, l.today), RecapMonths: l.recapMonths(l.today)}), nil
+	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{
+		Summary: l.summary(m, l.today), RecapMonths: l.recapMonths(l.today), EarliestSpendDate: l.earliestSpend().Format(time.DateOnly),
+	}), nil
 }
 
 func (s *Service) GetSettings(ctx context.Context, req *connect.Request[moneyrecapv1.GetSettingsRequest]) (*connect.Response[moneyrecapv1.GetSettingsResponse], error) {

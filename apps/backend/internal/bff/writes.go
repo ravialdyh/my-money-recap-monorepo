@@ -59,3 +59,29 @@ func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[money
 	}
 	return connect.NewResponse(&moneyrecapv1.BffServiceCancelDeletionResponse{Profile: kept.Msg.Profile}), nil
 }
+
+// LogSpend is the Log a spend sheet's Save (PRD §6.9, ARCHITECTURE §6.2): ledger writes the Spend under the phone's
+// key, then the answer carries the current month's Home, whichever month the Spend is dated in.
+func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceLogSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceLogSpendResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ledgerCtx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	logged, err := s.Ledger.LogSpend(ledgerCtx, connect.NewRequest(&moneyrecapv1.LogSpendRequest{
+		IdempotencyKey: key, MemberId: profile.MemberId, Amount: req.Msg.Amount, Category: req.Msg.Category, Date: req.Msg.Date, Note: req.Msg.Note,
+	}))
+	if err != nil {
+		return nil, requiredCallFailed("ledger.LogSpend", connect.CodeOf(err), err)
+	}
+	home, err := s.home(ctx, profile)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceLogSpendResponse{Home: home, Spend: logged.Msg.Spend}), nil
+}

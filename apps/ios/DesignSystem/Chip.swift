@@ -1,11 +1,13 @@
 import SwiftUI
 
-/// Uppercase caption pill on the ground, about 30pt tall. `tappable` lifts the hit area to 44pt (README "Tap
-/// targets are 44pt"); `asLabel` draws the pill with no tap, the onboarding step label (`asLabel` in Chip.tsx).
+/// Uppercase caption pill, about 30pt tall. `tappable` lifts the hit area to 44pt; `asLabel` draws it with no tap,
+/// the step label; `tone` is the Category selection chip (D70), its glyph on the hue's tint, ink when selected.
 struct Chip: View {
     let text: String
     var tappable = false
     var asLabel = false
+    var tone: Icon.Name?
+    var selected = false
     var action: () -> Void = {}
 
     var body: some View {
@@ -18,15 +20,25 @@ struct Chip: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(PressableStyle())
+            .accessibilityAddTraits(selected ? .isSelected : [])
         }
     }
 
     private var pill: some View {
-        Text(text)
-            .textStyle(Tokens.TypeRamp.captionUpper)
-            .padding(.horizontal, Tokens.Space._5)
-            .padding(.vertical, 8)
-            .background(Tokens.Surface.chipOnGround, in: Capsule())
-            .foregroundStyle(Tokens.Text.primary)
+        HStack(spacing: Tokens.Space._2) {
+            if let tone {
+                Icon(name: tone, color: selected ? Tokens.Palette.white : nil)
+            }
+            Text(text).textStyle(Tokens.TypeRamp.captionUpper)
+        }
+        .padding(.horizontal, Tokens.Space._5)
+        .padding(.vertical, 8)
+        .background(background, in: Capsule())
+        .foregroundStyle(selected ? Tokens.Text.onInverse : Tokens.Text.primary)
+    }
+
+    private var background: Color {
+        guard let tone else { return Tokens.Surface.chipOnGround }
+        return selected ? Tokens.Surface.chipInverse : tone.well
     }
 }
