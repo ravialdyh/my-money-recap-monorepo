@@ -86,7 +86,8 @@ message SalaryFacts {
   Money amount = 1;
   // 1 to 31, or "last" for the Last day token (PRD D51).
   string payday = 2;
-  // Days until the effective Payday; 0 when it has passed or is today.
+  // Days until the effective Payday; in a partial sign-up month (D52), until
+  // next month's; 0 otherwise once it has passed or is today.
   int32 days_until_payday = 3;
 }
 

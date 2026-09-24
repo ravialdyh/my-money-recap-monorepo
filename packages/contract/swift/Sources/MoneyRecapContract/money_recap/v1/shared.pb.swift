@@ -297,7 +297,8 @@ public nonisolated struct MoneyRecap_V1_SalaryFacts: Sendable {
   /// 1 to 31, or "last" for the Last day token (PRD D51).
   public var payday: String = String()
 
-  /// Days until the effective Payday; 0 when it has passed or is today.
+  /// Days until the effective Payday; in a partial sign-up month (D52), until
+  /// next month's; 0 otherwise once it has passed or is today.
   public var daysUntilPayday: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

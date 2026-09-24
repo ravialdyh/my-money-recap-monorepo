@@ -163,7 +163,8 @@ func replicaCode(t *testing.T, db *pgxpool.Pool, id string) string {
 }
 
 // A Member who signs up after this month's Payday and answers step 3 gets the Salary the partial-month fixture
-// holds, from the sign-up month: September is partial, with Money In 0 and no Saved (PRD §8.11, D52, spec #92).
+// holds, from the sign-up month: September is partial, with Money In 0, no Saved and a countdown to October's
+// Payday (PRD §8.11, D52, spec #92).
 func TestAStepThreeAfterPaydayIsTheSignUpMonths(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join(fixtureDir, "prd-8.11-signup-27-september.json"))
 	if err != nil {
@@ -185,6 +186,9 @@ func TestAStepThreeAfterPaydayIsTheSignUpMonths(t *testing.T) {
 	}))
 	if err != nil || !proto.Equal(res.Msg.Settings.Salary, want) {
 		t.Fatalf("step 3 on %s: %v, %v; want the fixture's Salary %v", f.SignedUpOn, res, err, want)
+	}
+	if days := res.Msg.Month.GetSalary().GetDaysUntilPayday(); days != 28 {
+		t.Errorf("the hero's countdown on %s: %d days, want 28, to October's Payday, since September's passed", f.SignedUpOn, days)
 	}
 	clock = at(t, f.AsOf, f.Timezone)
 	got, err := s.GetMonthSummary(ctx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: id, Month: "2026-09"}))
