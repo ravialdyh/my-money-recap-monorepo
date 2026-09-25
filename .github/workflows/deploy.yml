@@ -51,12 +51,12 @@ jobs:
           printf 'Host machine\n  HostName %s\n  User ubuntu\n  IdentityFile ~/.ssh/deploy\n  IdentitiesOnly yes\n  StrictHostKeyChecking accept-new\n' \
             "$(cat "$RUNNER_TEMP/secrets/domain")" >~/.ssh/config
 
-      - name: Build the members, notify and bff images from the one Dockerfile and push them to GHCR under the tag
+      - name: Build the members, notify, ledger and bff images from the one Dockerfile and push them to GHCR under the tag
         env:
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
-          for cmd in members notify bff; do
+          for cmd in members notify ledger bff; do
             docker build --build-arg "CMD=$cmd" \
               --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
               -t "$IMAGES/$cmd:$GITHUB_REF_NAME" apps/backend
@@ -84,7 +84,7 @@ jobs:
           ssh machine bash -s -- "$IMAGES" "$GITHUB_REF_NAME" <<'MACHINE'
           set -euo pipefail
           trap 'docker logout ghcr.io' EXIT
-          for cmd in members notify bff; do
+          for cmd in members notify ledger bff; do
             docker pull "$1/$cmd:$2"
             docker tag "$1/$cmd:$2" "mmr-$cmd"
           done

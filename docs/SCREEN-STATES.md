@@ -2,7 +2,7 @@
 
 Every screen and every state the app can be in, keyed to the ids in `design/design_handoff_my_money_recap/` so this file can be diffed against what already exists. `PRD.md` owns the rules; this file owns the states and the copy.
 
-**Totals:** 102 states, every one drawn at least once across the 111 artboards of the eleven canvases in `design/design_handoff_my_money_recap/` (live: <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>). Every row says what its screen must show, so this file can be diffed against the canvases.
+**Canvases:** the eleven in `design/design_handoff_my_money_recap/`, whose README counts their artboards (live: <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>). Every row says what its screen must show, so this file can be diffed against the canvases.
 
 **Rules that are not screen states**, but that the design agent must apply everywhere: every onboarding step after the first carries a 44pt back chevron and re-selects the saved answer on resume (PRD §6.4); the Home month chip opens the Spend list's month switcher (PRD §6.8); a Recap always shows the Member's *current* Display Name and Avatar, because nothing about a Recap is stored (PRD §7).
 
@@ -61,17 +61,17 @@ Violet ground throughout.
 | B1 | target warning, before payday | D53. Same `Banner`, different copy: `You've spent £2,000 of the £1,920 you meant to spend this month.` |
 | B1 | with past recaps | `DataRowList` of months, See last month enabled. |
 | B1 | partial month in the list | §8.11. A `ListRow` whose value reads `Partial` instead of an Archetype name. |
-| B1 | offline | D58/D63. Grey `Banner` at top: `No connection. You can look, but not log.` Second line under the month chip: `Last updated Saturday 14:20.` `Log a spend` at 40%. All numbers render from cache. |
+| B1 | offline | D58/D63. Grey `Banner` under the chips: `No connection. You can look, but not log.` `Log a spend` at 40%. All numbers, and a Target Warning already shown, render from cache. The grey `Banner` and the dimming go when the path returns, with no relaunch. D63's second line under the month chip, `Last updated Saturday 14:20.`, comes with slice 8. |
 | B1 | first load, no cache | D49. Both cards at their filled heights (191pt, 136pt) with `ink.100` blocks in place of numbers. No spinner. |
 | B1 | preview card | D47. The dashed `Your first recap arrives on 1 October.` card is tappable, with a chevron well, and opens P1. |
 | B2 | Log a spend, empty | Sheet, eight category chips, Save disabled. |
-| B2 | write failed | `InlineError`, sheet open, values intact, Save enabled. |
+| B2 | write failed | `InlineError` `We couldn't save this spend. Try again.`, sheet open, values intact, Save enabled. |
 | B2 | amount too long | D57. Same rule as A6. |
 | B3 | Log a spend, filled | £12.40 + Snacks, Save enabled. |
 | B4 | Date picker | Last 60 days, never before the 1st of the sign-up month (D72), future at 40%. Helper `You can log up to 60 days back, never ahead.` |
 | B5 | Push permission | iOS alert, once, after the first spend. |
 | B6 | Spend list | D59. Title `Spends` with a **month switcher** under it: current month by default; tapping lists every month with data, newest first, as `ListRow trailing="check"`. Under the switcher the month line, in the empty states too. One `DataRow` per Category, largest first: `IconWell`, the name over `{n} spends` (`1 spend`), the total on the right. |
-| B6 | empty | D43. Centred `Nothing spent yet. Streak day {n}.` and a plus button; the streak counts from sign-up (23 on 26 September for a 4 September sign-up). |
+| B6 | empty | D43. Centred `Nothing spent yet. Streak day {n}.` and a plus button, at 40% offline (D58); the streak counts from sign-up (23 on 26 September for a 4 September sign-up). |
 | B6 | empty, past month | A past month with Money In and no Spend: `Nothing spent in {Month}.`, no streak; the plus button still opens Log a spend (owner, 2026-09-24). |
 | B6b | Category detail | One category, newest first, each Spend by its note or else its Category on one line, the date under it; sub-line `{amount} · {n}% of {Month} so far` (`of {Month}` for a past month). Back returns to B6. |
 | B7 | Spend detail | Opened from a B6b row: the log sheet titled `Edit spend`, prefilled, `Save changes`, and the destructive row `Delete this spend`. A failed save keeps the sheet and its values with `We couldn't save this spend. Try again.`; a failed delete keeps the Spend with `We couldn't delete this spend. Try again.` After either write, Home and every month it changed are refreshed from the answers. |
@@ -190,6 +190,7 @@ One string, one place. Where two screens show the same idea, they show the same 
 | Warning, on or after payday | `You've passed your saving line. {over} over.` |
 | Streak badge, 7+ | `New badge unlocked.` |
 | Streak badge, under 7 | `Beat it next month.` |
+| Spend save failed | `We couldn't save this spend. Try again.` |
 | Offline | `No connection. You can look, but not log.` |
 | Stale cache | `Last updated {day} {time}.` |
 | Avatar grid label | `Pick your avatar` |

@@ -42,7 +42,7 @@ this check in `fixtures_test.go` first. After `convert`, every other row (`setti
 input row fails. `fixtures_test.go` checks all three and names the row that drifts.
 
 `streakDay` on a month is the month's Streak so far (§8.5, the glossary's Streak): the longest
-spend-free run in the window up to `asOf`. With no Spends it is the elapsed days, which Home prints
+spend-free run in the window up to `asOf`. With no Spends it is the elapsed days, which the empty Spend list prints
 as "Streak day {n}" (SCREEN-STATES B6: 23 on 26 September for a 4 September sign-up). `streak.days`
 on a Recap is the same rule over the whole window. A scalar
 left out of a file is its zero value to protobuf JSON, so `partial: false` and an absent `partial`

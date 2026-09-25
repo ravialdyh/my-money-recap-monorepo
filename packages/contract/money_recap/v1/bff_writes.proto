@@ -14,7 +14,8 @@ message BffServiceLogSpendRequest {
   Money amount = 1;
   // One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
   Category category = 2;
-  // "YYYY-MM-DD", within the last 60 days including today (PRD §8.10).
+  // "YYYY-MM-DD", within the last 60 days including today and not before the
+  // 1st of the sign-up month (PRD §8.10, D72).
   string date = 3;
   // Optional, at most 80 characters (PRD §6.9).
   string note = 4;
@@ -37,8 +38,9 @@ message BffServiceEditSpendRequest {
   Money amount = 2;
   // One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
   Category category = 3;
-  // "YYYY-MM-DD" within the last 60 days including today, or the stored date
-  // unchanged when the Spend is already older than that (PRD §8.10, §6.10).
+  // "YYYY-MM-DD" within the last 60 days including today and not before the
+  // 1st of the sign-up month, or the stored date unchanged when it is already
+  // outside that (PRD §8.10, D72, §6.10).
   string date = 4;
   // Optional, at most 80 characters (PRD §6.9).
   string note = 5;

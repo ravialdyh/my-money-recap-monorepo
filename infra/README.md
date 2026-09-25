@@ -43,7 +43,7 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
    nothing here**: a hosted runner starts with an empty `known_hosts` every run, so every deploy trusts
    whichever host answers at the domain and then sends it the machine's `.env`. Pinning the machine's
    host key through cloud-init, and checking it strictly here, belongs to the machine root (#87).
-4. Build `members`, `notify` and `bff` from the one `apps/backend/Dockerfile`, one `CMD` build
+4. Build `members`, `notify`, `ledger` and `bff` from the one `apps/backend/Dockerfile`, one `CMD` build
    argument each, and push them to GHCR as `ghcr.io/<owner>/<repository>/<service>:<tag>`. GHCR
    needs no account beyond the repository's own.
 5. Copy to `~/mmr` on the machine, replacing what the last deploy left: `infra/compose/compose.yaml`
@@ -54,8 +54,8 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
    laptop keeps its placeholders. That directory is mode 0700 and the two files 0644: Keycloak runs as
    uid 2000 in the Phase Two image and `ubuntu` is uid 1000, so a file only its owner can read would be
    unreadable to Keycloak, while the directory keeps every other account on the machine out.
-6. Log the machine in to GHCR with the job's token, pull the three images, tag them `mmr-members`,
-   `mmr-notify` and `mmr-bff` (the names Compose gives the images it builds on a laptop), and
+6. Log the machine in to GHCR with the job's token, pull the four images, tag them `mmr-members`,
+   `mmr-notify`, `mmr-ledger` and `mmr-bff` (the names Compose gives the images it builds on a laptop), and
    `docker compose up -d --wait`. Compose finds its images present and builds nothing; the
    `build:` sections stay for the laptop. `realm-apply` builds the realm and the migration steps run
    in the order `service_completed_successfully` already gives them. `nginx` is restarted last,
@@ -74,7 +74,7 @@ line break stops the deploy instead.
 **What A13 keeps and does not.** Every secret is encrypted in one committed file, the age key is the
 only one a human holds, and `bff_client_secret` rotates by edit, commit, tag, because `realm-apply`
 writes it into the realm on every `up`. `members`, `notify` and `ledger` still read their connection
-strings, and `members` and `ledger` the broker's URL, from files Compose writes under `/run/secrets`, and Keycloak reads the two identity-provider secrets
+strings, and `members`, `ledger` and `notify` the broker's URL, from files Compose writes under `/run/secrets`, and Keycloak reads the two identity-provider secrets
 from its file vault. But the other values reach Compose through a `.env` on the machine's disk rather
 than through files decrypted under `/run/secrets`, and Postgres, Keycloak and the BFF receive theirs as
 environment variables, exactly as on a laptop. Chosen by the owner on 2026-09-22 over spec #61's
