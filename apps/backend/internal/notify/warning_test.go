@@ -9,6 +9,9 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
@@ -161,5 +164,57 @@ func TestAnotherMembersWarningIsNotFound(t *testing.T) {
 	s.Members = membersClient(t, nil)
 	if err := read(as("stranger"), id); connect.CodeOf(err) != connect.CodeUnavailable {
 		t.Errorf("a miss with members down: %v, want unavailable", err)
+	}
+}
+
+// A Spend event stamps as EvaluateWarning does (§6.2 step 6): only with crossed_line, once, with the first copy; an
+// edit's event has the log's shape, and a crossing event without a Member, a month or a copy fails (§4.3).
+func TestAnEventStampsTheMonth(t *testing.T) {
+	id := "00000000-0000-4000-8000-00000000b004"
+	s := warningService(t, id, map[string]string{"owner": id})
+	stamp := func(msg proto.Message) error {
+		body, err := proto.Marshal(msg)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return pgx.BeginFunc(t.Context(), s.DB, func(tx pgx.Tx) error { return StampFromEvent(t.Context(), tx, amqp.Delivery{Body: body}) })
+	}
+	env := &moneyrecapv1.EventEnvelope{MemberId: id}
+	month := func(words string) *moneyrecapv1.MonthSummary {
+		m := &moneyrecapv1.MonthSummary{Month: "2026-09"}
+		if words != "" {
+			m.TargetWarning = &moneyrecapv1.TargetWarning{Message: words}
+		}
+		return m
+	}
+	state := func() string {
+		t.Helper()
+		res, err := s.GetWarningState(as("owner"), connect.NewRequest(&moneyrecapv1.GetWarningStateRequest{MemberId: id, Month: "2026-09"}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return res.Msg.Warning.GetMessage()
+	}
+
+	if err := stamp(&moneyrecapv1.LedgerSpendLogged{Envelope: env, Month: month("over")}); err != nil || state() != "" {
+		t.Fatalf("a Spend over the line that did not cross it: %v, kept %q, want nothing stamped", err, state())
+	}
+	if err := stamp(&moneyrecapv1.LedgerSpendEdited{Envelope: env, Month: month("first"), CrossedLine: true}); err != nil || state() != "first" {
+		t.Fatalf("a crossing edit: %v, kept %q, want its copy", err, state())
+	}
+	if err := stamp(&moneyrecapv1.LedgerSpendLogged{Envelope: env, Month: month("later"), CrossedLine: true}); err != nil || state() != "first" {
+		t.Errorf("a later crossing: %v, kept %q, want the first words", err, state())
+	}
+	for name, msg := range map[string]proto.Message{
+		"no Member": &moneyrecapv1.LedgerSpendLogged{Envelope: &moneyrecapv1.EventEnvelope{}, Month: month("x"), CrossedLine: true},
+		"no month":  &moneyrecapv1.LedgerSpendLogged{Envelope: env, CrossedLine: true},
+		"no copy":   &moneyrecapv1.LedgerSpendLogged{Envelope: env, Month: month(""), CrossedLine: true},
+	} {
+		if err := stamp(msg); err == nil {
+			t.Errorf("a crossing event with %s: stamped, want an error", name)
+		}
+	}
+	if err := pgx.BeginFunc(t.Context(), s.DB, func(tx pgx.Tx) error { return StampFromEvent(t.Context(), tx, amqp.Delivery{Body: []byte{0xff}}) }); err == nil {
+		t.Error("a body that is not a Spend event: no error")
 	}
 }

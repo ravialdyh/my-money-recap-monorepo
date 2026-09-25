@@ -42,7 +42,7 @@ func seed(t *testing.T, db *pgxpool.Pool, id, subject, zone, signedUp, code stri
 	t.Helper()
 	ctx := context.Background()
 	t.Cleanup(func() {
-		for _, table := range []string{"member_facts", "salary_setting", "saving_target_setting", "spend", "idempotency"} {
+		for _, table := range []string{"member_facts", "salary_setting", "saving_target_setting", "spend", "idempotency", "outbox"} {
 			if _, err := db.Exec(ctx, `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
 				t.Logf("cleanup %s: %v", table, err)
 			}

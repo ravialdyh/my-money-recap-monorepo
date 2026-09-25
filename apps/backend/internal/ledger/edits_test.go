@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5"
 	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
@@ -203,5 +204,59 @@ func TestDeleteSpend(t *testing.T) {
 	}
 	if _, err := del("", theirs.Id); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Errorf("no key: %v, want invalid_argument", err)
+	}
+}
+
+// Every Spend write stages its event in its own transaction, carrying the answer's Spend, month and crossed_line
+// (ARCHITECTURE §4.3, A4); a replayed key stages nothing more.
+func TestEverySpendWriteStagesItsEvent(t *testing.T) {
+	id := "00000000-0000-4000-8000-00000000a805"
+	ctx, s, log := spendsOf(t, id, "announcer")
+	type staged struct {
+		key     string
+		spend   *moneyrecapv1.Spend
+		month   *moneyrecapv1.MonthSummary
+		crossed bool
+	}
+	under := log("l1", "2000000", "2026-09-05")
+	over := log("l2", "500000", "2026-09-10")
+	log("l2", "500000", "2026-09-10")
+	edited, err := s.EditSpend(ctx, connect.NewRequest(&moneyrecapv1.EditSpendRequest{
+		IdempotencyKey: "e1", MemberId: id, SpendId: under.Spend.Id, Amount: idr("2100000"), Category: 1, Date: "2026-09-05",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	gone, err := s.DeleteSpend(ctx, connect.NewRequest(&moneyrecapv1.DeleteSpendRequest{IdempotencyKey: "d1", MemberId: id, SpendId: over.Spend.Id}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []staged{
+		{"ledger.spend.logged", under.Spend, under.Month, false},
+		{"ledger.spend.logged", over.Spend, over.Month, true},
+		{"ledger.spend.edited", edited.Msg.Spend, edited.Msg.Month, false},
+		{"ledger.spend.deleted", gone.Msg.Spend, gone.Msg.Month, false},
+	}
+	rows, err := s.DB.Query(ctx, `SELECT id::text, routing_key, payload FROM outbox WHERE member_id = $1 ORDER BY created_at`, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := pgx.CollectRows(rows, pgx.RowToStructByPos[struct {
+		ID, Key string
+		Payload []byte
+	}])
+	if err != nil || len(got) != len(want) {
+		t.Fatalf("the outbox holds %d rows (%v), want %d", len(got), err, len(want))
+	}
+	for i, w := range want {
+		var e moneyrecapv1.LedgerSpendLogged
+		if err := proto.Unmarshal(got[i].Payload, &e); err != nil {
+			t.Fatal(err)
+		}
+		env := e.GetEnvelope()
+		if got[i].Key != w.key || env.GetRoutingKey() != w.key || env.GetMessageId() != got[i].ID || env.GetMemberId() != id ||
+			!proto.Equal(e.Spend, w.spend) || !proto.Equal(e.Month, w.month) || e.CrossedLine != w.crossed {
+			t.Errorf("outbox row %d: %s %v, want %s carrying the answer %v %v crossed_line %v", i, got[i].Key, &e, w.key, w.spend, w.month, w.crossed)
+		}
 	}
 }

@@ -23,8 +23,8 @@ func main() {
 }
 
 // run is the start-up every database-backed binary shares (internal/serve), given this service's
-// name, its schema step, its handler and its consumer.
-func run() error { return serve.Main("ledger", ledger.Migrate, handler, consumer) }
+// name, its schema step, its handler, its consumer and its outbox relay.
+func run() error { return serve.Main("ledger", ledger.Migrate, handler, consumer, relay) }
 
 // handler is LedgerService behind the bearer check. LEDGER_MEMBERS_URL is where the profile read that
 // fills the replica goes, carrying the caller's token (ARCHITECTURE §6.2 step 3).
@@ -39,4 +39,10 @@ func consumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 	return func(ctx context.Context) {
 		events.Consume(ctx, db, url, ledger.Queue, ledger.Keys, ledger.ApplyMemberFacts)
 	}
+}
+
+// relay publishes the Spend events the outbox holds to the same broker (§4.3).
+func relay(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
+	url := env.Get("LEDGER_AMQP_URL", "")
+	return func(ctx context.Context) { events.Relay(ctx, db, url) }
 }

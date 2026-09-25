@@ -9,6 +9,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
@@ -60,6 +62,30 @@ func (s *Service) EvaluateWarning(ctx context.Context, req *connect.Request[mone
 	}
 	answer.Fired, answer.Warning = warning != nil, warning
 	return connect.NewResponse(answer), nil
+}
+
+// Queue is notify's queue of ledger's Spend events, and Keys what it binds (ARCHITECTURE §4.3, §7.3 "Consumes"): a
+// delete never fires a warning (PRD §8.8), so ledger.spend.deleted is not bound.
+const Queue = "notify.ledger"
+
+var Keys = []string{"ledger.spend.logged", "ledger.spend.edited"}
+
+// StampFromEvent is the event backup (§6.2 step 6) for ledger.spend.logged and ledger.spend.edited (one shape): with
+// crossed_line it stamps the event's month with its copy if unstamped, as EvaluateWarning does. It sends no push yet.
+func StampFromEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
+	var e moneyrecapv1.LedgerSpendLogged
+	if err := proto.Unmarshal(d.Body, &e); err != nil {
+		return err
+	}
+	if !e.CrossedLine {
+		return nil
+	}
+	id, month, message := e.GetEnvelope().GetMemberId(), e.GetMonth().GetMonth(), e.GetMonth().GetTargetWarning().GetMessage()
+	if id == "" || month == "" || message == "" {
+		return errors.New("a crossing event names no Member, no month or no warning copy")
+	}
+	_, err := tx.Exec(ctx, `INSERT INTO month_flag (member_id, year_month, target_warning_message) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, id, month, message)
+	return err
 }
 
 func (s *Service) kept(ctx context.Context, id, month string) (*moneyrecapv1.TargetWarning, error) {
