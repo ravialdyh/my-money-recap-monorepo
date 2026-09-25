@@ -28,7 +28,8 @@ type BffServiceLogSpendRequest struct {
 	Amount *Money `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
 	// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
 	Category Category `protobuf:"varint,2,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	// "YYYY-MM-DD", within the last 60 days including today (PRD §8.10).
+	// "YYYY-MM-DD", within the last 60 days including today and not before the
+	// 1st of the sign-up month (PRD §8.10, D72).
 	Date string `protobuf:"bytes,3,opt,name=date,proto3" json:"date,omitempty"`
 	// Optional, at most 80 characters (PRD §6.9).
 	Note          string `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
@@ -159,8 +160,9 @@ type BffServiceEditSpendRequest struct {
 	Amount *Money `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
 	// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
 	Category Category `protobuf:"varint,3,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	// "YYYY-MM-DD" within the last 60 days including today, or the stored date
-	// unchanged when the Spend is already older than that (PRD §8.10, §6.10).
+	// "YYYY-MM-DD" within the last 60 days including today and not before the
+	// 1st of the sign-up month, or the stored date unchanged when it is already
+	// outside that (PRD §8.10, D72, §6.10).
 	Date string `protobuf:"bytes,4,opt,name=date,proto3" json:"date,omitempty"`
 	// Optional, at most 80 characters (PRD §6.9).
 	Note          string `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`

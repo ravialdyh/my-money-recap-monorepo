@@ -216,7 +216,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div>
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Date rule: within the last 60 days and never in the future. Today is selected in ink; tomorrow onward is 40% and not selectable. The note field scrolls under the wheel while it is open.</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">Date rule: within the last 60 days, never before the 1st of the sign-up month (D72) and never in the future. Today is selected in ink; tomorrow onward is 40% and not selectable. The note field scrolls under the wheel while it is open.</div>
 </sc-if>
 </div>
 
@@ -370,7 +370,7 @@ input::placeholder{color:#6B6890;font-weight:700}
   </div>
 </x-import>
 <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}">
-<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">iOS action sheet, placement only. Editing or deleting a Spend in a past month immediately changes that month's Recap: the Recap is computed live, never stored. Confirming returns to B6 with the row gone.</div>
+<div style="background:var(--mmr-palette-yellow-100);border-radius:12px;padding:12px 14px;font:700 12px/1.45 var(--mmr-font-family-text)">A centred iOS alert, placement only, with Cancel and a red Delete (owner, 2026-09-24; drawn as an action sheet). Editing or deleting a Spend in a past month immediately changes that month's Recap: the Recap is computed live, never stored. Confirming returns to B6 with the row gone.</div>
 </sc-if>
 </div>
 

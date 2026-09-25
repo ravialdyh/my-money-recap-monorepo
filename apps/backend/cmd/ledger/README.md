@@ -3,9 +3,9 @@
 The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary, Saving Target and Spends and every
 figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #128 and Recaps since #130: it serves `SaveSalary`,
 `RelabelCurrency`, `SaveTarget`, `LogSpend`, `EditSpend` and `DeleteSpend` (#133), `GetSettings`, `GetMonthSummary`, `GetRecap`, `ListSpends` and
-`ListMonthsWithData` (#131), and the rest of
-`LedgerService` is planned. The BFF calls it since #103: Home's month,
-onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
+`ListMonthsWithData` (#131); `PreviewConversion` and `ApplyCurrencyConversion` (slice 7), `GetSpentToday` and
+`ExportCSV` are planned. The BFF calls it since #103: Home's month,
+onboarding's steps 3 and 4 (#104), a resumed step's saved answers and, since #129, every Spend screen. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
 
 | Variable | Default | Meaning |
@@ -59,7 +59,7 @@ onboarding's steps 3 and 4 (#104) and a resumed step's saved answers. Its image,
   sentence names a currency that the older x/text symbols lack by its code: `VES 1.500`.
   The target amount rounds half up.
 - A Spend's amount follows the Salary's rule; its Category is one of the eight; its date is in the last 60
-  days including today, never ahead, in the Member's zone (A3); its note is at most 80 characters, counted
+  days including today, never ahead and never before the 1st of the sign-up month (D72), in the Member's zone (A3); its note is at most 80 characters, counted
   as NFC code points like a Display Name. `LogSpend` locks the Member's replica row and reads the Spends
   again inside its transaction, so `crossed_line` is true for exactly the log that first takes this month's
   Spent past Salary minus the target amount (PRD §8.8), never for a Spend in another month.

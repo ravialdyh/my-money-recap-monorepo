@@ -148,6 +148,6 @@ A token for the realm's test Member and the `GetHome` call are in `infra/compose
 ## Tests
 
 `go test ./internal/bff/` runs the unit tests, which need nothing; each test's name and doc comment
-say what it proves. `TestEndToEnd`, `TestMagicLinkEndToEnd` and `TestEdge` drive the running stack at
-the BFF's HTTP boundary and through the edge; their variables are in `infra/compose/README.md`,
+say what it proves. The `*EndToEnd` tests and `TestEdge` drive the running stack at
+the BFF's HTTP boundary and through the edge, and the fast path's tests use its Redis; their variables are in `infra/compose/README.md`,
 "Running the Go tests against this stack".

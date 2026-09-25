@@ -39,7 +39,8 @@ public nonisolated struct MoneyRecap_V1_BffServiceLogSpendRequest: Sendable {
   /// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
   public var category: MoneyRecap_V1_Category = .unspecified
 
-  /// "YYYY-MM-DD", within the last 60 days including today (PRD §8.10).
+  /// "YYYY-MM-DD", within the last 60 days including today and not before the
+  /// 1st of the sign-up month (PRD §8.10, D72).
   public var date: String = String()
 
   /// Optional, at most 80 characters (PRD §6.9).
@@ -109,8 +110,9 @@ public nonisolated struct MoneyRecap_V1_BffServiceEditSpendRequest: Sendable {
   /// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
   public var category: MoneyRecap_V1_Category = .unspecified
 
-  /// "YYYY-MM-DD" within the last 60 days including today, or the stored date
-  /// unchanged when the Spend is already older than that (PRD §8.10, §6.10).
+  /// "YYYY-MM-DD" within the last 60 days including today and not before the
+  /// 1st of the sign-up month, or the stored date unchanged when it is already
+  /// outside that (PRD §8.10, D72, §6.10).
   public var date: String = String()
 
   /// Optional, at most 80 characters (PRD §6.9).

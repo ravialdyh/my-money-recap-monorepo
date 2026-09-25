@@ -1,6 +1,6 @@
 # Design handoff: My Money Recap
 
-The design record for the whole v1 product: 111 artboards on eleven canvases (`../../SCREEN-STATES.md` counts them). Build from `../../PRD.md` (the rules) and `../../SCREEN-STATES.md` (every screen and state, with its copy); this folder is where the drawings live.
+The design record for the whole v1 product: 111 artboards on eleven canvases. Build from `../../PRD.md` (the rules) and `../../SCREEN-STATES.md` (every screen and state, with its copy); this folder is where the drawings live.
 
 | Canvas | Prefix | File | Screens |
 |---|---|---|---|
