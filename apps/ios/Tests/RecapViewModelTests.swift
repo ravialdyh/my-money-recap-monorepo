@@ -23,32 +23,36 @@ final class RecapViewModelTests: XCTestCase {
         return model
     }
 
+    /// Budi's August, recorded from the stack with his sign-up, Salary and Saving Target moved to 1 August: the
+    /// Squirrel.
+    /// en-GB prints the rupiah's code, then a no-break space.
     func testAFullMonthDrawsTheCoverWithMoneyInSavedAndSpent() async throws {
         let model = try await loaded("recap-squirrel")
         XCTAssertEqual(model.pages, [.cover])
         XCTAssertEqual(model.page, 0, "a Recap opens on its first page")
-        XCTAssertEqual(model.monthChip, "September 2026")
-        XCTAssertEqual(model.nameChip, "Maya's recap")
-        XCTAssertEqual(model.headline, "Your September in money")
+        XCTAssertEqual(model.monthChip, "August 2026")
+        XCTAssertEqual(model.nameChip, "Budi's recap")
+        XCTAssertEqual(model.headline, "Your August in money")
         XCTAssertEqual(model.eyebrow, "Money that came your way")
-        XCTAssertEqual(model.hero, "£2,400")
-        XCTAssertEqual(model.chips.map(\.text), ["Saved £640", "Spent £1,760"])
+        XCTAssertEqual(model.hero, "IDR\u{00A0}15,000,000")
+        XCTAssertEqual(model.chips.map(\.text), ["Saved IDR\u{00A0}5,600,000", "Spent IDR\u{00A0}9,400,000"])
     }
 
     func testAnOverspentMonthPrintsItsNegativeSavedAsItIs() async throws {
         var answer = try Self.recorded("recap-squirrel")
-        answer.recap.saved.amount = "-200.00"
-        let model = RecapViewModel(month: "2026-09", fetch: { _ in answer }, locale: Locale(identifier: "en_GB"))
+        answer.recap.saved.amount = "-200000"
+        let model = RecapViewModel(month: "2026-08", fetch: { _ in answer }, locale: Locale(identifier: "en_GB"))
         await model.load()
-        XCTAssertEqual(model.chips.first?.text, "Saved -£200")
+        XCTAssertEqual(model.chips.first?.text, "Saved -IDR\u{00A0}200,000")
     }
 
-    /// The three partial situations draw P1, headed by situation, Spent as the hero and never Money In (PRD §6.17).
+    /// The three partial situations draw P1, headed by situation, Spent as the hero and never Money In (PRD §6.17):
+    /// September so far, a sign-up on 27 August after its Payday, and an August with a Spend and no Salary.
     func testEachPartialSituationDrawsP1WithItsHeadline() async throws {
         let cases = [
-            ("recap-preview", "September so far", "£0", "No spends"),
-            ("recap-sign-up", "Your first 4 days", "£200", "4 spends"),
-            ("recap-no-money-in", "Your July spending", "£70", "1 spend"),
+            ("recap-preview", "September so far", "IDR\u{00A0}0", "No spends"),
+            ("recap-sign-up", "Your first 5 days", "IDR\u{00A0}350,000", "2 spends"),
+            ("recap-no-money-in", "Your August spending", "IDR\u{00A0}25,000", "1 spend"),
         ]
         for (name, headline, spent, count) in cases {
             let model = try await loaded(name)

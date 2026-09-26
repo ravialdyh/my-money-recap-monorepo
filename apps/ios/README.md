@@ -118,7 +118,9 @@ beside `That's more than the app can store.`, types an amount, picks a Payday an
 Home at zero greeting the Member in rupiah with the Salary prompt gone, logs one Spend from Home (Save off
 until an amount and a Category, the date picker opened, the sheet held sideways) and sees the hero show it,
 opens the Spend list from the hero, the Category detail and back, and the switcher from the month chip, then
-edits the Spend, cancels the delete alert once and deletes it (`UITests/EditSpendSteps.swift`), relaunches to prove Home renders from the snapshot, and relaunches with the closed port again to prove a Member who finished setup keeps that Home with no
+edits the Spend, cancels the delete alert once and deletes it (`UITests/EditSpendSteps.swift`), opens the month so far
+from the dashed card under `Past recaps`, finds P1 with no spends, turns the phone reaching Close and closes back to
+Home (`UITests/RecapSteps.swift`), relaunches to prove Home renders from the snapshot, and relaunches with the closed port again to prove a Member who finished setup keeps that Home with no
 signal. The first-load skeleton is a picture test (`HomeViewTests`). `UITests/AuthorizationCodeUITests.swift` keeps the flow every Apple and Google Member will
 use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test Member
 through Keycloak's login page, which covers the PKCE request, the sheet and the state built from its

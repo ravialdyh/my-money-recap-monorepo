@@ -138,14 +138,19 @@ struct HomeView: View {
             .disabled(model.offline)
         MMRButton(title: "See last month", variant: .secondary) { recap = model.lastMonth.map(model.recap) }
             .disabled(model.lastMonth == nil)
+        if !home.recapMonths.isEmpty || model.previewCopy != nil {
+            pastRecaps(home)
+        }
+    }
+
+    /// The `Past recaps` label over the list, or over the dashed preview card before any Recap (D47).
+    private func pastRecaps(_ home: MoneyRecap_V1_HomeView) -> some View {
         VStack(alignment: .leading, spacing: Tokens.Space._3) {
             Text("Past recaps")
                 .textStyle(Tokens.TypeRamp.captionUpper)
                 .foregroundStyle(Tokens.Text.onGroundMuted)
-            if home.recapMonths.isEmpty {
-                if let copy = model.previewCopy {
-                    PromptCard(title: copy, dashed: true) { recap = model.recap(home.month) }
-                }
+            if home.recapMonths.isEmpty, let copy = model.previewCopy {
+                PromptCard(title: copy, dashed: true) { recap = model.recap(home.month) }
             } else {
                 Card {
                     ForEach(home.recapMonths, id: \.month) { month in

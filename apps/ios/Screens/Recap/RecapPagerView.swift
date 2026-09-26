@@ -17,8 +17,8 @@ struct RecapPagerView: View {
         .animation(reveal, value: model.answer != nil)
         .overlay(alignment: .topLeading) {
             CloseControl { dismiss() }
-                .padding(.leading, 10)
-                .padding(.top, 1)
+                .padding(.leading, RecapLayout.closeInset)
+                .padding(.top, RecapLayout.closeTop)
         }
         .background(Tokens.Ground.recap.ignoresSafeArea())
         .task { await model.load() }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Empty-state card, one tap target (PRD §13, D50): eyebrow, title and helper beside a chevron well, at the filled
-/// `Card`'s height so nothing moves when filled in (§6.8, D54, D69). `dashed` is Home's preview card (D47).
+/// `Card`'s height (§6.8, D54, D69). `dashed` is Home's 56pt preview card with a 36pt well (D47).
 struct PromptCard: View {
     var eyebrow: String?
     let title: String
@@ -10,6 +10,11 @@ struct PromptCard: View {
     var dashed = false
     var action: () -> Void = {}
 
+    /// The chevron well: 44pt, or the preview card's 36pt (`previewCard` in `lib.mjs`); the whole card is the target.
+    private var well: CGFloat {
+        dashed ? 36 : Tokens.Size.touchTargetMin
+    }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
@@ -17,7 +22,11 @@ struct PromptCard: View {
                     if let eyebrow {
                         Eyebrow(text: eyebrow)
                     }
-                    CardTitle(text: title)
+                    if dashed {
+                        Text(title).textStyle(Tokens.TypeRamp.bodyS).foregroundStyle(Tokens.Text.onGroundMuted)
+                    } else {
+                        CardTitle(text: title)
+                    }
                     if let helper {
                         Text(helper)
                             .textStyle(Tokens.TypeRamp.bodyS)
@@ -29,12 +38,18 @@ struct PromptCard: View {
                 Spacer(minLength: 0)
                 Circle()
                     .fill(dashed ? Tokens.Surface.chipOnGround.opacity(0.2) : Tokens.Surface.wellViolet)
-                    .frame(width: Tokens.Size.touchTargetMin, height: Tokens.Size.touchTargetMin)
+                    .frame(width: well, height: well)
                     .overlay(Image(systemName: "chevron.right").font(.system(size: 16, weight: .heavy))
                         .foregroundStyle(dashed ? Tokens.Text.onGround : Tokens.Palette.violet500))
             }
-            .padding(Tokens.Space._7)
-            .frame(maxWidth: .infinity, minHeight: height, alignment: .leading)
+            .padding(dashed ? EdgeInsets(top: 10, leading: Tokens.Space._7, bottom: 10, trailing: Tokens.Space._4)
+                : EdgeInsets(
+                    top: Tokens.Space._7,
+                    leading: Tokens.Space._7,
+                    bottom: Tokens.Space._7,
+                    trailing: Tokens.Space._7
+                ))
+            .frame(maxWidth: .infinity, minHeight: dashed ? Tokens.Space._10 : height, alignment: .leading)
             .background(
                 dashed ? Color.clear : Tokens.Surface.card,
                 in: RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous)

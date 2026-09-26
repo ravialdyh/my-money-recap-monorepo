@@ -13,7 +13,7 @@ final class RecapViewTests: XCTestCase {
         _ answer: MoneyRecap_V1_RecapView?,
         locale: Locale = .init(identifier: "en_GB")
     ) async -> RecapPagerView {
-        let model = RecapViewModel(month: answer?.recap.month ?? "2026-09", fetch: { _ in
+        let model = RecapViewModel(month: answer?.recap.month ?? "2026-08", fetch: { _ in
             guard let answer else { throw CancellationError() }
             return answer
         }, locale: locale)
@@ -49,17 +49,11 @@ final class RecapViewTests: XCTestCase {
         try keep(picture(page, size: sideways), "c1-sideways")
     }
 
-    /// X4 (PRD D45): Budi's September in rupiah on an id-ID phone. Money In steps down to 40pt, the Saved and Spent
+    /// X4 (PRD D45): Budi's recorded month in rupiah on an id-ID phone. Money In steps down to 40pt, the Saved and
+    /// Spent
     /// chips wrap, and the illustration narrows from 310 to 260pt so the page dots stay on screen.
     func testTheRupiahCoverFitsWithItsChipsWrapped() async throws {
-        var budi = try RecapViewModelTests.recorded("recap-squirrel")
-        let rupiah = { (amount: String) in MoneyRecap_V1_Money.with { $0.amount = amount; $0.currencyCode = "IDR" } }
-        budi.displayName = "Budi"
-        budi.currencyCode = "IDR"
-        budi.recap.moneyIn = rupiah("15000000")
-        budi.recap.saved = rupiah("5600000")
-        budi.recap.spent = rupiah("9400000")
-        let page = await pager(budi, locale: Locale(identifier: "id_ID"))
+        let page = try await pager(RecapViewModelTests.recorded("recap-squirrel"), locale: Locale(identifier: "id_ID"))
         XCTAssertEqual(page.model.hero, "Rp15.000.000")
         XCTAssertEqual(page.model.chips.map(\.text), ["Saved Rp5.600.000", "Spent Rp9.400.000"])
         let card = upright.width - 2 * 24 - 2 * Tokens.Space._7

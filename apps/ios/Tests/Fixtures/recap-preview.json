@@ -1,37 +1,47 @@
 {
-    "recap": {
-        "recap": {
-            "month": "2026-09",
-            "situation": "PARTIAL_SITUATION_CURRENT_MONTH",
-            "moneyIn": {
-                "amount": "0.00",
-                "currencyCode": "GBP"
+    "recap":  {
+        "recap":  {
+            "month":  "2026-09",
+            "situation":  "PARTIAL_SITUATION_CURRENT_MONTH",
+            "moneyIn":  {
+                "amount":  "15000000",
+                "currencyCode":  "IDR"
             },
-            "spent": {
-                "amount": "0.00",
-                "currencyCode": "GBP"
+            "spent":  {
+                "amount":  "0",
+                "currencyCode":  "IDR"
             },
-            "spendCount": 0,
-            "salary": {
-                "amount": {
-                    "amount": "2400.00",
-                    "currencyCode": "GBP"
+            "saved":  {
+                "amount":  "15000000",
+                "currencyCode":  "IDR"
+            },
+            "salary":  {
+                "amount":  {
+                    "amount":  "15000000",
+                    "currencyCode":  "IDR"
                 },
-                "payday": "25",
-                "daysUntilPayday": 5
+                "payday":  "25"
             },
-            "streak": {
-                "days": 20,
-                "windowStart": "2026-09-01",
-                "windowEnd": "2026-09-20",
-                "badgeUnlocked": true
+            "savingTarget":  {
+                "percent":  20,
+                "amount":  {
+                    "amount":  "3000000",
+                    "currencyCode":  "IDR"
+                },
+                "progressSentence":  "Keep spending under Rp2.400.000 a day and you'll make it."
             },
-            "categories": [],
-            "archetypeName": "",
-            "archetypeDescription": "",
-            "closingLine": "Your recap arrives on 1 October."
+            "keptPercent":  500,
+            "streak":  {
+                "days":  26,
+                "windowStart":  "2026-09-01",
+                "windowEnd":  "2026-09-26",
+                "badgeUnlocked":  true,
+                "runStart":  "2026-09-01",
+                "runEnd":  "2026-09-26"
+            },
+            "closingLine":  "Your recap arrives on 1 October."
         },
-        "displayName": "Maya",
-        "currencyCode": "GBP"
+        "displayName":  "Budi",
+        "currencyCode":  "IDR"
     }
 }

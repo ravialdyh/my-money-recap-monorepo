@@ -1,87 +1,76 @@
 {
-    "recap": {
-        "recap": {
-            "month": "2026-09",
-            "situation": "PARTIAL_SITUATION_SIGN_UP_MONTH",
-            "moneyIn": {
-                "amount": "0.00",
-                "currencyCode": "GBP"
+    "recap":  {
+        "recap":  {
+            "month":  "2026-08",
+            "situation":  "PARTIAL_SITUATION_SIGN_UP_MONTH",
+            "moneyIn":  {
+                "amount":  "0",
+                "currencyCode":  "IDR"
             },
-            "spent": {
-                "amount": "200.00",
-                "currencyCode": "GBP"
+            "spent":  {
+                "amount":  "350000",
+                "currencyCode":  "IDR"
             },
-            "spendCount": 4,
-            "salary": {
-                "amount": {
-                    "amount": "2400.00",
-                    "currencyCode": "GBP"
+            "spendCount":  2,
+            "salary":  {
+                "amount":  {
+                    "amount":  "15000000",
+                    "currencyCode":  "IDR"
                 },
-                "payday": "25",
-                "daysUntilPayday": 0
+                "payday":  "25"
             },
-            "streak": {
-                "days": 0,
-                "windowStart": "2026-09-27",
-                "windowEnd": "2026-09-30",
-                "badgeUnlocked": false
+            "savingTarget":  {
+                "percent":  20,
+                "amount":  {
+                    "amount":  "3000000",
+                    "currencyCode":  "IDR"
+                }
             },
-            "categories": [
+            "streak":  {
+                "days":  2,
+                "windowStart":  "2026-08-27",
+                "windowEnd":  "2026-08-31",
+                "runStart":  "2026-08-30",
+                "runEnd":  "2026-08-31"
+            },
+            "categories":  [
                 {
-                    "category": "CATEGORY_SNACKS",
-                    "amount": {
-                        "amount": "70.00",
-                        "currencyCode": "GBP"
+                    "category":  "CATEGORY_SNACKS",
+                    "amount":  {
+                        "amount":  "200000",
+                        "currencyCode":  "IDR"
                     },
-                    "percent": 35,
-                    "spendCount": 1
-                },
-                {
-                    "category": "CATEGORY_RIDES",
-                    "amount": {
-                        "amount": "60.00",
-                        "currencyCode": "GBP"
-                    },
-                    "percent": 30,
-                    "spendCount": 1
+                    "percent":  57,
+                    "spendCount":  1
                 },
                 {
-                    "category": "CATEGORY_GAMES",
-                    "amount": {
-                        "amount": "40.00",
-                        "currencyCode": "GBP"
+                    "category":  "CATEGORY_RIDES",
+                    "amount":  {
+                        "amount":  "150000",
+                        "currencyCode":  "IDR"
                     },
-                    "percent": 20,
-                    "spendCount": 1
-                },
-                {
-                    "category": "CATEGORY_GIFTS",
-                    "amount": {
-                        "amount": "30.00",
-                        "currencyCode": "GBP"
-                    },
-                    "percent": 15,
-                    "spendCount": 1
+                    "percent":  43,
+                    "spendCount":  1
                 }
             ],
-            "splurge": {
-                "id": "sept27-01",
-                "amount": {
-                    "amount": "70.00",
-                    "currencyCode": "GBP"
+            "splurge":  {
+                "id":  "31204075-b3ca-4e61-b241-ae18f3d37593",
+                "amount":  {
+                    "amount":  "200000",
+                    "currencyCode":  "IDR"
                 },
-                "originalAmount": {
-                    "amount": "70.00",
-                    "currencyCode": "GBP"
+                "originalAmount":  {
+                    "amount":  "200000",
+                    "currencyCode":  "IDR"
                 },
-                "category": "CATEGORY_SNACKS",
-                "date": "2026-09-27"
+                "category":  "CATEGORY_SNACKS",
+                "date":  "2026-08-28",
+                "createdAt":  "2026-09-26T18:38:33.447740Z",
+                "updatedAt":  "2026-09-26T18:38:33.447740Z"
             },
-            "archetypeName": "",
-            "archetypeDescription": "",
-            "closingLine": "Your first full recap arrives on 1 November."
+            "closingLine":  "Your first full recap arrives on 1 October."
         },
-        "displayName": "Maya",
-        "currencyCode": "GBP"
+        "displayName":  "Budi",
+        "currencyCode":  "IDR"
     }
 }
