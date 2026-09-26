@@ -12,7 +12,7 @@ final class RecapViewModelTests: XCTestCase {
         return try MoneyRecap_V1_BffServiceGetRecapResponse(jsonString: String(contentsOf: url, encoding: .utf8)).recap
     }
 
-    private func loaded(_ name: String) async throws -> RecapViewModel {
+    static func loaded(_ name: String) async throws -> RecapViewModel {
         let answer = try Self.recorded(name)
         let model = RecapViewModel(
             month: answer.recap.month,
@@ -27,8 +27,8 @@ final class RecapViewModelTests: XCTestCase {
     /// Squirrel.
     /// en-GB prints the rupiah's code, then a no-break space.
     func testAFullMonthDrawsTheCoverWithMoneyInSavedAndSpent() async throws {
-        let model = try await loaded("recap-squirrel")
-        XCTAssertEqual(model.pages, [.cover, .goal])
+        let model = try await Self.loaded("recap-squirrel")
+        XCTAssertEqual(model.pages, [.cover, .kept, .goal])
         XCTAssertEqual(model.page, 0, "a Recap opens on its first page")
         XCTAssertEqual(model.monthChip, "August 2026")
         XCTAssertEqual(model.nameChip, "Budi's recap")
@@ -55,8 +55,8 @@ final class RecapViewModelTests: XCTestCase {
             ("recap-no-money-in", "Your August spending", "IDR\u{00A0}25,000", "1 spend"),
         ]
         for (name, headline, spent, count) in cases {
-            let model = try await loaded(name)
-            XCTAssertEqual(model.pages, [.partialCover, .partialGoal], name)
+            let model = try await Self.loaded(name)
+            XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal], name)
             XCTAssertEqual(model.headline, headline, name)
             XCTAssertEqual(model.eyebrow, "What you've spent", name)
             XCTAssertEqual(model.hero, spent, name)

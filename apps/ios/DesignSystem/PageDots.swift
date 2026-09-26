@@ -1,18 +1,18 @@
 import SwiftUI
 
 /// `PageDots.tsx` with `onSelect`: 6pt dots, the active one 22pt wide, each a control in its own 44pt-tall slice read
-/// as "Page {n} of {count}" (PRD D46, §11).
+/// as "Page {n} of {count}" (PRD D46, §11); ink `onLight`, on the yellow ground.
 struct PageDots: View {
     let count: Int
     @Binding var active: Int
+    var onLight = false
 
     var body: some View {
         HStack(spacing: 0) {
             ForEach(0 ..< count, id: \.self) { index in
                 Button { active = index } label: {
                     Capsule()
-                        .fill(index == active ? Tokens.Indicator.pageActiveOnGround : Tokens.Indicator
-                            .pageInactiveOnGround)
+                        .fill(fill(active: index == active))
                         .frame(
                             width: index == active ? Tokens.Size.pageDotActiveWidth : Tokens.Size.pageDot,
                             height: Tokens.Size.pageDot
@@ -26,5 +26,14 @@ struct PageDots: View {
             }
         }
         .frame(maxWidth: .infinity)
+    }
+
+    private func fill(active: Bool) -> Color {
+        switch (onLight, active) {
+        case (false, true): Tokens.Indicator.pageActiveOnGround
+        case (false, false): Tokens.Indicator.pageInactiveOnGround
+        case (true, true): Tokens.Indicator.pageActiveOnLight
+        case (true, false): Tokens.Indicator.pageInactiveOnLight
+        }
     }
 }

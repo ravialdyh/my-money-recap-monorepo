@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// One ground per screen, from four (README "Design rules"): the violet `recap` ground unless `ground` names another.
-/// Content sits inside the screen insets with white type.
+/// Content sits inside the screen insets, its type white, or ink on the yellow `earning` ground.
 struct Screen<Content: View>: View {
     var ground = Tokens.Ground.recap
     /// True for a screen with no scroll view of its own: it scrolls when it is taller than the screen, as a phone
@@ -23,7 +23,7 @@ struct Screen<Content: View>: View {
                 column
             }
         }
-        .foregroundStyle(Tokens.Text.onGround)
+        .foregroundStyle(ground == Tokens.Ground.earning ? Tokens.Text.onGroundDark : Tokens.Text.onGround)
     }
 
     private var column: some View {

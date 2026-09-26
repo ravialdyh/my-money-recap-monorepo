@@ -1,17 +1,18 @@
 import Foundation
 import MoneyRecapContract
 
-/// One month's Recap (SCREEN-STATES C and P, spec #151): which pages the situation draws and the words they print.
-/// Every figure is the server's (A2); nil `answer` is the §6.19 loading state, kept when the BFF cannot answer.
+/// One month's Recap (SCREEN-STATES C and P, spec #151): its situation's pages and page 1's words, later pages' words
+/// beside their views. Every figure is the server's (A2); nil `answer` is the §6.19 loading state, kept when the BFF
+/// cannot answer.
 @Observable
 @MainActor
 final class RecapViewModel: Identifiable {
     typealias Fetch = (String) async throws -> MoneyRecap_V1_RecapView
 
-    /// The pager's pages in their fixed order: C1 and C3 for a full month; P1 and P3 for the month so far and both
-    /// partial situations.
+    /// The pager's pages in their fixed order: C1, C2 and C3 for a full month; P1, P2 and P3 for the month so far and
+    /// both partial situations.
     enum Page: Equatable {
-        case cover, partialCover, goal, partialGoal
+        case cover, partialCover, kept, streak, goal, partialGoal
     }
 
     /// "YYYY-MM" this Recap covers.
@@ -20,7 +21,7 @@ final class RecapViewModel: Identifiable {
     /// The page on screen; a Recap always opens on its first.
     var page = 0
     private let fetch: Fetch
-    private let dates: Date.FormatStyle
+    let dates: Date.FormatStyle
     private let locale: Locale
     /// The Member's today, from which P3 counts ledger's days until Payday (D55).
     let today: Date
@@ -43,7 +44,7 @@ final class RecapViewModel: Identifiable {
     /// No page before the answer; then the situation chooses (PRD §8.11).
     var pages: [Page] {
         guard answer != nil else { return [] }
-        return partial ? [.partialCover, .partialGoal] : [.cover, .goal]
+        return partial ? [.partialCover, .streak, .partialGoal] : [.cover, .kept, .goal]
     }
 
     /// Any situation but unspecified is the Partial Recap or the preview (PRD §8.11).
@@ -64,7 +65,7 @@ final class RecapViewModel: Identifiable {
     /// C1's "Your {Month} in money", or P1's by situation: "{Month} so far", "Your first {n} days" or "Your {Month}
     /// spending".
     var headline: String {
-        let name = date.map { $0.formatted(dates.month(.wide)) } ?? month
+        let name = monthName
         switch answer?.recap.situation {
         case .currentMonth: return "\(name) so far"
         case .signUpMonth: return "Your first \(windowDays) days"
@@ -74,7 +75,7 @@ final class RecapViewModel: Identifiable {
     }
 
     /// The days from the Streak window's first day to its last, both counted.
-    private var windowDays: Int {
+    var windowDays: Int {
         guard let streak = answer?.recap.streak, let start = ISODate.day(streak.windowStart),
               let end = ISODate.day(streak.windowEnd) else { return 0 }
         return Int((end.timeIntervalSince(start) / 86400).rounded()) + 1
@@ -103,7 +104,7 @@ final class RecapViewModel: Identifiable {
         return saved + [(.spent, "Spent \(money(recap.spent))")]
     }
 
-    private var date: Date? {
+    var date: Date? {
         ISODate.month(month)
     }
 

@@ -4,6 +4,8 @@ import SwiftUI
 /// `minHeight` holds a filled Home card at its measured height (`size.home-hero-card`, `size.home-target-card`; PRD
 /// §6.8, D69).
 struct Card<Content: View>: View {
+    /// Card.tsx's `accent`: violet with white type, the second card on the yellow ground.
+    var accent = false
     var underIllustration = false
     var minHeight: CGFloat?
     /// Card.tsx's `split`: children in a row with no trailing inset, for an illustration at the edge, grown into the
@@ -23,8 +25,11 @@ struct Card<Content: View>: View {
                 maxHeight: split ? .infinity : nil,
                 alignment: .topLeading
             )
-            .background(Tokens.Surface.card, in: RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous))
-            .foregroundStyle(Tokens.Text.primary)
+            .background(
+                accent ? Tokens.Surface.cardAccent : Tokens.Surface.card,
+                in: RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous)
+            )
+            .foregroundStyle(accent ? Tokens.Text.onInverse : Tokens.Text.primary)
     }
 
     @ViewBuilder private var stack: some View {
