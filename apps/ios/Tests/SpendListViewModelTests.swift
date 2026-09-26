@@ -17,7 +17,7 @@ final class SpendListViewModelTests: XCTestCase {
 
     private func freshContext() throws -> ModelContext {
         try ModelContext(ModelContainer(
-            for: HomeSnapshot.self, SpendListSnapshot.self,
+            for: HomeSnapshot.self, SpendListSnapshot.self, RecapSnapshot.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
     }

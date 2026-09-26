@@ -1,9 +1,10 @@
 import Foundation
 import MoneyRecapContract
+import SwiftData
 
 /// One month's Recap (SCREEN-STATES C and P, spec #151): its situation's pages and page 1's words, later pages' words
-/// beside their views. Every figure is the server's (A2); nil `answer` is the §6.19 loading state, kept when the BFF
-/// cannot answer.
+/// beside their views. Figures are the server's (A2); a stored copy draws at once (IOS I4); nil `answer` is the §6.19
+/// loading state.
 @Observable
 @MainActor
 final class RecapViewModel: Identifiable {
@@ -21,24 +22,37 @@ final class RecapViewModel: Identifiable {
     /// The page on screen; a Recap always opens on its first.
     var page = 0
     private let fetch: Fetch
+    private let context: ModelContext?
     let dates: Date.FormatStyle
     private let locale: Locale
     /// The Member's today, from which P3 counts ledger's days until Payday (D55).
     let today: Date
 
-    init(month: String, fetch: @escaping Fetch, locale: Locale = .autoupdatingCurrent, today: Date = .now) {
+    /// `context` holds the stored Recaps; without one nothing is read or kept.
+    init(
+        month: String,
+        fetch: @escaping Fetch,
+        context: ModelContext? = nil,
+        locale: Locale = .autoupdatingCurrent,
+        today: Date = .now
+    ) {
         self.month = month
         self.fetch = fetch
+        self.context = context
         self.locale = locale
         self.today = today
         dates = ISODate.style(locale: locale)
+        answer = context.flatMap { RecapSnapshot.load(month, from: $0) }
     }
 
-    /// Asks the BFF once; a failure keeps whatever is drawn, the loading state included (§6.19).
+    /// Asks the BFF once; the answer replaces the stored copy and what is drawn. A failure keeps whatever is drawn, the
+    /// loading state included (§6.19).
     func load() async {
-        if let fresh = try? await fetch(month) {
-            answer = fresh
+        guard let fresh = try? await fetch(month), fresh.recap.month == month else { return }
+        if let context {
+            try? RecapSnapshot.replace(with: fresh, in: context)
         }
+        answer = fresh
     }
 
     /// No page before the answer; then the situation chooses (PRD §8.11).

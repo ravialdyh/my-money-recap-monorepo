@@ -169,11 +169,12 @@ extension RecapViewModel {
     }
 
     /// "{names} · {n}%" for the Categories past the third, `n` the sum of ledger's rounded percentages (IOS §1).
+    /// No-break spaces keep "· {n}%" on the last name's line.
     var rollUp: String? {
         let rest = categories.dropFirst(3)
         guard !rest.isEmpty else { return nil }
         let names = rest.map { SpendListViewModel.glyph($0.category).label }.joined(separator: ", ")
-        return "\(names) · \(rest.reduce(0) { $0 + Int($1.percent) })%"
+        return "\(names)\u{00A0}·\u{00A0}\(rest.reduce(0) { $0 + Int($1.percent) })%"
     }
 
     /// No Spend, and Money In above 0.

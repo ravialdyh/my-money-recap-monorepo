@@ -128,6 +128,13 @@ final class SignInUITests: XCTestCase {
             "a Member who finished setup reaches Home from the stored answer with no signal (PRD D61, spec #92)"
         )
         snapshot("09-bff-unreachable-snapshot-still-shown")
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on '")).firstMatch.tap()
+        XCTAssert(
+            app.staticTexts["\(Date().formatted(.dateTime.month(.wide))) so far"].waitForExistence(timeout: 10),
+            "the dashed card opens the stored preview's P1 with no signal (PRD D61, IOS I4)"
+        )
+        XCTAssert(app.staticTexts["No spends"].exists, "the stored answer's figures")
+        snapshot("26-recap-stored-no-signal")
     }
 }
 
