@@ -1,0 +1,87 @@
+{
+    "recap": {
+        "recap": {
+            "month": "2026-09",
+            "situation": "PARTIAL_SITUATION_SIGN_UP_MONTH",
+            "moneyIn": {
+                "amount": "0.00",
+                "currencyCode": "GBP"
+            },
+            "spent": {
+                "amount": "200.00",
+                "currencyCode": "GBP"
+            },
+            "spendCount": 4,
+            "salary": {
+                "amount": {
+                    "amount": "2400.00",
+                    "currencyCode": "GBP"
+                },
+                "payday": "25",
+                "daysUntilPayday": 0
+            },
+            "streak": {
+                "days": 0,
+                "windowStart": "2026-09-27",
+                "windowEnd": "2026-09-30",
+                "badgeUnlocked": false
+            },
+            "categories": [
+                {
+                    "category": "CATEGORY_SNACKS",
+                    "amount": {
+                        "amount": "70.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 35,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_RIDES",
+                    "amount": {
+                        "amount": "60.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 30,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_GAMES",
+                    "amount": {
+                        "amount": "40.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 20,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_GIFTS",
+                    "amount": {
+                        "amount": "30.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 15,
+                    "spendCount": 1
+                }
+            ],
+            "splurge": {
+                "id": "sept27-01",
+                "amount": {
+                    "amount": "70.00",
+                    "currencyCode": "GBP"
+                },
+                "originalAmount": {
+                    "amount": "70.00",
+                    "currencyCode": "GBP"
+                },
+                "category": "CATEGORY_SNACKS",
+                "date": "2026-09-27"
+            },
+            "archetypeName": "",
+            "archetypeDescription": "",
+            "closingLine": "Your first full recap arrives on 1 November."
+        },
+        "displayName": "Maya",
+        "currencyCode": "GBP"
+    }
+}

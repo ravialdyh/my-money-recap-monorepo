@@ -15,6 +15,7 @@ final class HomeViewModel {
     private let editSpend: LogSpendViewModel.Edit
     private let deleteSpend: LogSpendViewModel.Delete
     private let listSpends: SpendListViewModel.Fetch
+    private let getRecap: RecapViewModel.Fetch
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -37,13 +38,15 @@ final class HomeViewModel {
         editSpend: @escaping LogSpendViewModel
             .Edit = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         deleteSpend: @escaping LogSpendViewModel
-            .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
+            .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        getRecap: @escaping RecapViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) }
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
         self.editSpend = editSpend
         self.deleteSpend = deleteSpend
         self.listSpends = listSpends
+        self.getRecap = getRecap
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -176,6 +179,22 @@ final class HomeViewModel {
     var previewCopy: String? {
         home.flatMap { ISODate.day($0.firstRecapOn) }
             .map { "Your first recap arrives on \($0.formatted(dates.day().month(.wide)))." }
+    }
+
+    /// One month's Recap pager: a past-Recap row's month, last month, or Home's own month for the preview (D47).
+    func recap(_ month: String) -> RecapViewModel {
+        RecapViewModel(month: month, fetch: getRecap, locale: locale)
+    }
+
+    /// The month before Home's when it is in the past-Recap list, what "See last month" opens; nil disables it
+    /// (PRD §6.8).
+    var lastMonth: String? {
+        guard let home else { return nil }
+        let parts = home.month.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 2 else { return nil }
+        let index = parts[0] * 12 + parts[1] - 2
+        let month = String(format: "%04d-%02d", index / 12, index % 12 + 1)
+        return home.recapMonths.contains { $0.month == month } ? month : nil
     }
 
     func recapLabel(_ month: MoneyRecap_V1_RecapMonth) -> String {

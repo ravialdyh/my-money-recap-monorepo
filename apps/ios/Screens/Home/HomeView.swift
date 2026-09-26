@@ -2,13 +2,13 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// PRD §6.8 / SCREEN-STATES B1: the hero, the Target Warning, the target card or its prompt, the salary prompt (D54,
-/// D69). The prompts open steps 3 and 4, Log a spend its sheet unless offline (D58), the hero and month chip the Spend
-/// list (D59).
+/// PRD §6.8 / SCREEN-STATES B1. The prompts open steps 3 and 4 (D54, D69), Log a spend its sheet unless offline
+/// (D58), the hero and month chip the Spend list (D59), the past-Recap rows, See last month and the preview a Recap.
 struct HomeView: View {
     @State private var model: HomeViewModel
     @State private var logging: LogSpendViewModel?
     @State private var listing: SpendListViewModel?
+    @State private var recap: RecapViewModel?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var open: (Int) -> Void = { _ in }
 
@@ -32,6 +32,9 @@ struct HomeView: View {
             await BffClient.retried(session) { await client.editSpend(request: request, headers: headers) }.result
         }, deleteSpend: { request, headers in
             await BffClient.retried(session) { await client.deleteSpend(request: request, headers: headers) }.result
+        }, getRecap: { month in
+            try await BffClient.retried(session) { await client.getRecap(request: .with { $0.month = month }) }
+                .result.get().recap
         }))
         self.open = open
     }
@@ -79,6 +82,7 @@ struct HomeView: View {
                 withAnimation(reveal) { model.replace(with: home) }
             })
         }
+        .fullScreenCover(item: $recap) { RecapPagerView(model: $0) }
     }
 
     /// `motion.reveal.number` for the numbers a save changed; with Reduce Motion, the 150 ms fade.
@@ -132,16 +136,21 @@ struct HomeView: View {
         }
         MMRButton(title: "Log a spend", icon: "plus") { logging = model.logSheet() }
             .disabled(model.offline)
-        MMRButton(title: "See last month", variant: .secondary) {}
-            .disabled(home.recapMonths.isEmpty)
-        if home.recapMonths.isEmpty {
-            if let copy = model.previewCopy {
-                PromptCard(title: copy, dashed: true)
-            }
-        } else {
-            Card {
-                ForEach(home.recapMonths, id: \.month) { month in
-                    ListRow(label: model.recapLabel(month), value: month.label)
+        MMRButton(title: "See last month", variant: .secondary) { recap = model.lastMonth.map(model.recap) }
+            .disabled(model.lastMonth == nil)
+        VStack(alignment: .leading, spacing: Tokens.Space._3) {
+            Text("Past recaps")
+                .textStyle(Tokens.TypeRamp.captionUpper)
+                .foregroundStyle(Tokens.Text.onGroundMuted)
+            if home.recapMonths.isEmpty {
+                if let copy = model.previewCopy {
+                    PromptCard(title: copy, dashed: true) { recap = model.recap(home.month) }
+                }
+            } else {
+                Card {
+                    ForEach(home.recapMonths, id: \.month) { month in
+                        ListRow(label: model.recapLabel(month), value: month.label) { recap = model.recap(month.month) }
+                    }
                 }
             }
         }

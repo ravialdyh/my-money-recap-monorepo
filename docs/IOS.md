@@ -30,7 +30,7 @@ The app is a display for numbers the server computes (`ARCHITECTURE.md` A2). It 
 apps/ios/
   MyMoneyRecap.xcodeproj
   App/            entry, the SwiftData container, the root switch between Sign in and the launch, the launch routing, Info.plist
-  Screens/        one folder per SCREEN-STATES.md group, each a view plus its view model (I6): SignIn, Onboarding, Account, Home (B, the Spend sheets and list included)
+  Screens/        one folder per SCREEN-STATES.md group, each a view plus its view model (I6): SignIn, Onboarding, Account, Home (B, the Spend sheets and list included), Recap (C and P, the pager)
   Snapshots/      SwiftData models (I4)
   Networking/     the generated Connect client, the bearer interceptor and SaveAttempt (I3), the network path (D58)
   Auth/           AppAuth configuration and session, the magic-link handler, Keychain (I1, I2)
@@ -39,7 +39,7 @@ apps/ios/
   Tests/, UITests/, scripts/   XCTest targets and the simulator scripts (apps/ios/README.md)
 ```
 
-Later slices add the Recap and Settings folders under `Screens/`, the Face ID gate in `App/`, and
+Later slices add the Settings folder under `Screens/`, the Face ID gate in `App/`, and
 the app icon in `Resources/`. The SwiftUI components mirror the names in
 `my-money-recap-ds/src/components`, one Swift file per component, so a screen in `SCREEN-STATES.md` reads
 the same in both codebases.

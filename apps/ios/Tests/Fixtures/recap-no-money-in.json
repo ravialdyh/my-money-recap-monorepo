@@ -1,0 +1,52 @@
+{
+    "recap": {
+        "recap": {
+            "month": "2026-07",
+            "situation": "PARTIAL_SITUATION_NO_MONEY_IN",
+            "moneyIn": {
+                "amount": "0.00",
+                "currencyCode": "GBP"
+            },
+            "spent": {
+                "amount": "70.00",
+                "currencyCode": "GBP"
+            },
+            "spendCount": 1,
+            "streak": {
+                "days": 26,
+                "windowStart": "2026-07-01",
+                "windowEnd": "2026-07-31",
+                "badgeUnlocked": true
+            },
+            "categories": [
+                {
+                    "category": "CATEGORY_SNACKS",
+                    "amount": {
+                        "amount": "70.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 100,
+                    "spendCount": 1
+                }
+            ],
+            "splurge": {
+                "id": "july-01",
+                "amount": {
+                    "amount": "70.00",
+                    "currencyCode": "GBP"
+                },
+                "originalAmount": {
+                    "amount": "70.00",
+                    "currencyCode": "GBP"
+                },
+                "category": "CATEGORY_SNACKS",
+                "date": "2026-07-27"
+            },
+            "archetypeName": "",
+            "archetypeDescription": "",
+            "closingLine": "Set your monthly salary to get a full recap."
+        },
+        "displayName": "Maya",
+        "currencyCode": "GBP"
+    }
+}
