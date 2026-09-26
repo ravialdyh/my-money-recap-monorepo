@@ -44,7 +44,9 @@ input row fails. `fixtures_test.go` checks all three and names the row that drif
 `streakDay` on a month is the month's Streak so far (§8.5, the glossary's Streak): the longest
 spend-free run in the window up to `asOf`. With no Spends it is the elapsed days, which the empty Spend list prints
 as "Streak day {n}" (SCREEN-STATES B6: 23 on 26 September for a 4 September sign-up). `streak.days`
-on a Recap is the same rule over the whole window. A scalar
+on a Recap is the same rule over the whole window, and `streak.runStart` and `streak.runEnd` name that run's first
+and last day, the earlier of two equally long runs, both left out when the Streak is 0; every file with an Archetype
+asserts its `archetypeTitle`. A scalar
 left out of a file is its zero value to protobuf JSON, so `partial: false` and an absent `partial`
 are the same assertion; only a message or `optional` field can be "absent".
 

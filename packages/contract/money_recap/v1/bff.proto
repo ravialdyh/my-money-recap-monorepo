@@ -29,8 +29,9 @@ service BffService {
   // and prints every amount in the Member's Currency (spec #92).
   rpc GetHome(GetHomeRequest) returns (GetHomeResponse) {}
   // One month's full or Partial Recap, or the current month's preview (D47).
+  // not_found for a past month with no Spend and no Money In (not on Home's
+  // list); invalid_argument for a malformed or later month.
   rpc GetRecap(BffServiceGetRecapRequest) returns (BffServiceGetRecapResponse) {}
-  rpc ListRecapMonths(BffServiceListRecapMonthsRequest) returns (BffServiceListRecapMonthsResponse) {}
   rpc ListSpends(BffServiceListSpendsRequest) returns (BffServiceListSpendsResponse) {}
   // The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
   // HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.

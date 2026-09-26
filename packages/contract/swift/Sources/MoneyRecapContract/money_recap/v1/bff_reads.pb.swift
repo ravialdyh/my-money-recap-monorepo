@@ -54,34 +54,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceGetRecapResponse: Sendable {
   fileprivate var _recap: MoneyRecap_V1_RecapView? = nil
 }
 
-public nonisolated struct MoneyRecap_V1_BffServiceListRecapMonthsRequest: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
-/// The past-Recap list (PRD §6.8, SCREEN-STATES C7).
-public nonisolated struct MoneyRecap_V1_BffServiceListRecapMonthsResponse: Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  /// Newest first, the current month never listed, labelled by Archetype or
-  /// "Partial" (PRD §8.11).
-  public var months: [MoneyRecap_V1_RecapMonth] = []
-
-  /// "YYYY-MM-DD" for the empty list's line (D47).
-  public var firstRecapOn: String = String()
-
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-}
-
 public nonisolated struct MoneyRecap_V1_BffServiceListSpendsRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -281,60 +253,6 @@ nonisolated extension MoneyRecap_V1_BffServiceGetRecapResponse: SwiftProtobuf.Me
 
   public static func ==(lhs: MoneyRecap_V1_BffServiceGetRecapResponse, rhs: MoneyRecap_V1_BffServiceGetRecapResponse) -> Bool {
     if lhs._recap != rhs._recap {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension MoneyRecap_V1_BffServiceListRecapMonthsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".BffServiceListRecapMonthsRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    // Load everything into unknown fields
-    while try decoder.nextFieldNumber() != nil {}
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: MoneyRecap_V1_BffServiceListRecapMonthsRequest, rhs: MoneyRecap_V1_BffServiceListRecapMonthsRequest) -> Bool {
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-nonisolated extension MoneyRecap_V1_BffServiceListRecapMonthsResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".BffServiceListRecapMonthsResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}months\0\u{3}first_recap_on\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.months) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.firstRecapOn) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.months.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.months, fieldNumber: 1)
-    }
-    if !self.firstRecapOn.isEmpty {
-      try visitor.visitSingularStringField(value: self.firstRecapOn, fieldNumber: 2)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: MoneyRecap_V1_BffServiceListRecapMonthsResponse, rhs: MoneyRecap_V1_BffServiceListRecapMonthsResponse) -> Bool {
-    if lhs.months != rhs.months {return false}
-    if lhs.firstRecapOn != rhs.firstRecapOn {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

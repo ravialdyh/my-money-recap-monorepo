@@ -108,13 +108,12 @@ const file_money_recap_v1_bff_proto_rawDesc = "" +
 	"\x18money_recap/v1/bff.proto\x12\x0emoney_recap.v1\x1a money_recap/v1/bff_account.proto\x1a\x1emoney_recap/v1/bff_reads.proto\x1a\x1emoney_recap/v1/bff_views.proto\x1a\x1fmoney_recap/v1/bff_writes.proto\"\x10\n" +
 	"\x0eGetHomeRequest\"?\n" +
 	"\x0fGetHomeResponse\x12,\n" +
-	"\x04home\x18\x01 \x01(\v2\x18.money_recap.v1.HomeViewR\x04home2\xed\x12\n" +
+	"\x04home\x18\x01 \x01(\v2\x18.money_recap.v1.HomeViewR\x04home2\xf3\x11\n" +
 	"\n" +
 	"BffService\x12{\n" +
 	"\x10RequestMagicLink\x121.money_recap.v1.BffServiceRequestMagicLinkRequest\x1a2.money_recap.v1.BffServiceRequestMagicLinkResponse\"\x00\x12L\n" +
 	"\aGetHome\x12\x1e.money_recap.v1.GetHomeRequest\x1a\x1f.money_recap.v1.GetHomeResponse\"\x00\x12c\n" +
-	"\bGetRecap\x12).money_recap.v1.BffServiceGetRecapRequest\x1a*.money_recap.v1.BffServiceGetRecapResponse\"\x00\x12x\n" +
-	"\x0fListRecapMonths\x120.money_recap.v1.BffServiceListRecapMonthsRequest\x1a1.money_recap.v1.BffServiceListRecapMonthsResponse\"\x00\x12i\n" +
+	"\bGetRecap\x12).money_recap.v1.BffServiceGetRecapRequest\x1a*.money_recap.v1.BffServiceGetRecapResponse\"\x00\x12i\n" +
 	"\n" +
 	"ListSpends\x12+.money_recap.v1.BffServiceListSpendsRequest\x1a,.money_recap.v1.BffServiceListSpendsResponse\"\x00\x12c\n" +
 	"\bLogSpend\x12).money_recap.v1.BffServiceLogSpendRequest\x1a*.money_recap.v1.BffServiceLogSpendResponse\"\x00\x12f\n" +
@@ -155,91 +154,87 @@ var file_money_recap_v1_bff_proto_goTypes = []any{
 	(*HomeView)(nil),                                // 2: money_recap.v1.HomeView
 	(*BffServiceRequestMagicLinkRequest)(nil),       // 3: money_recap.v1.BffServiceRequestMagicLinkRequest
 	(*BffServiceGetRecapRequest)(nil),               // 4: money_recap.v1.BffServiceGetRecapRequest
-	(*BffServiceListRecapMonthsRequest)(nil),        // 5: money_recap.v1.BffServiceListRecapMonthsRequest
-	(*BffServiceListSpendsRequest)(nil),             // 6: money_recap.v1.BffServiceListSpendsRequest
-	(*BffServiceLogSpendRequest)(nil),               // 7: money_recap.v1.BffServiceLogSpendRequest
-	(*BffServiceEditSpendRequest)(nil),              // 8: money_recap.v1.BffServiceEditSpendRequest
-	(*BffServiceDeleteSpendRequest)(nil),            // 9: money_recap.v1.BffServiceDeleteSpendRequest
-	(*BffServiceGetOnboardingStateRequest)(nil),     // 10: money_recap.v1.BffServiceGetOnboardingStateRequest
-	(*BffServiceSaveProfileRequest)(nil),            // 11: money_recap.v1.BffServiceSaveProfileRequest
-	(*BffServiceSetTimezoneRequest)(nil),            // 12: money_recap.v1.BffServiceSetTimezoneRequest
-	(*BffServiceGetSettingsRequest)(nil),            // 13: money_recap.v1.BffServiceGetSettingsRequest
-	(*BffServiceSaveSalaryRequest)(nil),             // 14: money_recap.v1.BffServiceSaveSalaryRequest
-	(*BffServiceSaveTargetRequest)(nil),             // 15: money_recap.v1.BffServiceSaveTargetRequest
-	(*BffServicePreviewCurrencyChangeRequest)(nil),  // 16: money_recap.v1.BffServicePreviewCurrencyChangeRequest
-	(*BffServiceChangeCurrencyRequest)(nil),         // 17: money_recap.v1.BffServiceChangeCurrencyRequest
-	(*BffServiceSaveNotificationPrefsRequest)(nil),  // 18: money_recap.v1.BffServiceSaveNotificationPrefsRequest
-	(*BffServiceRegisterDeviceRequest)(nil),         // 19: money_recap.v1.BffServiceRegisterDeviceRequest
-	(*BffServiceRequestExportRequest)(nil),          // 20: money_recap.v1.BffServiceRequestExportRequest
-	(*BffServiceRequestDeletionRequest)(nil),        // 21: money_recap.v1.BffServiceRequestDeletionRequest
-	(*BffServiceCancelDeletionRequest)(nil),         // 22: money_recap.v1.BffServiceCancelDeletionRequest
-	(*BffServiceRequestMagicLinkResponse)(nil),      // 23: money_recap.v1.BffServiceRequestMagicLinkResponse
-	(*BffServiceGetRecapResponse)(nil),              // 24: money_recap.v1.BffServiceGetRecapResponse
-	(*BffServiceListRecapMonthsResponse)(nil),       // 25: money_recap.v1.BffServiceListRecapMonthsResponse
-	(*BffServiceListSpendsResponse)(nil),            // 26: money_recap.v1.BffServiceListSpendsResponse
-	(*BffServiceLogSpendResponse)(nil),              // 27: money_recap.v1.BffServiceLogSpendResponse
-	(*BffServiceEditSpendResponse)(nil),             // 28: money_recap.v1.BffServiceEditSpendResponse
-	(*BffServiceDeleteSpendResponse)(nil),           // 29: money_recap.v1.BffServiceDeleteSpendResponse
-	(*BffServiceGetOnboardingStateResponse)(nil),    // 30: money_recap.v1.BffServiceGetOnboardingStateResponse
-	(*BffServiceSaveProfileResponse)(nil),           // 31: money_recap.v1.BffServiceSaveProfileResponse
-	(*BffServiceSetTimezoneResponse)(nil),           // 32: money_recap.v1.BffServiceSetTimezoneResponse
-	(*BffServiceGetSettingsResponse)(nil),           // 33: money_recap.v1.BffServiceGetSettingsResponse
-	(*BffServiceSaveSalaryResponse)(nil),            // 34: money_recap.v1.BffServiceSaveSalaryResponse
-	(*BffServiceSaveTargetResponse)(nil),            // 35: money_recap.v1.BffServiceSaveTargetResponse
-	(*BffServicePreviewCurrencyChangeResponse)(nil), // 36: money_recap.v1.BffServicePreviewCurrencyChangeResponse
-	(*BffServiceChangeCurrencyResponse)(nil),        // 37: money_recap.v1.BffServiceChangeCurrencyResponse
-	(*BffServiceSaveNotificationPrefsResponse)(nil), // 38: money_recap.v1.BffServiceSaveNotificationPrefsResponse
-	(*BffServiceRegisterDeviceResponse)(nil),        // 39: money_recap.v1.BffServiceRegisterDeviceResponse
-	(*BffServiceRequestExportResponse)(nil),         // 40: money_recap.v1.BffServiceRequestExportResponse
-	(*BffServiceRequestDeletionResponse)(nil),       // 41: money_recap.v1.BffServiceRequestDeletionResponse
-	(*BffServiceCancelDeletionResponse)(nil),        // 42: money_recap.v1.BffServiceCancelDeletionResponse
+	(*BffServiceListSpendsRequest)(nil),             // 5: money_recap.v1.BffServiceListSpendsRequest
+	(*BffServiceLogSpendRequest)(nil),               // 6: money_recap.v1.BffServiceLogSpendRequest
+	(*BffServiceEditSpendRequest)(nil),              // 7: money_recap.v1.BffServiceEditSpendRequest
+	(*BffServiceDeleteSpendRequest)(nil),            // 8: money_recap.v1.BffServiceDeleteSpendRequest
+	(*BffServiceGetOnboardingStateRequest)(nil),     // 9: money_recap.v1.BffServiceGetOnboardingStateRequest
+	(*BffServiceSaveProfileRequest)(nil),            // 10: money_recap.v1.BffServiceSaveProfileRequest
+	(*BffServiceSetTimezoneRequest)(nil),            // 11: money_recap.v1.BffServiceSetTimezoneRequest
+	(*BffServiceGetSettingsRequest)(nil),            // 12: money_recap.v1.BffServiceGetSettingsRequest
+	(*BffServiceSaveSalaryRequest)(nil),             // 13: money_recap.v1.BffServiceSaveSalaryRequest
+	(*BffServiceSaveTargetRequest)(nil),             // 14: money_recap.v1.BffServiceSaveTargetRequest
+	(*BffServicePreviewCurrencyChangeRequest)(nil),  // 15: money_recap.v1.BffServicePreviewCurrencyChangeRequest
+	(*BffServiceChangeCurrencyRequest)(nil),         // 16: money_recap.v1.BffServiceChangeCurrencyRequest
+	(*BffServiceSaveNotificationPrefsRequest)(nil),  // 17: money_recap.v1.BffServiceSaveNotificationPrefsRequest
+	(*BffServiceRegisterDeviceRequest)(nil),         // 18: money_recap.v1.BffServiceRegisterDeviceRequest
+	(*BffServiceRequestExportRequest)(nil),          // 19: money_recap.v1.BffServiceRequestExportRequest
+	(*BffServiceRequestDeletionRequest)(nil),        // 20: money_recap.v1.BffServiceRequestDeletionRequest
+	(*BffServiceCancelDeletionRequest)(nil),         // 21: money_recap.v1.BffServiceCancelDeletionRequest
+	(*BffServiceRequestMagicLinkResponse)(nil),      // 22: money_recap.v1.BffServiceRequestMagicLinkResponse
+	(*BffServiceGetRecapResponse)(nil),              // 23: money_recap.v1.BffServiceGetRecapResponse
+	(*BffServiceListSpendsResponse)(nil),            // 24: money_recap.v1.BffServiceListSpendsResponse
+	(*BffServiceLogSpendResponse)(nil),              // 25: money_recap.v1.BffServiceLogSpendResponse
+	(*BffServiceEditSpendResponse)(nil),             // 26: money_recap.v1.BffServiceEditSpendResponse
+	(*BffServiceDeleteSpendResponse)(nil),           // 27: money_recap.v1.BffServiceDeleteSpendResponse
+	(*BffServiceGetOnboardingStateResponse)(nil),    // 28: money_recap.v1.BffServiceGetOnboardingStateResponse
+	(*BffServiceSaveProfileResponse)(nil),           // 29: money_recap.v1.BffServiceSaveProfileResponse
+	(*BffServiceSetTimezoneResponse)(nil),           // 30: money_recap.v1.BffServiceSetTimezoneResponse
+	(*BffServiceGetSettingsResponse)(nil),           // 31: money_recap.v1.BffServiceGetSettingsResponse
+	(*BffServiceSaveSalaryResponse)(nil),            // 32: money_recap.v1.BffServiceSaveSalaryResponse
+	(*BffServiceSaveTargetResponse)(nil),            // 33: money_recap.v1.BffServiceSaveTargetResponse
+	(*BffServicePreviewCurrencyChangeResponse)(nil), // 34: money_recap.v1.BffServicePreviewCurrencyChangeResponse
+	(*BffServiceChangeCurrencyResponse)(nil),        // 35: money_recap.v1.BffServiceChangeCurrencyResponse
+	(*BffServiceSaveNotificationPrefsResponse)(nil), // 36: money_recap.v1.BffServiceSaveNotificationPrefsResponse
+	(*BffServiceRegisterDeviceResponse)(nil),        // 37: money_recap.v1.BffServiceRegisterDeviceResponse
+	(*BffServiceRequestExportResponse)(nil),         // 38: money_recap.v1.BffServiceRequestExportResponse
+	(*BffServiceRequestDeletionResponse)(nil),       // 39: money_recap.v1.BffServiceRequestDeletionResponse
+	(*BffServiceCancelDeletionResponse)(nil),        // 40: money_recap.v1.BffServiceCancelDeletionResponse
 }
 var file_money_recap_v1_bff_proto_depIdxs = []int32{
 	2,  // 0: money_recap.v1.GetHomeResponse.home:type_name -> money_recap.v1.HomeView
 	3,  // 1: money_recap.v1.BffService.RequestMagicLink:input_type -> money_recap.v1.BffServiceRequestMagicLinkRequest
 	0,  // 2: money_recap.v1.BffService.GetHome:input_type -> money_recap.v1.GetHomeRequest
 	4,  // 3: money_recap.v1.BffService.GetRecap:input_type -> money_recap.v1.BffServiceGetRecapRequest
-	5,  // 4: money_recap.v1.BffService.ListRecapMonths:input_type -> money_recap.v1.BffServiceListRecapMonthsRequest
-	6,  // 5: money_recap.v1.BffService.ListSpends:input_type -> money_recap.v1.BffServiceListSpendsRequest
-	7,  // 6: money_recap.v1.BffService.LogSpend:input_type -> money_recap.v1.BffServiceLogSpendRequest
-	8,  // 7: money_recap.v1.BffService.EditSpend:input_type -> money_recap.v1.BffServiceEditSpendRequest
-	9,  // 8: money_recap.v1.BffService.DeleteSpend:input_type -> money_recap.v1.BffServiceDeleteSpendRequest
-	10, // 9: money_recap.v1.BffService.GetOnboardingState:input_type -> money_recap.v1.BffServiceGetOnboardingStateRequest
-	11, // 10: money_recap.v1.BffService.SaveProfile:input_type -> money_recap.v1.BffServiceSaveProfileRequest
-	12, // 11: money_recap.v1.BffService.SetTimezone:input_type -> money_recap.v1.BffServiceSetTimezoneRequest
-	13, // 12: money_recap.v1.BffService.GetSettings:input_type -> money_recap.v1.BffServiceGetSettingsRequest
-	14, // 13: money_recap.v1.BffService.SaveSalary:input_type -> money_recap.v1.BffServiceSaveSalaryRequest
-	15, // 14: money_recap.v1.BffService.SaveTarget:input_type -> money_recap.v1.BffServiceSaveTargetRequest
-	16, // 15: money_recap.v1.BffService.PreviewCurrencyChange:input_type -> money_recap.v1.BffServicePreviewCurrencyChangeRequest
-	17, // 16: money_recap.v1.BffService.ChangeCurrency:input_type -> money_recap.v1.BffServiceChangeCurrencyRequest
-	18, // 17: money_recap.v1.BffService.SaveNotificationPrefs:input_type -> money_recap.v1.BffServiceSaveNotificationPrefsRequest
-	19, // 18: money_recap.v1.BffService.RegisterDevice:input_type -> money_recap.v1.BffServiceRegisterDeviceRequest
-	20, // 19: money_recap.v1.BffService.RequestExport:input_type -> money_recap.v1.BffServiceRequestExportRequest
-	21, // 20: money_recap.v1.BffService.RequestDeletion:input_type -> money_recap.v1.BffServiceRequestDeletionRequest
-	22, // 21: money_recap.v1.BffService.CancelDeletion:input_type -> money_recap.v1.BffServiceCancelDeletionRequest
-	23, // 22: money_recap.v1.BffService.RequestMagicLink:output_type -> money_recap.v1.BffServiceRequestMagicLinkResponse
-	1,  // 23: money_recap.v1.BffService.GetHome:output_type -> money_recap.v1.GetHomeResponse
-	24, // 24: money_recap.v1.BffService.GetRecap:output_type -> money_recap.v1.BffServiceGetRecapResponse
-	25, // 25: money_recap.v1.BffService.ListRecapMonths:output_type -> money_recap.v1.BffServiceListRecapMonthsResponse
-	26, // 26: money_recap.v1.BffService.ListSpends:output_type -> money_recap.v1.BffServiceListSpendsResponse
-	27, // 27: money_recap.v1.BffService.LogSpend:output_type -> money_recap.v1.BffServiceLogSpendResponse
-	28, // 28: money_recap.v1.BffService.EditSpend:output_type -> money_recap.v1.BffServiceEditSpendResponse
-	29, // 29: money_recap.v1.BffService.DeleteSpend:output_type -> money_recap.v1.BffServiceDeleteSpendResponse
-	30, // 30: money_recap.v1.BffService.GetOnboardingState:output_type -> money_recap.v1.BffServiceGetOnboardingStateResponse
-	31, // 31: money_recap.v1.BffService.SaveProfile:output_type -> money_recap.v1.BffServiceSaveProfileResponse
-	32, // 32: money_recap.v1.BffService.SetTimezone:output_type -> money_recap.v1.BffServiceSetTimezoneResponse
-	33, // 33: money_recap.v1.BffService.GetSettings:output_type -> money_recap.v1.BffServiceGetSettingsResponse
-	34, // 34: money_recap.v1.BffService.SaveSalary:output_type -> money_recap.v1.BffServiceSaveSalaryResponse
-	35, // 35: money_recap.v1.BffService.SaveTarget:output_type -> money_recap.v1.BffServiceSaveTargetResponse
-	36, // 36: money_recap.v1.BffService.PreviewCurrencyChange:output_type -> money_recap.v1.BffServicePreviewCurrencyChangeResponse
-	37, // 37: money_recap.v1.BffService.ChangeCurrency:output_type -> money_recap.v1.BffServiceChangeCurrencyResponse
-	38, // 38: money_recap.v1.BffService.SaveNotificationPrefs:output_type -> money_recap.v1.BffServiceSaveNotificationPrefsResponse
-	39, // 39: money_recap.v1.BffService.RegisterDevice:output_type -> money_recap.v1.BffServiceRegisterDeviceResponse
-	40, // 40: money_recap.v1.BffService.RequestExport:output_type -> money_recap.v1.BffServiceRequestExportResponse
-	41, // 41: money_recap.v1.BffService.RequestDeletion:output_type -> money_recap.v1.BffServiceRequestDeletionResponse
-	42, // 42: money_recap.v1.BffService.CancelDeletion:output_type -> money_recap.v1.BffServiceCancelDeletionResponse
-	22, // [22:43] is the sub-list for method output_type
-	1,  // [1:22] is the sub-list for method input_type
+	5,  // 4: money_recap.v1.BffService.ListSpends:input_type -> money_recap.v1.BffServiceListSpendsRequest
+	6,  // 5: money_recap.v1.BffService.LogSpend:input_type -> money_recap.v1.BffServiceLogSpendRequest
+	7,  // 6: money_recap.v1.BffService.EditSpend:input_type -> money_recap.v1.BffServiceEditSpendRequest
+	8,  // 7: money_recap.v1.BffService.DeleteSpend:input_type -> money_recap.v1.BffServiceDeleteSpendRequest
+	9,  // 8: money_recap.v1.BffService.GetOnboardingState:input_type -> money_recap.v1.BffServiceGetOnboardingStateRequest
+	10, // 9: money_recap.v1.BffService.SaveProfile:input_type -> money_recap.v1.BffServiceSaveProfileRequest
+	11, // 10: money_recap.v1.BffService.SetTimezone:input_type -> money_recap.v1.BffServiceSetTimezoneRequest
+	12, // 11: money_recap.v1.BffService.GetSettings:input_type -> money_recap.v1.BffServiceGetSettingsRequest
+	13, // 12: money_recap.v1.BffService.SaveSalary:input_type -> money_recap.v1.BffServiceSaveSalaryRequest
+	14, // 13: money_recap.v1.BffService.SaveTarget:input_type -> money_recap.v1.BffServiceSaveTargetRequest
+	15, // 14: money_recap.v1.BffService.PreviewCurrencyChange:input_type -> money_recap.v1.BffServicePreviewCurrencyChangeRequest
+	16, // 15: money_recap.v1.BffService.ChangeCurrency:input_type -> money_recap.v1.BffServiceChangeCurrencyRequest
+	17, // 16: money_recap.v1.BffService.SaveNotificationPrefs:input_type -> money_recap.v1.BffServiceSaveNotificationPrefsRequest
+	18, // 17: money_recap.v1.BffService.RegisterDevice:input_type -> money_recap.v1.BffServiceRegisterDeviceRequest
+	19, // 18: money_recap.v1.BffService.RequestExport:input_type -> money_recap.v1.BffServiceRequestExportRequest
+	20, // 19: money_recap.v1.BffService.RequestDeletion:input_type -> money_recap.v1.BffServiceRequestDeletionRequest
+	21, // 20: money_recap.v1.BffService.CancelDeletion:input_type -> money_recap.v1.BffServiceCancelDeletionRequest
+	22, // 21: money_recap.v1.BffService.RequestMagicLink:output_type -> money_recap.v1.BffServiceRequestMagicLinkResponse
+	1,  // 22: money_recap.v1.BffService.GetHome:output_type -> money_recap.v1.GetHomeResponse
+	23, // 23: money_recap.v1.BffService.GetRecap:output_type -> money_recap.v1.BffServiceGetRecapResponse
+	24, // 24: money_recap.v1.BffService.ListSpends:output_type -> money_recap.v1.BffServiceListSpendsResponse
+	25, // 25: money_recap.v1.BffService.LogSpend:output_type -> money_recap.v1.BffServiceLogSpendResponse
+	26, // 26: money_recap.v1.BffService.EditSpend:output_type -> money_recap.v1.BffServiceEditSpendResponse
+	27, // 27: money_recap.v1.BffService.DeleteSpend:output_type -> money_recap.v1.BffServiceDeleteSpendResponse
+	28, // 28: money_recap.v1.BffService.GetOnboardingState:output_type -> money_recap.v1.BffServiceGetOnboardingStateResponse
+	29, // 29: money_recap.v1.BffService.SaveProfile:output_type -> money_recap.v1.BffServiceSaveProfileResponse
+	30, // 30: money_recap.v1.BffService.SetTimezone:output_type -> money_recap.v1.BffServiceSetTimezoneResponse
+	31, // 31: money_recap.v1.BffService.GetSettings:output_type -> money_recap.v1.BffServiceGetSettingsResponse
+	32, // 32: money_recap.v1.BffService.SaveSalary:output_type -> money_recap.v1.BffServiceSaveSalaryResponse
+	33, // 33: money_recap.v1.BffService.SaveTarget:output_type -> money_recap.v1.BffServiceSaveTargetResponse
+	34, // 34: money_recap.v1.BffService.PreviewCurrencyChange:output_type -> money_recap.v1.BffServicePreviewCurrencyChangeResponse
+	35, // 35: money_recap.v1.BffService.ChangeCurrency:output_type -> money_recap.v1.BffServiceChangeCurrencyResponse
+	36, // 36: money_recap.v1.BffService.SaveNotificationPrefs:output_type -> money_recap.v1.BffServiceSaveNotificationPrefsResponse
+	37, // 37: money_recap.v1.BffService.RegisterDevice:output_type -> money_recap.v1.BffServiceRegisterDeviceResponse
+	38, // 38: money_recap.v1.BffService.RequestExport:output_type -> money_recap.v1.BffServiceRequestExportResponse
+	39, // 39: money_recap.v1.BffService.RequestDeletion:output_type -> money_recap.v1.BffServiceRequestDeletionResponse
+	40, // 40: money_recap.v1.BffService.CancelDeletion:output_type -> money_recap.v1.BffServiceCancelDeletionResponse
+	21, // [21:41] is the sub-list for method output_type
+	1,  // [1:21] is the sub-list for method input_type
 	1,  // [1:1] is the sub-list for extension type_name
 	1,  // [1:1] is the sub-list for extension extendee
 	0,  // [0:1] is the sub-list for field type_name

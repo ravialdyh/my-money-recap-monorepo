@@ -80,7 +80,9 @@ const (
 type LedgerServiceClient interface {
 	// Every Home figure for one month (PRD §6.8).
 	GetMonthSummary(context.Context, *connect.Request[v1.GetMonthSummaryRequest]) (*connect.Response[v1.GetMonthSummaryResponse], error)
-	// One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17).
+	// One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17); the
+	// current month always answers. not_found for an earlier month with no Spend
+	// and no Money In; invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.GetRecapRequest]) (*connect.Response[v1.GetRecapResponse], error)
 	// The month switcher's list and the Recap-ready check (PRD D59, §10).
 	ListMonthsWithData(context.Context, *connect.Request[v1.ListMonthsWithDataRequest]) (*connect.Response[v1.ListMonthsWithDataResponse], error)
@@ -319,7 +321,9 @@ func (c *ledgerServiceClient) ExportCSV(ctx context.Context, req *connect.Reques
 type LedgerServiceHandler interface {
 	// Every Home figure for one month (PRD §6.8).
 	GetMonthSummary(context.Context, *connect.Request[v1.GetMonthSummaryRequest]) (*connect.Response[v1.GetMonthSummaryResponse], error)
-	// One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17).
+	// One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17); the
+	// current month always answers. not_found for an earlier month with no Spend
+	// and no Money In; invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.GetRecapRequest]) (*connect.Response[v1.GetRecapResponse], error)
 	// The month switcher's list and the Recap-ready check (PRD D59, §10).
 	ListMonthsWithData(context.Context, *connect.Request[v1.ListMonthsWithDataRequest]) (*connect.Response[v1.ListMonthsWithDataResponse], error)

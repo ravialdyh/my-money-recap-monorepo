@@ -103,9 +103,10 @@ func (l ledgerOf) spent(m month) (sum *big.Rat, count int) {
 // and the §8.8 warning copy, present whenever Spent is above the line and worded by whether Payday has passed (D53).
 func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 	spent, count := l.spent(m)
+	streak, _, _ := l.streak(m, today)
 	s := &moneyrecapv1.MonthSummary{
 		Month: m.String(), Spent: l.cash.money(spent), MoneyIn: l.cash.money(new(big.Rat)),
-		StreakDay: l.streak(m, today), DaysRemaining: daysRemaining(m, today),
+		StreakDay: streak, DaysRemaining: daysRemaining(m, today),
 	}
 	sal, ok := inForce(l.salaries, salaryFrom, m)
 	if !ok {
@@ -164,23 +165,25 @@ func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 	return s
 }
 
-// streak is PRD §8.5: the longest run of spend-free days in the window, which starts on the later of the 1st and
-// the sign-up date and ends today in the current month or on the month's last day before it.
-func (l ledgerOf) streak(m month, today time.Time) int32 {
+// streak is PRD §8.5: the longest spend-free run in the window (see window), with its first and last day; of two
+// equally long runs the earlier, and zero days when days is 0.
+func (l ledgerOf) streak(m month, today time.Time) (days int32, first, last time.Time) {
 	start, end := l.window(m, today)
 	spendDays := map[time.Time]bool{}
 	for _, s := range l.spends {
 		spendDays[s.date] = true
 	}
-	var best, run int32
+	var run int32
 	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
 		run++
 		if spendDays[d] {
 			run = 0
 		}
-		best = max(best, run)
+		if run > days {
+			days, first, last = run, d.AddDate(0, 0, 1-int(run)), d
+		}
 	}
-	return best
+	return days, first, last
 }
 
 // window is the Streak window of month m on today (PRD §8.5, D43).

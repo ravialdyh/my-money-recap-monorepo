@@ -110,98 +110,6 @@ func (x *BffServiceGetRecapResponse) GetRecap() *RecapView {
 	return nil
 }
 
-type BffServiceListRecapMonthsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BffServiceListRecapMonthsRequest) Reset() {
-	*x = BffServiceListRecapMonthsRequest{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BffServiceListRecapMonthsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BffServiceListRecapMonthsRequest) ProtoMessage() {}
-
-func (x *BffServiceListRecapMonthsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BffServiceListRecapMonthsRequest.ProtoReflect.Descriptor instead.
-func (*BffServiceListRecapMonthsRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{2}
-}
-
-// The past-Recap list (PRD §6.8, SCREEN-STATES C7).
-type BffServiceListRecapMonthsResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Newest first, the current month never listed, labelled by Archetype or
-	// "Partial" (PRD §8.11).
-	Months []*RecapMonth `protobuf:"bytes,1,rep,name=months,proto3" json:"months,omitempty"`
-	// "YYYY-MM-DD" for the empty list's line (D47).
-	FirstRecapOn  string `protobuf:"bytes,2,opt,name=first_recap_on,json=firstRecapOn,proto3" json:"first_recap_on,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BffServiceListRecapMonthsResponse) Reset() {
-	*x = BffServiceListRecapMonthsResponse{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BffServiceListRecapMonthsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BffServiceListRecapMonthsResponse) ProtoMessage() {}
-
-func (x *BffServiceListRecapMonthsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BffServiceListRecapMonthsResponse.ProtoReflect.Descriptor instead.
-func (*BffServiceListRecapMonthsResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *BffServiceListRecapMonthsResponse) GetMonths() []*RecapMonth {
-	if x != nil {
-		return x.Months
-	}
-	return nil
-}
-
-func (x *BffServiceListRecapMonthsResponse) GetFirstRecapOn() string {
-	if x != nil {
-		return x.FirstRecapOn
-	}
-	return ""
-}
-
 type BffServiceListSpendsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// "YYYY-MM"; empty means the current month in the Member's zone (D59).
@@ -212,7 +120,7 @@ type BffServiceListSpendsRequest struct {
 
 func (x *BffServiceListSpendsRequest) Reset() {
 	*x = BffServiceListSpendsRequest{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[4]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -224,7 +132,7 @@ func (x *BffServiceListSpendsRequest) String() string {
 func (*BffServiceListSpendsRequest) ProtoMessage() {}
 
 func (x *BffServiceListSpendsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[4]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -237,7 +145,7 @@ func (x *BffServiceListSpendsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceListSpendsRequest.ProtoReflect.Descriptor instead.
 func (*BffServiceListSpendsRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{4}
+	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *BffServiceListSpendsRequest) GetMonth() string {
@@ -256,7 +164,7 @@ type BffServiceListSpendsResponse struct {
 
 func (x *BffServiceListSpendsResponse) Reset() {
 	*x = BffServiceListSpendsResponse{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[5]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -268,7 +176,7 @@ func (x *BffServiceListSpendsResponse) String() string {
 func (*BffServiceListSpendsResponse) ProtoMessage() {}
 
 func (x *BffServiceListSpendsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[5]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -281,7 +189,7 @@ func (x *BffServiceListSpendsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceListSpendsResponse.ProtoReflect.Descriptor instead.
 func (*BffServiceListSpendsResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{5}
+	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *BffServiceListSpendsResponse) GetSpends() *SpendListView {
@@ -299,7 +207,7 @@ type BffServiceGetOnboardingStateRequest struct {
 
 func (x *BffServiceGetOnboardingStateRequest) Reset() {
 	*x = BffServiceGetOnboardingStateRequest{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[6]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -311,7 +219,7 @@ func (x *BffServiceGetOnboardingStateRequest) String() string {
 func (*BffServiceGetOnboardingStateRequest) ProtoMessage() {}
 
 func (x *BffServiceGetOnboardingStateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[6]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -324,7 +232,7 @@ func (x *BffServiceGetOnboardingStateRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use BffServiceGetOnboardingStateRequest.ProtoReflect.Descriptor instead.
 func (*BffServiceGetOnboardingStateRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{6}
+	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{4}
 }
 
 type BffServiceGetOnboardingStateResponse struct {
@@ -336,7 +244,7 @@ type BffServiceGetOnboardingStateResponse struct {
 
 func (x *BffServiceGetOnboardingStateResponse) Reset() {
 	*x = BffServiceGetOnboardingStateResponse{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[7]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -348,7 +256,7 @@ func (x *BffServiceGetOnboardingStateResponse) String() string {
 func (*BffServiceGetOnboardingStateResponse) ProtoMessage() {}
 
 func (x *BffServiceGetOnboardingStateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[7]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -361,7 +269,7 @@ func (x *BffServiceGetOnboardingStateResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use BffServiceGetOnboardingStateResponse.ProtoReflect.Descriptor instead.
 func (*BffServiceGetOnboardingStateResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{7}
+	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *BffServiceGetOnboardingStateResponse) GetState() *OnboardingState {
@@ -379,7 +287,7 @@ type BffServiceGetSettingsRequest struct {
 
 func (x *BffServiceGetSettingsRequest) Reset() {
 	*x = BffServiceGetSettingsRequest{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[8]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -391,7 +299,7 @@ func (x *BffServiceGetSettingsRequest) String() string {
 func (*BffServiceGetSettingsRequest) ProtoMessage() {}
 
 func (x *BffServiceGetSettingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[8]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -404,7 +312,7 @@ func (x *BffServiceGetSettingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceGetSettingsRequest.ProtoReflect.Descriptor instead.
 func (*BffServiceGetSettingsRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{8}
+	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{6}
 }
 
 type BffServiceGetSettingsResponse struct {
@@ -416,7 +324,7 @@ type BffServiceGetSettingsResponse struct {
 
 func (x *BffServiceGetSettingsResponse) Reset() {
 	*x = BffServiceGetSettingsResponse{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[9]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -428,7 +336,7 @@ func (x *BffServiceGetSettingsResponse) String() string {
 func (*BffServiceGetSettingsResponse) ProtoMessage() {}
 
 func (x *BffServiceGetSettingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[9]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -441,7 +349,7 @@ func (x *BffServiceGetSettingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceGetSettingsResponse.ProtoReflect.Descriptor instead.
 func (*BffServiceGetSettingsResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{9}
+	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *BffServiceGetSettingsResponse) GetSettings() *SettingsView {
@@ -466,7 +374,7 @@ type BffServicePreviewCurrencyChangeRequest struct {
 
 func (x *BffServicePreviewCurrencyChangeRequest) Reset() {
 	*x = BffServicePreviewCurrencyChangeRequest{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[10]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -478,7 +386,7 @@ func (x *BffServicePreviewCurrencyChangeRequest) String() string {
 func (*BffServicePreviewCurrencyChangeRequest) ProtoMessage() {}
 
 func (x *BffServicePreviewCurrencyChangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[10]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -491,7 +399,7 @@ func (x *BffServicePreviewCurrencyChangeRequest) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use BffServicePreviewCurrencyChangeRequest.ProtoReflect.Descriptor instead.
 func (*BffServicePreviewCurrencyChangeRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{10}
+	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *BffServicePreviewCurrencyChangeRequest) GetToCurrencyCode() string {
@@ -517,7 +425,7 @@ type BffServicePreviewCurrencyChangeResponse struct {
 
 func (x *BffServicePreviewCurrencyChangeResponse) Reset() {
 	*x = BffServicePreviewCurrencyChangeResponse{}
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[11]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -529,7 +437,7 @@ func (x *BffServicePreviewCurrencyChangeResponse) String() string {
 func (*BffServicePreviewCurrencyChangeResponse) ProtoMessage() {}
 
 func (x *BffServicePreviewCurrencyChangeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[11]
+	mi := &file_money_recap_v1_bff_reads_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -542,7 +450,7 @@ func (x *BffServicePreviewCurrencyChangeResponse) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use BffServicePreviewCurrencyChangeResponse.ProtoReflect.Descriptor instead.
 func (*BffServicePreviewCurrencyChangeResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{11}
+	return file_money_recap_v1_bff_reads_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *BffServicePreviewCurrencyChangeResponse) GetPreview() *CurrencyChangePreview {
@@ -556,15 +464,11 @@ var File_money_recap_v1_bff_reads_proto protoreflect.FileDescriptor
 
 const file_money_recap_v1_bff_reads_proto_rawDesc = "" +
 	"\n" +
-	"\x1emoney_recap/v1/bff_reads.proto\x12\x0emoney_recap.v1\x1a\x1emoney_recap/v1/bff_views.proto\x1a\x1bmoney_recap/v1/shared.proto\"1\n" +
+	"\x1emoney_recap/v1/bff_reads.proto\x12\x0emoney_recap.v1\x1a\x1emoney_recap/v1/bff_views.proto\"1\n" +
 	"\x19BffServiceGetRecapRequest\x12\x14\n" +
 	"\x05month\x18\x01 \x01(\tR\x05month\"M\n" +
 	"\x1aBffServiceGetRecapResponse\x12/\n" +
-	"\x05recap\x18\x01 \x01(\v2\x19.money_recap.v1.RecapViewR\x05recap\"\"\n" +
-	" BffServiceListRecapMonthsRequest\"}\n" +
-	"!BffServiceListRecapMonthsResponse\x122\n" +
-	"\x06months\x18\x01 \x03(\v2\x1a.money_recap.v1.RecapMonthR\x06months\x12$\n" +
-	"\x0efirst_recap_on\x18\x02 \x01(\tR\ffirstRecapOn\"3\n" +
+	"\x05recap\x18\x01 \x01(\v2\x19.money_recap.v1.RecapViewR\x05recap\"3\n" +
 	"\x1bBffServiceListSpendsRequest\x12\x14\n" +
 	"\x05month\x18\x01 \x01(\tR\x05month\"U\n" +
 	"\x1cBffServiceListSpendsResponse\x125\n" +
@@ -594,39 +498,35 @@ func file_money_recap_v1_bff_reads_proto_rawDescGZIP() []byte {
 	return file_money_recap_v1_bff_reads_proto_rawDescData
 }
 
-var file_money_recap_v1_bff_reads_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_money_recap_v1_bff_reads_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_money_recap_v1_bff_reads_proto_goTypes = []any{
 	(*BffServiceGetRecapRequest)(nil),               // 0: money_recap.v1.BffServiceGetRecapRequest
 	(*BffServiceGetRecapResponse)(nil),              // 1: money_recap.v1.BffServiceGetRecapResponse
-	(*BffServiceListRecapMonthsRequest)(nil),        // 2: money_recap.v1.BffServiceListRecapMonthsRequest
-	(*BffServiceListRecapMonthsResponse)(nil),       // 3: money_recap.v1.BffServiceListRecapMonthsResponse
-	(*BffServiceListSpendsRequest)(nil),             // 4: money_recap.v1.BffServiceListSpendsRequest
-	(*BffServiceListSpendsResponse)(nil),            // 5: money_recap.v1.BffServiceListSpendsResponse
-	(*BffServiceGetOnboardingStateRequest)(nil),     // 6: money_recap.v1.BffServiceGetOnboardingStateRequest
-	(*BffServiceGetOnboardingStateResponse)(nil),    // 7: money_recap.v1.BffServiceGetOnboardingStateResponse
-	(*BffServiceGetSettingsRequest)(nil),            // 8: money_recap.v1.BffServiceGetSettingsRequest
-	(*BffServiceGetSettingsResponse)(nil),           // 9: money_recap.v1.BffServiceGetSettingsResponse
-	(*BffServicePreviewCurrencyChangeRequest)(nil),  // 10: money_recap.v1.BffServicePreviewCurrencyChangeRequest
-	(*BffServicePreviewCurrencyChangeResponse)(nil), // 11: money_recap.v1.BffServicePreviewCurrencyChangeResponse
-	(*RecapView)(nil),                               // 12: money_recap.v1.RecapView
-	(*RecapMonth)(nil),                              // 13: money_recap.v1.RecapMonth
-	(*SpendListView)(nil),                           // 14: money_recap.v1.SpendListView
-	(*OnboardingState)(nil),                         // 15: money_recap.v1.OnboardingState
-	(*SettingsView)(nil),                            // 16: money_recap.v1.SettingsView
-	(*CurrencyChangePreview)(nil),                   // 17: money_recap.v1.CurrencyChangePreview
+	(*BffServiceListSpendsRequest)(nil),             // 2: money_recap.v1.BffServiceListSpendsRequest
+	(*BffServiceListSpendsResponse)(nil),            // 3: money_recap.v1.BffServiceListSpendsResponse
+	(*BffServiceGetOnboardingStateRequest)(nil),     // 4: money_recap.v1.BffServiceGetOnboardingStateRequest
+	(*BffServiceGetOnboardingStateResponse)(nil),    // 5: money_recap.v1.BffServiceGetOnboardingStateResponse
+	(*BffServiceGetSettingsRequest)(nil),            // 6: money_recap.v1.BffServiceGetSettingsRequest
+	(*BffServiceGetSettingsResponse)(nil),           // 7: money_recap.v1.BffServiceGetSettingsResponse
+	(*BffServicePreviewCurrencyChangeRequest)(nil),  // 8: money_recap.v1.BffServicePreviewCurrencyChangeRequest
+	(*BffServicePreviewCurrencyChangeResponse)(nil), // 9: money_recap.v1.BffServicePreviewCurrencyChangeResponse
+	(*RecapView)(nil),                               // 10: money_recap.v1.RecapView
+	(*SpendListView)(nil),                           // 11: money_recap.v1.SpendListView
+	(*OnboardingState)(nil),                         // 12: money_recap.v1.OnboardingState
+	(*SettingsView)(nil),                            // 13: money_recap.v1.SettingsView
+	(*CurrencyChangePreview)(nil),                   // 14: money_recap.v1.CurrencyChangePreview
 }
 var file_money_recap_v1_bff_reads_proto_depIdxs = []int32{
-	12, // 0: money_recap.v1.BffServiceGetRecapResponse.recap:type_name -> money_recap.v1.RecapView
-	13, // 1: money_recap.v1.BffServiceListRecapMonthsResponse.months:type_name -> money_recap.v1.RecapMonth
-	14, // 2: money_recap.v1.BffServiceListSpendsResponse.spends:type_name -> money_recap.v1.SpendListView
-	15, // 3: money_recap.v1.BffServiceGetOnboardingStateResponse.state:type_name -> money_recap.v1.OnboardingState
-	16, // 4: money_recap.v1.BffServiceGetSettingsResponse.settings:type_name -> money_recap.v1.SettingsView
-	17, // 5: money_recap.v1.BffServicePreviewCurrencyChangeResponse.preview:type_name -> money_recap.v1.CurrencyChangePreview
-	6,  // [6:6] is the sub-list for method output_type
-	6,  // [6:6] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	10, // 0: money_recap.v1.BffServiceGetRecapResponse.recap:type_name -> money_recap.v1.RecapView
+	11, // 1: money_recap.v1.BffServiceListSpendsResponse.spends:type_name -> money_recap.v1.SpendListView
+	12, // 2: money_recap.v1.BffServiceGetOnboardingStateResponse.state:type_name -> money_recap.v1.OnboardingState
+	13, // 3: money_recap.v1.BffServiceGetSettingsResponse.settings:type_name -> money_recap.v1.SettingsView
+	14, // 4: money_recap.v1.BffServicePreviewCurrencyChangeResponse.preview:type_name -> money_recap.v1.CurrencyChangePreview
+	5,  // [5:5] is the sub-list for method output_type
+	5,  // [5:5] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_money_recap_v1_bff_reads_proto_init() }
@@ -635,14 +535,13 @@ func file_money_recap_v1_bff_reads_proto_init() {
 		return
 	}
 	file_money_recap_v1_bff_views_proto_init()
-	file_money_recap_v1_shared_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_money_recap_v1_bff_reads_proto_rawDesc), len(file_money_recap_v1_bff_reads_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

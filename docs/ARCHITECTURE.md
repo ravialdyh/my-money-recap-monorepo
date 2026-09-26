@@ -163,7 +163,7 @@ Once one tap on the phone crosses Nginx, the BFF and up to three services, a slo
 | | |
 |---|---|
 | Responsibility | The only thing the phone talks to. Screen-shaped RPCs, JWT verification, per-Member limits, idempotency, fan-out to services and the join. Owns no database. |
-| RPCs | `RequestMagicLink`, `GetHome`, `GetRecap(month)`, `ListRecapMonths`, `ListSpends(month)`, `LogSpend`, `EditSpend`, `DeleteSpend`, `GetOnboardingState`, `SaveProfile`, `SetTimezone` (called on every launch), `GetSettings`, `SaveSalary`, `SaveTarget`, `PreviewCurrencyChange`, `ChangeCurrency`, `SaveNotificationPrefs`, `RegisterDevice`, `RequestExport`, `RequestDeletion`, `CancelDeletion`. Each is a thin join or pass-through to the service RPCs in §7. |
+| RPCs | `RequestMagicLink`, `GetHome`, `GetRecap(month)`, `ListSpends(month)`, `LogSpend`, `EditSpend`, `DeleteSpend`, `GetOnboardingState`, `SaveProfile`, `SetTimezone` (called on every launch), `GetSettings`, `SaveSalary`, `SaveTarget`, `PreviewCurrencyChange`, `ChangeCurrency`, `SaveNotificationPrefs`, `RegisterDevice`, `RequestExport`, `RequestDeletion`, `CancelDeletion`. Each is a thin join or pass-through to the service RPCs in §7. |
 | Depends on | `members`, `ledger`, `notify`, `currency` over Connect; Redis; Keycloak JWKS. |
 | Publishes | Nothing. The BFF never writes state, so it needs no outbox. |
 | Why a BFF | Home needs the profile (`members`), the numbers (`ledger`) and the warning state (`notify`). Someone must join them. Doing it in Go keeps the phone a pure display and keeps the join out of Nginx, which cannot do it. |

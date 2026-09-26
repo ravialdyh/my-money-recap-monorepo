@@ -38,7 +38,8 @@ message HomeView {
   int32 days_remaining = 11;
   // Absent unless the Target Warning has fired this month (PRD §8.8).
   optional TargetWarning target_warning = 12;
-  // Past months with a Recap, newest first (PRD §6.8 "Recap list").
+  // Past months with a Recap, newest first: the past-Recap list, SCREEN-STATES
+  // C7 (PRD §6.8); each row opens its month's GetRecap.
   repeated RecapMonth recap_months = 13;
   // ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
   string first_recap_on = 14;
@@ -52,13 +53,14 @@ message HomeView {
 
 // One month's Recap as the phone stores it (I4): ledger's Recap for the full
 // or the Partial Recap (PRD §6.11 to §6.14, §6.17) joined with the Member's
-// current Display Name and Avatar, since nothing about a Recap is stored (§7).
+// current Display Name and Currency, since nothing about a Recap is stored (§7).
 message RecapView {
+  reserved 3;
+  reserved "avatar_key";
   // Every figure of the month; situation says which four screens to draw.
   Recap recap = 1;
   // The current Display Name (PRD §6.11, §6.14, SCREEN-STATES D2).
   string display_name = 2;
-  string avatar_key = 3;
   // ISO 4217 code every amount in recap is held in.
   string currency_code = 4;
 }

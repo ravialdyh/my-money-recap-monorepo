@@ -50,7 +50,8 @@ type HomeView struct {
 	DaysRemaining int32 `protobuf:"varint,11,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
 	// Absent unless the Target Warning has fired this month (PRD §8.8).
 	TargetWarning *TargetWarning `protobuf:"bytes,12,opt,name=target_warning,json=targetWarning,proto3,oneof" json:"target_warning,omitempty"`
-	// Past months with a Recap, newest first (PRD §6.8 "Recap list").
+	// Past months with a Recap, newest first: the past-Recap list, SCREEN-STATES
+	// C7 (PRD §6.8); each row opens its month's GetRecap.
 	RecapMonths []*RecapMonth `protobuf:"bytes,13,rep,name=recap_months,json=recapMonths,proto3" json:"recap_months,omitempty"`
 	// ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
 	FirstRecapOn string `protobuf:"bytes,14,opt,name=first_recap_on,json=firstRecapOn,proto3" json:"first_recap_on,omitempty"`
@@ -208,14 +209,13 @@ func (x *HomeView) GetEarliestSpendDate() string {
 
 // One month's Recap as the phone stores it (I4): ledger's Recap for the full
 // or the Partial Recap (PRD §6.11 to §6.14, §6.17) joined with the Member's
-// current Display Name and Avatar, since nothing about a Recap is stored (§7).
+// current Display Name and Currency, since nothing about a Recap is stored (§7).
 type RecapView struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Every figure of the month; situation says which four screens to draw.
 	Recap *Recap `protobuf:"bytes,1,opt,name=recap,proto3" json:"recap,omitempty"`
 	// The current Display Name (PRD §6.11, §6.14, SCREEN-STATES D2).
 	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	AvatarKey   string `protobuf:"bytes,3,opt,name=avatar_key,json=avatarKey,proto3" json:"avatar_key,omitempty"`
 	// ISO 4217 code every amount in recap is held in.
 	CurrencyCode  string `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -262,13 +262,6 @@ func (x *RecapView) GetRecap() *Recap {
 func (x *RecapView) GetDisplayName() string {
 	if x != nil {
 		return x.DisplayName
-	}
-	return ""
-}
-
-func (x *RecapView) GetAvatarKey() string {
-	if x != nil {
-		return x.AvatarKey
 	}
 	return ""
 }
@@ -684,13 +677,12 @@ const file_money_recap_v1_bff_views_proto_rawDesc = "" +
 	"\x06_savedB\t\n" +
 	"\a_salaryB\x10\n" +
 	"\x0e_saving_targetB\x11\n" +
-	"\x0f_target_warning\"\x9f\x01\n" +
+	"\x0f_target_warning\"\x92\x01\n" +
 	"\tRecapView\x12+\n" +
 	"\x05recap\x18\x01 \x01(\v2\x15.money_recap.v1.RecapR\x05recap\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
-	"\n" +
-	"avatar_key\x18\x03 \x01(\tR\tavatarKey\x12#\n" +
-	"\rcurrency_code\x18\x04 \x01(\tR\fcurrencyCode\"\xc5\x02\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12#\n" +
+	"\rcurrency_code\x18\x04 \x01(\tR\fcurrencyCodeJ\x04\b\x03\x10\x04R\n" +
+	"avatar_key\"\xc5\x02\n" +
 	"\rSpendListView\x12\x14\n" +
 	"\x05month\x18\x01 \x01(\tR\x05month\x12#\n" +
 	"\rcurrency_code\x18\x02 \x01(\tR\fcurrencyCode\x12\x16\n" +
