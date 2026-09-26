@@ -10,7 +10,7 @@ struct RecapPagerView: View {
     var body: some View {
         TabView(selection: $model.page) {
             ForEach(Array(0 ..< max(model.pages.count, 1)), id: \.self) { index in
-                RecapCoverPage(model: model).tag(index)
+                page(index).tag(index)
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
@@ -20,8 +20,24 @@ struct RecapPagerView: View {
                 .padding(.leading, RecapLayout.closeInset)
                 .padding(.top, RecapLayout.closeTop)
         }
-        .background(Tokens.Ground.recap.ignoresSafeArea())
+        .background(ground.ignoresSafeArea())
         .task { await model.load() }
+    }
+
+    /// Each page drawn by its case; the cover before the answer, when there is none.
+    @ViewBuilder private func page(_ index: Int) -> some View {
+        switch model.pages.indices.contains(index) ? model.pages[index] : .cover {
+        case .cover, .partialCover: RecapCoverPage(model: model)
+        case .goal, .partialGoal: RecapGoalPage(model: model, active: model.page == index)
+        }
+    }
+
+    /// The ground behind the safe areas, the page on screen's.
+    private var ground: Color {
+        switch model.pages.indices.contains(model.page) ? model.pages[model.page] : .cover {
+        case .cover, .partialCover: Tokens.Ground.recap
+        case .goal, .partialGoal: Tokens.Ground.goal
+        }
     }
 
     /// `motion.reveal.number` for the numbers arriving; with Reduce Motion, the 150 ms fade.

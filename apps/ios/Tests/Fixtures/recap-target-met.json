@@ -1,0 +1,140 @@
+{
+    "recap":  {
+        "recap":  {
+            "month":  "2026-06",
+            "moneyIn":  {
+                "amount":  "2400.00",
+                "currencyCode":  "GBP"
+            },
+            "spent":  {
+                "amount":  "1760.00",
+                "currencyCode":  "GBP"
+            },
+            "saved":  {
+                "amount":  "640.00",
+                "currencyCode":  "GBP"
+            },
+            "spendCount":  11,
+            "salary":  {
+                "amount":  {
+                    "amount":  "2400.00",
+                    "currencyCode":  "GBP"
+                },
+                "payday":  "25"
+            },
+            "savingTarget":  {
+                "percent":  20,
+                "amount":  {
+                    "amount":  "480.00",
+                    "currencyCode":  "GBP"
+                },
+                "progressSentence":  "Target met. £160 to spare."
+            },
+            "keptPercent":  133,
+            "streak":  {
+                "days":  9,
+                "windowStart":  "2026-06-01",
+                "windowEnd":  "2026-06-30",
+                "badgeUnlocked":  true,
+                "runStart":  "2026-06-12",
+                "runEnd":  "2026-06-20"
+            },
+            "categories":  [
+                {
+                    "category":  "CATEGORY_BILLS",
+                    "amount":  {
+                        "amount":  "616.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  35,
+                    "spendCount":  3
+                },
+                {
+                    "category":  "CATEGORY_RIDES",
+                    "amount":  {
+                        "amount":  "458.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  26,
+                    "spendCount":  2
+                },
+                {
+                    "category":  "CATEGORY_SNACKS",
+                    "amount":  {
+                        "amount":  "246.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  14,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_CLOTHES",
+                    "amount":  {
+                        "amount":  "176.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  10,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_GIFTS",
+                    "amount":  {
+                        "amount":  "123.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  7,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_GAMES",
+                    "amount":  {
+                        "amount":  "88.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  5,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_TOYS",
+                    "amount":  {
+                        "amount":  "35.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  2,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_OTHER",
+                    "amount":  {
+                        "amount":  "18.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  1,
+                    "spendCount":  1
+                }
+            ],
+            "splurge":  {
+                "id":  "4a4e69d4-64cf-4d05-bb6d-480e56d5950a",
+                "amount":  {
+                    "amount":  "420.00",
+                    "currencyCode":  "GBP"
+                },
+                "originalAmount":  {
+                    "amount":  "420.00",
+                    "currencyCode":  "GBP"
+                },
+                "category":  "CATEGORY_RIDES",
+                "date":  "2026-06-27",
+                "note":  "a flight home",
+                "createdAt":  "2026-09-26T19:44:02.086761Z",
+                "updatedAt":  "2026-09-26T19:44:02.086761Z"
+            },
+            "archetype":  "ARCHETYPE_SQUIRREL",
+            "archetypeName":  "Squirrel",
+            "archetypeDescription":  "You stashed more than you meant to, and you didn't crack once.",
+            "archetypeTitle":  "The Squirrel"
+        },
+        "displayName":  "Maya",
+        "currencyCode":  "GBP"
+    }
+}

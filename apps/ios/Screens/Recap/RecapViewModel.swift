@@ -1,16 +1,17 @@
 import Foundation
 import MoneyRecapContract
 
-/// One month's Recap (SCREEN-STATES C1, P1; spec #151): which pages the situation draws and the words they print.
+/// One month's Recap (SCREEN-STATES C and P, spec #151): which pages the situation draws and the words they print.
 /// Every figure is the server's (A2); nil `answer` is the §6.19 loading state, kept when the BFF cannot answer.
 @Observable
 @MainActor
 final class RecapViewModel: Identifiable {
     typealias Fetch = (String) async throws -> MoneyRecap_V1_RecapView
 
-    /// The pager's pages in their fixed order: C1 for a full month, P1 for the current month and both partials.
+    /// The pager's pages in their fixed order: C1 and C3 for a full month; P1 and P3 for the month so far and both
+    /// partial situations.
     enum Page: Equatable {
-        case cover, partialCover
+        case cover, partialCover, goal, partialGoal
     }
 
     /// "YYYY-MM" this Recap covers.
@@ -21,11 +22,14 @@ final class RecapViewModel: Identifiable {
     private let fetch: Fetch
     private let dates: Date.FormatStyle
     private let locale: Locale
+    /// The Member's today, from which P3 counts ledger's days until Payday (D55).
+    let today: Date
 
-    init(month: String, fetch: @escaping Fetch, locale: Locale = .autoupdatingCurrent) {
+    init(month: String, fetch: @escaping Fetch, locale: Locale = .autoupdatingCurrent, today: Date = .now) {
         self.month = month
         self.fetch = fetch
         self.locale = locale
+        self.today = today
         dates = ISODate.style(locale: locale)
     }
 
@@ -39,11 +43,11 @@ final class RecapViewModel: Identifiable {
     /// No page before the answer; then the situation chooses (PRD §8.11).
     var pages: [Page] {
         guard answer != nil else { return [] }
-        return partial ? [.partialCover] : [.cover]
+        return partial ? [.partialCover, .partialGoal] : [.cover, .goal]
     }
 
     /// Any situation but unspecified is the Partial Recap or the preview (PRD §8.11).
-    private var partial: Bool {
+    var partial: Bool {
         answer.map { $0.recap.situation != .unspecified } ?? false
     }
 
@@ -103,7 +107,7 @@ final class RecapViewModel: Identifiable {
         ISODate.month(month)
     }
 
-    private func money(_ amount: MoneyRecap_V1_Money) -> String {
+    func money(_ amount: MoneyRecap_V1_Money) -> String {
         Money.format(amount.amount, currency: answer?.currencyCode ?? amount.currencyCode, locale: locale)
     }
 }

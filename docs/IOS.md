@@ -8,7 +8,7 @@
 
 ## 1. Summary
 
-The app is a display for numbers the server computes (`ARCHITECTURE.md` A2). It signs in through Keycloak, calls the BFF with a generated Connect client, stores the last answer for each screen in SwiftData so Home and every Recap render offline (PRD D61), and formats money and dates with Foundation. It contains no business arithmetic: no Spent, no Streak, no Archetype. The only calculations on the phone are platform calls, currency formatting, calendar date maths, a bar's drawn length from two server figures, and step 4's live preview, A2's one exception (I7).
+The app is a display for numbers the server computes (`ARCHITECTURE.md` A2). It signs in through Keycloak, calls the BFF with a generated Connect client, stores the last answer for each screen in SwiftData so Home and every Recap render offline (PRD D61), and formats money and dates with Foundation. It contains no business arithmetic: no Spent, no Streak, no Archetype. The only calculations on the phone are platform calls, currency formatting, calendar date maths, a bar's drawn length from two server figures, the Recap's roll-up line percentage, a sum of ledger's rounded Category percentages (PRD D71), and step 4's live preview, A2's one exception (I7).
 
 ## 2. Decisions
 

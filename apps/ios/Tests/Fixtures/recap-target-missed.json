@@ -1,0 +1,121 @@
+{
+    "recap":  {
+        "recap":  {
+            "month":  "2026-07",
+            "moneyIn":  {
+                "amount":  "2400.00",
+                "currencyCode":  "GBP"
+            },
+            "spent":  {
+                "amount":  "2090.00",
+                "currencyCode":  "GBP"
+            },
+            "saved":  {
+                "amount":  "310.00",
+                "currencyCode":  "GBP"
+            },
+            "spendCount":  8,
+            "salary":  {
+                "amount":  {
+                    "amount":  "2400.00",
+                    "currencyCode":  "GBP"
+                },
+                "payday":  "25"
+            },
+            "savingTarget":  {
+                "percent":  20,
+                "amount":  {
+                    "amount":  "480.00",
+                    "currencyCode":  "GBP"
+                },
+                "progressSentence":  "£170 short of your target."
+            },
+            "keptPercent":  65,
+            "streak":  {
+                "days":  12,
+                "windowStart":  "2026-07-01",
+                "windowEnd":  "2026-07-31",
+                "badgeUnlocked":  true,
+                "runStart":  "2026-07-20",
+                "runEnd":  "2026-07-31"
+            },
+            "categories":  [
+                {
+                    "category":  "CATEGORY_BILLS",
+                    "amount":  {
+                        "amount":  "606.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  29,
+                    "spendCount":  2
+                },
+                {
+                    "category":  "CATEGORY_CLOTHES",
+                    "amount":  {
+                        "amount":  "585.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  28,
+                    "spendCount":  2
+                },
+                {
+                    "category":  "CATEGORY_SNACKS",
+                    "amount":  {
+                        "amount":  "334.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  16,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_RIDES",
+                    "amount":  {
+                        "amount":  "293.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  14,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_GAMES",
+                    "amount":  {
+                        "amount":  "200.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  10,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_OTHER",
+                    "amount":  {
+                        "amount":  "72.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  3,
+                    "spendCount":  1
+                }
+            ],
+            "splurge":  {
+                "id":  "5d1f4c2d-bdd2-4919-a098-365bcc4ac3e5",
+                "amount":  {
+                    "amount":  "560.00",
+                    "currencyCode":  "GBP"
+                },
+                "originalAmount":  {
+                    "amount":  "560.00",
+                    "currencyCode":  "GBP"
+                },
+                "category":  "CATEGORY_CLOTHES",
+                "date":  "2026-07-18",
+                "createdAt":  "2026-09-26T19:44:02.092040Z",
+                "updatedAt":  "2026-09-26T19:44:02.092040Z"
+            },
+            "archetype":  "ARCHETYPE_TREAT_YOURSELF",
+            "archetypeName":  "Treat-Yourself",
+            "archetypeDescription":  "One big treat tipped the month. Worth it?",
+            "archetypeTitle":  "Treat-Yourself"
+        },
+        "displayName":  "Maya",
+        "currencyCode":  "GBP"
+    }
+}

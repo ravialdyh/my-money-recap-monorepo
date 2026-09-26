@@ -1,0 +1,49 @@
+{
+    "recap":  {
+        "recap":  {
+            "month":  "2026-08",
+            "moneyIn":  {
+                "amount":  "2400.00",
+                "currencyCode":  "GBP"
+            },
+            "spent":  {
+                "amount":  "0.00",
+                "currencyCode":  "GBP"
+            },
+            "saved":  {
+                "amount":  "2400.00",
+                "currencyCode":  "GBP"
+            },
+            "salary":  {
+                "amount":  {
+                    "amount":  "2400.00",
+                    "currencyCode":  "GBP"
+                },
+                "payday":  "25"
+            },
+            "savingTarget":  {
+                "percent":  20,
+                "amount":  {
+                    "amount":  "480.00",
+                    "currencyCode":  "GBP"
+                },
+                "progressSentence":  "Target met. £1,920 to spare."
+            },
+            "keptPercent":  500,
+            "streak":  {
+                "days":  31,
+                "windowStart":  "2026-08-01",
+                "windowEnd":  "2026-08-31",
+                "badgeUnlocked":  true,
+                "runStart":  "2026-08-01",
+                "runEnd":  "2026-08-31"
+            },
+            "archetype":  "ARCHETYPE_SQUIRREL",
+            "archetypeName":  "Squirrel",
+            "archetypeDescription":  "You stashed more than you meant to, and you didn't crack once.",
+            "archetypeTitle":  "The Squirrel"
+        },
+        "displayName":  "Maya",
+        "currencyCode":  "GBP"
+    }
+}

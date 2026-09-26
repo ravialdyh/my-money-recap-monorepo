@@ -6,16 +6,33 @@ import SwiftUI
 struct Card<Content: View>: View {
     var underIllustration = false
     var minHeight: CGFloat?
+    /// Card.tsx's `split`: children in a row with no trailing inset, for an illustration at the edge, grown into the
+    /// height left to it.
+    var split = false
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Tokens.Space._5, content: content)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(Tokens.Space._7)
+        stack
+            .frame(maxWidth: .infinity, maxHeight: split ? .infinity : nil, alignment: .leading)
+            .padding([.top, .leading, .bottom], Tokens.Space._7)
+            .padding(.trailing, split ? 0 : Tokens.Space._7)
             .padding(.top, underIllustration ? 34 : 0)
-            .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .topLeading)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: minHeight,
+                maxHeight: split ? .infinity : nil,
+                alignment: .topLeading
+            )
             .background(Tokens.Surface.card, in: RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous))
             .foregroundStyle(Tokens.Text.primary)
+    }
+
+    @ViewBuilder private var stack: some View {
+        if split {
+            HStack(alignment: .bottom, spacing: Tokens.Space._2, content: content)
+        } else {
+            VStack(alignment: .leading, spacing: Tokens.Space._5, content: content)
+        }
     }
 }
 
