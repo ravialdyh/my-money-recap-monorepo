@@ -4,7 +4,8 @@ extension SignInUITests {
     /// Spec #151, #153: before any Recap the dashed card under `Past recaps` opens the month so far on P1, with no
     /// Spend left after the delete; held sideways the close control is reachable, and it returns to Home.
     func openTheMonthSoFar(_ app: XCUIApplication) {
-        XCTAssert(app.staticTexts["Past recaps"].exists, "the label over the dashed card")
+        let label = app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Past recaps'")).firstMatch
+        XCTAssert(label.waitForExistence(timeout: 10), "the label over the dashed card")
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on '")).firstMatch.tap()
         let headline = app.staticTexts["\(Date().formatted(.dateTime.month(.wide))) so far"]
         XCTAssert(headline.waitForExistence(timeout: 30), "the dashed card opens P1 once GetRecap answers")
