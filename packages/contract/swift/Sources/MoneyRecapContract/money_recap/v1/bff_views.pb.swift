@@ -124,7 +124,8 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   /// Clears the value of `targetWarning`. Subsequent reads from it will return its default value.
   public mutating func clearTargetWarning() {_uniqueStorage()._targetWarning = nil}
 
-  /// Past months with a Recap, newest first (PRD §6.8 "Recap list").
+  /// Past months with a Recap, newest first: the past-Recap list, SCREEN-STATES
+  /// C7 (PRD §6.8); each row opens its month's GetRecap.
   public var recapMonths: [MoneyRecap_V1_RecapMonth] {
     get {_storage._recapMonths}
     set {_uniqueStorage()._recapMonths = newValue}
@@ -159,7 +160,7 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
 
 /// One month's Recap as the phone stores it (I4): ledger's Recap for the full
 /// or the Partial Recap (PRD §6.11 to §6.14, §6.17) joined with the Member's
-/// current Display Name and Avatar, since nothing about a Recap is stored (§7).
+/// current Display Name and Currency, since nothing about a Recap is stored (§7).
 public nonisolated struct MoneyRecap_V1_RecapView: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -177,8 +178,6 @@ public nonisolated struct MoneyRecap_V1_RecapView: Sendable {
 
   /// The current Display Name (PRD §6.11, §6.14, SCREEN-STATES D2).
   public var displayName: String = String()
-
-  public var avatarKey: String = String()
 
   /// ISO 4217 code every amount in recap is held in.
   public var currencyCode: String = String()
@@ -595,7 +594,7 @@ nonisolated extension MoneyRecap_V1_HomeView: SwiftProtobuf.Message, SwiftProtob
 
 nonisolated extension MoneyRecap_V1_RecapView: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".RecapView"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}recap\0\u{3}display_name\0\u{3}avatar_key\0\u{3}currency_code\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}recap\0\u{3}display_name\0\u{4}\u{2}currency_code\0\u{b}avatar_key\0\u{c}\u{3}\u{1}")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -605,7 +604,6 @@ nonisolated extension MoneyRecap_V1_RecapView: SwiftProtobuf.Message, SwiftProto
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularMessageField(value: &self._recap) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.displayName) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.avatarKey) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.currencyCode) }()
       default: break
       }
@@ -623,9 +621,6 @@ nonisolated extension MoneyRecap_V1_RecapView: SwiftProtobuf.Message, SwiftProto
     if !self.displayName.isEmpty {
       try visitor.visitSingularStringField(value: self.displayName, fieldNumber: 2)
     }
-    if !self.avatarKey.isEmpty {
-      try visitor.visitSingularStringField(value: self.avatarKey, fieldNumber: 3)
-    }
     if !self.currencyCode.isEmpty {
       try visitor.visitSingularStringField(value: self.currencyCode, fieldNumber: 4)
     }
@@ -635,7 +630,6 @@ nonisolated extension MoneyRecap_V1_RecapView: SwiftProtobuf.Message, SwiftProto
   public static func ==(lhs: MoneyRecap_V1_RecapView, rhs: MoneyRecap_V1_RecapView) -> Bool {
     if lhs._recap != rhs._recap {return false}
     if lhs.displayName != rhs.displayName {return false}
-    if lhs.avatarKey != rhs.avatarKey {return false}
     if lhs.currencyCode != rhs.currencyCode {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

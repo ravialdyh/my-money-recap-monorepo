@@ -210,7 +210,8 @@ func (x *MonthSummary) GetTargetWarning() *TargetWarning {
 	return nil
 }
 
-// The Streak and its window as Recap screen 2 draws them (PRD §6.12, §8.5).
+// The Streak and its window as Recap screen 2 draws them (PRD §6.12, §8.5):
+// StreakDots draws one dot per day of the window with the run's days lit.
 type StreakFacts struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The longest run of consecutive spend-free days inside the window.
@@ -219,11 +220,13 @@ type StreakFacts struct {
 	WindowStart string `protobuf:"bytes,2,opt,name=window_start,json=windowStart,proto3" json:"window_start,omitempty"`
 	// Last day of the window, "YYYY-MM-DD": month end, or today this month.
 	WindowEnd string `protobuf:"bytes,3,opt,name=window_end,json=windowEnd,proto3" json:"window_end,omitempty"`
-	// One flag per day from window_start to window_end, true when spend-free;
-	// what StreakDots draws.
-	SpendFreeDays []bool `protobuf:"varint,4,rep,packed,name=spend_free_days,json=spendFreeDays,proto3" json:"spend_free_days,omitempty"`
 	// True when days is at least 7, the badge rule of PRD §6.12.
 	BadgeUnlocked bool `protobuf:"varint,5,opt,name=badge_unlocked,json=badgeUnlocked,proto3" json:"badge_unlocked,omitempty"`
+	// First day of the run, "YYYY-MM-DD"; of two runs of the longest length,
+	// the earlier. Empty when days is 0.
+	RunStart string `protobuf:"bytes,6,opt,name=run_start,json=runStart,proto3" json:"run_start,omitempty"`
+	// Last day of the run, "YYYY-MM-DD"; empty when days is 0.
+	RunEnd        string `protobuf:"bytes,7,opt,name=run_end,json=runEnd,proto3" json:"run_end,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -279,18 +282,25 @@ func (x *StreakFacts) GetWindowEnd() string {
 	return ""
 }
 
-func (x *StreakFacts) GetSpendFreeDays() []bool {
-	if x != nil {
-		return x.SpendFreeDays
-	}
-	return nil
-}
-
 func (x *StreakFacts) GetBadgeUnlocked() bool {
 	if x != nil {
 		return x.BadgeUnlocked
 	}
 	return false
+}
+
+func (x *StreakFacts) GetRunStart() string {
+	if x != nil {
+		return x.RunStart
+	}
+	return ""
+}
+
+func (x *StreakFacts) GetRunEnd() string {
+	if x != nil {
+		return x.RunEnd
+	}
+	return ""
 }
 
 // One Category's share of a month: the CategoryBar of Recap screen 3 and the
@@ -404,9 +414,12 @@ type Recap struct {
 	ArchetypeDescription string `protobuf:"bytes,15,opt,name=archetype_description,json=archetypeDescription,proto3" json:"archetype_description,omitempty"`
 	// Screen 4 line of a Partial Recap, chosen per situation (PRD §6.17); empty
 	// on a full Recap.
-	ClosingLine   string `protobuf:"bytes,16,opt,name=closing_line,json=closingLine,proto3" json:"closing_line,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ClosingLine string `protobuf:"bytes,16,opt,name=closing_line,json=closingLine,proto3" json:"closing_line,omitempty"`
+	// The Archetype's title, screen 4's and the share image's big title ("The
+	// Squirrel"; PRD §6.14, §6.15); empty without one.
+	ArchetypeTitle string `protobuf:"bytes,17,opt,name=archetype_title,json=archetypeTitle,proto3" json:"archetype_title,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Recap) Reset() {
@@ -547,6 +560,13 @@ func (x *Recap) GetArchetypeDescription() string {
 func (x *Recap) GetClosingLine() string {
 	if x != nil {
 		return x.ClosingLine
+	}
+	return ""
+}
+
+func (x *Recap) GetArchetypeTitle() string {
+	if x != nil {
+		return x.ArchetypeTitle
 	}
 	return ""
 }
@@ -905,20 +925,21 @@ const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\x06_savedB\t\n" +
 	"\a_salaryB\x10\n" +
 	"\x0e_saving_targetB\x11\n" +
-	"\x0f_target_warning\"\xb2\x01\n" +
+	"\x0f_target_warning\"\xd7\x01\n" +
 	"\vStreakFacts\x12\x12\n" +
 	"\x04days\x18\x01 \x01(\x05R\x04days\x12!\n" +
 	"\fwindow_start\x18\x02 \x01(\tR\vwindowStart\x12\x1d\n" +
 	"\n" +
-	"window_end\x18\x03 \x01(\tR\twindowEnd\x12&\n" +
-	"\x0fspend_free_days\x18\x04 \x03(\bR\rspendFreeDays\x12%\n" +
-	"\x0ebadge_unlocked\x18\x05 \x01(\bR\rbadgeUnlocked\"\xaf\x01\n" +
+	"window_end\x18\x03 \x01(\tR\twindowEnd\x12%\n" +
+	"\x0ebadge_unlocked\x18\x05 \x01(\bR\rbadgeUnlocked\x12\x1b\n" +
+	"\trun_start\x18\x06 \x01(\tR\brunStart\x12\x17\n" +
+	"\arun_end\x18\a \x01(\tR\x06runEndJ\x04\b\x04\x10\x05R\x0fspend_free_days\"\xaf\x01\n" +
 	"\rCategoryShare\x124\n" +
 	"\bcategory\x18\x01 \x01(\x0e2\x18.money_recap.v1.CategoryR\bcategory\x12-\n" +
 	"\x06amount\x18\x02 \x01(\v2\x15.money_recap.v1.MoneyR\x06amount\x12\x18\n" +
 	"\apercent\x18\x03 \x01(\x05R\apercent\x12\x1f\n" +
 	"\vspend_count\x18\x04 \x01(\x05R\n" +
-	"spendCount\"\xf7\x06\n" +
+	"spendCount\"\xa0\a\n" +
 	"\x05Recap\x12\x14\n" +
 	"\x05month\x18\x01 \x01(\tR\x05month\x12>\n" +
 	"\tsituation\x18\x02 \x01(\x0e2 .money_recap.v1.PartialSituationR\tsituation\x120\n" +
@@ -939,7 +960,8 @@ const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\tarchetype\x18\r \x01(\x0e2\x19.money_recap.v1.ArchetypeH\x05R\tarchetype\x88\x01\x01\x12%\n" +
 	"\x0earchetype_name\x18\x0e \x01(\tR\rarchetypeName\x123\n" +
 	"\x15archetype_description\x18\x0f \x01(\tR\x14archetypeDescription\x12!\n" +
-	"\fclosing_line\x18\x10 \x01(\tR\vclosingLineB\b\n" +
+	"\fclosing_line\x18\x10 \x01(\tR\vclosingLine\x12'\n" +
+	"\x0farchetype_title\x18\x11 \x01(\tR\x0earchetypeTitleB\b\n" +
 	"\x06_savedB\t\n" +
 	"\a_salaryB\x10\n" +
 	"\x0e_saving_targetB\x0f\n" +

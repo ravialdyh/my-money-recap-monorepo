@@ -98,12 +98,6 @@
         "days": 0,
         "windowStart": "2026-09-27",
         "windowEnd": "2026-09-30",
-        "spendFreeDays": [
-          false,
-          false,
-          false,
-          false
-        ],
         "badgeUnlocked": false
       },
       "categories": [

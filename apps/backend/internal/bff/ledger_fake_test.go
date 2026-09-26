@@ -135,6 +135,14 @@ func (f *fakeLedger) ListMonthsWithData(context.Context, *connect.Request[moneyr
 	return connect.NewResponse(&moneyrecapv1.ListMonthsWithDataResponse{Months: []string{"2026-10", "2026-09"}}), nil
 }
 
+func (f *fakeLedger) GetRecap(_ context.Context, req *connect.Request[moneyrecapv1.GetRecapRequest]) (*connect.Response[moneyrecapv1.GetRecapResponse], error) {
+	f.gotMonth, f.gotToken = req.Msg.Month, req.Header().Get("Authorization")
+	if f.err != nil {
+		return nil, f.err
+	}
+	return connect.NewResponse(&moneyrecapv1.GetRecapResponse{Recap: &moneyrecapv1.Recap{Month: req.Msg.Month, ArchetypeTitle: "The Squirrel"}}), nil
+}
+
 // ledgerClient serves f the way the BFF reaches the real ledger: over Connect, forwarding the caller's token.
 func ledgerClient(t *testing.T, f *fakeLedger) moneyrecapv1connect.LedgerServiceClient {
 	t.Helper()

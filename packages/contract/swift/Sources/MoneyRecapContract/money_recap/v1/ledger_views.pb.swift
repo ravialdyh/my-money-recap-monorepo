@@ -65,7 +65,8 @@ public nonisolated enum MoneyRecap_V1_PartialSituation: SwiftProtobuf.Enum, Swif
 
 }
 
-/// The Streak and its window as Recap screen 2 draws them (PRD §6.12, §8.5).
+/// The Streak and its window as Recap screen 2 draws them (PRD §6.12, §8.5):
+/// StreakDots draws one dot per day of the window with the run's days lit.
 public nonisolated struct MoneyRecap_V1_StreakFacts: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -80,12 +81,15 @@ public nonisolated struct MoneyRecap_V1_StreakFacts: Sendable {
   /// Last day of the window, "YYYY-MM-DD": month end, or today this month.
   public var windowEnd: String = String()
 
-  /// One flag per day from window_start to window_end, true when spend-free;
-  /// what StreakDots draws.
-  public var spendFreeDays: [Bool] = []
-
   /// True when days is at least 7, the badge rule of PRD §6.12.
   public var badgeUnlocked: Bool = false
+
+  /// First day of the run, "YYYY-MM-DD"; of two runs of the longest length,
+  /// the earlier. Empty when days is 0.
+  public var runStart: String = String()
+
+  /// Last day of the run, "YYYY-MM-DD"; empty when days is 0.
+  public var runEnd: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -264,6 +268,13 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   public var closingLine: String {
     get {_storage._closingLine}
     set {_uniqueStorage()._closingLine = newValue}
+  }
+
+  /// The Archetype's title, screen 4's and the share image's big title ("The
+  /// Squirrel"; PRD §6.14, §6.15); empty without one.
+  public var archetypeTitle: String {
+    get {_storage._archetypeTitle}
+    set {_uniqueStorage()._archetypeTitle = newValue}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -481,7 +492,7 @@ nonisolated extension MoneyRecap_V1_PartialSituation: SwiftProtobuf._ProtoNamePr
 
 nonisolated extension MoneyRecap_V1_StreakFacts: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".StreakFacts"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}days\0\u{3}window_start\0\u{3}window_end\0\u{3}spend_free_days\0\u{3}badge_unlocked\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}days\0\u{3}window_start\0\u{3}window_end\0\u{4}\u{2}badge_unlocked\0\u{3}run_start\0\u{3}run_end\0\u{b}spend_free_days\0\u{c}\u{4}\u{1}")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -492,8 +503,9 @@ nonisolated extension MoneyRecap_V1_StreakFacts: SwiftProtobuf.Message, SwiftPro
       case 1: try { try decoder.decodeSingularInt32Field(value: &self.days) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.windowStart) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.windowEnd) }()
-      case 4: try { try decoder.decodeRepeatedBoolField(value: &self.spendFreeDays) }()
       case 5: try { try decoder.decodeSingularBoolField(value: &self.badgeUnlocked) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.runStart) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.runEnd) }()
       default: break
       }
     }
@@ -509,11 +521,14 @@ nonisolated extension MoneyRecap_V1_StreakFacts: SwiftProtobuf.Message, SwiftPro
     if !self.windowEnd.isEmpty {
       try visitor.visitSingularStringField(value: self.windowEnd, fieldNumber: 3)
     }
-    if !self.spendFreeDays.isEmpty {
-      try visitor.visitPackedBoolField(value: self.spendFreeDays, fieldNumber: 4)
-    }
     if self.badgeUnlocked != false {
       try visitor.visitSingularBoolField(value: self.badgeUnlocked, fieldNumber: 5)
+    }
+    if !self.runStart.isEmpty {
+      try visitor.visitSingularStringField(value: self.runStart, fieldNumber: 6)
+    }
+    if !self.runEnd.isEmpty {
+      try visitor.visitSingularStringField(value: self.runEnd, fieldNumber: 7)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -522,8 +537,9 @@ nonisolated extension MoneyRecap_V1_StreakFacts: SwiftProtobuf.Message, SwiftPro
     if lhs.days != rhs.days {return false}
     if lhs.windowStart != rhs.windowStart {return false}
     if lhs.windowEnd != rhs.windowEnd {return false}
-    if lhs.spendFreeDays != rhs.spendFreeDays {return false}
     if lhs.badgeUnlocked != rhs.badgeUnlocked {return false}
+    if lhs.runStart != rhs.runStart {return false}
+    if lhs.runEnd != rhs.runEnd {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -580,7 +596,7 @@ nonisolated extension MoneyRecap_V1_CategoryShare: SwiftProtobuf.Message, SwiftP
 
 nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Recap"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}month\0\u{1}situation\0\u{3}money_in\0\u{1}spent\0\u{1}saved\0\u{3}spend_count\0\u{1}salary\0\u{3}saving_target\0\u{3}kept_percent\0\u{1}streak\0\u{1}categories\0\u{1}splurge\0\u{1}archetype\0\u{3}archetype_name\0\u{3}archetype_description\0\u{3}closing_line\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}month\0\u{1}situation\0\u{3}money_in\0\u{1}spent\0\u{1}saved\0\u{3}spend_count\0\u{1}salary\0\u{3}saving_target\0\u{3}kept_percent\0\u{1}streak\0\u{1}categories\0\u{1}splurge\0\u{1}archetype\0\u{3}archetype_name\0\u{3}archetype_description\0\u{3}closing_line\0\u{3}archetype_title\0")
 
   fileprivate class _StorageClass {
     var _month: String = String()
@@ -599,6 +615,7 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
     var _archetypeName: String = String()
     var _archetypeDescription: String = String()
     var _closingLine: String = String()
+    var _archetypeTitle: String = String()
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -625,6 +642,7 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
       _archetypeName = source._archetypeName
       _archetypeDescription = source._archetypeDescription
       _closingLine = source._closingLine
+      _archetypeTitle = source._archetypeTitle
     }
   }
 
@@ -659,6 +677,7 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
         case 14: try { try decoder.decodeSingularStringField(value: &_storage._archetypeName) }()
         case 15: try { try decoder.decodeSingularStringField(value: &_storage._archetypeDescription) }()
         case 16: try { try decoder.decodeSingularStringField(value: &_storage._closingLine) }()
+        case 17: try { try decoder.decodeSingularStringField(value: &_storage._archetypeTitle) }()
         default: break
         }
       }
@@ -719,6 +738,9 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
       if !_storage._closingLine.isEmpty {
         try visitor.visitSingularStringField(value: _storage._closingLine, fieldNumber: 16)
       }
+      if !_storage._archetypeTitle.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._archetypeTitle, fieldNumber: 17)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -744,6 +766,7 @@ nonisolated extension MoneyRecap_V1_Recap: SwiftProtobuf.Message, SwiftProtobuf.
         if _storage._archetypeName != rhs_storage._archetypeName {return false}
         if _storage._archetypeDescription != rhs_storage._archetypeDescription {return false}
         if _storage._closingLine != rhs_storage._closingLine {return false}
+        if _storage._archetypeTitle != rhs_storage._archetypeTitle {return false}
         return true
       }
       if !storagesAreEqual {return false}

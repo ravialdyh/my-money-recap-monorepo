@@ -28,11 +28,10 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     func `getHome`(request: MoneyRecap_V1_GetHomeRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_GetHomeResponse>
 
     /// One month's full or Partial Recap, or the current month's preview (D47).
+    /// not_found for a past month with no Spend and no Money In (not on Home's
+    /// list); invalid_argument for a malformed or later month.
     @available(iOS 13, *)
     func `getRecap`(request: MoneyRecap_V1_BffServiceGetRecapRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetRecapResponse>
-
-    @available(iOS 13, *)
-    func `listRecapMonths`(request: MoneyRecap_V1_BffServiceListRecapMonthsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceListRecapMonthsResponse>
 
     @available(iOS 13, *)
     func `listSpends`(request: MoneyRecap_V1_BffServiceListSpendsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceListSpendsResponse>
@@ -132,11 +131,6 @@ public final class MoneyRecap_V1_BffServiceClient: MoneyRecap_V1_BffServiceClien
     }
 
     @available(iOS 13, *)
-    public func `listRecapMonths`(request: MoneyRecap_V1_BffServiceListRecapMonthsRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceListRecapMonthsResponse> {
-        return await self.client.unary(path: "/money_recap.v1.BffService/ListRecapMonths", idempotencyLevel: .unknown, request: request, headers: headers)
-    }
-
-    @available(iOS 13, *)
     public func `listSpends`(request: MoneyRecap_V1_BffServiceListSpendsRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceListSpendsResponse> {
         return await self.client.unary(path: "/money_recap.v1.BffService/ListSpends", idempotencyLevel: .unknown, request: request, headers: headers)
     }
@@ -226,7 +220,6 @@ public final class MoneyRecap_V1_BffServiceClient: MoneyRecap_V1_BffServiceClien
             public static let requestMagicLink = Connect.MethodSpec(name: "RequestMagicLink", service: "money_recap.v1.BffService", type: .unary)
             public static let getHome = Connect.MethodSpec(name: "GetHome", service: "money_recap.v1.BffService", type: .unary)
             public static let getRecap = Connect.MethodSpec(name: "GetRecap", service: "money_recap.v1.BffService", type: .unary)
-            public static let listRecapMonths = Connect.MethodSpec(name: "ListRecapMonths", service: "money_recap.v1.BffService", type: .unary)
             public static let listSpends = Connect.MethodSpec(name: "ListSpends", service: "money_recap.v1.BffService", type: .unary)
             public static let logSpend = Connect.MethodSpec(name: "LogSpend", service: "money_recap.v1.BffService", type: .unary)
             public static let editSpend = Connect.MethodSpec(name: "EditSpend", service: "money_recap.v1.BffService", type: .unary)

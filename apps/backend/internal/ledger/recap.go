@@ -12,7 +12,8 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// GetRecap answers one month's Recap on the Member's local today; a month after the current one has none yet.
+// GetRecap answers one month's Recap on the Member's local today: the current month always, an earlier one only
+// with data (not_found otherwise, the months Home never lists), a later one never.
 func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv1.GetRecapRequest]) (*connect.Response[moneyrecapv1.GetRecapResponse], error) {
 	m, err := parseMonth(req.Msg.Month)
 	if err != nil {
@@ -25,15 +26,18 @@ func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv
 	if monthOf(l.today).before(m) {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("month is after the current month"))
 	}
+	if m != monthOf(l.today) && !l.hasData(m, l.today) {
+		return nil, connect.NewError(connect.CodeNotFound, errors.New("month has no recap"))
+	}
 	return connect.NewResponse(&moneyrecapv1.GetRecapResponse{Recap: l.recap(m, l.today)}), nil
 }
 
-// archetypes are PRD §8.6's names and one-line descriptions, the phone's only source for either (A2).
-var archetypes = map[moneyrecapv1.Archetype][2]string{
-	moneyrecapv1.Archetype_ARCHETYPE_SQUIRREL:       {"Squirrel", "You stashed more than you meant to, and you didn't crack once."},
-	moneyrecapv1.Archetype_ARCHETYPE_HUSTLER:        {"Hustler", "You hit your number while still living a little."},
-	moneyrecapv1.Archetype_ARCHETYPE_TREAT_YOURSELF: {"Treat-Yourself", "One big treat tipped the month. Worth it?"},
-	moneyrecapv1.Archetype_ARCHETYPE_SLOW_BURNER:    {"Slow Burner", "Lots of little spends added up. Sneaky."},
+// archetypes are PRD §8.6's names, one-line descriptions and titles, the phone's only source for any (A2).
+var archetypes = map[moneyrecapv1.Archetype][3]string{
+	moneyrecapv1.Archetype_ARCHETYPE_SQUIRREL:       {"Squirrel", "You stashed more than you meant to, and you didn't crack once.", "The Squirrel"},
+	moneyrecapv1.Archetype_ARCHETYPE_HUSTLER:        {"Hustler", "You hit your number while still living a little.", "The Hustler"},
+	moneyrecapv1.Archetype_ARCHETYPE_TREAT_YOURSELF: {"Treat-Yourself", "One big treat tipped the month. Worth it?", "Treat-Yourself"},
+	moneyrecapv1.Archetype_ARCHETYPE_SLOW_BURNER:    {"Slow Burner", "Lots of little spends added up. Sneaky.", "The Slow Burner"},
 }
 
 // recap is month m's Recap on today (PRD §8, §6.11 to §6.14): the current month is the preview and a partial month
@@ -83,7 +87,7 @@ func (l ledgerOf) recap(m month, today time.Time) *moneyrecapv1.Recap {
 	case new(big.Rat).Mul(splurge.amount, big.NewRat(4, 1)).Cmp(spent) >= 0:
 		a = moneyrecapv1.Archetype_ARCHETYPE_TREAT_YOURSELF
 	}
-	r.Archetype, r.ArchetypeName, r.ArchetypeDescription = &a, archetypes[a][0], archetypes[a][1]
+	r.Archetype, r.ArchetypeName, r.ArchetypeDescription, r.ArchetypeTitle = &a, archetypes[a][0], archetypes[a][1], archetypes[a][2]
 	return r
 }
 
@@ -96,18 +100,14 @@ func percentOf(part, whole *big.Rat) int32 {
 	return int32(n)
 }
 
-// streakFacts is the Streak with its window and one spend-free flag per day (PRD §8.5, §6.12).
+// streakFacts is the Streak with its window and its run's first and last day (PRD §8.5, §6.12).
 func (l ledgerOf) streakFacts(m month, today time.Time) *moneyrecapv1.StreakFacts {
 	start, end := l.window(m, today)
-	f := &moneyrecapv1.StreakFacts{Days: l.streak(m, today), WindowStart: start.Format(time.DateOnly), WindowEnd: end.Format(time.DateOnly)}
-	spendDays := map[time.Time]bool{}
-	for _, s := range l.spends {
-		spendDays[s.date] = true
+	days, first, last := l.streak(m, today)
+	f := &moneyrecapv1.StreakFacts{Days: days, WindowStart: start.Format(time.DateOnly), WindowEnd: end.Format(time.DateOnly), BadgeUnlocked: days >= 7}
+	if days > 0 {
+		f.RunStart, f.RunEnd = first.Format(time.DateOnly), last.Format(time.DateOnly)
 	}
-	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
-		f.SpendFreeDays = append(f.SpendFreeDays, !spendDays[d])
-	}
-	f.BadgeUnlocked = f.Days >= 7
 	return f
 }
 

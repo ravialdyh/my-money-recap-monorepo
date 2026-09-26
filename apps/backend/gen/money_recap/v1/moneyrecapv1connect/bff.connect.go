@@ -40,9 +40,6 @@ const (
 	BffServiceGetHomeProcedure = "/money_recap.v1.BffService/GetHome"
 	// BffServiceGetRecapProcedure is the fully-qualified name of the BffService's GetRecap RPC.
 	BffServiceGetRecapProcedure = "/money_recap.v1.BffService/GetRecap"
-	// BffServiceListRecapMonthsProcedure is the fully-qualified name of the BffService's
-	// ListRecapMonths RPC.
-	BffServiceListRecapMonthsProcedure = "/money_recap.v1.BffService/ListRecapMonths"
 	// BffServiceListSpendsProcedure is the fully-qualified name of the BffService's ListSpends RPC.
 	BffServiceListSpendsProcedure = "/money_recap.v1.BffService/ListSpends"
 	// BffServiceLogSpendProcedure is the fully-qualified name of the BffService's LogSpend RPC.
@@ -99,8 +96,9 @@ type BffServiceClient interface {
 	// and prints every amount in the Member's Currency (spec #92).
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
 	// One month's full or Partial Recap, or the current month's preview (D47).
+	// not_found for a past month with no Spend and no Money In (not on Home's
+	// list); invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error)
-	ListRecapMonths(context.Context, *connect.Request[v1.BffServiceListRecapMonthsRequest]) (*connect.Response[v1.BffServiceListRecapMonthsResponse], error)
 	ListSpends(context.Context, *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error)
 	// The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
 	// HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
@@ -169,12 +167,6 @@ func NewBffServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			httpClient,
 			baseURL+BffServiceGetRecapProcedure,
 			connect.WithSchema(bffServiceMethods.ByName("GetRecap")),
-			connect.WithClientOptions(opts...),
-		),
-		listRecapMonths: connect.NewClient[v1.BffServiceListRecapMonthsRequest, v1.BffServiceListRecapMonthsResponse](
-			httpClient,
-			baseURL+BffServiceListRecapMonthsProcedure,
-			connect.WithSchema(bffServiceMethods.ByName("ListRecapMonths")),
 			connect.WithClientOptions(opts...),
 		),
 		listSpends: connect.NewClient[v1.BffServiceListSpendsRequest, v1.BffServiceListSpendsResponse](
@@ -287,7 +279,6 @@ type bffServiceClient struct {
 	requestMagicLink      *connect.Client[v1.BffServiceRequestMagicLinkRequest, v1.BffServiceRequestMagicLinkResponse]
 	getHome               *connect.Client[v1.GetHomeRequest, v1.GetHomeResponse]
 	getRecap              *connect.Client[v1.BffServiceGetRecapRequest, v1.BffServiceGetRecapResponse]
-	listRecapMonths       *connect.Client[v1.BffServiceListRecapMonthsRequest, v1.BffServiceListRecapMonthsResponse]
 	listSpends            *connect.Client[v1.BffServiceListSpendsRequest, v1.BffServiceListSpendsResponse]
 	logSpend              *connect.Client[v1.BffServiceLogSpendRequest, v1.BffServiceLogSpendResponse]
 	editSpend             *connect.Client[v1.BffServiceEditSpendRequest, v1.BffServiceEditSpendResponse]
@@ -320,11 +311,6 @@ func (c *bffServiceClient) GetHome(ctx context.Context, req *connect.Request[v1.
 // GetRecap calls money_recap.v1.BffService.GetRecap.
 func (c *bffServiceClient) GetRecap(ctx context.Context, req *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error) {
 	return c.getRecap.CallUnary(ctx, req)
-}
-
-// ListRecapMonths calls money_recap.v1.BffService.ListRecapMonths.
-func (c *bffServiceClient) ListRecapMonths(ctx context.Context, req *connect.Request[v1.BffServiceListRecapMonthsRequest]) (*connect.Response[v1.BffServiceListRecapMonthsResponse], error) {
-	return c.listRecapMonths.CallUnary(ctx, req)
 }
 
 // ListSpends calls money_recap.v1.BffService.ListSpends.
@@ -424,8 +410,9 @@ type BffServiceHandler interface {
 	// and prints every amount in the Member's Currency (spec #92).
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
 	// One month's full or Partial Recap, or the current month's preview (D47).
+	// not_found for a past month with no Spend and no Money In (not on Home's
+	// list); invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error)
-	ListRecapMonths(context.Context, *connect.Request[v1.BffServiceListRecapMonthsRequest]) (*connect.Response[v1.BffServiceListRecapMonthsResponse], error)
 	ListSpends(context.Context, *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error)
 	// The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
 	// HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
@@ -490,12 +477,6 @@ func NewBffServiceHandler(svc BffServiceHandler, opts ...connect.HandlerOption) 
 		BffServiceGetRecapProcedure,
 		svc.GetRecap,
 		connect.WithSchema(bffServiceMethods.ByName("GetRecap")),
-		connect.WithHandlerOptions(opts...),
-	)
-	bffServiceListRecapMonthsHandler := connect.NewUnaryHandler(
-		BffServiceListRecapMonthsProcedure,
-		svc.ListRecapMonths,
-		connect.WithSchema(bffServiceMethods.ByName("ListRecapMonths")),
 		connect.WithHandlerOptions(opts...),
 	)
 	bffServiceListSpendsHandler := connect.NewUnaryHandler(
@@ -608,8 +589,6 @@ func NewBffServiceHandler(svc BffServiceHandler, opts ...connect.HandlerOption) 
 			bffServiceGetHomeHandler.ServeHTTP(w, r)
 		case BffServiceGetRecapProcedure:
 			bffServiceGetRecapHandler.ServeHTTP(w, r)
-		case BffServiceListRecapMonthsProcedure:
-			bffServiceListRecapMonthsHandler.ServeHTTP(w, r)
 		case BffServiceListSpendsProcedure:
 			bffServiceListSpendsHandler.ServeHTTP(w, r)
 		case BffServiceLogSpendProcedure:
@@ -663,10 +642,6 @@ func (UnimplementedBffServiceHandler) GetHome(context.Context, *connect.Request[
 
 func (UnimplementedBffServiceHandler) GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.GetRecap is not implemented"))
-}
-
-func (UnimplementedBffServiceHandler) ListRecapMonths(context.Context, *connect.Request[v1.BffServiceListRecapMonthsRequest]) (*connect.Response[v1.BffServiceListRecapMonthsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.ListRecapMonths is not implemented"))
 }
 
 func (UnimplementedBffServiceHandler) ListSpends(context.Context, *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error) {

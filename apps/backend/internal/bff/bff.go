@@ -1,5 +1,5 @@
-// Package bff is the API the phone talks to (ARCHITECTURE §6): GetHome joins members, ledger and notify;
-// RequestMagicLink (magiclink.go) calls the realm and notify.
+// Package bff is the API the phone talks to (ARCHITECTURE §6): GetHome joins members, ledger and notify, GetRecap
+// members and ledger; RequestMagicLink (magiclink.go) calls the realm and notify.
 package bff
 
 import (
@@ -98,6 +98,24 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 		return nil, err
 	}
 	return connect.NewResponse(&moneyrecapv1.GetHomeResponse{Home: home}), nil
+}
+
+// GetRecap is one month's Recap view (PRD §6.11 to §6.14, §6.17): members for the Member, then ledger for the month,
+// each required, each code passed through; the current Display Name and Currency, never a stored copy (§7).
+func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceGetRecapRequest]) (*connect.Response[moneyrecapv1.BffServiceGetRecapResponse], error) {
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	res, err := s.Ledger.GetRecap(ctx, connect.NewRequest(&moneyrecapv1.GetRecapRequest{MemberId: profile.MemberId, Month: req.Msg.Month}))
+	if err != nil {
+		return nil, requiredCallFailed("ledger.GetRecap", connect.CodeOf(err), err)
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceGetRecapResponse{Recap: &moneyrecapv1.RecapView{
+		Recap: res.Msg.Recap, DisplayName: profile.DisplayName, CurrencyCode: profile.CurrencyCode,
+	}}), nil
 }
 
 // home is the current month's HomeView in the Member's zone: ledger's month, required, joined with notify's banner,

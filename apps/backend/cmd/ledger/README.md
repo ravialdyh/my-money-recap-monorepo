@@ -5,7 +5,7 @@ figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #1
 `RelabelCurrency`, `SaveTarget`, `LogSpend`, `EditSpend` and `DeleteSpend` (#133), `GetSettings`, `GetMonthSummary`, `GetRecap`, `ListSpends` and
 `ListMonthsWithData` (#131); `PreviewConversion` and `ApplyCurrencyConversion` (slice 7), `GetSpentToday` and
 `ExportCSV` are planned. The BFF calls it since #103: Home's month,
-onboarding's steps 3 and 4 (#104), a resumed step's saved answers and, since #129, every Spend screen. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
+onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, every Spend screen and, since #152, the Recap. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
 
 | Variable | Default | Meaning |
@@ -71,7 +71,9 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers and, since #12
 - A Recap is any month up to the current one (PRD §6.11 to §6.14, §8): the current month is the preview and a
   partial month (§8.11) is in its §6.17 situation, each with its closing line and no Archetype. `GetMonthSummary`
   also lists every earlier month with a Spend or Money In for Home, newest first, labelled by its Archetype
-  name or `Partial`, which a full month without an Archetype reads too (§6.14).
+  name or `Partial`, which a full month without an Archetype reads too (§6.14); those are the only earlier
+  months `GetRecap` answers, and any other is `not_found` (#152). A Recap's Streak names its run's first and last
+  day, the earlier of two equally long runs, and its Archetype carries the title screen 4 prints (`The Squirrel`).
 - Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
   (`internal/idempotency`, A14), as `members` does.
 - Each Spend write stages `ledger.spend.logged`, `ledger.spend.edited` or `ledger.spend.deleted` in `outbox`

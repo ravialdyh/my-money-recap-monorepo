@@ -60,7 +60,7 @@ func (l ledgerOf) pastMonths(today time.Time) []month {
 	}
 	var list []month
 	for m := monthOf(today).prev(); !m.before(first); m = m.prev() {
-		if _, count := l.spent(m); count > 0 || l.summary(m, today).Saved != nil {
+		if l.hasData(m, today) {
 			list = append(list, m)
 		}
 	}
@@ -95,4 +95,10 @@ func (l ledgerOf) split(m month, spent *big.Rat) []*moneyrecapv1.CategoryShare {
 		return int(a.Category - b.Category)
 	})
 	return rows
+}
+
+// hasData is true when month m has a Spend or Money In (PRD D59, §8.11), the test for a past month's Recap.
+func (l ledgerOf) hasData(m month, today time.Time) bool {
+	_, count := l.spent(m)
+	return count > 0 || l.summary(m, today).Saved != nil
 }

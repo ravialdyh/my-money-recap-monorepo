@@ -1,6 +1,7 @@
 package ledger
 
 import (
+	"context"
 	"math/big"
 	"slices"
 	"testing"
@@ -9,10 +10,11 @@ import (
 	"connectrpc.com/connect"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Home's list holds every past month with a Spend or Money In, newest first, labelled by Archetype or "Partial", and
-// the current month's Recap is the preview (PRD §6.8, §6.17, §8.6, §8.11).
+// Home's list is every past month with a Spend or Money In, newest first, by Archetype or "Partial", the only past
+// months that answer; the current month is the preview; another token reads none (PRD §6.8, §8.11, §4.2).
 func TestRecapsAndHomesList(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a601"
@@ -59,7 +61,7 @@ func TestRecapsAndHomesList(t *testing.T) {
 	}
 	now, err := recap("2026-09")
 	if err != nil || now.Situation != moneyrecapv1.PartialSituation_PARTIAL_SITUATION_CURRENT_MONTH || now.ClosingLine != "Your recap arrives on 1 October." ||
-		now.Streak.WindowEnd != "2026-09-15" || len(now.Streak.SpendFreeDays) != 15 || now.Streak.Days != 12 || now.Archetype != nil {
+		now.Streak.WindowEnd != "2026-09-15" || now.Streak.RunStart != "2026-09-04" || now.Streak.RunEnd != "2026-09-15" || now.Streak.Days != 12 || now.Archetype != nil {
 		t.Errorf("the current month: %v, %v, want the preview to today", now, err)
 	}
 	april, err := recap("2026-04")
@@ -76,6 +78,16 @@ func TestRecapsAndHomesList(t *testing.T) {
 			t.Errorf("%s: %v, want invalid_argument", month, err)
 		}
 	}
+	for _, month := range []string{"2026-05", "2026-03"} {
+		if _, err := recap(month); connect.CodeOf(err) != connect.CodeNotFound {
+			t.Errorf("%s: %v, want not_found for a month without a Recap", month, err)
+		}
+	}
+	withMembers(t, s, nil)
+	stranger := auth.NewContext(context.Background(), auth.Claims{Subject: "stranger", Raw: "stranger"})
+	if _, err := s.GetRecap(stranger, connect.NewRequest(&moneyrecapv1.GetRecapRequest{MemberId: id, Month: "2026-08"})); connect.CodeOf(err) != connect.CodeNotFound {
+		t.Errorf("another token: %v, want not_found", err)
+	}
 }
 
 // kept% is clamped 0 to 999 (PRD §8.4): a 1% target kept a hundred times over, and a month spent past its Salary.
@@ -90,7 +102,7 @@ func TestKeptIsClamped(t *testing.T) {
 	if got := l.recap(month{2026, time.August}, today).GetKeptPercent(); got != 999 {
 		t.Errorf("August kept %d%%, want 999", got)
 	}
-	if got := l.recap(month{2026, time.September}, today); got.GetKeptPercent() != 0 || got.GetArchetypeName() != "Treat-Yourself" {
+	if got := l.recap(month{2026, time.September}, today); got.GetKeptPercent() != 0 || got.GetArchetypeName() != "Treat-Yourself" || got.GetArchetypeTitle() != "Treat-Yourself" {
 		t.Errorf("September: %v, want 0%% kept and one big treat", got)
 	}
 }

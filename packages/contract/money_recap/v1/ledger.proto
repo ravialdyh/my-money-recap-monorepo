@@ -117,7 +117,9 @@ message ExportCSVResponse {
 service LedgerService {
   // Every Home figure for one month (PRD §6.8).
   rpc GetMonthSummary(GetMonthSummaryRequest) returns (GetMonthSummaryResponse) {}
-  // One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17).
+  // One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17); the
+  // current month always answers. not_found for an earlier month with no Spend
+  // and no Money In; invalid_argument for a malformed or later month.
   rpc GetRecap(GetRecapRequest) returns (GetRecapResponse) {}
   // The month switcher's list and the Recap-ready check (PRD D59, §10).
   rpc ListMonthsWithData(ListMonthsWithDataRequest) returns (ListMonthsWithDataResponse) {}
