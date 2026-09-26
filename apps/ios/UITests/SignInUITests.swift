@@ -108,6 +108,7 @@ final class SignInUITests: XCTestCase {
         logASpend(app, rupiah: 25000)
         openTheSpendList(app, rupiah: 25000)
         editAndDeleteTheSpend(app, from: 25000, to: 40000)
+        openTheMonthSoFar(app)
 
         app.terminate()
         app.launch()

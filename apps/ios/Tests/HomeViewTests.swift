@@ -213,4 +213,27 @@ final class HomeViewTests: XCTestCase {
             add(attachment)
         }
     }
+
+    /// The Recap entry points under `Past recaps` (spec #151): the dashed preview card before any Recap, the rows once
+    /// months have one, scrolled to the bottom where they sit. The pictures are kept as evidence.
+    func testPastRecapsDrawTheirLabelOverTheCardOrTheRows() throws {
+        let context = try ModelContext(ModelContainer(
+            for: HomeSnapshot.self, SpendListSnapshot.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        ))
+        var pictures: [Data?] = []
+        for name in ["home-zero", "home-recaps"] {
+            let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: name, withExtension: "json"))
+            let home = try MoneyRecap_V1_GetHomeResponse(jsonString: String(contentsOf: url, encoding: .utf8)).home
+            try HomeSnapshot.replace(with: home, in: context)
+            let model = HomeViewModel(fetch: { home }, context: context, locale: Locale(identifier: "en_GB"))
+            let drawn = picture(HomeView(model: model).defaultScrollAnchor(.bottom))
+            let attachment = try XCTAttachment(data: XCTUnwrap(drawn), uniformTypeIdentifier: "public.png")
+            attachment.name = "\(name)-past-recaps"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+            pictures.append(drawn)
+        }
+        XCTAssertNotEqual(pictures[0], pictures[1])
+    }
 }

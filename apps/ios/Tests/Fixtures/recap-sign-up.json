@@ -1,0 +1,76 @@
+{
+    "recap":  {
+        "recap":  {
+            "month":  "2026-08",
+            "situation":  "PARTIAL_SITUATION_SIGN_UP_MONTH",
+            "moneyIn":  {
+                "amount":  "0",
+                "currencyCode":  "IDR"
+            },
+            "spent":  {
+                "amount":  "350000",
+                "currencyCode":  "IDR"
+            },
+            "spendCount":  2,
+            "salary":  {
+                "amount":  {
+                    "amount":  "15000000",
+                    "currencyCode":  "IDR"
+                },
+                "payday":  "25"
+            },
+            "savingTarget":  {
+                "percent":  20,
+                "amount":  {
+                    "amount":  "3000000",
+                    "currencyCode":  "IDR"
+                }
+            },
+            "streak":  {
+                "days":  2,
+                "windowStart":  "2026-08-27",
+                "windowEnd":  "2026-08-31",
+                "runStart":  "2026-08-30",
+                "runEnd":  "2026-08-31"
+            },
+            "categories":  [
+                {
+                    "category":  "CATEGORY_SNACKS",
+                    "amount":  {
+                        "amount":  "200000",
+                        "currencyCode":  "IDR"
+                    },
+                    "percent":  57,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_RIDES",
+                    "amount":  {
+                        "amount":  "150000",
+                        "currencyCode":  "IDR"
+                    },
+                    "percent":  43,
+                    "spendCount":  1
+                }
+            ],
+            "splurge":  {
+                "id":  "31204075-b3ca-4e61-b241-ae18f3d37593",
+                "amount":  {
+                    "amount":  "200000",
+                    "currencyCode":  "IDR"
+                },
+                "originalAmount":  {
+                    "amount":  "200000",
+                    "currencyCode":  "IDR"
+                },
+                "category":  "CATEGORY_SNACKS",
+                "date":  "2026-08-28",
+                "createdAt":  "2026-09-26T18:38:33.447740Z",
+                "updatedAt":  "2026-09-26T18:38:33.447740Z"
+            },
+            "closingLine":  "Your first full recap arrives on 1 October."
+        },
+        "displayName":  "Budi",
+        "currencyCode":  "IDR"
+    }
+}

@@ -55,6 +55,32 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(rows, ["August 2026: Hustler", "July 2026: Partial"], "newest first, as ledger lists them")
     }
 
+    /// "See last month" opens August from September's Home, and stays disabled when only an older month has data
+    /// (PRD §6.8); a row opens its own month and the preview card Home's month (spec #151).
+    func testEachEntryPointOpensItsMonthsRecap() async throws {
+        var home = try recordedHome("home-recaps")
+        let model = try HomeViewModel(fetch: { home }, context: freshContext())
+        await model.refresh()
+        XCTAssertEqual(model.lastMonth, "2026-08")
+        XCTAssertEqual(model.lastMonth.map(model.recap)?.month, "2026-08")
+        XCTAssertEqual(model.recap("2026-07").month, "2026-07")
+        XCTAssertEqual(model.recap("2026-07").page, 0)
+
+        home.recapMonths.removeFirst()
+        await model.refresh()
+        XCTAssertNil(model.lastMonth, "July has data, August none: disabled")
+
+        home.month = "2027-01"
+        home.recapMonths = [.with { $0.month = "2026-12"; $0.label = "Partial" }]
+        await model.refresh()
+        XCTAssertEqual(model.lastMonth, "2026-12", "across the year")
+
+        home = try recordedHome()
+        await model.refresh()
+        XCTAssertNil(model.lastMonth)
+        XCTAssertEqual(model.recap(home.month).month, "2026-09", "the preview card opens the month so far")
+    }
+
     /// PRD §6.8's countdown before the effective Payday, in the singular on the day before (§12, criterion 4).
     func testTheEyebrowCountsTheDaysToTheSalary() async throws {
         var home = try recordedHome()
