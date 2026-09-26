@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// One ground per screen, from four (README "Design rules"); every screen so far is the violet `recap` ground, and the
-/// other three (with yellow's ink type) arrive with the Recap screens. Content sits inside the screen insets with white
-/// type.
+/// One ground per screen, from four (README "Design rules"): the violet `recap` ground unless `ground` names another.
+/// Content sits inside the screen insets with white type.
 struct Screen<Content: View>: View {
+    var ground = Tokens.Ground.recap
     /// True for a screen with no scroll view of its own: it scrolls when it is taller than the screen, as a phone
     /// held sideways makes it (PRD §11 "Platform"), and fills the screen otherwise, so its spacers still push.
     var scrolls = false
@@ -11,7 +11,7 @@ struct Screen<Content: View>: View {
 
     var body: some View {
         ZStack {
-            Tokens.Ground.recap.ignoresSafeArea()
+            ground.ignoresSafeArea()
             if scrolls {
                 GeometryReader { screen in
                     ScrollView {

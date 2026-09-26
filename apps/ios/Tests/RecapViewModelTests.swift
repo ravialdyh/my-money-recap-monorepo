@@ -28,7 +28,7 @@ final class RecapViewModelTests: XCTestCase {
     /// en-GB prints the rupiah's code, then a no-break space.
     func testAFullMonthDrawsTheCoverWithMoneyInSavedAndSpent() async throws {
         let model = try await loaded("recap-squirrel")
-        XCTAssertEqual(model.pages, [.cover])
+        XCTAssertEqual(model.pages, [.cover, .goal])
         XCTAssertEqual(model.page, 0, "a Recap opens on its first page")
         XCTAssertEqual(model.monthChip, "August 2026")
         XCTAssertEqual(model.nameChip, "Budi's recap")
@@ -56,7 +56,7 @@ final class RecapViewModelTests: XCTestCase {
         ]
         for (name, headline, spent, count) in cases {
             let model = try await loaded(name)
-            XCTAssertEqual(model.pages, [.partialCover], name)
+            XCTAssertEqual(model.pages, [.partialCover, .partialGoal], name)
             XCTAssertEqual(model.headline, headline, name)
             XCTAssertEqual(model.eyebrow, "What you've spent", name)
             XCTAssertEqual(model.hero, spent, name)

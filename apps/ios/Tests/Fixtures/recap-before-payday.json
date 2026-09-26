@@ -1,0 +1,107 @@
+{
+    "recap":  {
+        "recap":  {
+            "month":  "2026-09",
+            "situation":  "PARTIAL_SITUATION_CURRENT_MONTH",
+            "moneyIn":  {
+                "amount":  "0.00",
+                "currencyCode":  "GBP"
+            },
+            "spent":  {
+                "amount":  "900.00",
+                "currencyCode":  "GBP"
+            },
+            "spendCount":  6,
+            "salary":  {
+                "amount":  {
+                    "amount":  "2400.00",
+                    "currencyCode":  "GBP"
+                },
+                "payday":  "30",
+                "daysUntilPayday":  4
+            },
+            "savingTarget":  {
+                "percent":  20,
+                "amount":  {
+                    "amount":  "480.00",
+                    "currencyCode":  "GBP"
+                },
+                "progressSentence":  "Nothing to keep yet. Your salary lands on the 30th."
+            },
+            "streak":  {
+                "days":  11,
+                "windowStart":  "2026-09-01",
+                "windowEnd":  "2026-09-26",
+                "badgeUnlocked":  true,
+                "runStart":  "2026-09-16",
+                "runEnd":  "2026-09-26"
+            },
+            "categories":  [
+                {
+                    "category":  "CATEGORY_BILLS",
+                    "amount":  {
+                        "amount":  "500.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  56,
+                    "spendCount":  2
+                },
+                {
+                    "category":  "CATEGORY_CLOTHES",
+                    "amount":  {
+                        "amount":  "180.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  20,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_SNACKS",
+                    "amount":  {
+                        "amount":  "160.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  18,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_RIDES",
+                    "amount":  {
+                        "amount":  "40.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  4,
+                    "spendCount":  1
+                },
+                {
+                    "category":  "CATEGORY_OTHER",
+                    "amount":  {
+                        "amount":  "20.00",
+                        "currencyCode":  "GBP"
+                    },
+                    "percent":  2,
+                    "spendCount":  1
+                }
+            ],
+            "splurge":  {
+                "id":  "0cda9bae-cc88-4f12-a9cc-959032e477f2",
+                "amount":  {
+                    "amount":  "280.00",
+                    "currencyCode":  "GBP"
+                },
+                "originalAmount":  {
+                    "amount":  "280.00",
+                    "currencyCode":  "GBP"
+                },
+                "category":  "CATEGORY_BILLS",
+                "date":  "2026-09-03",
+                "note":  "phone and internet",
+                "createdAt":  "2026-09-26T19:44:02.094547Z",
+                "updatedAt":  "2026-09-26T19:44:02.094547Z"
+            },
+            "closingLine":  "Your recap arrives on 1 October."
+        },
+        "displayName":  "Maya",
+        "currencyCode":  "GBP"
+    }
+}

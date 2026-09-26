@@ -51,6 +51,11 @@ enum RecapLayout {
     /// The cover illustration's width, and its width once the stat chips wrap (X4).
     static let cover: CGFloat = 310
     static let coverNarrow: CGFloat = 260
+    /// The gap over screen 3's target card (`margin-top:18px`).
+    static let cardGap: CGFloat = 18
+    /// Screen 3's vending illustration: its width, and how far it rises above the spending card (`margin-top:-60px`).
+    static let vending: CGFloat = 148
+    static let vendingRise: CGFloat = 60
 }
 
 private extension View {
