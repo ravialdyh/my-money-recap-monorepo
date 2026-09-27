@@ -21,6 +21,8 @@ final class RecapViewModel: Identifiable {
     private(set) var answer: MoneyRecap_V1_RecapView?
     /// The page on screen; a Recap always opens on its first.
     var page = 0
+    /// The poster Share drew, presented in the system share sheet until it closes.
+    var shared: SharedPicture?
     private let fetch: Fetch
     private let context: ModelContext?
     let dates: Date.FormatStyle

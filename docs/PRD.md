@@ -322,7 +322,7 @@ The component keys its mascot off the `archetype` prop through an internal map; 
 
 ### 6.15 Share
 
-`Button` on screen 4 renders screen 4 to a 1080 × 1920 image and opens `UIActivityViewController`. There are **four** share images, one per Archetype: the mascots differ in aspect ratio, and the Hustler mascot is the tallest, so each needs its own composition proof at 1080 × 1920. The image shows Archetype, month, Display Name, Saved and Spent only. It never shows Salary, Money In, `kept%`, the target amount, the Streak, the Splurge, the Category split, the Avatar or the email (D28). Sharing is unavailable on a Partial Recap (§8.11).
+`Button` on screen 4 draws the share image, its own poster rather than screen 4 captured (C6, X5), at 1080 × 1920 with the bundled fonts and opens `UIActivityViewController`. On the green ground: the mascot, at most 620px tall in a 720px slot; "This month, {Display Name}, you were"; the Archetype's title; "{Display Name} · {Month} {Year}"; a white card with Saved and Spent side by side, or one per row at 84px when either is wider than its 348px column at 120px, measured; "My Money Recap" at the foot. There are **four** share images, one per Archetype: the mascots differ in aspect ratio, and the Hustler mascot is the tallest, so each needs its own composition proof at 1080 × 1920. (2026-09-28, #157.) The image shows Archetype, month, Display Name, Saved and Spent only. It never shows Salary, Money In, `kept%`, the target amount, the Streak, the Splurge, the Category split, the Avatar or the email (D28). Sharing is unavailable on a Partial Recap (§8.11).
 
 ### 6.16 Settings
 
