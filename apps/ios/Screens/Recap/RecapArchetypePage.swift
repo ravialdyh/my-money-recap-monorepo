@@ -44,9 +44,12 @@ struct RecapArchetypePage: View {
         Illustration(name: Self.mascot(archetype), width: RecapLayout.mascot, maxHeight: RecapLayout.mascotCap)
         Card(underIllustration: true) {
             bars
-            MMRButton(title: model.share, icon: "square.and.arrow.up") {}
+            MMRButton(title: model.share, icon: "square.and.arrow.up") { model.sharePoster() }
         }
         pills(archetype)
+            .sheet(item: $model.shared) { shared in
+                ShareSheet(image: shared.image) { model.shared = nil }
+            }
     }
 
     @ViewBuilder private var closing: some View {
@@ -122,9 +125,26 @@ extension RecapViewModel {
         "This month, \(answer?.displayName ?? ""), you were"
     }
 
-    /// "Share your {Archetype name}", the short name ledger sends ("Share your Squirrel"); the action is #157's.
+    /// "Share your {Archetype name}", the short name ledger sends ("Share your Squirrel").
     var share: String {
         "Share your \(answer?.recap.archetypeName ?? "")"
+    }
+
+    /// C6's five facts, nil where page 4 has no Share: a Partial Recap or a month without an Archetype.
+    var poster: SharePoster? {
+        guard let archetype, let answer else { return nil }
+        return SharePoster(
+            archetype: .init(kind: archetype, title: answer.recap.archetypeTitle),
+            month: monthChip,
+            displayName: answer.displayName,
+            saved: money(answer.recap.saved),
+            spent: money(answer.recap.spent)
+        )
+    }
+
+    /// Share: draws the poster at 1080 by 1920 and hands it to the system share sheet.
+    func sharePoster() {
+        shared = poster.map { SharedPicture(image: $0.picture()) }
     }
 
     /// Saved against Spent as shares of their sum, a negative Saved printed as it is and drawn empty.

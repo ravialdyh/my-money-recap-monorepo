@@ -39,7 +39,8 @@ The SwiftUI app (`docs/IOS.md`), iOS 17+, iPhone and iPad. Built so far:
   ledger and its dots with the run lit; P2, the streak alone, its dots stopping at today in the current month (#154).
   Swiping on reaches the target and spending page (C3, P3, #155), then the last page on the green ground (#156): C4
   names the month's Archetype with ledger's title and description, its mascot, Saved against Spent as two bars and
-  `Share your {Archetype}`, over the four Archetype pills with the month's picked out and no page dots; with no Saving
+  `Share your {Archetype}`, which draws the 1080 by 1920 poster (C6) and opens the system share sheet (#157), over the
+  four Archetype pills with the month's picked out and no page dots; with no Saving
   Target the target card, with no action until slice 7, stands in the mascot's place, the pills sit at 40% and there
   is no Share. P4 closes with ledger's closing line over the pills at 40%. Bars reveal as their page comes on screen.
   The Settings chip does nothing until slice 7.
