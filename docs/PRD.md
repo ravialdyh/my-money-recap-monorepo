@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft v2. Decisions D1–D40 from 2026-09-04; D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11; D72 from the owner's slice 5 ruling of 2026-09-24. Rows rewritten by the architecture work of 2026-09-12 to 2026-09-16 are marked in place. |
+| Status | Draft v2. Decisions D1–D40 from 2026-09-04; D41–D67 from the design review of 2026-09-08; D68–D71 from the screen work of 2026-09-11; D72 from the owner's slice 5 ruling of 2026-09-24. The owner's Recap rulings of 2026-09-26 and 2026-09-28 (spec #151) are dated where they apply, in §6.8, §6.11 to §6.17, §6.19 and §8.5. Rows rewritten by the architecture work of 2026-09-12 to 2026-09-16 are marked in place. |
 | Platform | Native iOS 17+, iPhone and iPad |
 | Vocabulary | `CONTEXT.md` (beside this file) is the glossary. Terms in **bold caps** below are defined there. |
 | Design system | `../my-money-recap-ds/` (`@my-money-recap/ui`). Its `README.md` carries the visual rules; `src/tokens/tokens.json` the values. |
@@ -261,11 +261,11 @@ Rules
 
 **Offline banner (D58, D63).** Grey `Banner` at the top: "No connection. You can look, but not log." The month chip gains a second line: `Last updated {day} {time}`.
 
-**Actions.** `Button` "Log a spend" (primary, ink, `plus` glyph) and `Button variant="secondary"` "See last month". "See last month" is disabled when the previous month has no data. "Log a spend" is disabled when offline (D58).
+**Actions.** `Button` "Log a spend" (primary, ink, `plus` glyph) and `Button variant="secondary"` "See last month". "See last month" is enabled only when the month before Home's month is in the Recap list, and opens that month's Recap; otherwise it is disabled, even when older months are listed (owner, 2026-09-26). "Log a spend" is disabled when offline (D58).
 
-**Recap list.** `DataRowList` of `ListRow`s, newest first, label = month name, value = Archetype name. A Partial Recap month (§8.11) shows "Partial" as its value. Months with no Spend and no Money In are hidden. The current month is not listed; it is reachable through the preview card instead.
+**Recap list.** Under a "Past recaps" label, shown only when something sits under it (the list, or the preview card), a `DataRowList` of `ListRow`s, newest first, label = month name, value = Archetype name. A Partial Recap month (§8.11) shows "Partial" as its value, as a month without an Archetype does (§6.14). Months with no Spend and no Money In are hidden. The current month is not listed; it is reachable through the preview card instead. Each row opens its month's Recap. This list is SCREEN-STATES C7: there is no separate past-recaps screen (owner, 2026-09-26).
 
-**Preview card (D47).** When no Recap exists yet, a dashed card reads "Your first recap arrives on {date}." It is tappable and opens the month-so-far preview (§6.17).
+**Preview card (D47).** When no Recap exists yet, a dashed card under the "Past recaps" label reads "Your first recap arrives on {date}." It is tappable and opens the month-so-far preview (§6.17).
 
 ### 6.9 Log a spend (sheet)
 
@@ -294,35 +294,39 @@ Reached by tapping the Home hero card (D42 makes the hero the Spent figure, so t
 
 ### 6.11 Recap · screen 1 Cover
 
-`RecapCoverScreen`. Props: month name, Display Name, Money In, Saved, Spent. Copy: eyebrow "{Month} {Year}", chip "{Display Name}'s recap", headline "Your {Month} in money", `StatHero` "Money that came your way" = Money In, chips Saved and Spent. The "Earned" chip is removed (D2). A 44pt close control sits top-left (D46) and `PageDots` are tappable.
+`RecapCoverScreen`. Props: month name, Display Name, Money In, Saved, Spent. Copy: chips "{Month} {Year}" and "{Display Name}'s recap", headline "Your {Month} in money", `StatHero` "Money that came your way" = Money In, chips Saved (a negative one printed as it is) and Spent, and the hint "Swipe to see where it all went." under them, as the canvas draws it (owner, 2026-09-26). The "Earned" chip is removed (D2). A 44pt close control sits top-left (D46) and `PageDots` are tappable, each dot in its own 44pt-tall slice.
+
+**The pager.** Screens 1 to 4 are the pages of one full-screen story over Home, swiped left and right; a Recap always opens on screen 1, and the close control returns to Home. Held sideways, each page scrolls when it is taller than the screen, and swiping still turns the page (owner, 2026-09-26); D66's single scroll at accessibility text sizes is separate.
 
 ### 6.12 Recap · screen 2 Kept and streak
 
-`RecapEarningScreen`. Ground yellow. Illustration: the saving-target jar. Chips "Kept", "{Month}". Headline: "You kept {Saved} of {Money In}. That's {kept%} of your target." `Card` with `CompareBars` of Saved vs Saving Target amount, `scale="max"`. `StreakBadge` with the Streak length, `StreakDots` for the month, `HelperText` "{start} to {end}. {badge copy}". Badge copy: Streak ≥ 7 "New badge unlocked.", otherwise "Beat it next month."
+`RecapEarningScreen`. Ground yellow. Illustration: the saving-target jar. Chips "Kept", "{Month}". Headline: "You kept {Saved} of {Money In}. That's {kept%} of your target." An overspent month prints its negative Saved as it is: "You kept −£200 of £2,400. That's 0% of your target." (owner, 2026-09-26). `Card` "Kept against your target" with `CompareBars` of Saved (the row "Kept") vs Saving Target amount (the row "Target"), `scale="max"`. The streak card: `StreakBadge` with the Streak length, "1 day" or "{n} days"; "Longest no-spend streak"; `HelperText` "{start} to {end}. {badge copy}"; `StreakDots`, one dot per day of the Streak window (§8.5) with the longest run lit, not every spend-free day (owner, 2026-09-26). Badge copy: Streak ≥ 7 "New badge unlocked.", otherwise "Beat it next month."
 
-With no Saving Target the headline drops its second sentence and the compare card becomes the component's own no-target branch: pass `targetAmount={null}`, never `undefined`.
+**The streak line's cases** (owner, 2026-09-26). The dates are ledger's (§8.5), printed in the device locale's day and month order: "12 to 20 September", or "September 12 to 20" in American English. A one-day run prints its one date: "12 September. Beat it next month." With no spend-free day the dates are left out and the badge copy stands alone.
+
+With no Saving Target the headline drops its second sentence and the compare card becomes the target card: eyebrow "Saving target", "Set a target to see how you did", helper "Pick a share of your salary to keep each month, and next month's recap will score it.", drawn with no action until Settings exists (owner, 2026-09-26). In the React component that is its own no-target branch: pass `targetAmount={null}`, never `undefined`.
 
 ### 6.13 Recap · screen 3 Target and spending
 
-`RecapGoalScreen`. Ground coral. Chips "Target", "Spending". Headline "{kept%} of your saving target" with `SubCopy` from §8.7. `Card` "Saving target" with `ProgressBar` and the `piggy` marker. `Card` "Where {Spent} went", `CardTitle` "Mostly {top Category}", one `CategoryBar` per Category with a Spend, sorted descending, showing percentage of Spent, **capped at four**, with the remainder rolled into one line naming those Categories and their combined percentage.
+`RecapGoalScreen`. Ground coral. Chips "Target", "Spending". Headline "{kept%} of your saving target", with no line under it: the canvas's line there is sample text no rule produces (owner, 2026-09-26). `Card` "Saving target" with "{Saved} of {target}", a coral `ProgressBar` carrying the `piggy` marker, and the §8.7 sentence under the bar, as Home's target card has it (owner, 2026-09-26). `Card` "Where {Spent} went", `CardTitle` "Mostly {top Category}", one `CategoryBar` per Category with a Spend, sorted descending, showing percentage of Spent, **capped at three** (D71: four fit only in pounds, and the screen must fit every currency at 844pt; `maxCategoryBars` in the shipped component defaults to 3), with the remainder rolled into one line, "{names} · {n}%". Its percentage is the sum of the rolled-up Categories' percentages as `ledger` rounded them, added on the phone (owner, 2026-09-26; `IOS.md` §1). Category names are lower case inside "Mostly {category}" and "on {category}", capitalised in the bars and the roll-up line.
 
-The cap is **three** `CategoryBar`s plus the roll-up line (D71): four fit only in pounds, and the screen must fit every currency at 844pt without scrolling; `maxCategoryBars` in the shipped component defaults to 3.
+`Card` accent "The splurge": "{amount} on {note or Category}. Your biggest single buy." With no Spend the card reads "Where it went" and "Nothing spent this month", adds "You kept every penny that came in." only when Money In is above 0, and has no splurge: pass `splurge={null}`, never `undefined`.
 
-`Card` accent "The splurge": "{amount} on {note or Category}. Your biggest single buy." Hidden when there are no Spends: pass `splurge={null}`, never `undefined`.
-
-**No Saving Target set.** Reachable whenever the Member skipped onboarding step 4 (D44 forbids only the reverse: a target with no salary). The headline becomes "Where {Spent} went" and the `SubCopy` is dropped, because there is no percentage to state. The saving-target `Card` becomes a `PromptCard` "Set a saving target". The Category breakdown and the Splurge are unaffected: neither needs a target.
+**No Saving Target set.** Reachable whenever the Member skipped onboarding step 4 (D44 forbids only the reverse: a target with no salary). The headline becomes "Where {Spent} went", even when nothing was spent ("Where IDR 0 went", as the design system's `RecapGoalScreen` prints it; owner, 2026-09-28), because there is no percentage to state. The saving-target `Card` becomes a `PromptCard` "Set a saving target", drawn with no action until Settings exists (owner, 2026-09-26). The Category breakdown and the Splurge are unaffected: neither needs a target.
 
 ### 6.14 Recap · screen 4 Archetype
 
-`RecapPersonalityScreen`. Ground green. Headline "This month, {Display Name}, you were", Archetype name, one-line description (§8.6), the Archetype's mascot, `CompareBars` Saved vs Spent (`scale="total"`), `Button` "Share your {Archetype}", `ArchetypeRow` with four `ArchetypePill`s. No `PageDots`: this is the screen that gets screenshotted. The close control from D46 is present.
+`RecapPersonalityScreen`. Ground green. Chip "Your money personality", then "This month, {Display Name}, you were", the Archetype's title, one-line description (§8.6), the Archetype's mascot, `CompareBars` Saved vs Spent (`scale="total"`), `Button` "Share your {Archetype}", `ArchetypeRow` with four `ArchetypePill`s, the month's picked out. No `PageDots`: this is the screen that gets screenshotted. The close control from D46 is present.
+
+**The title** is the big title here and on the share image: "The Squirrel", "The Hustler", "Treat-Yourself", "The Slow Burner", sent by `ledger` with the name and the description. Home's list and the Share button keep the short name: "Share your Squirrel" (owner, 2026-09-26).
 
 The component keys its mascot off the `archetype` prop through an internal map; there is no illustration prop. `Illustration maxHeight` is already applied, so the taller Hustler mascot no longer clips the pill row.
 
-**No Archetype (§8.6).** When Money In is 0 or no Saving Target is set, screen 4 shows a `PromptCard` in place of the mascot: with no Salary, "Set your monthly salary to get a recap"; with no Target, "Set a saving target to get an archetype". Both open the matching Settings screen. The Share button is hidden. The Home and past-Recap list rows show "Partial" rather than an Archetype name.
+**No Archetype (§8.6).** A month screen 4 draws always has Money In above 0 (a month without it is a Partial Recap or is not listed, §8.11), so here no Archetype means no Saving Target. Screen 4 shows a `PromptCard` "Set a saving target to get an archetype", helper "Your archetype comes from what you kept against what you meant to keep.", at the hero card's height in place of the mascot, drawn with no action until Settings exists; the Saved and Spent bars stay, the four pills sit at 40% and the Share button is hidden. A "Set your monthly salary to get a recap" card can never show and is not built (owner, 2026-09-26). Home's list row shows "Partial" rather than an Archetype name.
 
 ### 6.15 Share
 
-`Button` on screen 4 draws the share image, its own poster rather than screen 4 captured (C6, X5), at 1080 × 1920 with the bundled fonts and opens `UIActivityViewController`. On the green ground: the mascot, at most 620px tall in a 720px slot; "This month, {Display Name}, you were"; the Archetype's title; "{Display Name} · {Month} {Year}"; a white card with Saved and Spent side by side, or one per row at 84px when either is wider than its 348px column at 120px, measured; "My Money Recap" at the foot. There are **four** share images, one per Archetype: the mascots differ in aspect ratio, and the Hustler mascot is the tallest, so each needs its own composition proof at 1080 × 1920. (2026-09-28, #157.) The image shows Archetype, month, Display Name, Saved and Spent only. It never shows Salary, Money In, `kept%`, the target amount, the Streak, the Splurge, the Category split, the Avatar or the email (D28). Sharing is unavailable on a Partial Recap (§8.11).
+`Button` on screen 4 draws the share image, its own poster rather than screen 4 captured (C6, X5), at 1080 × 1920 with the bundled fonts and opens `UIActivityViewController`. On the green ground: the mascot, at most 620px tall in a 720px slot; "This month, {Display Name}, you were"; the Archetype's title; "{Display Name} · {Month} {Year}"; a white card with Saved and Spent side by side, or one per row at 84px when either is wider than its 348px column at 120px, measured; "My Money Recap" at the foot. There are **four** share images, one per Archetype: the mascots differ in aspect ratio, and the Hustler mascot is the tallest, so each needs its own composition proof at 1080 × 1920. (2026-09-28, #157.) Measured in the bundled Fredoka, "The Squirrel", "Treat-Yourself" and "The Slow Burner" each wrap to two lines at 168px and only "The Hustler" fits one; the Slow Burner's mascot is wider than tall, so its slot is 429px and its text sits higher; and the stacking rule holds for pounds too, so "£2,090" (368px at 120px) stacks where the October canvases draw it side by side. Saved, Spent and the month print through the app's formatter in the device language: "Rp5.600.000", "Agustus 2026" (X5). The image shows Archetype, month, Display Name, Saved and Spent only. It never shows Salary, Money In, `kept%`, the target amount, the Streak, the Splurge, the Category split, the Avatar or the email (D28). Sharing is unavailable on a Partial Recap (§8.11).
 
 ### 6.16 Settings
 
@@ -347,10 +351,10 @@ The component keys its mascot off the `archetype` prop through an internal map; 
 | Sign-up month where Payday preceded sign-up (§8.11) | "Your first {n} days" | "Your first full recap arrives on {date}." |
 | Any past month with Money In 0 and at least one Spend | "Your {Month} spending" | "Set your monthly salary to get a full recap." |
 
-- **Screen 1**: `StatHero` "What you've spent" = Spent. Chip "{n} spends". No Money In figure at all.
-- **Screen 2**: `StreakBadge`, `StreakDots`, the streak sentence. No `CompareBars`; there is no Money In to compare.
-- **Screen 3**: "Where {Spent} went" with the same four-bar-plus-rollup rule and the Splurge card. Before Payday the target card is replaced by "Your salary lands on the {payday}." (D55); after Payday in a past partial month it is omitted.
-- **Screen 4**: no mascot, no Archetype, no Share. The four `ArchetypePill`s are shown at 40% so the Member can see what is coming.
+- **Screen 1**: `StatHero` "What you've spent" = Spent. Chip "{n} spends", "1 spend" or "No spends" (owner, 2026-09-26). The hint "Swipe to see where it all went." No Money In figure at all.
+- **Screen 2**: chips "Streak" and "{Month}", headline "Your longest no-spend streak", `StreakBadge`, the run's dates as the card's title with the badge copy under it (§6.12's cases), `StreakDots`, which stop at today in the current month. No `CompareBars`; there is no Money In to compare.
+- **Screen 3**: "Where {Spent} went", even when nothing was spent (owner, 2026-09-28, as §6.13), with the same three-bar-plus-rollup rule and the Splurge card. While `ledger`'s days until Payday is above 0, a "Saving target" card reads "Your salary lands on the {payday}." (D55), the day printed as "25th"; otherwise there is no target card, in any situation (owner, 2026-09-26).
+- **Screen 4**: chip "Your money personality", the situation's closing line as the headline, and no mascot, no Archetype, no Share. The four `ArchetypePill`s are shown at 40% under the label "Archetypes" so the Member can see what is coming.
 
 Read-only. The close control and tappable `PageDots` from D46 apply.
 
@@ -362,7 +366,7 @@ Shown immediately after a successful sign-in when `deletion_requested_at` is wit
 
 - **Home, first load.** No cache exists after a first sign-in. Skeleton: the two cards at their filled heights (191 and 136pt) with `ink.100` blocks in place of numbers. No spinner.
 - **Home, offline.** The offline `Banner`, the `Last updated` line, cached numbers, `Log a spend` disabled.
-- **Recap, loading.** The cover ground with the illustration only; numbers fade in.
+- **Recap, loading.** A Recap opened before draws its stored copy at once (D61). Before its first answer, the cover ground with the illustration only; numbers fade in. With no signal and nothing stored that state stays, and the close control still returns to Home (owner, 2026-09-26).
 - **Settings, offline.** Rows render from cache; every row that writes is disabled at 40% with the offline `Banner` at the top.
 - **Write failure.** `InlineError` in place, never a toast, never an overlay. Content moves down rather than being covered.
 
@@ -422,7 +426,7 @@ Target amount = `round-half-up(Salary in force × percent ÷ 100)` to the Curren
 
 - A day counts as spend-free if no non-deleted Spend is dated on it.
 - The **streak window** is `max(1st of M, the Member's sign-up date)` to the last day of M for past months, or to today for the current month (D43).
-- Streak = the longest run of consecutive spend-free days inside that window.
+- Streak = the longest run of consecutive spend-free days inside that window. Of two runs of that length the earlier is the run, as §8.3 breaks a Splurge tie, and a Recap names the run's first and last day (owner, 2026-09-26).
 - A month with no Spends has a Streak equal to the elapsed days **of the window**, not of the month.
 - Streaks never cross month boundaries (D26).
 
@@ -494,7 +498,7 @@ A month M is **partial** when either:
 - M is the Member's sign-up month and M's effective Payday fell strictly before the Member's sign-up date (`signed_up_on`); or
 - M is a past month, Money In for M is 0 and M has at least one Spend.
 
-For a partial month: Money In is 0, Saved is not computed or displayed, there is no Archetype, and the Recap is the four screens in §6.17 rather than §6.11–6.14. The Home and past-Recap list rows read "Partial". Sharing is unavailable.
+For a partial month: Money In is 0, Saved is not computed or displayed, there is no Archetype, and the Recap is the four screens in §6.17 rather than §6.11–6.14. Its row in Home's past-Recap list reads "Partial". Sharing is unavailable.
 
 *Worked:* a Member signs up on 27 September with Payday 25. September's effective payday (the 25th) precedes 27 September, so September is partial. With £200 of Spends across four days, screen 1 reads "Your first 4 days" over `£200`. Their first full Recap is October's, on 1 November. A Member who signs up on 4 September with the same Payday is **not** partial: the 25th is still ahead of them, so they see the money land and get a normal September Recap.
 

@@ -6,7 +6,7 @@ the arithmetic that only `ledger` implements (ARCHITECTURE A2, §7.2) is checked
 the PRD wrote down, not numbers the implementation produced.
 
 Written in #42, #48 and #49. `apps/backend/internal/ledger/fixtures_test.go` decodes every file, and
-`ledger`'s `TestTheAnswerKey` (#99, #128, #130) runs them through the service: it seeds the file's rows, logs
+`ledger`'s `TestTheAnswerKey` (#99, #128, #130, #152) runs them through the service: it seeds the file's rows, logs
 the last Spend with `LogSpend` on its own date when the file asserts `crossedLine`, makes its `saveSalary`,
 sets the clock to `asOf` in `timezone` and compares what `GetMonthSummary`, `GetRecap`, `GetSettings` and the
 Salary rows answer to the expected fields. It names the one file it leaves out and why: the currency change,

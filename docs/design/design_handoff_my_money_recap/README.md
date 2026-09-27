@@ -61,7 +61,7 @@ Each entry: purpose · composition · notable rules. Exact copy is in the HTML. 
 - **C1–C4, the four Recap screens** and their variants: in `2026-09-11/`.
 - **C5 Share sheet**: iOS UIActivityViewController over C4, thumbnail = C6.
 - **C6 Share image**: 1080×1920 poster: Archetype, month, Display Name, Saved and Spent only. **Never** Salary/Money In, kept %, target, streak, splurge, category split, avatar, email.
-- **C7 Past recaps**: violet, ListRows newest first "Month · Archetype"; current month never listed.
+- **C7 Past recaps**: drawn as its own violet screen, ListRows newest first "Month · Archetype"; current month never listed. The app draws it as Home's list under "Past recaps", each row opening its Recap (owner, 2026-09-26).
 - **Flow · Recap and share**: in `2026-09-11/`.
 
 ### D · Settings and account (white `Sheet variant="full"` on violet)

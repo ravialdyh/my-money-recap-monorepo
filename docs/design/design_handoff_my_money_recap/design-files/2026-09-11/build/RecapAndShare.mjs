@@ -17,7 +17,7 @@ const c7empty = col('C7 · Past recaps / empty', screen('recap', `${backRow('Rec
     <div style="font:700 22px/1.25 var(--mmr-font-family-display);text-wrap:balance;max-width:280px">Your first recap arrives on 1 October.</div>
     <button style="height:44px;padding:0 4px;border:0;background:transparent;color:var(--mmr-palette-white);font:800 16px var(--mmr-font-family-text);text-decoration:underline;text-underline-offset:4px;cursor:pointer">See September so far</button>
   </div>`), [
-  `No month with data yet. One centred line and a link to the month-so-far preview (P1). The current month is never listed here; the preview is how it is reached until the 1st.`]);
+  `No month with data yet. Home's dashed preview card under "Past recaps" is this state (owner, 2026-09-26; drawn here as its own screen with a back row): it opens the month-so-far preview (P1). The current month is never listed here; the preview is how it is reached until the 1st.`]);
 
 // Row 2 · variants.
 const c2NoTarget = col('C2 · Recap 2 / no target set', withClose(X('RecapEarningScreen', 'month="September" money-in="{{ n2400 }}" saved="{{ n640 }}" target-amount="{{ nullValue }}" streak-days="{{ n9 }}" streak-range="{{ septStreak }}" streak-caption="12 to 20 September. New badge unlocked." days-in-month="{{ n30 }}"', '', '390px,844px'), true), [
@@ -59,10 +59,10 @@ const share = (label, mascotKey, name, title, month, saved, spent, noteText) => 
   </div>
   <div style="margin-top:auto;font:800 34px/1.2 var(--mmr-font-family-text);letter-spacing:.12em;text-transform:uppercase;opacity:.85">My Money Recap</div>
 </div>
-</div>`, [noteText, 'Same rule as C6: Archetype, month, Display Name, Saved and Spent only. Every mascot is capped at 620px tall inside its 720px slot (object-fit contain), so the four posters keep the name, the line and the card at the same y. That cap is what the Hustler needed.'], 540);
+</div>`, [noteText, `Same rule as C6: Archetype, month, Display Name, Saved and Spent only. Every mascot is capped at 620px tall inside its 720px slot (object-fit contain), so no mascot pushes the name, the line or the card lower than the Hustler's. That cap is what the Hustler needed.`], 540);
 const c6Hustler = share('C6 · Share image / Hustler', 'hustlerSrc', 'Maya', 'The Hustler', 'September 2026', '£640', '£1,760', `The tallest mascot. Without the 620px cap the bee pushes the stats card 180px down and the footer off the poster.`);
-const c6Treat = share('C6 · Share image / Treat-Yourself', 'treatSrc', 'Maya', 'Treat-Yourself', 'October 2026', '£310', '£2,090', `"Treat-Yourself" has no "The": the title keeps the ARCHETYPE_TITLE form the component uses. It fits on one 168px line.`);
-const c6Slow = share('C6 · Share image / Slow Burner', 'slowburnerSrc', 'Maya', 'The Slow Burner', 'October 2026', '£310', '£2,090', `The widest title: "The Slow Burner" wraps to two lines at 168px, which is why the mascot cap matters here too.`);
+const c6Treat = share('C6 · Share image / Treat-Yourself', 'treatSrc', 'Maya', 'Treat-Yourself', 'October 2026', '£310', '£2,090', `"Treat-Yourself" has no "The": the title keeps the ARCHETYPE_TITLE form the component uses. In the bundled Fredoka it wraps to two 168px lines, as "The Squirrel" does; only "The Hustler" fits on one (#157, measured).`);
+const c6Slow = share('C6 · Share image / Slow Burner', 'slowburnerSrc', 'Maya', 'The Slow Burner', 'October 2026', '£310', '£2,090', `The widest title: "The Slow Burner" wraps to two lines at 168px. Its mascot is wider than tall, so it fills a 429px-tall slot and the text sits 191px higher than on the other three (#157).`);
 
 // Row 4 · D66 accessibility-size demonstration: the four screens as one vertical scroll.
 const dots = (i, light = false) => `<div style="margin-bottom:14px">${X('PageDots', `count="{{ n4 }}" active="{{ n${i} }}" on-select="{{ noop }}"${light ? ' on-light="{{ true }}"' : ''}`, '', 'auto,6px')}</div>`;

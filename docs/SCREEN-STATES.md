@@ -4,7 +4,7 @@ Every screen and every state the app can be in, keyed to the ids in `design/desi
 
 **Canvases:** the eleven in `design/design_handoff_my_money_recap/`, whose README counts their artboards (live: <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>). Every row says what its screen must show, so this file can be diffed against the canvases.
 
-**Rules that are not screen states**, but that the design agent must apply everywhere: every onboarding step after the first carries a 44pt back chevron and re-selects the saved answer on resume (PRD §6.4); the Home month chip opens the Spend list's month switcher (PRD §6.8); a Recap always shows the Member's *current* Display Name and Avatar, because nothing about a Recap is stored (PRD §7).
+**Rules that are not screen states**, but that the design agent must apply everywhere: every onboarding step after the first carries a 44pt back chevron and re-selects the saved answer on resume (PRD §6.4); the Home month chip opens the Spend list's month switcher (PRD §6.8); a Recap always shows the Member's *current* Display Name, because nothing about a Recap is stored (PRD §7), and no Avatar: no Recap screen draws one (owner, 2026-09-26).
 
 **Components these screens lean on:** `PromptCard` (every empty state), `DayPicker` (Payday), `InlineError` (the only error surface) and `ListRow trailing="check"` (the currency list).
 
@@ -59,11 +59,11 @@ Violet ground throughout.
 | B1 | no target set, salary set | The hero card is entirely normal: Spent, `Money in`, `Saved`. Only the target card becomes a 136pt `PromptCard` `Set a saving target`, which opens A7. No daily-allowance sentence, and the Target Warning cannot fire. |
 | B1 | target warning | Coral `Banner`, dismiss × session-only, target card moves up. |
 | B1 | target warning, before payday | D53. Same `Banner`, different copy: `You've spent £2,000 of the £1,920 you meant to spend this month.` |
-| B1 | with past recaps | `DataRowList` of months, See last month enabled. |
+| B1 | with past recaps | Under the `Past recaps` label, a `DataRowList` of months, newest first, each row opening its month's Recap: this list is C7. `See last month` is enabled only when the month before Home's is in the list, and opens it (owner, 2026-09-26). |
 | B1 | partial month in the list | §8.11. A `ListRow` whose value reads `Partial` instead of an Archetype name. |
 | B1 | offline | D58/D63. Grey `Banner` under the chips: `No connection. You can look, but not log.` `Log a spend` at 40%. All numbers, and a Target Warning already shown, render from cache. The grey `Banner` and the dimming go when the path returns, with no relaunch. D63's second line under the month chip, `Last updated Saturday 14:20.`, comes with slice 8. |
 | B1 | first load, no cache | D49. Both cards at their filled heights (191pt, 136pt) with `ink.100` blocks in place of numbers. No spinner. |
-| B1 | preview card | D47. The dashed `Your first recap arrives on 1 October.` card is tappable, with a chevron well, and opens P1. |
+| B1 | preview card | D47. Under the `Past recaps` label, the dashed `Your first recap arrives on 1 October.` card is tappable, with a chevron well, and opens P1. |
 | B2 | Log a spend, empty | Sheet, eight category chips, Save disabled. |
 | B2 | write failed | `InlineError` `We couldn't save this spend. Try again.`, sheet open, values intact, Save enabled. |
 | B2 | amount too long | D57. Same rule as A6. |
@@ -86,22 +86,24 @@ Violet ground throughout.
 
 | ID | State | What it must show |
 |---|---|---|
-| C1 | Recap 1, cover | `RecapCoverScreen` with the D46 chrome: a 44pt close control top-left (`plus` rotated 45°) and tappable `PageDots`. |
+| C1 | Recap 1, cover | Violet ground, cover illustration. The D46 chrome: a 44pt close control top-left (`plus` rotated 45°, named `Close`), white here, with the first chip row moved 34pt right to clear it, and `PageDots`, each dot a control in its own 44pt-tall slice read as `Page {n} of 4`. Chips `{Month} {Year}` and `{Display Name}'s recap`; `Your {Month} in money`; `Money that came your way` = Money In, stepping down to fit (D45); Saved (a negative one as it is) and Spent chips; `Swipe to see where it all went.` Every Recap opens here, and held sideways every page scrolls while a swipe still turns it. |
+| C1 | loading | PRD §6.19. Before the first answer, with nothing stored: the ground and the illustration only, the rest fading in when the answer arrives. With no signal it stays, and `Close` still works. A Recap opened before draws its stored copy at once. |
 | C1 | no salary | §8.11. A month with no Salary is a **partial month** and uses P1–P4 (situation 3), not a variant of C1. |
-| C2 | Recap 2, kept and streak | `RecapEarningScreen` with the D46 chrome. |
-| C2 | no target set | `RecapEarningScreen` with `targetAmount={null}`: the headline drops its second sentence and the compare card becomes the target prompt. |
-| C3 | Recap 3, target and spending | `RecapGoalScreen` with the D46 chrome: three bars plus the roll-up line (D71). |
+| C2 | Recap 2, kept and streak | Yellow ground, ink type, the close control and dots ink. Chips `Kept` and `{Month}`, the headline `You kept {Saved} of {Money In}. That's {kept%} of your target.`, the jar, the card `Kept against your target` with two bars, Kept and Target, scaled to the larger, and the streak card: the badge (`1 day`, `{n} days`), `Longest no-spend streak`, `{start} to {end}. {badge copy}` and one dot per day of the window with the longest run lit. A one-day run prints one date; with no run the badge copy stands alone (PRD §6.12). |
+| C2 | overspent | The negative Saved printed as it is: `You kept −£200 of £2,400. That's 0% of your target.` (owner, 2026-09-26). |
+| C2 | no target set | The headline stops after its first sentence and the bars card becomes the target card, `Saving target` / `Set a target to see how you did` / its helper, with no action until Settings exists. |
+| C3 | Recap 3, target and spending | Coral ground. Chips `Target` and `Spending`; `{kept%} of your saving target` with no line under it; the `Saving target` card, `{Saved} of {target}` over a coral bar with the piggy marker and §8.7's sentence under it; the spending card with the vending illustration: `Where {Spent} went`, `Mostly {category}`, three `CategoryBar`s (D71) each read `{Category}, {n} percent, {amount}`, the roll-up line and the splurge. |
 | C3 | target missed | Coral part-full bar, `{short} short of your target.` |
-| C3 | no spends | `splurge={null}`: the split card reads `Nothing spent this month`, the splurge block is hidden. |
-| C3 | no target set | `RecapGoalScreen` with `target={null}`. Headline is `Where £1,760 went` and the `SubCopy` is dropped: there is no percentage to state. The saving-target card becomes a `PromptCard` `Set a saving target`. Bars and Splurge unchanged. |
-| C4 | Recap 4, archetype | D46 close control. Still no `PageDots`: this is the screenshotted screen. |
-| C4 | Treat-Yourself / Hustler / Slow Burner | `RecapPersonalityScreen` with the `archetype` prop; the mascot's `maxHeight` keeps the Hustler clear of the pill row. |
-| C4 | no archetype, no target | §6.14. `PromptCard` in place of the mascot: `Set a saving target to get an archetype`. Share button hidden. The four pills sit at 40%. |
-| C5 | Share sheet | iOS `UIActivityViewController`, placement only. |
-| C6 | Share image, Squirrel | 1080×1920, Archetype/month/name/Saved/Spent only. |
-| C6 | Share image, Hustler / Treat-Yourself / Slow Burner | §6.15. Three more, one per Archetype. The four mascots differ in aspect ratio and the Hustler is the tallest, so each composition needs proving at 1080×1920. |
-| C7 | Past recaps | `ListRow`s newest first, current month never listed. |
-| C7 | empty | No months with data yet: a centred line `Your first recap arrives on 1 October.` and a link to the preview. |
+| C3 | no spends | The spending card reads `Where it went` and `Nothing spent this month`, adds `You kept every penny that came in.` when Money In is above 0, and has no splurge. |
+| C3 | no target set | Headline `Where £1,760 went` (`Where IDR 0 went` with nothing spent, owner, 2026-09-28), no line under it: there is no percentage to state. The saving-target card becomes the 136pt target card `Set a saving target`, with no action until Settings exists. Bars and Splurge unchanged. |
+| C4 | Recap 4, archetype | Green ground, the close control, no `PageDots`: this is the screenshotted screen. Chip `Your money personality`, `This month, {Display Name}, you were`, the title (`The Squirrel`), the one-line description, the mascot capped at 300pt, a card with Saved against Spent as bars and `Share your {Archetype}`, and the four pills with the month's picked out. |
+| C4 | Treat-Yourself / Hustler / Slow Burner | The same page with its own title and mascot; the cap keeps the tallest, the Hustler's, clear of the pill row. |
+| C4 | no archetype, no target | §6.14. The target card `Set a saving target to get an archetype` at the hero card's height in place of the mascot, with no action until Settings exists; the Saved and Spent bars stay; the four pills sit at 40%; no Share. |
+| C5 | Share sheet | The system `UIActivityViewController` holding C6's picture. |
+| C6 | Share image, Squirrel | 1080×1920 poster on the green ground (PRD §6.15), built from Archetype, month, Display Name, Saved and Spent only: the mascot, `This month, {Display Name}, you were`, the title, `{Display Name} · {Month} {Year}`, a white card with `Saved` and `Spent`, `My Money Recap` at the foot. Its own composition, not C4 captured. |
+| C6 | Share image, Hustler / Treat-Yourself / Slow Burner | §6.15. Three more, one per Archetype, each proved at 1080×1920. Only `The Hustler` fits one title line; the Slow Burner's wide mascot takes a 429px slot. |
+| C7 | Past recaps | Home's list (B1 with past recaps): no screen of its own (owner, 2026-09-26). Rows newest first, current month never listed, each opening its month's Recap. |
+| C7 | empty | Home's dashed preview card under `Past recaps` (B1 preview card), which opens P1. |
 | none | Recap at accessibility text size | D66. One demonstration artboard: the four screens as a single vertical scroll, `PageDots` as section markers. One artboard, not four, showing the rule. |
 | none | Flow · Recap and share | Includes the close control, the partial-recap branch and the preview entry. |
 
@@ -113,10 +115,10 @@ Four artboards, three situations (D52, D64). The layout is identical in all thre
 
 | ID | What it must show |
 |---|---|
-| P1 | Cover. `StatHero` `What you've spent` = Spent. Chip `{n} spends`. **No Money In figure anywhere.** Headline by situation: `{Month} so far` · `Your first {n} days` · `Your {Month} spending`. |
-| P2 | Streak. `StreakBadge`, `StreakDots`, the streak sentence. No `CompareBars`: there is no Money In to compare against. |
-| P3 | Spending. `Where {Spent} went`, three `CategoryBar`s plus roll-up, the Splurge card. Before payday the target card is replaced by `Your salary lands on the 25th.` (D55). |
-| P4 | Closing. No mascot, no Archetype, no Share. The four `ArchetypePill`s at 40%. Line by situation: `Your recap arrives on 1 October.` · `Your first full recap arrives on 1 November.` · `Set your monthly salary to get a full recap.` |
+| P1 | Cover, as C1's ground and chips. `StatHero` `What you've spent` = Spent. Chip `{n} spends` (`1 spend`, `No spends`). `Swipe to see where it all went.` **No Money In figure anywhere.** Headline by situation: `{Month} so far` · `Your first {n} days` · `Your {Month} spending`. |
+| P2 | Streak, C2's yellow ground. Chips `Streak` and `{Month}`, `Your longest no-spend streak`, the jar, the streak card with the badge, the run's dates as its title and the badge copy under it, and the dots, which stop at today in the current month. No `CompareBars`: there is no Money In to compare against. |
+| P3 | Spending, C3's coral ground and chips. `Where {Spent} went` (`Where IDR 0 went` with nothing spent, owner, 2026-09-28), then C3's spending card. While `ledger`'s days until Payday is above 0, a `Saving target` card reads `Your salary lands on the 25th.` (D55); otherwise there is no target card (owner, 2026-09-26). |
+| P4 | Closing, C4's green ground with the page dots. Chip `Your money personality`; no mascot, no Archetype, no Share. The four `ArchetypePill`s at 40% under `Archetypes`. The headline is the line by situation: `Your recap arrives on 1 October.` · `Your first full recap arrives on 1 November.` · `Set your monthly salary to get a full recap.` |
 
 **Worked example for P1's second situation:** a member signs up 27 September with payday 25 and logs £200 across four days. P1 reads `Your first 4 days` over `£200`.
 
@@ -163,8 +165,8 @@ White `Sheet variant="full"` on violet.
 | X1 | **iPad portrait.** D40 as amended by D68: the single column, capped at 600pt, centred on a full-bleed ground. One artboard, Home. |
 | X2 | **iPad landscape.** Same column, same centring, `Sheet`s anchored to the bottom of the column rather than the screen. One artboard, Log a spend over Home. |
 | X3 | **IDR proof · Home.** D45. B1 with Salary Rp15.000.000, Spent Rp9.400.000. Proves that `StatHero` shrinks to fit (80 → 56 → 40pt) and that separators follow the device language (D71). |
-| X4 | **IDR proof · Recap cover.** C1 with the same ledger. |
-| X5 | **IDR proof · Share image.** C6 with the same ledger, at 1080×1920. |
+| X4 | **IDR proof · Recap cover.** C1 with the same ledger: the Saved and Spent chips wrap to two lines, so the cover illustration narrows from 310 to 260pt to keep the page dots on an 844pt screen. A picture test (IOS I9). |
+| X5 | **IDR proof · Share image.** C6 with the same ledger, at 1080×1920: Saved and Spent stack one per row at 84px, since `Rp5.600.000` is wider than its column (PRD §6.15), and the month prints in the device language (`Agustus 2026`). A picture test (IOS I9). |
 
 ---
 
@@ -202,10 +204,30 @@ One string, one place. Where two screens show the same idea, they show the same 
 | No salary prompt, eyebrow | `Salary` |
 | No salary prompt | `Set your monthly salary` |
 | No salary prompt, helper | `We'll show what you kept once we know what came in.` |
-| No target prompt | `Set a saving target` |
+| No target prompt (Home, Recap 3) | `Set a saving target` |
 | No target prompt, helper | `Pick a share of your salary to keep each month.` |
 | Target preview, onboarding | `{amount} of {salary} each month` |
 | Target blocked in onboarding | `Set a salary first` |
+| Home, list label | `Past recaps` |
+| Recap cover (C1) | `{Month} {Year}` / `{Display Name}'s recap` / `Your {Month} in money` / `Money that came your way` |
+| Recap cover hint (C1, P1) | `Swipe to see where it all went.` |
+| Recap 2 (C2) | `Kept` / `{Month}` / `You kept {Saved} of {Money In}. That's {kept%} of your target.` (no target: `You kept {Saved} of {Money In}.`) / `Kept against your target`, rows `Kept` and `Target` |
+| Streak card | `Longest no-spend streak` / `{start} to {end}. {badge copy}` |
+| Streak badge unit | `1 day` / `{n} days` |
+| Recap 3 (C3) | `Target` / `Spending` / `{kept%} of your saving target` (no target: `Where {Spent} went`) / `Saving target` / `{Saved} of {target}` |
+| Spending card | `Where {Spent} went` / `Mostly {category}` / `{names} · {n}%` |
+| Spending card, no Spend | `Where it went` / `Nothing spent this month` / `You kept every penny that came in.` (only with Money In) |
+| Splurge | `The splurge` / `{amount} on {note or category}. Your biggest single buy.` |
+| Recap 4 (C4) | `Your money personality` / `This month, {Display Name}, you were` / the title / `Share your {Archetype}` |
+| Archetype titles (ledger's) | `The Squirrel` / `The Hustler` / `Treat-Yourself` / `The Slow Burner` |
+| Recap target card, screen 2 | `Saving target` / `Set a target to see how you did` / `Pick a share of your salary to keep each month, and next month's recap will score it.` |
+| Recap target card, screen 4 | `Set a saving target to get an archetype` / `Your archetype comes from what you kept against what you meant to keep.` |
+| Partial Recap cover (P1) | `{Month} so far` / `Your first {n} days` / `Your {Month} spending` / `What you've spent` / `{n} spends`, `1 spend`, `No spends` |
+| Partial Recap streak (P2) | `Streak` / `{Month}` / `Your longest no-spend streak` |
+| Partial Recap Payday card (P3) | `Saving target` / `Your salary lands on the {payday}.` |
+| Partial Recap closing (P4) | `Your money personality` / ledger's closing line / `Archetypes` |
+| Closing lines (ledger's) | `Your recap arrives on {1st of next month}.` / `Your first full recap arrives on {date}.` / `Set your monthly salary to get a full recap.` |
+| Share image | `This month, {Display Name}, you were` / the title / `{Display Name} · {Month} {Year}` / `Saved` / `Spent` / `My Money Recap` |
 | Restore account, the request | `You asked us to delete this account {day} at {time}. Nothing has gone yet.` ({day} is `today` or `yesterday`) |
 | Restore account, what is lost | `Keep it and every spend, every recap and every setting stays exactly as it was. Continue and it all goes at {time} {day}, for good.` ({day} is `today` or `tomorrow`, 24 hours after the request) |
 | Restore account, keep failed | `We couldn't keep your account. Try again.` |
