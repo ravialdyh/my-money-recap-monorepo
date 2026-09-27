@@ -14,11 +14,17 @@ struct Illustration: View {
         Image(name)
             .resizable()
             .scaledToFit()
-            .frame(width: maxHeight == nil ? width : nil)
-            .frame(maxWidth: width, maxHeight: maxHeight)
-            .frame(maxWidth: .infinity, maxHeight: grows ? .infinity : nil, alignment: .bottom)
+            .frame(width: width, height: height)
+            .frame(maxWidth: .infinity, minHeight: height, maxHeight: grows ? .infinity : nil, alignment: .bottom)
             .padding(.bottom, -hang)
             .zIndex(1)
             .accessibilityHidden(true)
+    }
+
+    /// The drawn height, which never shrinks to fit, as an image in a flex column: the artwork's at `width`, or the
+    /// cap.
+    private var height: CGFloat? {
+        guard let size = UIImage(named: name)?.size, size.width > 0 else { return nil }
+        return min(maxHeight ?? .infinity, width * size.height / size.width)
     }
 }

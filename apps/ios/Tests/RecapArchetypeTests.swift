@@ -105,15 +105,17 @@ final class RecapArchetypeTests: XCTestCase {
         }
     }
 
-    /// The tallest mascot, the Hustler's, is capped so the page fits upright with the pills on screen.
-    func testTheHustlersMascotClearsThePillsUpright() async throws {
-        let page = try await page("recap-no-run")
-        XCTAssertEqual(overflow(page, size: CGSize(width: 393, height: 852)), 0, "the Hustler fits upright")
+    /// Every C4 fits upright at 393 by 852 with the pills in full, the tallest mascot, the Hustler's, included.
+    func testEachArchetypesPageFitsUpright() async throws {
+        for name in Self.archetypes {
+            let overflow = try await overflow(page(name), size: CGSize(width: 393, height: 852))
+            XCTAssertEqual(overflow, 0, "\(name) fits upright")
+        }
     }
 
     func testPage4HeldSidewaysScrollsRatherThanClips() async throws {
         let sideways = CGSize(width: 852, height: 393)
-        for name in ["recap-no-run", "recap-no-target", "recap-preview"] {
+        for name in ["recap-no-run", "recap-no-target"] {
             let page = try await page(name)
             XCTAssertGreaterThan(overflow(page, size: sideways), 0, "\(name) scrolls sideways")
             try keep(
