@@ -123,5 +123,8 @@ final class RecapArchetypeTests: XCTestCase {
                 "page-4-sideways-" + name.replacingOccurrences(of: "recap-", with: "")
             )
         }
+        let closing = try await page("recap-preview")
+        XCTAssertEqual(overflow(closing, size: sideways), 0, "P4 fits sideways, nothing clipped")
+        try keep(picture(closing, size: sideways), "page-4-sideways-preview")
     }
 }
