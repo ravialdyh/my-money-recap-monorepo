@@ -1,9 +1,9 @@
 import SwiftUI
 
 /// Fredoka headline, `m` by default as in Headline.tsx; `l` is the sign-in size (PRD §6.1), `compact` the Recap's
-/// 36pt size.
+/// 36pt size, `display` the 68pt Archetype title.
 struct Headline: View {
-    enum Size { case l, m, compact }
+    enum Size { case l, m, compact, display }
     let text: String
     var size: Size = .m
 
@@ -18,6 +18,7 @@ struct Headline: View {
         case .l: Tokens.TypeRamp.headlineL
         case .m: Tokens.TypeRamp.headlineM
         case .compact: Tokens.TypeRamp.headlineMCompact
+        case .display: Tokens.TypeRamp.displayL
         }
     }
 }

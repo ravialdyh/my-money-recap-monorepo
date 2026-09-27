@@ -10,10 +10,10 @@ import SwiftData
 final class RecapViewModel: Identifiable {
     typealias Fetch = (String) async throws -> MoneyRecap_V1_RecapView
 
-    /// The pager's pages in their fixed order: C1, C2 and C3 for a full month; P1, P2 and P3 for the month so far and
-    /// both partial situations.
+    /// The pager's pages in their fixed order: C1 to C4 for a full month; P1 to P4 for the month so far and both
+    /// partial situations.
     enum Page: Equatable {
-        case cover, partialCover, kept, streak, goal, partialGoal
+        case cover, partialCover, kept, streak, goal, partialGoal, archetype, closing
     }
 
     /// "YYYY-MM" this Recap covers.
@@ -58,7 +58,7 @@ final class RecapViewModel: Identifiable {
     /// No page before the answer; then the situation chooses (PRD §8.11).
     var pages: [Page] {
         guard answer != nil else { return [] }
-        return partial ? [.partialCover, .streak, .partialGoal] : [.cover, .kept, .goal]
+        return partial ? [.partialCover, .streak, .partialGoal, .closing] : [.cover, .kept, .goal, .archetype]
     }
 
     /// Any situation but unspecified is the Partial Recap or the preview (PRD §8.11).

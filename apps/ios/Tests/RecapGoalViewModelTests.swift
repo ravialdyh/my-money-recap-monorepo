@@ -26,7 +26,7 @@ final class RecapGoalViewModelTests: XCTestCase {
     /// Canvas C3: June, Saved £640 of a £480 target, eight Categories, the splurge with its note.
     func testTargetMetDrawsThreeBarsTheRollUpAndTheSplurge() async throws {
         let model = try await loaded("recap-target-met")
-        XCTAssertEqual(model.pages, [.cover, .kept, .goal])
+        XCTAssertEqual(model.pages, [.cover, .kept, .goal, .archetype])
         XCTAssertEqual(model.goalHeadline, "133% of your saving target")
         XCTAssertEqual(model.target?.progress, "£640 of £480")
         XCTAssertEqual(model.answer?.recap.savingTarget.progressSentence, "Target met. £160 to spare.")
@@ -75,7 +75,7 @@ final class RecapGoalViewModelTests: XCTestCase {
     /// May, before the Saving Target's first month: no percentage anywhere, the target card instead (PRD §6.13).
     func testNoSavingTargetHeadsWithSpentAndDrawsTheTargetCard() async throws {
         let model = try await loaded("recap-no-target")
-        XCTAssertEqual(model.pages, [.cover, .kept, .goal])
+        XCTAssertEqual(model.pages, [.cover, .kept, .goal, .archetype])
         XCTAssertEqual(model.goalHeadline, "Where £1,760 went")
         XCTAssertNil(model.target)
         XCTAssertNil(model.paydayLine)
@@ -86,7 +86,7 @@ final class RecapGoalViewModelTests: XCTestCase {
     /// P3 (PRD §6.17, D55): September so far, Payday moved to the 30th, 4 days after the recording.
     func testTheMonthSoFarBeforePaydayNamesThePayday() async throws {
         let model = try await loaded("recap-before-payday")
-        XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal])
+        XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal, .closing])
         XCTAssertEqual(model.goalHeadline, "Where £900 went", "P3 has no percentage")
         XCTAssertNil(model.target)
         XCTAssertEqual(model.paydayLine, "Your salary lands on the 30th.")
@@ -99,7 +99,7 @@ final class RecapGoalViewModelTests: XCTestCase {
     func testP3AfterPaydayAndInAPastPartialMonthHasNoTargetCard() async throws {
         for name in ["recap-after-payday", "recap-sign-up", "recap-no-money-in"] {
             let model = try await loaded(name)
-            XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal], name)
+            XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal, .closing], name)
             XCTAssertNil(model.target, name)
             XCTAssertNil(model.paydayLine, name)
         }

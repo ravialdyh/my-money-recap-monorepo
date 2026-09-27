@@ -1,0 +1,131 @@
+{
+    "recap": {
+        "recap": {
+            "month": "2026-08",
+            "moneyIn": {
+                "amount": "15000000",
+                "currencyCode": "IDR"
+            },
+            "spent": {
+                "amount": "12600000",
+                "currencyCode": "IDR"
+            },
+            "saved": {
+                "amount": "2400000",
+                "currencyCode": "IDR"
+            },
+            "spendCount": 7,
+            "salary": {
+                "amount": {
+                    "amount": "15000000",
+                    "currencyCode": "IDR"
+                },
+                "payday": "25"
+            },
+            "savingTarget": {
+                "percent": 20,
+                "amount": {
+                    "amount": "3000000",
+                    "currencyCode": "IDR"
+                },
+                "progressSentence": "Rp600.000 short of your target."
+            },
+            "keptPercent": 80,
+            "streak": {
+                "days": 7,
+                "windowStart": "2026-08-01",
+                "windowEnd": "2026-08-31",
+                "badgeUnlocked": true,
+                "runStart": "2026-08-25",
+                "runEnd": "2026-08-31"
+            },
+            "categories": [
+                {
+                    "category": "CATEGORY_BILLS",
+                    "amount": {
+                        "amount": "3000000",
+                        "currencyCode": "IDR"
+                    },
+                    "percent": 24,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_CLOTHES",
+                    "amount": {
+                        "amount": "2000000",
+                        "currencyCode": "IDR"
+                    },
+                    "percent": 16,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_SNACKS",
+                    "amount": {
+                        "amount": "1800000",
+                        "currencyCode": "IDR"
+                    },
+                    "percent": 14,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_RIDES",
+                    "amount": {
+                        "amount": "1600000",
+                        "currencyCode": "IDR"
+                    },
+                    "percent": 13,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_GIFTS",
+                    "amount": {
+                        "amount": "1500000",
+                        "currencyCode": "IDR"
+                    },
+                    "percent": 12,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_OTHER",
+                    "amount": {
+                        "amount": "1500000",
+                        "currencyCode": "IDR"
+                    },
+                    "percent": 12,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_GAMES",
+                    "amount": {
+                        "amount": "1200000",
+                        "currencyCode": "IDR"
+                    },
+                    "percent": 10,
+                    "spendCount": 1
+                }
+            ],
+            "splurge": {
+                "id": "1970431d-0184-40de-b588-8b9c4d5b780a",
+                "amount": {
+                    "amount": "3000000",
+                    "currencyCode": "IDR"
+                },
+                "originalAmount": {
+                    "amount": "3000000",
+                    "currencyCode": "IDR"
+                },
+                "category": "CATEGORY_BILLS",
+                "date": "2026-08-03",
+                "note": "Rent",
+                "createdAt": "2026-09-27T18:17:27.647210Z",
+                "updatedAt": "2026-09-27T18:17:27.647210Z"
+            },
+            "archetype": "ARCHETYPE_SLOW_BURNER",
+            "archetypeName": "Slow Burner",
+            "archetypeDescription": "Lots of little spends added up. Sneaky.",
+            "archetypeTitle": "The Slow Burner"
+        },
+        "displayName": "Budi",
+        "currencyCode": "IDR"
+    }
+}
