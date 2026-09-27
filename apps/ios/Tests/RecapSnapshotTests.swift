@@ -20,10 +20,11 @@ final class RecapSnapshotTests: XCTestCase {
     func testTheAnswerIsStoredAndDrawnAtOnceNextTimeWithNoSignal() async throws {
         let context = try freshContext()
         let preview = try RecapViewModelTests.recorded("recap-preview")
-        await RecapViewModel(month: "2026-09", fetch: { _ in preview }, context: context).load()
+        let online = RecapViewModel(month: "2026-09", fetch: { _ in preview }, context: context)
+        await online.load()
         let offline = RecapViewModel(month: "2026-09", fetch: failing, context: context)
         XCTAssertEqual(offline.answer, preview, "drawn before any answer")
-        XCTAssertEqual(offline.pages, [.partialCover, .partialGoal])
+        XCTAssertEqual(offline.pages, online.pages, "the same pages as the answer drew")
         await offline.load()
         XCTAssertEqual(offline.answer, preview, "a failure keeps what is shown")
         XCTAssertNil(RecapSnapshot.load("2026-08", from: context), "only the month opened is stored")
