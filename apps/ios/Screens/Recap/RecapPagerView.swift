@@ -16,7 +16,7 @@ struct RecapPagerView: View {
         .tabViewStyle(.page(indexDisplayMode: .never))
         .animation(reveal, value: model.answer != nil)
         .overlay(alignment: .topLeading) {
-            CloseControl { dismiss() }
+            CloseControl(onLight: ground == Tokens.Ground.earning) { dismiss() }
                 .padding(.leading, RecapLayout.closeInset)
                 .padding(.top, RecapLayout.closeTop)
         }
@@ -28,6 +28,7 @@ struct RecapPagerView: View {
     @ViewBuilder private func page(_ index: Int) -> some View {
         switch model.pages.indices.contains(index) ? model.pages[index] : .cover {
         case .cover, .partialCover: RecapCoverPage(model: model)
+        case .kept, .streak: RecapKeptPage(model: model, active: model.page == index)
         case .goal, .partialGoal: RecapGoalPage(model: model, active: model.page == index)
         }
     }
@@ -36,6 +37,7 @@ struct RecapPagerView: View {
     private var ground: Color {
         switch model.pages.indices.contains(model.page) ? model.pages[model.page] : .cover {
         case .cover, .partialCover: Tokens.Ground.recap
+        case .kept, .streak: Tokens.Ground.earning
         case .goal, .partialGoal: Tokens.Ground.goal
         }
     }

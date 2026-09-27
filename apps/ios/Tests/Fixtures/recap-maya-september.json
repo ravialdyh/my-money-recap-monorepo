@@ -1,0 +1,129 @@
+{
+    "recap": {
+        "recap": {
+            "month": "2026-09",
+            "moneyIn": {
+                "amount": "2400.00",
+                "currencyCode": "GBP"
+            },
+            "spent": {
+                "amount": "1760.00",
+                "currencyCode": "GBP"
+            },
+            "saved": {
+                "amount": "640.00",
+                "currencyCode": "GBP"
+            },
+            "spendCount": 8,
+            "salary": {
+                "amount": {
+                    "amount": "2400.00",
+                    "currencyCode": "GBP"
+                },
+                "payday": "25",
+                "daysUntilPayday": 0
+            },
+            "savingTarget": {
+                "percent": 20,
+                "amount": {
+                    "amount": "480.00",
+                    "currencyCode": "GBP"
+                },
+                "progressSentence": "Target met. £160 to spare."
+            },
+            "keptPercent": 133,
+            "streak": {
+                "days": 9,
+                "windowStart": "2026-09-01",
+                "windowEnd": "2026-09-30",
+                "runStart": "2026-09-12",
+                "runEnd": "2026-09-20",
+                "badgeUnlocked": true
+            },
+            "categories": [
+                {
+                    "category": "CATEGORY_TOYS",
+                    "amount": {
+                        "amount": "420.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 24,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_BILLS",
+                    "amount": {
+                        "amount": "300.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 17,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_SNACKS",
+                    "amount": {
+                        "amount": "270.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 15,
+                    "spendCount": 2
+                },
+                {
+                    "category": "CATEGORY_GAMES",
+                    "amount": {
+                        "amount": "250.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 14,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_RIDES",
+                    "amount": {
+                        "amount": "200.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 11,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_CLOTHES",
+                    "amount": {
+                        "amount": "180.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 10,
+                    "spendCount": 1
+                },
+                {
+                    "category": "CATEGORY_GIFTS",
+                    "amount": {
+                        "amount": "140.00",
+                        "currencyCode": "GBP"
+                    },
+                    "percent": 8,
+                    "spendCount": 1
+                }
+            ],
+            "splurge": {
+                "id": "maya-07",
+                "amount": {
+                    "amount": "420.00",
+                    "currencyCode": "GBP"
+                },
+                "originalAmount": {
+                    "amount": "420.00",
+                    "currencyCode": "GBP"
+                },
+                "category": "CATEGORY_TOYS",
+                "date": "2026-09-27"
+            },
+            "archetype": "ARCHETYPE_SQUIRREL",
+            "archetypeName": "Squirrel",
+            "archetypeTitle": "The Squirrel",
+            "archetypeDescription": "You stashed more than you meant to, and you didn't crack once."
+        },
+        "displayName": "Maya",
+        "currencyCode": "GBP"
+    }
+}

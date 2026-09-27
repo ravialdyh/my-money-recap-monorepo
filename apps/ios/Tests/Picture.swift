@@ -2,8 +2,8 @@ import SwiftUI
 import XCTest
 
 extension XCTestCase {
-    /// `view` as it draws in a 393 × 852 window, the size of the iPhone the UI tests run on, or `size`. SwiftUI's
-    /// accessibility tree is empty in a unit test, so the render tests compare pictures.
+    /// `view` settled, every reveal skipped, as it draws in a 393 × 852 window, the size of the iPhone the UI tests run
+    /// on, or `size`. SwiftUI's accessibility tree is empty in a unit test, so the render tests compare pictures.
     @MainActor
     func picture(_ view: some View, size: CGSize = CGSize(width: 393, height: 852)) -> Data? {
         let host = hosted(view, size: size)
@@ -25,7 +25,7 @@ extension XCTestCase {
 
     @MainActor
     private func hosted(_ view: some View, size: CGSize) -> UIHostingController<some View> {
-        let host = UIHostingController(rootView: view)
+        let host = UIHostingController(rootView: view.transaction { $0.animation = nil })
         let window = UIWindow(frame: CGRect(origin: .zero, size: size))
         window.rootViewController = host
         window.makeKeyAndVisible()

@@ -1,0 +1,72 @@
+{
+    "recap": {
+        "recap": {
+            "month": "2026-08",
+            "moneyIn": {
+                "amount": "15000000",
+                "currencyCode": "IDR"
+            },
+            "spent": {
+                "amount": "310000",
+                "currencyCode": "IDR"
+            },
+            "saved": {
+                "amount": "14690000",
+                "currencyCode": "IDR"
+            },
+            "spendCount": 31,
+            "salary": {
+                "amount": {
+                    "amount": "15000000",
+                    "currencyCode": "IDR"
+                },
+                "payday": "25"
+            },
+            "savingTarget": {
+                "percent": 20,
+                "amount": {
+                    "amount": "3000000",
+                    "currencyCode": "IDR"
+                },
+                "progressSentence": "Target met. Rp11.690.000 to spare."
+            },
+            "keptPercent": 490,
+            "streak": {
+                "windowStart": "2026-08-01",
+                "windowEnd": "2026-08-31"
+            },
+            "categories": [
+                {
+                    "category": "CATEGORY_SNACKS",
+                    "amount": {
+                        "amount": "310000",
+                        "currencyCode": "IDR"
+                    },
+                    "percent": 100,
+                    "spendCount": 31
+                }
+            ],
+            "splurge": {
+                "id": "f84bb5fe-ee78-4599-83bc-ef0a5402742e",
+                "amount": {
+                    "amount": "10000",
+                    "currencyCode": "IDR"
+                },
+                "originalAmount": {
+                    "amount": "10000",
+                    "currencyCode": "IDR"
+                },
+                "category": "CATEGORY_SNACKS",
+                "date": "2026-08-01",
+                "createdAt": "2026-09-26T19:44:16.061044Z",
+                "updatedAt": "2026-09-26T19:44:16.061044Z"
+            },
+            "archetype": "ARCHETYPE_HUSTLER",
+            "archetypeName": "Hustler",
+            "archetypeDescription": "You hit your number while still living a little.",
+            "archetypeTitle": "The Hustler"
+        },
+        "displayName": "Budi",
+        "currencyCode": "IDR"
+    }
+}
