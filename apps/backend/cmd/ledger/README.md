@@ -73,7 +73,7 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, ev
   also lists every earlier month with a Spend or Money In for Home, newest first, labelled by its Archetype
   name or `Partial`, which a full month without an Archetype reads too (§6.14); those are the only earlier
   months `GetRecap` answers, and any other is `not_found` (#152). A Recap's Streak names its run's first and last
-  day, the earlier of two equally long runs, and its Archetype carries the title screen 4 prints (`The Squirrel`).
+  day, the earlier of two equally long runs, and its Archetype carries the title screen 4 and the share image print (`The Squirrel`).
 - Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
   (`internal/idempotency`, A14), as `members` does.
 - Each Spend write stages `ledger.spend.logged`, `ledger.spend.edited` or `ledger.spend.deleted` in `outbox`

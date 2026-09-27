@@ -54,7 +54,9 @@ cd packages/contract && buf breaking --against "$(git rev-parse --git-common-dir
 
 - `buf lint` (the `STANDARD` rule set).
 - `buf breaking --against` the `main` branch, `PACKAGE` rules: a renamed, removed or retyped field fails the build.
-  Add fields; never reuse a number or rename one. A message may move to another file of the package,
-  since Go and Swift see one package either way; the cross-file cycle #54 hit is why it is `PACKAGE`, not `FILE`.
+  Add fields; never reuse a number or rename one. A removal needs the owner's acceptance, recorded on its pull request
+  with the `buf breaking` report (PR #60, PR #161), and a removed field's number and name are `reserved`. A message may
+  move to another file of the package, since Go and Swift see one package either way; the cross-file cycle #54 hit is
+  why it is `PACKAGE`, not `FILE`.
 - `buf generate` then a clean tree under the two output paths, new files included: stale
   generated code fails the build, the same freshness rule the design tokens follow. The `backend` job compiles the Go output.
