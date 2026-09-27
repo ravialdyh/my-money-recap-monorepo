@@ -7,7 +7,7 @@ import XCTest
 final class RecapKeptTests: XCTestCase {
     func testMayasSquirrelMonthKeptAgainstHerTargetWithTheRunLit() async throws {
         let model = try await RecapViewModelTests.loaded("recap-maya-september")
-        XCTAssertEqual(model.pages, [.cover, .kept, .goal])
+        XCTAssertEqual(model.pages, [.cover, .kept, .goal, .archetype])
         XCTAssertEqual(model.monthName, "September")
         XCTAssertEqual(model.keptHeadline, "You kept £640 of £2,400. That's 133% of your target.")
         XCTAssertEqual(model.keptRows?.map(\.label), ["Kept", "Target"])
@@ -58,7 +58,7 @@ final class RecapKeptTests: XCTestCase {
         ]
         for (name, title, line, window, run) in cases {
             let model = try await RecapViewModelTests.loaded(name)
-            XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal], name)
+            XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal, .closing], name)
             XCTAssertEqual(model.keptHeadline, "Your longest no-spend streak", name)
             XCTAssertNil(model.keptRows, name)
             XCTAssertEqual(model.streakTitle, title, name)

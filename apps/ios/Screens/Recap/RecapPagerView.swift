@@ -30,6 +30,7 @@ struct RecapPagerView: View {
         case .cover, .partialCover: RecapCoverPage(model: model)
         case .kept, .streak: RecapKeptPage(model: model, active: model.page == index)
         case .goal, .partialGoal: RecapGoalPage(model: model, active: model.page == index)
+        case .archetype, .closing: RecapArchetypePage(model: model, active: model.page == index)
         }
     }
 
@@ -39,6 +40,7 @@ struct RecapPagerView: View {
         case .cover, .partialCover: Tokens.Ground.recap
         case .kept, .streak: Tokens.Ground.earning
         case .goal, .partialGoal: Tokens.Ground.goal
+        case .archetype, .closing: Tokens.Ground.personality
         }
     }
 

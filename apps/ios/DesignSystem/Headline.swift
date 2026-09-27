@@ -1,16 +1,21 @@
 import SwiftUI
 
-/// Fredoka headline, `m` by default as in Headline.tsx; `l` is the sign-in size (PRD §6.1), `compact` the Recap's
-/// 36pt size.
+/// Fredoka headline, `m` by default as in Headline.tsx; `l` the sign-in and Recap cover size, `compact` the Recap's
+/// 36pt, `display` the Archetype title. `l` and `display`, white, keep their tokens' line heights, under the font's
+/// own.
 struct Headline: View {
-    enum Size { case l, m, compact }
+    enum Size { case l, m, compact, display }
     let text: String
     var size: Size = .m
 
     var body: some View {
-        Text(text)
-            .textStyle(style)
-            .fixedSize(horizontal: false, vertical: true)
+        if size == .display || size == .l {
+            TightLines(text: text, style: style)
+        } else {
+            Text(text)
+                .textStyle(style)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private var style: TextStyle {
@@ -18,6 +23,7 @@ struct Headline: View {
         case .l: Tokens.TypeRamp.headlineL
         case .m: Tokens.TypeRamp.headlineM
         case .compact: Tokens.TypeRamp.headlineMCompact
+        case .display: Tokens.TypeRamp.displayL
         }
     }
 }
@@ -44,5 +50,37 @@ struct Eyebrow: View {
         Text(text)
             .textStyle(coral ? Tokens.TypeRamp.captionUpper : Tokens.TypeRamp.labelM)
             .foregroundStyle(coral ? Tokens.Text.accentCoral : Tokens.Text.secondary)
+    }
+}
+
+/// A white label set at a line height below the font's own, which `Text` cannot draw without clipping the last
+/// descender; the font follows Dynamic Type.
+private struct TightLines: UIViewRepresentable {
+    let text: String
+    let style: TextStyle
+
+    func makeUIView(context _: Context) -> UILabel {
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = UIColor(Tokens.Text.onGround)
+        return label
+    }
+
+    func updateUIView(_ label: UILabel, context _: Context) {
+        let family = UIFontDescriptor(fontAttributes: [.family: style.family])
+        let bold = family.addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: UIFont.Weight.bold]])
+        label.font = UIFontMetrics.default.scaledFont(for: UIFont(descriptor: bold, size: style.size))
+        let lines = NSMutableParagraphStyle()
+        lines.lineHeightMultiple = style.size * style.lineHeight / style.naturalLineHeight
+        label.attributedText = NSAttributedString(string: text, attributes: [
+            .paragraphStyle: lines,
+            .kern: style.size * style.letterSpacing,
+        ])
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView label: UILabel, context _: Context) -> CGSize? {
+        let fitted = label.sizeThatFits(CGSize(width: proposal.width ?? .greatestFiniteMagnitude, height: .infinity))
+        return CGSize(width: proposal.width ?? fitted.width, height: fitted.height)
     }
 }
