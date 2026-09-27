@@ -38,7 +38,7 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertEqual(model.bars.map(\.amount), ["£616", "£458", "£246"])
         XCTAssertEqual(
             model.rollUp,
-            "Clothes, Gifts, Games, Toys, Other · 25%",
+            "Clothes, Gifts, Games, Toys, Other\u{00A0}·\u{00A0}25%",
             "10 + 7 + 5 + 2 + 1, ledger's rounding"
         )
         XCTAssertFalse(model.everyPenny)
@@ -53,7 +53,11 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertEqual(model.target?.progress, "£310 of £480")
         XCTAssertEqual(try XCTUnwrap(model.target?.fraction), 310.0 / 480, accuracy: 0.0001)
         XCTAssertEqual(model.spendingTitle, "Mostly bills")
-        XCTAssertEqual(model.rollUp, "Rides, Games, Other · 27%", "the canvas's fourth bar joins the roll-up (D71)")
+        XCTAssertEqual(
+            model.rollUp,
+            "Rides, Games, Other\u{00A0}·\u{00A0}27%",
+            "the canvas's fourth bar joins the roll-up (D71), its share joined to the last name"
+        )
         XCTAssertEqual(model.splurge, "£560 on clothes. Your biggest single buy.")
     }
 
@@ -87,7 +91,7 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertNil(model.target)
         XCTAssertEqual(model.paydayLine, "Your salary lands on the 30th.")
         XCTAssertEqual(model.bars.map(\.percent), [56, 20, 18])
-        XCTAssertEqual(model.rollUp, "Rides, Other · 6%")
+        XCTAssertEqual(model.rollUp, "Rides, Other\u{00A0}·\u{00A0}6%")
         XCTAssertEqual(model.splurge, "£280 on phone and internet. Your biggest single buy.")
     }
 

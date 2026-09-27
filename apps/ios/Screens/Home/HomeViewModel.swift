@@ -183,7 +183,7 @@ final class HomeViewModel {
 
     /// One month's Recap pager: a past-Recap row's month, last month, or Home's own month for the preview (D47).
     func recap(_ month: String) -> RecapViewModel {
-        RecapViewModel(month: month, fetch: getRecap, locale: locale)
+        RecapViewModel(month: month, fetch: getRecap, context: context, locale: locale)
     }
 
     /// The month before Home's when it is in the past-Recap list, what "See last month" opens; nil disables it

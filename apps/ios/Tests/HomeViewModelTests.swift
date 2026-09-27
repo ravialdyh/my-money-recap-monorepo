@@ -15,7 +15,7 @@ final class HomeViewModelTests: XCTestCase {
 
     private func freshContext() throws -> ModelContext {
         try ModelContext(ModelContainer(
-            for: HomeSnapshot.self, SpendListSnapshot.self,
+            for: HomeSnapshot.self, SpendListSnapshot.self, RecapSnapshot.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
     }
@@ -25,9 +25,11 @@ final class HomeViewModelTests: XCTestCase {
     func testEraseEmptiesTheStoreAsSignOutDoes() throws {
         let context = try freshContext()
         try HomeSnapshot.replace(with: recordedHome(), in: context)
+        try RecapSnapshot.replace(with: RecapViewModelTests.recorded("recap-preview"), in: context)
         XCTAssertNotNil(HomeSnapshot.load(from: context))
         HomeSnapshot.erase(from: context)
         XCTAssertNil(HomeSnapshot.load(from: context))
+        XCTAssertNil(RecapSnapshot.load("2026-09", from: context), "every stored Recap goes with it (IOS I4)")
     }
 
     func testZeroHomeGreetsTheMemberWithoutASavedChip() async throws {
@@ -124,11 +126,13 @@ final class HomeViewModelTests: XCTestCase {
     func testARefusedHomeDeletesTheStoredHomeAndOpensOnboarding() async throws {
         let context = try freshContext()
         try HomeSnapshot.replace(with: recordedHome(), in: context)
+        try RecapSnapshot.replace(with: RecapViewModelTests.recorded("recap-preview"), in: context)
         var sent = 0
         let refused = ConnectError(code: .failedPrecondition, message: "onboarding steps 1 and 2 are unanswered")
         await HomeViewModel(fetch: { throw refused }, context: context, onboardingNeeded: { sent += 1 }).refresh()
         XCTAssertEqual(sent, 1)
         XCTAssertNil(HomeSnapshot.load(from: context), "no stored Home to open on at the next launch")
+        XCTAssertNil(RecapSnapshot.load("2026-09", from: context), "nor a stored Recap")
     }
 
     func testSuccessfulRefreshReplacesTheSnapshotWhole() async throws {
