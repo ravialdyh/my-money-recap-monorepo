@@ -26,12 +26,14 @@ func main() {
 // name, its schema step, its handler and its consumer.
 func run() error { return serve.Main("notify", notify.Migrate, handler, consumer) }
 
-// handler is NotifyService behind the bearer check, which EmailMagicLink alone is exempt from by
-// procedure name (§4.2 point 3). NOTIFY_MEMBERS_URL takes the ownership read, with the caller's token.
+// handler is NotifyService behind the bearer check, EmailMagicLink exempt (§4.2 point 3). NOTIFY_MEMBERS_URL
+// takes the ownership read with the caller's token; NOTIFY_LEDGER_URL the schedules' reads with notify's own (§4.2).
 func handler(env *serve.Env, db *pgxpool.Pool, check connect.Option) (string, http.Handler) {
 	smtp, from := env.Get("NOTIFY_SMTP_ADDR", ""), env.Get("NOTIFY_MAIL_FROM", "")
 	members := moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, env.Get("NOTIFY_MEMBERS_URL", ""), connect.WithInterceptors(auth.Forward()))
-	return moneyrecapv1connect.NewNotifyServiceHandler(&notify.Service{DB: db, Members: members, SMTP: smtp, From: from}, check)
+	account := &auth.ServiceAccount{Realm: env.Get("NOTIFY_REALM_URL", ""), Client: "notify", Secret: env.Get("NOTIFY_CLIENT_SECRET", "")}
+	ledger := moneyrecapv1connect.NewLedgerServiceClient(http.DefaultClient, env.Get("NOTIFY_LEDGER_URL", ""), connect.WithInterceptors(account.Bearer()))
+	return moneyrecapv1connect.NewNotifyServiceHandler(&notify.Service{DB: db, Members: members, Ledger: ledger, SMTP: smtp, From: from}, check)
 }
 
 // consumer is the warning's event backup: ledger's Spend events on the broker NOTIFY_AMQP_URL names (§4.3, §6.2).

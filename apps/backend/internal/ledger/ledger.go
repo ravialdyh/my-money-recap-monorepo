@@ -50,7 +50,8 @@ type member struct {
 }
 
 // load reads the Member's replica and rows. The replica keeps the subject whose token filled it, so another
-// token's call is a miss members answers under that token: not_found for a Member it does not own (§4.2).
+// token's call is a miss members answers under that token (§4.2). A job's token skips that check; a replica it
+// cannot use is not_found.
 func (s *Service) load(ctx context.Context, id string) (member, error) {
 	if err := (&pgtype.UUID{}).Scan(id); err != nil {
 		return member{}, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
@@ -61,7 +62,11 @@ func (s *Service) load(ctx context.Context, id string) (member, error) {
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return member{}, storeFailed(ctx, err)
 	}
-	if subject != auth.From(ctx).Subject || !f.complete() {
+	claims := auth.From(ctx)
+	if claims.Job && !f.complete() {
+		return member{}, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
+	}
+	if !claims.Job && (subject != claims.Subject || !f.complete()) {
 		if f, err = s.fill(ctx, id); err != nil {
 			return member{}, err
 		}

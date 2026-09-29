@@ -94,6 +94,55 @@ resource "keycloak_openid_client_service_account_role" "bff_manage_users" {
   role                    = "manage-users"
 }
 
+resource "keycloak_openid_client" "notify" {
+  realm_id                     = keycloak_realm.mmr.id
+  client_id                    = "notify"
+  name                         = "My Money Recap notify"
+  enabled                      = true
+  access_type                  = "CONFIDENTIAL"
+  client_authenticator_type    = "client-secret"
+  client_secret                = var.notify_client_secret
+  standard_flow_enabled        = false
+  direct_access_grants_enabled = false
+  implicit_flow_enabled        = false
+  service_accounts_enabled     = true
+  valid_redirect_uris          = []
+  web_origins                  = []
+}
+
+resource "keycloak_openid_audience_protocol_mapper" "notify_ledger_audience" {
+  realm_id                   = keycloak_realm.mmr.id
+  client_id                  = keycloak_openid_client.notify.id
+  name                       = "ledger-audience"
+  included_custom_audience   = "ledger"
+  add_to_id_token            = false
+  add_to_access_token        = true
+  add_to_token_introspection = true
+}
+
+resource "keycloak_openid_client" "members" {
+  realm_id                     = keycloak_realm.mmr.id
+  client_id                    = "members"
+  name                         = "My Money Recap members"
+  enabled                      = true
+  access_type                  = "CONFIDENTIAL"
+  client_authenticator_type    = "client-secret"
+  client_secret                = var.members_client_secret
+  standard_flow_enabled        = false
+  direct_access_grants_enabled = false
+  implicit_flow_enabled        = false
+  service_accounts_enabled     = true
+  valid_redirect_uris          = []
+  web_origins                  = []
+}
+
+resource "keycloak_openid_client_service_account_role" "members_manage_users" {
+  realm_id                = keycloak_realm.mmr.id
+  service_account_user_id = keycloak_openid_client.members.service_account_user_id
+  client_id               = data.keycloak_openid_client.realm_management.id
+  role                    = "manage-users"
+}
+
 resource "keycloak_user" "test" {
   count          = var.test_user_password == "" ? 0 : 1
   realm_id       = keycloak_realm.mmr.id

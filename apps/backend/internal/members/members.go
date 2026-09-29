@@ -80,10 +80,11 @@ func Get(ctx context.Context, db *pgxpool.Pool, id string) (Row, error) {
 }
 
 // Service implements MembersService over a pool. Every RPC runs behind auth.Interceptor, and a
-// caller only ever reaches the Member its own token names (§4.2 point 3).
+// caller only ever reaches the Member its own token names (§4.2 point 3). Keycloak is the deletion job's.
 type Service struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
-	DB *pgxpool.Pool
+	DB       *pgxpool.Pool
+	Keycloak Keycloak
 }
 
 func (s *Service) GetOrCreateBySubject(ctx context.Context, req *connect.Request[moneyrecapv1.GetOrCreateBySubjectRequest]) (*connect.Response[moneyrecapv1.GetOrCreateBySubjectResponse], error) {

@@ -84,7 +84,9 @@ type LedgerServiceClient interface {
 	// current month always answers. not_found for an earlier month with no Spend
 	// and no Money In; invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.GetRecapRequest]) (*connect.Response[v1.GetRecapResponse], error)
-	// The month switcher's list and the Recap-ready check (PRD D59, §10).
+	// The month switcher's list and the Recap-ready check (PRD D59, §10). One of
+	// the two calls notify's own service-account token may make, with no owner
+	// check (ARCHITECTURE §4.2); a Member's token reads only its own Member.
 	ListMonthsWithData(context.Context, *connect.Request[v1.ListMonthsWithDataRequest]) (*connect.Response[v1.ListMonthsWithDataResponse], error)
 	ListSpends(context.Context, *connect.Request[v1.ListSpendsRequest]) (*connect.Response[v1.ListSpendsResponse], error)
 	// Validates D57 and §8.10 in the Member's zone, then writes the Spend, the
@@ -114,7 +116,9 @@ type LedgerServiceClient interface {
 	// Rewrites every Salary and Spend amount in one transaction, keeping the
 	// originals, and records the conversion (PRD §8.9 step 4).
 	ApplyCurrencyConversion(context.Context, *connect.Request[v1.ApplyCurrencyConversionRequest]) (*connect.Response[v1.ApplyCurrencyConversionResponse], error)
-	// Batched for the daily reminder: one call per 500 Members (§7.3).
+	// Batched for the daily reminder: one call per 500 Members (§7.3). The other
+	// call notify's own token may make, with no owner check (ARCHITECTURE §4.2);
+	// a Member's token reads only its own Member. Every other call refuses it.
 	GetSpentToday(context.Context, *connect.Request[v1.GetSpentTodayRequest]) (*connect.Response[v1.GetSpentTodayResponse], error)
 	ExportCSV(context.Context, *connect.Request[v1.ExportCSVRequest]) (*connect.Response[v1.ExportCSVResponse], error)
 }
@@ -325,7 +329,9 @@ type LedgerServiceHandler interface {
 	// current month always answers. not_found for an earlier month with no Spend
 	// and no Money In; invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.GetRecapRequest]) (*connect.Response[v1.GetRecapResponse], error)
-	// The month switcher's list and the Recap-ready check (PRD D59, §10).
+	// The month switcher's list and the Recap-ready check (PRD D59, §10). One of
+	// the two calls notify's own service-account token may make, with no owner
+	// check (ARCHITECTURE §4.2); a Member's token reads only its own Member.
 	ListMonthsWithData(context.Context, *connect.Request[v1.ListMonthsWithDataRequest]) (*connect.Response[v1.ListMonthsWithDataResponse], error)
 	ListSpends(context.Context, *connect.Request[v1.ListSpendsRequest]) (*connect.Response[v1.ListSpendsResponse], error)
 	// Validates D57 and §8.10 in the Member's zone, then writes the Spend, the
@@ -355,7 +361,9 @@ type LedgerServiceHandler interface {
 	// Rewrites every Salary and Spend amount in one transaction, keeping the
 	// originals, and records the conversion (PRD §8.9 step 4).
 	ApplyCurrencyConversion(context.Context, *connect.Request[v1.ApplyCurrencyConversionRequest]) (*connect.Response[v1.ApplyCurrencyConversionResponse], error)
-	// Batched for the daily reminder: one call per 500 Members (§7.3).
+	// Batched for the daily reminder: one call per 500 Members (§7.3). The other
+	// call notify's own token may make, with no owner check (ARCHITECTURE §4.2);
+	// a Member's token reads only its own Member. Every other call refuses it.
 	GetSpentToday(context.Context, *connect.Request[v1.GetSpentTodayRequest]) (*connect.Response[v1.GetSpentTodayResponse], error)
 	ExportCSV(context.Context, *connect.Request[v1.ExportCSVRequest]) (*connect.Response[v1.ExportCSVResponse], error)
 }

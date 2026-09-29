@@ -2,6 +2,7 @@ package ledger
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"testing"
 	"time"
@@ -70,5 +71,45 @@ func TestTheSpendListAndItsMonths(t *testing.T) {
 	stranger := auth.NewContext(context.Background(), auth.Claims{Subject: "stranger", Raw: "stranger"})
 	if _, err := s.ListSpends(stranger, connect.NewRequest(&moneyrecapv1.ListSpendsRequest{MemberId: id, Month: "2026-07"})); connect.CodeOf(err) != connect.CodeNotFound {
 		t.Errorf("another token: %v, want not_found", err)
+	}
+}
+
+// Spent today is each Member's own today: at 20:00 UTC Jakarta is on the 16th, London on the 15th. notify's token
+// reads both and the month list; unknown ids are left out; a Member's token reads only its own (§4.2).
+func TestSpentTodayIsEachMembersOwnToday(t *testing.T) {
+	db := testDB(t)
+	jakarta, london := "00000000-0000-4000-8000-00000000a771", "00000000-0000-4000-8000-00000000a772"
+	idrSalary := []*moneyrecapv1.SalarySetting{{Amount: idr("15000000"), OriginalAmount: idr("15000000"), Payday: "1", EffectiveFrom: "2026-09"}}
+	owner := seed(t, db, jakarta, "jakarta", "Asia/Jakarta", "2026-09-01", "IDR", idrSalary, nil)
+	seed(t, db, london, "london", "Europe/London", "2026-09-01", "GBP", nil, nil)
+	seedSpends(t, db, jakarta, []*moneyrecapv1.Spend{
+		{Amount: idr("25000"), OriginalAmount: idr("25000"), Category: 1, Date: "2026-09-16"},
+		{Amount: idr("40000"), OriginalAmount: idr("40000"), Category: 2, Date: "2026-09-16"},
+		{Amount: idr("9000"), OriginalAmount: idr("9000"), Category: 1, Date: "2026-09-15"},
+	})
+	s := &Service{DB: db, Now: func() time.Time { return time.Date(2026, 9, 15, 20, 0, 0, 0, time.UTC) }}
+	withMembers(t, s, nil)
+	job := auth.NewContext(context.Background(), auth.Claims{Subject: "service-account-notify", Job: true})
+	ids := []string{london, "00000000-0000-4000-8000-00000000a779", "not-a-uuid", jakarta}
+
+	res, err := s.GetSpentToday(job, connect.NewRequest(&moneyrecapv1.GetSpentTodayRequest{MemberIds: ids}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, e := range res.Msg.Entries {
+		got = append(got, fmt.Sprintf("%s %s %s %d", e.MemberId[len(e.MemberId)-4:], e.Spent.Amount, e.Spent.CurrencyCode, e.SpendCount))
+	}
+	if want := []string{"a772 0 GBP 0", "a771 65000 IDR 2"}; !slices.Equal(got, want) {
+		t.Errorf("spent today %q, want %q", got, want)
+	}
+	months, err := s.ListMonthsWithData(job, connect.NewRequest(&moneyrecapv1.ListMonthsWithDataRequest{MemberId: jakarta}))
+	if err != nil || !slices.Equal(months.Msg.Months, []string{"2026-09"}) {
+		t.Errorf("notify's month list: %v, %v, want September", months, err)
+	}
+
+	own, err := s.GetSpentToday(owner, connect.NewRequest(&moneyrecapv1.GetSpentTodayRequest{MemberIds: ids}))
+	if err != nil || len(own.Msg.Entries) != 1 || own.Msg.Entries[0].MemberId != jakarta {
+		t.Errorf("a Member's own token: %v, %v, want its own entry alone", own, err)
 	}
 }

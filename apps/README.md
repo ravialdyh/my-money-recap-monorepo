@@ -37,7 +37,9 @@ what is its own.
   as a 200 that is not JSON, are `unavailable`, so the phone keeps its session (PRD D61). Either
   answer carries a generic message; the verifier's reason, which can quote the realm's answer, goes
   to the log. `RequestMagicLink` and `EmailMagicLink` are exempt by procedure name, because they are
-  sent before a Member has a token (§4.2 point 3).
+  sent before a Member has a token (§4.2 point 3). A background job's own token, `notify`'s, whose
+  audience is `ledger`, passes only on the calls named for that job (`jobs` in `internal/auth`) and is
+  `permission_denied` on every other, in every service (§4.2).
 - **One start-up for a service with a database.** `cmd/<name>/main.go` hands its name, its schema step
   and its handler to `serve.Main` (`internal/serve`): the pool, the bearer check, a `/healthz` that
   pings the pool, and the shutdown. `<name> migrate` applies `internal/<name>/migrations/NNNN_name.sql`
@@ -64,5 +66,5 @@ what is its own.
 | `<NAME>_DATABASE_URL` | required | required | `postgres://<name>:<password>@postgres:5432/<name>`; each role reaches only its own database (A9). Compose passes it as `<NAME>_DATABASE_URL_FILE`, `/run/secrets/<name>_database_url`; the plain form is what a local `go run` uses. |
 | `<NAME>_OIDC_ISSUER` | required | none | The `iss` Keycloak stamps into tokens, as `BFF_OIDC_ISSUER` (`backend/cmd/bff/README.md`). |
 | `<NAME>_OIDC_JWKS_URL` | required | none | Where this process fetches the signing keys, as `BFF_OIDC_JWKS_URL`. |
-| `<NAME>_OIDC_AUDIENCE` | `bff` | none | The `aud` a token must carry. |
+| `<NAME>_OIDC_AUDIENCE` | `bff` | none | The `aud` a Member's token must carry. |
 | `<NAME>_LISTEN` | `:8080` | none | Listen address. |
