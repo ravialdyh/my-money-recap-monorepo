@@ -16,6 +16,8 @@ final class HomeViewModel {
     private let deleteSpend: LogSpendViewModel.Delete
     private let listSpends: SpendListViewModel.Fetch
     private let getRecap: RecapViewModel.Fetch
+    private let getSettings: SettingsViewModel.Fetch
+    private let saveProfile: NameAvatarViewModel.Save
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -39,7 +41,9 @@ final class HomeViewModel {
             .Edit = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         deleteSpend: @escaping LogSpendViewModel
             .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        getRecap: @escaping RecapViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) }
+        getRecap: @escaping RecapViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) },
+        getSettings: @escaping SettingsViewModel.Fetch = { throw ConnectError(code: .unavailable, message: nil) },
+        saveProfile: @escaping NameAvatarViewModel.Save = { _, _ in .offline }
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
@@ -47,6 +51,8 @@ final class HomeViewModel {
         self.deleteSpend = deleteSpend
         self.listSpends = listSpends
         self.getRecap = getRecap
+        self.getSettings = getSettings
+        self.saveProfile = saveProfile
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -105,6 +111,13 @@ final class HomeViewModel {
             locale: locale,
             connection: connection
         ) }
+    }
+
+    /// D1 Settings over its stored copy (IOS I4), in the locale Home was given.
+    func settings() -> SettingsViewModel {
+        SettingsViewModel(
+            fetch: getSettings, saveProfile: saveProfile, context: context, locale: locale, connection: connection
+        )
     }
 
     /// A write's answer replaces the stored Home whole, as a refresh does (IOS I4).

@@ -1,0 +1,17 @@
+{
+    "settings": {
+        "profile": {
+            "memberId": "d2a7fdfc-0cb9-43f5-b090-0c32788501b7",
+            "email": "test@example.com",
+            "displayName": "Test",
+            "avatarKey": "owl",
+            "currencyCode": "IDR",
+            "timezone": "Asia/Jakarta",
+            "onboardingStep": 2,
+            "signedUpOn": "2026-09-29"
+        },
+        "ledgerSettings": {
+            "currencyCode": "IDR"
+        }
+    }
+}
