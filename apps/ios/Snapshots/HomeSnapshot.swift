@@ -18,12 +18,13 @@ final class HomeSnapshot {
         try? context.fetch(FetchDescriptor<HomeSnapshot>()).first
     }
 
-    /// Empties the store, every month's Spend list and Recap too: sign-out erases what the device holds (PRD §9),
+    /// Empties the store, every Spend list, Recap and Settings too: sign-out erases what the device holds (PRD §9),
     /// and a Home that refuses deletes its answer (spec #92). The stored Home is the only setup progress on the device.
     static func erase(from context: ModelContext) {
         try? context.delete(model: HomeSnapshot.self)
         try? context.delete(model: SpendListSnapshot.self)
         try? context.delete(model: RecapSnapshot.self)
+        try? context.delete(model: SettingsSnapshot.self)
         try? context.save()
     }
 
@@ -38,7 +39,9 @@ final class HomeSnapshot {
     static let container: ModelContainer = {
         let container: ModelContainer
         do {
-            container = try ModelContainer(for: HomeSnapshot.self, SpendListSnapshot.self, RecapSnapshot.self)
+            container = try ModelContainer(
+                for: HomeSnapshot.self, SpendListSnapshot.self, RecapSnapshot.self, SettingsSnapshot.self
+            )
         } catch {
             fatalError("the HomeSnapshot store could not be opened: \(error)")
         }

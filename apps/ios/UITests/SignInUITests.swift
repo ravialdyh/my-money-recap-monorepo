@@ -109,6 +109,7 @@ final class SignInUITests: XCTestCase {
         openTheSpendList(app, rupiah: 25000)
         editAndDeleteTheSpend(app, from: 25000, to: 40000)
         openTheMonthSoFar(app)
+        renameInSettings(app, from: "Maya", to: "Tess")
 
         app.terminate()
         app.launch()

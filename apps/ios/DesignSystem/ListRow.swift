@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Settings, Recap and Currency list row (`ListRow.tsx`): label, a right-aligned secondary value, then a chevron that
-/// opens a screen, the violet check a selected row shows, or nothing; a divider below. A destructive label is coral.
+/// Settings, Recap and Currency list row (`ListRow.tsx`): label, a right-aligned value, then a chevron, the violet
+/// check
+/// of a selected row, or nothing; a divider below. A destructive label is coral; disabled, the whole row is at 40%.
 struct ListRow: View {
     enum Trailing {
         case chevron, check, none
@@ -35,10 +36,10 @@ struct ListRow: View {
             }
             .padding(.vertical, Tokens.Space._5)
             .contentShape(Rectangle())
+            .overlay(alignment: .bottom) { Tokens.Surface.divider.frame(height: 1) }
         }
         .buttonStyle(PressableStyle())
         .accessibilityAddTraits(trailing == .check && selected ? .isSelected : [])
-        .overlay(alignment: .bottom) { Tokens.Surface.divider.frame(height: 1) }
     }
 
     /// An 18pt violet disc with a white tick (`.mmr-list-row-check`), its space kept when unselected so no row moves.

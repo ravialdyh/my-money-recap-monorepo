@@ -3,12 +3,13 @@ import SwiftData
 import SwiftUI
 
 /// PRD §6.8 / SCREEN-STATES B1. The prompts open steps 3 and 4 (D54, D69), Log a spend its sheet unless offline
-/// (D58), the hero and month chip the Spend list (D59), the past-Recap rows, See last month and the preview a Recap.
+/// (D58), the hero and month chip the Spend list (D59), the Recap entries a Recap, and the Settings chip D1.
 struct HomeView: View {
     @State private var model: HomeViewModel
     @State private var logging: LogSpendViewModel?
     @State private var listing: SpendListViewModel?
     @State private var recap: RecapViewModel?
+    @State private var settings: SettingsViewModel?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var open: (Int) -> Void = { _ in }
 
@@ -35,6 +36,11 @@ struct HomeView: View {
         }, getRecap: { month in
             try await BffClient.retried(session) { await client.getRecap(request: .with { $0.month = month }) }
                 .result.get().recap
+        }, getSettings: {
+            try await BffClient.retried(session) { await client.getSettings(request: .init()) }.result.get().settings
+        }, saveProfile: { request, headers in
+            await SaveResult(BffClient.retried(session) { await client.saveProfile(request: request, headers: headers) }
+                .result)
         }))
         self.open = open
     }
@@ -53,7 +59,7 @@ struct HomeView: View {
                             Chip(text: month, tappable: true) { listing = model.spendList(switching: true) }
                         }
                         Spacer()
-                        Chip(text: "Settings", tappable: true)
+                        Chip(text: "Settings", tappable: true) { settings = model.settings() }
                     }
                     .padding(.top, 8)
                     if model.offline {
@@ -83,6 +89,7 @@ struct HomeView: View {
             })
         }
         .fullScreenCover(item: $recap) { RecapPagerView(model: $0) }
+        .fullScreenCover(item: $settings, onDismiss: { Task { await model.refresh() } }, content: SettingsView.init)
     }
 
     /// `motion.reveal.number` for the numbers a save changed; with Reduce Motion, the 150 ms fade.
