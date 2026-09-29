@@ -273,3 +273,17 @@ func TestCancelDeletionNeedsTheKeyAndKeepsTheCode(t *testing.T) {
 		t.Errorf("a stamp past the window: %v, want failed_precondition", err)
 	}
 }
+
+// RegisterDevice refuses a keyless call before notify, then hands notify the key, the Member's id and the token.
+func TestRegisterDeviceNeedsTheKey(t *testing.T) {
+	notify := &fakeNotify{}
+	s := newService(t, &fakeMembers{}, notify)
+	req := connect.NewRequest(&moneyrecapv1.BffServiceRegisterDeviceRequest{ApnsToken: "abc1"})
+	if _, err := s.RegisterDevice(ctx, req); connect.CodeOf(err) != connect.CodeInvalidArgument || notify.device != nil {
+		t.Fatalf("no key: %v, notify reached %v; want invalid_argument and no call", err, notify.device != nil)
+	}
+	req.Header().Set("Idempotency-Key", "key-1")
+	if _, err := s.RegisterDevice(ctx, req); err != nil || notify.device.GetIdempotencyKey() != "key-1" || notify.device.GetMemberId() != "m-1" || notify.device.GetApnsToken() != "abc1" {
+		t.Fatalf("RegisterDevice: %v; notify got %v", err, notify.device)
+	}
+}

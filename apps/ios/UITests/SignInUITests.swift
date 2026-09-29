@@ -141,7 +141,8 @@ final class SignInUITests: XCTestCase {
 
 extension SignInUITests {
     /// PRD §6.9 / SCREEN-STATES B2 to B4: Save off while empty, the amount, one Category, today's date row and its
-    /// picker, a note, the sheet sideways, then Save closes it and the hero shows the Spent the BFF answered.
+    /// picker, a note, the sheet sideways, then Save closes it, notifications are allowed (B5), and the hero shows the
+    /// Spent the BFF answered.
     func logASpend(_ app: XCUIApplication, rupiah amount: Int) {
         app.buttons["Log a spend"].tap()
         let field = app.textFields["Amount"]
@@ -168,9 +169,19 @@ extension SignInUITests {
         snapshot("12-log-a-spend-filled")
         sideways(app, reaching: app.buttons["Save"], "log-a-spend")
         app.buttons["Save"].tap()
+        allowNotifications()
         XCTAssert(app.staticTexts[Self.rupiah(amount)].waitForExistence(timeout: 30), "the hero shows the new Spent")
         XCTAssertFalse(field.exists, "the sheet closed")
         snapshot("13-home-after-a-spend")
+    }
+
+    /// SCREEN-STATES B5: once the first Spend's sheet closes, iOS asks; the alert is springboard's, not the app's.
+    func allowNotifications() {
+        let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow"]
+        XCTAssert(allow.waitForExistence(timeout: 30), "the first Spend asks for notification permission (B5)")
+        snapshot("30-push-permission")
+        allow.tap()
+        XCTAssertFalse(allow.waitForExistence(timeout: 2), "the alert closed")
     }
 }
 
