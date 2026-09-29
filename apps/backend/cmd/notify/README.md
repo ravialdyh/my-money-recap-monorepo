@@ -5,6 +5,9 @@ It serves `EmailMagicLink` (#68, PR #77) and, since #132, the Target Warning sta
 `GetWarningState` and `EvaluateWarning`. Preferences, device registration, pushes, the CSV export
 email, the schedulers, the other RabbitMQ consumers and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
+Its `Ledger` client sends `notify`'s own service-account token, fetched with the client-credentials grant and
+cached until it expires (#177, ARCHITECTURE §4.2), which `ledger` accepts for `GetSpentToday` and
+`ListMonthsWithData` alone; no schedule calls it yet.
 
 `EmailMagicLink` is exempt from the bearer check by procedure name, never by service, because the
 BFF calls it for a request that carries no token (§4.2 point 3); every other procedure answers
@@ -27,6 +30,9 @@ Its own four, besides the shared `NOTIFY_*` set:
 | `NOTIFY_MAIL_FROM` | required | none | The envelope sender and the `From` header. |
 | `NOTIFY_MEMBERS_URL` | required | none | `members`, for the profile read that proves a Member's owner: `http://members:8080` in Compose. |
 | `NOTIFY_AMQP_URL` | required | none | The broker its consumer reads `ledger`'s spend events from: the `amqp_url` secret in Compose. |
+| `NOTIFY_LEDGER_URL` | required | none | `ledger`, for the schedules' two reads: `http://ledger:8080` in Compose. |
+| `NOTIFY_REALM_URL` | required | none | The realm, whose token endpoint issues `notify`'s own token: `http://keycloak:8080/realms/mmr` in Compose. |
+| `NOTIFY_CLIENT_SECRET` | required | none | The `notify` client's secret (`NOTIFY_CLIENT_SECRET_FILE` works too). |
 
 ## Run
 
@@ -40,7 +46,7 @@ By hand, against that stack's Postgres, Keycloak, RabbitMQ and Mailpit, on a por
 cd apps/backend
 export NOTIFY_DATABASE_URL="postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify"
 go run ./cmd/notify migrate
-NOTIFY_OIDC_ISSUER=http://localhost:8080/realms/mmr NOTIFY_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs NOTIFY_SMTP_ADDR=localhost:1025 NOTIFY_MAIL_FROM=no-reply@mymoneyrecap.test NOTIFY_MEMBERS_URL=http://localhost:8081 NOTIFY_AMQP_URL="amqp://mmr:$RABBITMQ_PASSWORD@localhost:5672/" NOTIFY_LISTEN=:8085 go run ./cmd/notify
+NOTIFY_OIDC_ISSUER=http://localhost:8080/realms/mmr NOTIFY_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs NOTIFY_SMTP_ADDR=localhost:1025 NOTIFY_MAIL_FROM=no-reply@mymoneyrecap.test NOTIFY_MEMBERS_URL=http://localhost:8081 NOTIFY_AMQP_URL="amqp://mmr:$RABBITMQ_PASSWORD@localhost:5672/" NOTIFY_LEDGER_URL=http://localhost:8084 NOTIFY_REALM_URL=http://localhost:8080/realms/mmr NOTIFY_CLIENT_SECRET="$NOTIFY_CLIENT_SECRET" NOTIFY_LISTEN=:8085 go run ./cmd/notify
 ```
 
 The call and the message it produces are in `infra/compose/README.md`, "Mailpit".

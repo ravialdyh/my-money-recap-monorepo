@@ -504,7 +504,7 @@ For a partial month: Money In is 0, Saved is not computed or displayed, there is
 
 ## 9. Authentication and session
 
-- **Keycloak** from Phase Two's pinned image (D6), one realm, one public OIDC client for iOS with PKCE required, redirect URI on the app's universal-link domain, and one service-account client for the backend.
+- **Keycloak** from Phase Two's pinned image (D6), one realm, one public OIDC client for iOS with PKCE required, redirect URI on the app's universal-link domain, one service-account client for the backend, and one for each background job, `notify`'s schedules and `members`' deletion job, good only for that job (`ARCHITECTURE.md` §4.2).
 - **Brokers:** Google (built-in, Trust email on), Apple (the bundled Apple identity-provider extension, Trust email on, client secret signed from the `.p8` key on each exchange).
 - **Magic link:** Phase Two `keycloak-magic-link` Login Token, requested by the backend with a 900-second lifetime and `reusable: false` (the extension's defaults are 24 hours and reusable, so both are set explicitly), user created on first use, email marked verified on redemption. The backend emails the app's universal link carrying the token; the same URL serves a static fallback page for other devices, and that page never sends the token anywhere.
 - **Email verification:** redeeming the login token marks the email verified (`set_email_verified`). The realm setting "Verify email" stays off: Apple and Google addresses are trusted by the broker, and the email path verifies by redemption, so the switch would only add a Keycloak-hosted verification page that no path uses. **Rewritten 2026-09-16; the original turned the switch on.**

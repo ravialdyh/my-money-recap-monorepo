@@ -102,3 +102,31 @@ func (l ledgerOf) hasData(m month, today time.Time) bool {
 	_, count := l.spent(m)
 	return count > 0 || l.summary(m, today).Saved != nil
 }
+
+// GetSpentToday answers, for each id, the Spends dated the Member's own today and their total, "0" with none. An id
+// the caller cannot read (unknown, purged, another Member's, or lacking its facts) is left out.
+func (s *Service) GetSpentToday(ctx context.Context, req *connect.Request[moneyrecapv1.GetSpentTodayRequest]) (*connect.Response[moneyrecapv1.GetSpentTodayResponse], error) {
+	res := &moneyrecapv1.GetSpentTodayResponse{}
+	for _, id := range req.Msg.MemberIds {
+		l, err := s.load(ctx, id)
+		if code := connect.CodeOf(err); code == connect.CodeNotFound || code == connect.CodeFailedPrecondition {
+			continue
+		}
+		if err != nil {
+			return nil, err
+		}
+		sum, count := new(big.Rat), int32(0)
+		for _, sp := range l.spends {
+			if sp.date.Equal(l.today) {
+				sum.Add(sum, sp.amount)
+				count++
+			}
+		}
+		spent := l.cash.money(sum)
+		if count == 0 {
+			spent.Amount = "0"
+		}
+		res.Entries = append(res.Entries, &moneyrecapv1.SpentToday{MemberId: id, Spent: spent, SpendCount: count})
+	}
+	return connect.NewResponse(res), nil
+}

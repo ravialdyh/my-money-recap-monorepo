@@ -22,6 +22,18 @@ variable "bff_client_secret" {
   sensitive   = true
 }
 
+variable "notify_client_secret" {
+  description = "The notify client's secret: notify's schedules fetch its service-account token, whose audience is the money service (ARCHITECTURE §4.2), with the client-credentials grant (NOTIFY_CLIENT_SECRET)."
+  type        = string
+  sensitive   = true
+}
+
+variable "members_client_secret" {
+  description = "The members client's secret: the deletion job deletes Keycloak accounts with its service account, which holds manage-users (ARCHITECTURE §7.1, MEMBERS_CLIENT_SECRET)."
+  type        = string
+  sensitive   = true
+}
+
 variable "test_user_password" {
   description = "The realm test Member's password, the seam the Connect-boundary suite and the iOS UI test sign in with. Empty creates no test Member, which is the machine; a realm with ssl_required none, the laptop, refuses empty."
   type        = string

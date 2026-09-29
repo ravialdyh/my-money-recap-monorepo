@@ -21,7 +21,8 @@ case ${1:-} in
     [ $# -eq 1 ] || usage
     printf '%s\n' members_db_password members_database_url notify_db_password notify_database_url \
       ledger_db_password ledger_database_url rabbitmq_password amqp_url \
-      postgres_password keycloak_db_password kc_bootstrap_admin_password bff_client_secret
+      postgres_password keycloak_db_password kc_bootstrap_admin_password bff_client_secret \
+      notify_client_secret members_client_secret
     ;;
   *) usage ;;
 esac

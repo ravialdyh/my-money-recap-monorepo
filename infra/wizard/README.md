@@ -58,9 +58,10 @@ and the same attempt is what makes the seven value steps readable, so an absent 
 **Apple Developer Program enrolment produces no value**, so there is nothing on this machine to look
 at. It is reported by hand and never counts toward the exit status (spec #61, testing decision 9).
 
-**The values the stack assembles for itself are checked too.** The twelve `keyset.sh stack` names
-(`infra/secrets/README.md`, "The key set") come from no step: a password chosen once, and for the
-three service databases and the broker a connection string built from it. But the deploy hands whatever they hold to the
+**The values the stack assembles for itself are checked too.** The fourteen `keyset.sh stack` names
+(`infra/secrets/README.md`, "The key set") come from no step: a password chosen once, for the
+three service databases and the broker a connection string built from it, and the three client secrets,
+`bff_client_secret`, `notify_client_secret` and `members_client_secret`. But the deploy hands whatever they hold to the
 machine, so a placeholder left in one reaches it. They get their own row, below the nine, and they
 count toward the exit status.
 

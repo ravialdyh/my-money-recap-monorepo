@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
@@ -15,16 +16,18 @@ import (
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
 // TestConnectBoundary calls the ledger container with the realm test Member's token: the replica fills from
-// members under it, and another audience's token is refused (§4.2 point 3). Skips without its variables.
+// members under it, another audience's token is refused (§4.2 point 3), and notify's key reads its two calls alone.
+// Skips without its variables.
 func TestConnectBoundary(t *testing.T) {
 	base, membersURL, kc, pw := os.Getenv("LEDGER_TEST_URL"), os.Getenv("MEMBERS_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
-	membersDSN := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
-	if base == "" || membersURL == "" || kc == "" || pw == "" || membersDSN == "" {
-		t.Skip("LEDGER_TEST_URL, MEMBERS_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_USER_PASSWORD and MMR_TEST_MEMBERS_DATABASE_URL not all set")
+	membersDSN, notifySecret := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL"), os.Getenv("NOTIFY_TEST_CLIENT_SECRET")
+	if base == "" || membersURL == "" || kc == "" || pw == "" || membersDSN == "" || notifySecret == "" {
+		t.Skip("LEDGER_TEST_URL, MEMBERS_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_USER_PASSWORD, MMR_TEST_MEMBERS_DATABASE_URL and NOTIFY_TEST_CLIENT_SECRET not all set")
 	}
 	db := testDB(t)
 	ctx := context.Background()
@@ -51,7 +54,7 @@ func TestConnectBoundary(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		for _, table := range []string{"member_facts", "salary_setting", "saving_target_setting", "idempotency"} {
+		for _, table := range []string{"member_facts", "salary_setting", "saving_target_setting", "idempotency", "spend"} {
 			if _, err := db.Exec(context.Background(), `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
 				t.Logf("cleanup: %v", err)
 			}
@@ -84,6 +87,42 @@ func TestConnectBoundary(t *testing.T) {
 	anonymous := moneyrecapv1connect.NewLedgerServiceClient(http.DefaultClient, base)
 	if _, err := anonymous.GetSettings(ctx, connect.NewRequest(&moneyrecapv1.GetSettingsRequest{MemberId: id})); connect.CodeOf(err) != connect.CodeUnauthenticated {
 		t.Errorf("no token: %v, want unauthenticated", err)
+	}
+	notifysKey(t, db, &auth.ServiceAccount{Realm: kc + "/realms/mmr", Client: "notify", Secret: notifySecret}, base, membersURL, id)
+}
+
+// notifysKey fetches notify's token from the realm and proves ledger answers it spent-today and the month list for
+// the test Member, with no owner check, and that every other ledger call and every other service refuses it (§4.2).
+func notifysKey(t *testing.T, db *pgxpool.Pool, account *auth.ServiceAccount, base, membersURL, id string) {
+	t.Helper()
+	ctx := context.Background()
+	today := time.Now().In(time.FixedZone("WIB", 7*60*60)).Format(time.DateOnly)
+	if _, err := db.Exec(ctx, `INSERT INTO spend (member_id, amount, original_amount, original_currency, category, spent_on) VALUES ($1, 12000, 12000, 'IDR', 1, $2)`, id, today); err != nil {
+		t.Fatal(err)
+	}
+	job := connect.WithInterceptors(account.Bearer())
+	ledger := moneyrecapv1connect.NewLedgerServiceClient(http.DefaultClient, base, job)
+	spent, err := ledger.GetSpentToday(ctx, connect.NewRequest(&moneyrecapv1.GetSpentTodayRequest{MemberIds: []string{id, "00000000-0000-4000-8000-00000000a779"}}))
+	if err != nil || len(spent.Msg.Entries) != 1 || spent.Msg.Entries[0].Spent.Amount != "12000" || spent.Msg.Entries[0].SpendCount != 1 {
+		t.Errorf("notify's GetSpentToday: %v, %v, want the test Member's one Spend of 12000 alone", spent, err)
+	}
+	months, err := ledger.ListMonthsWithData(ctx, connect.NewRequest(&moneyrecapv1.ListMonthsWithDataRequest{MemberId: id}))
+	if err != nil || len(months.Msg.Months) == 0 || months.Msg.Months[0] != today[:7] {
+		t.Errorf("notify's ListMonthsWithData: %v, %v, want this month first", months, err)
+	}
+	refused := map[string]error{}
+	_, refused["ledger.GetSettings"] = ledger.GetSettings(ctx, connect.NewRequest(&moneyrecapv1.GetSettingsRequest{MemberId: id}))
+	_, refused["ledger.LogSpend"] = ledger.LogSpend(ctx, connect.NewRequest(&moneyrecapv1.LogSpendRequest{IdempotencyKey: rand.Text(), MemberId: id}))
+	members := moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, membersURL, job)
+	_, refused["members.GetProfile"] = members.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: id}))
+	notify := moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, os.Getenv("NOTIFY_TEST_URL"), job)
+	_, refused["notify.GetWarningState"] = notify.GetWarningState(ctx, connect.NewRequest(&moneyrecapv1.GetWarningStateRequest{MemberId: id}))
+	bff := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, os.Getenv("BFF_TEST_URL"), job)
+	_, refused["bff.GetHome"] = bff.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	for call, err := range refused {
+		if connect.CodeOf(err) != connect.CodePermissionDenied {
+			t.Errorf("notify's token on %s: %v, want permission_denied", call, err)
+		}
 	}
 }
 

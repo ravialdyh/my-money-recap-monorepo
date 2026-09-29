@@ -121,7 +121,9 @@ service LedgerService {
   // current month always answers. not_found for an earlier month with no Spend
   // and no Money In; invalid_argument for a malformed or later month.
   rpc GetRecap(GetRecapRequest) returns (GetRecapResponse) {}
-  // The month switcher's list and the Recap-ready check (PRD D59, §10).
+  // The month switcher's list and the Recap-ready check (PRD D59, §10). One of
+  // the two calls notify's own service-account token may make, with no owner
+  // check (ARCHITECTURE §4.2); a Member's token reads only its own Member.
   rpc ListMonthsWithData(ListMonthsWithDataRequest) returns (ListMonthsWithDataResponse) {}
   rpc ListSpends(ListSpendsRequest) returns (ListSpendsResponse) {}
   // Validates D57 and §8.10 in the Member's zone, then writes the Spend, the
@@ -151,7 +153,9 @@ service LedgerService {
   // Rewrites every Salary and Spend amount in one transaction, keeping the
   // originals, and records the conversion (PRD §8.9 step 4).
   rpc ApplyCurrencyConversion(ApplyCurrencyConversionRequest) returns (ApplyCurrencyConversionResponse) {}
-  // Batched for the daily reminder: one call per 500 Members (§7.3).
+  // Batched for the daily reminder: one call per 500 Members (§7.3). The other
+  // call notify's own token may make, with no owner check (ARCHITECTURE §4.2);
+  // a Member's token reads only its own Member. Every other call refuses it.
   rpc GetSpentToday(GetSpentTodayRequest) returns (GetSpentTodayResponse) {}
   rpc ExportCSV(ExportCSVRequest) returns (ExportCSVResponse) {}
 }

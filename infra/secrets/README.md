@@ -25,9 +25,9 @@ from `example.yaml`.
 
 Seven of the nine human steps (`docs/research/2026-09-14-setup-automation.md` §4) put a value here;
 Apple Developer Program enrolment and `age-keygen` produce none. Which step fills which key, and where
-its value comes from, is `STEPS` in [`../wizard/setup.sh`](../wizard/setup.sh). The last twelve keys,
+its value comes from, is `STEPS` in [`../wizard/setup.sh`](../wizard/setup.sh). The last fourteen keys,
 `keyset.sh stack`, come from no step: seven passwords fixed when their volume is first initialised
-([`../compose/README.md`](../compose/README.md#secrets), "Chosen once"), the bff client secret, and the four connection strings
+([`../compose/README.md`](../compose/README.md#secrets), "Chosen once"), three client secrets, and the four connection strings
 assembled from four of the passwords. They are what the stack itself needs, and the wizard's check
 mode weighs them alongside the steps.
 
@@ -59,6 +59,8 @@ mode weighs them alongside the steps.
 | `keycloak_db_password` | The init script's `keycloak` role and Keycloak itself, `KEYCLOAK_DB_PASSWORD` |
 | `kc_bootstrap_admin_password` | Keycloak's first admin, whose username is the literal `admin`, and `realm-apply`'s login |
 | `bff_client_secret` | The `bff` client in the realm and the BFF, `BFF_CLIENT_SECRET` |
+| `notify_client_secret` | The `notify` client in the realm, whose service-account token `notify` sends to `ledger` for its two reads (ARCHITECTURE §4.2), `NOTIFY_CLIENT_SECRET` |
+| `members_client_secret` | The `members` client in the realm, whose service account deletes Keycloak accounts for the deletion job, `MEMBERS_CLIENT_SECRET` |
 
 Each pair holds the same password twice on purpose: `members`, `notify` and `ledger` each read one
 whole connection string rather than a password of their own, and `postgres/10-databases.sh` and the broker's

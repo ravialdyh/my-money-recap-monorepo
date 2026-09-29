@@ -21,11 +21,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres:/docker-entrypoint-initdb.d:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"], interval: 5s, timeout: 3s, retries: 12 }
 
   keycloak:
     image: quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980
@@ -75,6 +71,8 @@ services:
       KEYCLOAK_PASSWORD: *kc-admin-password
       TF_VAR_ssl_required: ${REALM_SSL_REQUIRED:-none}
       TF_VAR_bff_client_secret: ${BFF_CLIENT_SECRET:?set in .env}
+      TF_VAR_notify_client_secret: ${NOTIFY_CLIENT_SECRET:?set in .env}
+      TF_VAR_members_client_secret: ${MEMBERS_CLIENT_SECRET:?set in .env}
       TF_VAR_test_user_password: ${TEST_USER_PASSWORD:-}
       TF_VAR_google_client_id: ${GOOGLE_CLIENT_ID:-replace-me}
       TF_VAR_apple_services_id: ${APPLE_SERVICES_ID:-replace-me}
@@ -91,11 +89,7 @@ services:
     image: redis:8
     ports:
       - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, timeout: 3s, retries: 12 }
 
   rabbitmq:
     image: rabbitmq:4-management
@@ -131,6 +125,9 @@ services:
       MEMBERS_OIDC_ISSUER: &issuer http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}/realms/mmr
       MEMBERS_OIDC_JWKS_URL: &jwks http://keycloak:8080/realms/mmr/protocol/openid-connect/certs
       MEMBERS_AMQP_URL_FILE: &amqp-file /run/secrets/amqp_url
+      MEMBERS_REALM_URL: &realm http://keycloak:8080/realms/mmr
+      MEMBERS_REALM_ADMIN_URL: http://keycloak:8080/admin/realms/mmr
+      MEMBERS_CLIENT_SECRET: ${MEMBERS_CLIENT_SECRET:?set in .env}
     ports:
       - "127.0.0.1:${MEMBERS_HOST_PORT:-8081}:8080"
     secrets: [members_database_url, amqp_url]
@@ -153,11 +150,7 @@ services:
     ports:
       - "127.0.0.1:${MAILPIT_HOST_PORT:-8025}:8025"
       - "127.0.0.1:${MAILPIT_SMTP_HOST_PORT:-1025}:1025"
-    healthcheck:
-      test: ["CMD", "/mailpit", "readyz"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
+    healthcheck: { test: ["CMD", "/mailpit", "readyz"], interval: 5s, timeout: 3s, retries: 12 }
 
   notify-migrate:
     <<: *migrate
@@ -179,6 +172,9 @@ services:
       NOTIFY_MAIL_FROM: no-reply@mymoneyrecap.test
       NOTIFY_MEMBERS_URL: http://members:8080
       NOTIFY_AMQP_URL_FILE: *amqp-file
+      NOTIFY_LEDGER_URL: http://ledger:8080
+      NOTIFY_REALM_URL: *realm
+      NOTIFY_CLIENT_SECRET: ${NOTIFY_CLIENT_SECRET:?set in .env}
     ports:
       - "127.0.0.1:${NOTIFY_HOST_PORT:-8083}:8080"
     secrets: [notify_database_url, amqp_url]

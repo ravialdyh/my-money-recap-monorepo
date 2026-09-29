@@ -65,18 +65,18 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
 **The machine's `.env`** is the laptop's with four differences: `MMR_HOST` is the domain,
 `REALM_SSL_REQUIRED=external` sets the realm's `ssl_required` (spec #61: never the laptop's `none`),
 `NGINX_HOST_PORT=80`, and there is no `TEST_USER_PASSWORD`, so the realm creates no test Member.
-The twelve stack values in `infra/secrets/example.yaml`, and the four identity-provider ids the realm
+The fourteen stack values in `infra/secrets/example.yaml`, and the four identity-provider ids the realm
 takes as variables (`GOOGLE_CLIENT_ID`, `APPLE_SERVICES_ID`, `APPLE_TEAM_ID`,
 `APPLE_SIGN_IN_KEY_ID`), arrive under their names in capitals, so none is left at `replace-me`. Every
 value is single-quoted, so Compose interpolates nothing inside it, and a value holding a quote or a
 line break stops the deploy instead.
 
 **What A13 keeps and does not.** Every secret is encrypted in one committed file, the age key is the
-only one a human holds, and `bff_client_secret` rotates by edit, commit, tag, because `realm-apply`
-writes it into the realm on every `up`. `members`, `notify` and `ledger` still read their connection
+only one a human holds, and the three client secrets (`bff_client_secret`, `notify_client_secret`,
+`members_client_secret`) rotate by edit, commit, tag, because `realm-apply` writes them into the realm on every `up`. `members`, `notify` and `ledger` still read their connection
 strings, and `members`, `ledger` and `notify` the broker's URL, from files Compose writes under `/run/secrets`, and Keycloak reads the two identity-provider secrets
 from its file vault. But the other values reach Compose through a `.env` on the machine's disk rather
-than through files decrypted under `/run/secrets`, and Postgres, Keycloak and the BFF receive theirs as
+than through files decrypted under `/run/secrets`, and Postgres, Keycloak, the BFF, `members` and `notify` receive theirs as
 environment variables, exactly as on a laptop. Chosen by the owner on 2026-09-22 over spec #61's
 files-only design: Keycloak has no way to read its own database or admin password from a file, anyone
 who can run `docker inspect` on the machine can already read any file there, and the machine never

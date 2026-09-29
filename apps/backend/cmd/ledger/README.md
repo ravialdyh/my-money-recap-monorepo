@@ -3,7 +3,7 @@
 The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary, Saving Target and Spends and every
 figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #128 and Recaps since #130: it serves `SaveSalary`,
 `RelabelCurrency`, `SaveTarget`, `LogSpend`, `EditSpend` and `DeleteSpend` (#133), `GetSettings`, `GetMonthSummary`, `GetRecap`, `ListSpends` and
-`ListMonthsWithData` (#131); `PreviewConversion` and `ApplyCurrencyConversion` (slice 7), `GetSpentToday` and
+`ListMonthsWithData` (#131), and `GetSpentToday` (#177); `PreviewConversion`, `ApplyCurrencyConversion` and
 `ExportCSV` are planned. The BFF calls it since #103: Home's month,
 onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, every Spend screen and, since #152, the Recap. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
@@ -31,6 +31,8 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, ev
   whose token that read succeeded with, and a call under any other token is a miss, so `members` answers
   it: a token that does not own the Member gets `not_found`, however the row was filled (§4.2 point 3).
   A Member with no zone, sign-up date or Currency yet is `failed_precondition`.
+  `notify`'s own token (#177, ARCHITECTURE §4.2) owns no Member, so its two calls skip that check and never
+  ask `members`: a replica missing a fact is `not_found` to it.
 - **The rows** (`salary_setting`, `saving_target_setting`), append-only (PRD §7). The row in force for a
   month is the one with the latest effective month not after it, and of two sharing that month the newer
   wins, which makes a step 3 save repeated after a crash safe.
@@ -74,6 +76,9 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, ev
   name or `Partial`, which a full month without an Archetype reads too (§6.14); those are the only earlier
   months `GetRecap` answers, and any other is `not_found` (#152). A Recap's Streak names its run's first and last
   day, the earlier of two equally long runs, and its Archetype carries the title screen 4 and the share image print (`The Squirrel`).
+- `GetSpentToday` answers each id's Spends dated that Member's own today (A3) with their total, `"0"` with
+  none; an id the caller cannot read is left out. `notify`'s token may call it and `ListMonthsWithData`, and
+  every other call answers that token `permission_denied`.
 - Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
   (`internal/idempotency`, A14), as `members` does.
 - Each Spend write stages `ledger.spend.logged`, `ledger.spend.edited` or `ledger.spend.deleted` in `outbox`

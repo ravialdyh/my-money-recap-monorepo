@@ -98,8 +98,8 @@ an empty volume too, and a queue keeps the settings it was first declared with, 
 `internal/events` fails the consumer with `PRECONDITION_FAILED` until that queue is deleted. A change to that
 script, to a database or broker password or to the admin password therefore reaches the stack only after `down -v`; until then the step or service using
 the old value is refused, `realm-apply` and the `kcadm` login under "Admin access" included.
-`BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD` are not chosen once: `realm-apply` re-applies both on
-every `up` (see "The `mmr` realm").
+`BFF_CLIENT_SECRET`, `NOTIFY_CLIENT_SECRET`, `MEMBERS_CLIENT_SECRET` and `TEST_USER_PASSWORD` are not chosen
+once: `realm-apply` re-applies them on every `up` (see "The `mmr` realm").
 
 Keycloak takes the Google client secret and the Apple `.p8` through its file vault (`KC_VAULT=file`,
 `KC_VAULT_DIR=/run/secrets`, the `KEY_ONLY` key resolver), so the realm holds only
@@ -160,6 +160,11 @@ running `up` is enough to change it.
   the Login Token endpoint needs (A10). Its secret is a variable rather than a generated value,
   because the BFF signs in as this client for that endpoint (`BFF_CLIENT_SECRET`), and so do
   `a10-smoke.sh` and the `members` wrong-audience test.
+- `notify` and `members`: one confidential client per background job, each with a service account,
+  because a job has no Member token to send (ARCHITECTURE §4.2). `notify`'s tokens name `ledger` as
+  their audience, and `ledger` accepts them for `GetSpentToday` and `ListMonthsWithData` alone;
+  `members` holds `realm-management` `manage-users`, for the deletion job. Their secrets are
+  `NOTIFY_CLIENT_SECRET` and `MEMBERS_CLIENT_SECRET`, which the two services and their tests read.
 - Test Member `test` / `test@example.com`, created only when `TEST_USER_PASSWORD` is non-empty. The
   machine's `.env` carries no such line, so no account with a known password exists there. On a
   laptop an empty value is refused by the realm root itself, which requires the password whenever
@@ -175,8 +180,8 @@ running `up` is enough to change it.
   so the providers exist, the buttons reach them, and the provider answers with its own error
   page. Their secrets are vault references (see "Secrets").
 
-`realm-apply` reads `BFF_CLIENT_SECRET` and `TEST_USER_PASSWORD` from `.env` as `TF_VAR_` variables
-and re-applies both on every `up`, so a change to either takes effect at once; the admin password it
+`realm-apply` reads the three client secrets and `TEST_USER_PASSWORD` from `.env` as `TF_VAR_` variables
+and re-applies them on every `up`, so a change to any takes effect at once; the admin password it
 signs in with is chosen once (see "Secrets"). The realm's OpenTofu state is a file in the
 `realm-state` volume, never in the working tree. Nothing secret is in a committed file.
 
@@ -269,8 +274,8 @@ The same key twice sends one message and answers `{}` both times; an empty key i
 The tests that reach the stack skip unless their variables are set; every other test needs nothing.
 With the stack up, Mailpit started and the stock `.env` they are the values below. A
 non-default `.env` substitutes its own `*_HOST_PORT`s. Either way the `members` database password is
-the value `.env` held when the volumes were created (see "Secrets"); the test Member's password and the `bff` client secret are
-whatever `.env` holds now, because `realm-apply` re-applies both on every `up`. The `MMR_TEST_*` names
+the value `.env` held when the volumes were created (see "Secrets"); the test Member's password and the three client secrets are
+whatever `.env` holds now, because `realm-apply` re-applies them on every `up`. The `MMR_TEST_*` names
 are the facts more than one suite reads; the others belong to one suite.
 
 | Variable | Stock value | What it is |
@@ -287,8 +292,10 @@ are the facts more than one suite reads; the others belong to one suite.
 | `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all, and one of `TestTargetWarningEndToEnd`'s services. |
 | `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests, the Target Warning's month flag and its stamp from an event, and, when `MMR_TEST_MEMBERS_DATABASE_URL` is unset, the shared migration runner's tests. |
 | `NOTIFY_TEST_SMTP` | `localhost:1025` | Mailpit's SMTP port on `MAILPIT_SMTP_HOST_PORT`, for the in-process send. |
-| `LEDGER_TEST_URL` | `http://localhost:8084` | `ledger` on `LEDGER_HOST_PORT`, for its Connect-boundary test, with `MEMBERS_TEST_URL`, `MMR_TEST_KEYCLOAK`, `MMR_TEST_USER_PASSWORD` and both database URLs: the replica filled from `members` under the test Member's token. The same set runs `TestMembersEventsReachTheReplica`, where writes to `members` reach the replica through the broker with no call to `ledger`. |
+| `LEDGER_TEST_URL` | `http://localhost:8084` | `ledger` on `LEDGER_HOST_PORT`, for its Connect-boundary test, with `MEMBERS_TEST_URL`, `MMR_TEST_KEYCLOAK`, `MMR_TEST_USER_PASSWORD` and both database URLs: the replica filled from `members` under the test Member's token, and with `NOTIFY_TEST_CLIENT_SECRET` `notify`'s key. The same set, less that secret, runs `TestMembersEventsReachTheReplica`, where writes to `members` reach the replica through the broker with no call to `ledger`. |
 | `LEDGER_TEST_DATABASE_URL` | `postgres://ledger:$LEDGER_DB_PASSWORD@localhost:5432/ledger` | The `ledger` database. Alone it enables the answer key (every PRD §8 fixture but the currency change), the Salary, Saving Target and Spend rules, the Recaps, the Spend list and its months, the spend events each write stages, the replica's ownership check, how events update the replica and the test that the `ledger` role reaches no other database. |
+| `NOTIFY_TEST_CLIENT_SECRET` | `$NOTIFY_CLIENT_SECRET` | The `notify` client's secret. With `LEDGER_TEST_URL`'s set, `BFF_TEST_URL` and `NOTIFY_TEST_URL`, the `ledger` Connect-boundary test fetches `notify`'s token and proves `ledger` answers it spent-today and the month list, and that every other call and service refuses it. |
+| `MEMBERS_TEST_CLIENT_SECRET` | `$MEMBERS_CLIENT_SECRET` | The `members` client's secret. With `MMR_TEST_KEYCLOAK` it deletes a throwaway Keycloak account the test creates with the same key, twice; the realm's test Member is never touched. |
 | `MMR_TEST_AMQP_URL` | `amqp://mmr:$RABBITMQ_PASSWORD@localhost:5672/` | RabbitMQ on `RABBITMQ_HOST_PORT`. With `MMR_TEST_MEMBERS_DATABASE_URL` it enables the relay tests, and with `LEDGER_TEST_DATABASE_URL` the consumer tests (`internal/events`): each works in a throwaway schema and on queues of its own, which it drops, so the stack's own relay and consumer never meet its rows. |
 
 Run them with `-p 1`:
