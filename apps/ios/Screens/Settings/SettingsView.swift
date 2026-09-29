@@ -60,7 +60,7 @@ struct SettingsView: View {
         })
     }
 
-    /// An `Eyebrow` over its rows, the canvases' `DataRowList`, with no divider under the last.
+    /// An `Eyebrow` over its rows, the canvases' `DataRowList`.
     private func group(_ eyebrow: String, @ViewBuilder rows: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: Tokens.Space._2) {
             Eyebrow(text: eyebrow).accessibilityAddTraits(.isHeader)
