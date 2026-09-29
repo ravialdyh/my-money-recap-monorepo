@@ -23,6 +23,7 @@ struct SalaryEditView: View {
                     amount: $model.amount
                 )
             }
+            .fixedSize(horizontal: false, vertical: true)
             if let waiting = model.waitingLine {
                 helper(waiting)
             }
@@ -39,6 +40,7 @@ struct SalaryEditView: View {
             MMRButton(title: "Save", loading: model.isSaving) { finish(model.commit) }
                 .disabled(!model.canSave)
         })
+        .scrollDismissesKeyboard(.immediately)
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $model.asking) {
             WhichSalarySheet(model: model) { applies in
