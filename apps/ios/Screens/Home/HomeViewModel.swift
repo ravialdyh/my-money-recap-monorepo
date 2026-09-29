@@ -18,6 +18,7 @@ final class HomeViewModel {
     private let getRecap: RecapViewModel.Fetch
     private let getSettings: SettingsViewModel.Fetch
     private let saveProfile: NameAvatarViewModel.Save
+    private let saveSalary: SalaryEditViewModel.Save
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -47,7 +48,9 @@ final class HomeViewModel {
             .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         getRecap: @escaping RecapViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) },
         getSettings: @escaping SettingsViewModel.Fetch = { throw ConnectError(code: .unavailable, message: nil) },
-        saveProfile: @escaping NameAvatarViewModel.Save = { _, _ in .offline }
+        saveProfile: @escaping NameAvatarViewModel.Save = { _, _ in .offline },
+        saveSalary: @escaping SalaryEditViewModel
+            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
@@ -57,6 +60,7 @@ final class HomeViewModel {
         self.getRecap = getRecap
         self.getSettings = getSettings
         self.saveProfile = saveProfile
+        self.saveSalary = saveSalary
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -121,7 +125,8 @@ final class HomeViewModel {
     /// D1 Settings over its stored copy (IOS I4), in the locale Home was given.
     func settings() -> SettingsViewModel {
         SettingsViewModel(
-            fetch: getSettings, saveProfile: saveProfile, context: context, locale: locale, connection: connection
+            fetch: getSettings, saveProfile: saveProfile, saveSalary: saveSalary, context: context, locale: locale,
+            connection: connection
         )
     }
 

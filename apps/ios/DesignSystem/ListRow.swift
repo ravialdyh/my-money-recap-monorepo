@@ -1,14 +1,14 @@
 import SwiftUI
 
-/// Settings, Recap and Currency list row (`ListRow.tsx`): label, a right-aligned value, then a chevron, the violet
-/// check
-/// of a selected row, or nothing; a divider below. A destructive label is coral; disabled, the whole row is at 40%.
+/// Settings, Recap and Currency list row (`ListRow.tsx`): label over an optional detail, a right-aligned value, then
+/// a chevron, a selected row's violet check, or nothing; a divider below. Destructive is coral; disabled, at 40%.
 struct ListRow: View {
     enum Trailing {
         case chevron, check, none
     }
 
     let label: String
+    var detail: String?
     var value: String?
     var trailing = Trailing.chevron
     var selected = false
@@ -18,8 +18,14 @@ struct ListRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                Text(label).textStyle(Tokens.TypeRamp.labelM)
-                    .foregroundStyle(destructive ? Tokens.Text.accentCoral : Tokens.Text.primary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label).textStyle(Tokens.TypeRamp.labelM)
+                        .foregroundStyle(destructive ? Tokens.Text.accentCoral : Tokens.Text.primary)
+                    if let detail {
+                        Text(detail).textStyle(Tokens.TypeRamp.labelS).foregroundStyle(Tokens.Text.secondary)
+                    }
+                }
+                .multilineTextAlignment(.leading)
                 Spacer(minLength: 0)
                 if let value {
                     Text(value).textStyle(Tokens.TypeRamp.labelM).foregroundStyle(Tokens.Text.secondary)

@@ -3,8 +3,8 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// D1 and D2 as drawn (SCREEN-STATES D1, D2): filled, with nothing set, offline, and held sideways, where each scrolls
-/// rather than clips.
+/// D1 to D3 as drawn (SCREEN-STATES D1 to D3): filled, with nothing set, offline, D3 with a waiting Salary, and held
+/// sideways, where each, the D56 sheet included, scrolls rather than clips.
 @MainActor
 final class SettingsViewTests: XCTestCase {
     private let sideways = CGSize(width: 852, height: 393)
@@ -36,5 +36,26 @@ final class SettingsViewTests: XCTestCase {
         XCTAssertGreaterThan(overflow(list, size: sideways), 0, "sideways it scrolls")
         let profile = ProfileView(model: ProfileViewModel(name: "Test", avatar: "owl") { _, _ in .saved }) {}
         XCTAssertGreaterThan(overflow(profile, size: sideways), 0, "D2 scrolls sideways too")
+    }
+
+    private func salary(_ name: String) throws -> SalaryEditViewModel {
+        try SalaryEditViewModel(
+            settings: SettingsViewModelTests.recorded(name), locale: Locale(identifier: "id_ID"),
+            save: { _, _ in .success(.init()) }
+        )
+    }
+
+    func testSalaryAndPaydayDrawsTheWaitingSalary() throws {
+        let waiting = try picture(SalaryEditView(model: salary("settings-waiting")) {})
+        let none = try picture(SalaryEditView(model: salary("settings-filled")) {})
+        XCTAssertNotNil(waiting)
+        XCTAssertNotEqual(waiting, none, "the waiting line under the amount card")
+    }
+
+    func testSalaryAndItsSheetScrollSidewaysRatherThanClip() throws {
+        let edit = try salary("settings-filled")
+        XCTAssertGreaterThan(overflow(SalaryEditView(model: edit) {}, size: sideways), 0, "D3 scrolls sideways")
+        edit.amount = "17500000"
+        XCTAssertGreaterThan(overflow(WhichSalarySheet(model: edit) { _ in }, size: sideways), 0, "so does its sheet")
     }
 }

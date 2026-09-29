@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.10 and D56, Maya edits £2,400 → £2,800 on 27 September and answers \"My new salary, from 25 October\": the new row is effective from October, September stays at £2,400 with Money In £2,400 and target £480 (acceptance 14), and Settings carries the October row as the next Salary, which Home prints as \"£2,800 from your next payday, 25 October.\" Spent £1,620, Saved £780 (§8.3); allowance floor((2,400 − 480 − 1,620) ÷ 4) = £75 (§8.7); Streak 9 (§8.5).",
+  "doc": "PRD §8.10 and D56, Maya edits £2,400 → £2,800 on 27 September and answers \"My new salary, from 25 October\": the new row is effective from October, September stays at £2,400 with Money In £2,400 and target £480 (acceptance 14), and Settings carries the October row as the next Salary, which Salary and payday (D3) prints as \"£2,800 from your next payday, 25 October.\" Spent £1,620, Saved £780 (§8.3); allowance floor((2,400 − 480 − 1,620) ÷ 4) = £75 (§8.7); Streak 9 (§8.5).",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",

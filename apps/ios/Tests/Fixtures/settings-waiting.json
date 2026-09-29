@@ -1,0 +1,47 @@
+{
+    "settings": {
+        "profile": {
+            "memberId": "d2a7fdfc-0cb9-43f5-b090-0c32788501b7",
+            "email": "test@example.com",
+            "displayName": "Test",
+            "avatarKey": "owl",
+            "currencyCode": "IDR",
+            "timezone": "Asia/Jakarta",
+            "onboardingStep": 4,
+            "signedUpOn": "2026-09-29"
+        },
+        "ledgerSettings": {
+            "salary": {
+                "amount": {
+                    "amount": "15000000",
+                    "currencyCode": "IDR"
+                },
+                "payday": "25",
+                "effectiveFrom": "2026-09",
+                "originalAmount": {
+                    "amount": "15000000",
+                    "currencyCode": "IDR"
+                }
+            },
+            "nextSalary": {
+                "amount": {
+                    "amount": "17500000",
+                    "currencyCode": "IDR"
+                },
+                "payday": "25",
+                "effectiveFrom": "2026-10",
+                "originalAmount": {
+                    "amount": "17500000",
+                    "currencyCode": "IDR"
+                }
+            },
+            "savingTarget": {
+                "percent": 20,
+                "effectiveFrom": "2026-09"
+            },
+            "paydayPassedThisMonth": true,
+            "currencyCode": "IDR",
+            "hasAmountsToConvert": true
+        }
+    }
+}

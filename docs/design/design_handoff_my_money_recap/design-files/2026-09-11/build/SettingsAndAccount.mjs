@@ -34,7 +34,7 @@ const d3Which = col('D3 · Salary and payday / which salary is this', screen('re
       ${X('Card', 'dc-props="{{ choiceCard }}"', X('DataRowList', '', `${X('ListRow', 'label="{{ rowA }}" trailing="chevron"', '', '100%,64px')}${X('ListRow', 'label="{{ rowB }}" trailing="chevron"', '', '100%,64px')}`, '100%,128px'), '100%,136px')}
       ${X('Button', 'variant="secondary"', 'Cancel', '100%,52px')}
     </div>`, '100%,100%')}</div>`), [
-  `D56: shown only when the current month's Payday has already passed, here 27 September, editing £2,400 → £2,800. The first row makes September's Money In £2,800 and its target £560; the second leaves September at £2,400 and Home reads "£2,800 from your next payday, 25 October". Cancel returns without saving.`,
+  `D56: shown only when the current month's Payday has already passed, here 27 September, editing £2,400 → £2,800. The first row makes September's Money In £2,800 and its target £560; the second leaves September at £2,400 and Salary and payday reads "£2,800 from your next payday, 25 October". Cancel returns without saving.`,
   'The two rows sit in a tinted card, as rows do everywhere else in the app, each with a one-line consequence beneath the label. The sheet body line and the two sub-lines are proposed copy; SCREEN-STATES fixes only the two row labels.']);
 const d4 = col('D4 · Saving target', screen('recap', full(`${head('Saving target')}
     ${X('Card', 'dc-props="{{ tintCard }}"', `<div style="font:700 64px/1 var(--mmr-font-family-display);letter-spacing:-.01em">20%</div><div style="padding:6px 0">${X('Slider', 'value="{{ n20 }}" min="{{ n0 }}" max="{{ n100 }}" step="{{ n5 }}" on-change="{{ noop }}"', '', '100%,44px')}</div>${X('HelperText', '', '£480 of £2,400 each month', '100%,20px')}`, '100%,200px')}

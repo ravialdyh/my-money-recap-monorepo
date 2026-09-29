@@ -1,3 +1,4 @@
+import Connect
 import Foundation
 import MoneyRecapContract
 import SwiftData
@@ -16,8 +17,11 @@ final class SettingsViewModel: Identifiable {
     private(set) var settings: MoneyRecap_V1_SettingsView?
     /// D2 Profile, while it is open.
     var profile: ProfileViewModel?
+    /// D3 Salary and payday, while it is open.
+    var salaryEdit: SalaryEditViewModel?
     private let fetch: Fetch
     private let saveProfile: NameAvatarViewModel.Save
+    private let saveSalary: SalaryEditViewModel.Save
     private let context: ModelContext
     private let locale: Locale
     private let connection: Connection
@@ -25,12 +29,15 @@ final class SettingsViewModel: Identifiable {
     init(
         fetch: @escaping Fetch,
         saveProfile: @escaping NameAvatarViewModel.Save,
+        saveSalary: @escaping SalaryEditViewModel
+            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
         connection: Connection? = nil
     ) {
         self.fetch = fetch
         self.saveProfile = saveProfile
+        self.saveSalary = saveSalary
         self.context = context
         self.locale = locale
         self.connection = connection ?? .shared
@@ -40,6 +47,10 @@ final class SettingsViewModel: Identifiable {
     /// The answer replaces the stored copy and what is shown; a failure keeps both, offline included.
     func refresh() async {
         guard let fresh = try? await fetch() else { return }
+        replace(with: fresh)
+    }
+
+    private func replace(with fresh: MoneyRecap_V1_SettingsView) {
         try? SettingsSnapshot.replace(with: fresh, in: context)
         settings = fresh
     }
@@ -79,6 +90,19 @@ final class SettingsViewModel: Identifiable {
     func openProfile() {
         guard let saved = settings?.profile else { return }
         profile = ProfileViewModel(name: saved.displayName, avatar: saved.avatarKey, save: saveProfile)
+    }
+
+    /// D3 over the saved answers; nil before Settings has any. A save's Settings replace the stored copy.
+    func openSalary() {
+        guard let saved = settings else { return }
+        let save = saveSalary
+        salaryEdit = SalaryEditViewModel(settings: saved, locale: locale) { [weak self] request, headers in
+            let result = await save(request, headers)
+            if case let .success(answer) = result {
+                self?.replace(with: answer.settings)
+            }
+            return result
+        }
     }
 
     /// A stored Payday as the row prints it: "25th", or "Last day" for the token (PRD D51).
