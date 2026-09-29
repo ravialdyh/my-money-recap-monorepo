@@ -3,6 +3,7 @@ import SwiftUI
 
 @main
 struct MyMoneyRecapApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var session = AuthSession()
 
     var body: some Scene {

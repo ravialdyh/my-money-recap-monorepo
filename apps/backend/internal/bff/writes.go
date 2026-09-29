@@ -61,6 +61,25 @@ func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[money
 	return connect.NewResponse(&moneyrecapv1.BffServiceCancelDeletionResponse{Profile: kept.Msg.Profile}), nil
 }
 
+// RegisterDevice hands the phone's push token to notify under the phone's key (PRD §10, I8). The phone ignores a
+// failure, so a code here only reaches its log.
+func (s *Service) RegisterDevice(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceRegisterDeviceRequest]) (*connect.Response[moneyrecapv1.BffServiceRegisterDeviceResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	if _, err := s.Notify.RegisterDevice(ctx, connect.NewRequest(&moneyrecapv1.RegisterDeviceRequest{IdempotencyKey: key, MemberId: profile.MemberId, ApnsToken: req.Msg.ApnsToken})); err != nil {
+		return nil, requiredCallFailed("notify.RegisterDevice", connect.CodeOf(err), err)
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceRegisterDeviceResponse{}), nil
+}
+
 // LogSpend is the Log a spend sheet's Save (PRD §6.9, ARCHITECTURE §6.2): ledger writes the Spend under the phone's
 // key, notify hears a current-month Spend's crossed_line, then the answer carries the current month's Home.
 func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceLogSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceLogSpendResponse], error) {

@@ -22,9 +22,14 @@ struct HomeView: View {
         onboardingNeeded: @escaping () -> Void
     ) {
         let client = BffClient.make(session: session)
+        let push = PushRegistration { token, headers in
+            await SaveResult(BffClient.retried(session) {
+                await client.registerDevice(request: .with { $0.apnsToken = token }, headers: headers)
+            }.result)
+        }
         self.init(model: HomeViewModel(fetch: {
             try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
-        }, context: context, onboardingNeeded: onboardingNeeded, logSpend: { request, headers in
+        }, context: context, push: push, onboardingNeeded: onboardingNeeded, logSpend: { request, headers in
             await BffClient.retried(session) { await client.logSpend(request: request, headers: headers) }.result
         }, listSpends: { month in
             try await BffClient.retried(session) { await client.listSpends(request: .with { $0.month = month }) }
@@ -77,12 +82,13 @@ struct HomeView: View {
         }
         .contentTransition(reduceMotion ? .opacity : .numericText())
         .task { await model.refresh() }
-        .sheet(item: $logging) { sheet in
+        .task { await model.launched() }
+        .sheet(item: $logging, onDismiss: { Task { await model.logSheetClosed() } }, content: { sheet in
             LogSpendView(model: sheet) { home in
                 logging = nil
-                withAnimation(reveal) { model.replace(with: home) }
+                withAnimation(reveal) { model.logged(home) }
             }
-        }
+        })
         .sheet(item: $listing) { list in
             SpendListView(model: list, log: { model.logSheet() }, edit: model.editSheet, onSaved: { home in
                 withAnimation(reveal) { model.replace(with: home) }

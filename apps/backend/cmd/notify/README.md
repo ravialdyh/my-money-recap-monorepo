@@ -3,7 +3,7 @@
 The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and every outbound email.
 It serves `EmailMagicLink` (#68, PR #77) and, since #132, the Target Warning state:
 `GetWarningState` and `EvaluateWarning`, and since #176 its own copy of each Member ("The replica", below)
-and the `idempotency` table. Preferences, device registration, pushes, the CSV export
+and the `idempotency` table, and since #178 `RegisterDevice`. Preferences, pushes, the CSV export
 email, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
 Its `Ledger` client sends `notify`'s own service-account token, fetched with the client-credentials grant and
@@ -91,8 +91,9 @@ newer event has written.
 
 `idempotency` is A14's table, the same shape as `members`' and `ledger`'s: a write claims its Member and
 key inside its own transaction (`internal/idempotency`), a repeated key replays the stored answer, a key
-reused for another request is `invalid_argument`, and keys older than 24 hours are swept. No write uses it
-yet; the device, preference and export writes will.
+reused for another request is `invalid_argument`, and keys older than 24 hours are swept. `RegisterDevice`
+(#178) is its first write: it upserts the `device` row on the phone's token, lowercase hex, so a phone another
+Member signs in on moves to them and a Member may hold several; the preference and export writes will follow.
 
 ## The magic-link table
 

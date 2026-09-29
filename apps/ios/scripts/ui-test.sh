@@ -25,6 +25,7 @@ for which in ${1:-newest oldest}; do
   docker exec "$project-postgres-1" psql -qAt -U postgres -d members -c "DELETE FROM member WHERE email = 'test@example.com'" >/dev/null
   xcrun simctl boot "$udid" 2>/dev/null || true
   xcrun simctl bootstatus "$udid" -b >/dev/null
+  xcrun simctl uninstall "$udid" com.mymoneyrecap.app
   echo "== UI test on $(xcrun simctl list devices -j | python3 -c "import json,sys; print(next(r.rsplit('.',1)[-1] for r,ds in json.load(sys.stdin)['devices'].items() for d in ds if d['udid']=='$udid'))") ($which)"
   rm -rf "build/ui-$which.xcresult" "build/ui-$which-screenshots"
   TEST_RUNNER_MMR_TEST_USER_PASSWORD="$MMR_TEST_USER_PASSWORD" TEST_RUNNER_MMR_ISSUER="$MMR_ISSUER" \

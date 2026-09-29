@@ -52,6 +52,11 @@ The SwiftUI app (`docs/IOS.md`), iOS 17+, iPhone and iPad. Built so far:
   what was typed over `We couldn't save this. Try again.` The other rows are drawn and open nothing yet. Offline,
   the grey Banner sits at the top and every row but Log out dims to 40%; with nothing stored the rows have no values.
   The back chevron closes Settings, and Home then asks again, so it greets a new name at once.
+- **Push permission** (SCREEN-STATES B5, #178): once the Log a spend sheet closes on a save and iOS has never
+  asked on this phone, the system alert appears over Home, whose numbers have already moved. Once allowed, every
+  launch registers for pushes and sends the token as hex to `RegisterDevice`, remembering it for Log out; a failed
+  registration, the simulator's normal case until #87's push entitlement, is ignored. With no notification
+  delegate, a push is never shown while the app is open and tapping one is a normal launch.
 
 ## Open
 
@@ -164,7 +169,8 @@ oldest that can be installed, and nothing here is proved on iOS 17 or 18 (#95).
 `infra/compose/.env` describes: its `COMPOSE_PROJECT_NAME` and its Keycloak, BFF and Mailpit host ports,
 each falling back to the default, and each overridden by `MMR_ISSUER`, `MMR_BFF_URL` or
 `MMR_MAILPIT_URL` when set. Before each runtime it deletes the realm test Member's `members` row, so the
-Keycloak test always meets step 1. It takes the password from `MMR_TEST_USER_PASSWORD` or, failing that, from
+Keycloak test always meets step 1, and uninstalls the app, so the magic-link test meets the notification
+permission alert after its first Spend (B5) and taps Allow, which springboard draws. It takes the password from `MMR_TEST_USER_PASSWORD` or, failing that, from
 the `<project>-realm-apply-1` container, which carries it as `TF_VAR_test_user_password`. That container
 re-applies the realm on every `up`, so a changed `.env` value is live after the next `up`
 (`infra/compose/README.md`, "The `mmr` realm"):
@@ -187,7 +193,7 @@ and runs once.
 
 | Folder | What lives here |
 | --- | --- |
-| `App/` | Entry point, the SwiftData container, root switch between Sign in and the launch (sign-out deletes the cache), `Launch` and `LaunchView` (the zone, the restore sheet for a pending deletion, then Home or the first unanswered of steps 1 to 4), `Info.plist` (URL scheme, the ATS local-networking allowance). |
+| `App/` | Entry point, the SwiftData container, `Push` (`PushSystem`, the seam over iOS's permission and APNs that the unit tests fake, `PushRegistration` and the `AppDelegate` that hears the token), root switch between Sign in and the launch (sign-out deletes the cache), `Launch` and `LaunchView` (the zone, the restore sheet for a pending deletion, then Home or the first unanswered of steps 1 to 4), `Info.plist` (URL scheme, the ATS local-networking allowance). |
 | `Auth/` | `AuthConfig` (issuer, client id, redirect, the login-token grant; no secret exists in the target), `AuthSession` (AppAuth discovery, PKCE authorization, `OIDAuthState`, the incoming magic link, fresh tokens, and a sign-out only when the realm refuses a refresh), `MagicLink` (the login token from any of the three sources, the direct grant, the state synthesized around the authorization request, and the failure codes behind the A3 copies and A1's error copy), `Keychain`. |
 | `Networking/` | `BffClient` builds the generated `MoneyRecap_V1_BffServiceClient` (proto codec, `MMR_BFF_URL` or its default) and calls once more after the interceptor refreshes a refused token (`retried`); `BearerInterceptor` is the one interceptor of I3, and sends `RequestMagicLink` with no token, keyed by its path in both halves. `SaveAttempt` holds one save attempt's `Idempotency-Key`, the same across its retries and new when the values change, which a write passes as a per-call header. `Connection` follows the platform's network path (`NWPathMonitor`): with none, Home shows the grey offline `Banner` and disables `Log a spend`, as the empty Spend list does its plus button and the Edit spend sheet its Save changes and Delete (D58). No request or response type is written here. |
 | `Snapshots/` | The SwiftData models of I4, each the answer's bytes plus `updatedAt`, replaced whole on every success: `HomeSnapshot` (the `HomeView`), `SpendListSnapshot(month)` (the Spend list view of one month), `RecapSnapshot(month)` (the `RecapView` of one month) and `SettingsSnapshot` (the `SettingsView`). |

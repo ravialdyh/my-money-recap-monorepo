@@ -18,10 +18,12 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Notify is the part of moneyrecapv1connect.NotifyServiceClient the Member paths need (§7.3): the Target Warning.
+// Notify is the part of moneyrecapv1connect.NotifyServiceClient the Member paths need (§7.3): the Target Warning and
+// the phone's push token.
 type Notify interface {
 	GetWarningState(ctx context.Context, req *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error)
 	EvaluateWarning(ctx context.Context, req *connect.Request[moneyrecapv1.EvaluateWarningRequest]) (*connect.Response[moneyrecapv1.EvaluateWarningResponse], error)
+	RegisterDevice(ctx context.Context, req *connect.Request[moneyrecapv1.RegisterDeviceRequest]) (*connect.Response[moneyrecapv1.RegisterDeviceResponse], error)
 }
 
 // Service implements BffService. Every RPC but RequestMagicLink runs behind auth.Interceptor;

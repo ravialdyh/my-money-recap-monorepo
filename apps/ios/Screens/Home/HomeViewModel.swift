@@ -26,6 +26,9 @@ final class HomeViewModel {
     private let locale: Locale
     private let dismissals: WarningDismissals
     private let connection: Connection
+    private let push: PushRegistration?
+    /// A Spend was logged through the sheet still closing, so B5 may ask once it has closed.
+    private var loggedInSheet = false
 
     init(
         fetch: @escaping () async throws -> MoneyRecap_V1_HomeView,
@@ -33,6 +36,7 @@ final class HomeViewModel {
         locale: Locale = .autoupdatingCurrent,
         dismissals: WarningDismissals? = nil,
         connection: Connection? = nil,
+        push: PushRegistration? = nil,
         onboardingNeeded: @escaping () -> Void = {},
         logSpend: @escaping LogSpendViewModel
             .Send = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
@@ -59,6 +63,7 @@ final class HomeViewModel {
         self.locale = locale
         self.dismissals = dismissals ?? .session
         self.connection = connection ?? .shared
+        self.push = push
         if let snapshot = HomeSnapshot.load(from: context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
         }
@@ -124,6 +129,24 @@ final class HomeViewModel {
     func replace(with fresh: MoneyRecap_V1_HomeView) {
         try? HomeSnapshot.replace(with: fresh, in: context)
         home = fresh
+    }
+
+    /// The Log a spend sheet's answer: its Home, and B5 once the sheet has closed.
+    func logged(_ fresh: MoneyRecap_V1_HomeView) {
+        replace(with: fresh)
+        loggedInSheet = true
+    }
+
+    /// The Log a spend sheet closed: after a save, the push permission alert when iOS never asked (B5).
+    func logSheetClosed() async {
+        guard loggedInSheet else { return }
+        loggedInSheet = false
+        await push?.spendSaved()
+    }
+
+    /// Each launch registers an allowed phone for pushes again (IOS I8).
+    func launched() async {
+        await push?.launched()
     }
 
     /// No network path: the grey Banner at the top and Log a spend at 40% (D58), over the stored numbers.
