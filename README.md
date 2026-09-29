@@ -72,7 +72,7 @@ pre-commit run --hook-stage pre-push    # also regenerates and diffs the generat
 
 | Check | Tool | Config |
 | --- | --- | --- |
-| Whitespace, JSON and YAML, large files, private keys, case conflicts, commits to `main` | `pre-commit-hooks` | `.pre-commit-config.yaml` |
+| Whitespace, JSON and YAML, large files, private keys, case conflicts, merge-conflict markers (on every commit, not only during a merge), commits to `main` | `pre-commit-hooks` | `.pre-commit-config.yaml` |
 | Secrets | gitleaks | `.pre-commit-config.yaml` |
 | gitleaks, `sops` and OpenTofu each pinned to one version everywhere they are fetched | `tools/hooks/check-pins.sh` | `.pre-commit-config.yaml` |
 | File size and comment policy | `tools/policy/check_policy.py` | `tools/policy/README.md` |
