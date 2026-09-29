@@ -1,7 +1,7 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
-serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend`, `EditSpend`, `DeleteSpend`, `ListSpends`, `GetRecap` and `RequestMagicLink`; the rest of
+serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `GetSettings`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend`, `EditSpend`, `DeleteSpend`, `ListSpends`, `GetRecap` and `RequestMagicLink`; the rest of
 `BffService` is planned. Every RPC but
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
@@ -44,7 +44,13 @@ as it is.
 `SaveTarget` (#104) is step 4, and later Settings' Saving Target, the same way: `ledger.SaveTarget` marked as a
 setup save while onboarding is unfinished, then step 4 recorded in `members` under the same key, which ends
 onboarding. D44's `failed_precondition`, a Target with no Salary, records no step. After onboarding the first
-Salary or Target starts in the current month and later ones follow D56 and D65 (PRD §8.10).
+Salary or Target starts in the current month and later ones follow D56 and D65 (PRD §8.10). Both answer the
+whole Home `GetHome` answers, read in the Member's zone with `notify`'s banner, and the Settings view (#170).
+
+`GetSettings` (#170) is Settings' view: the Profile from `members.GetOrCreateBySubject`, then
+`ledger.GetSettings`, both required, each with the one-second timeout and its code passed through with no
+upstream text. The Profile's Currency code and decimals are replaced by the code `ledger` holds the amounts in,
+so no view pairs converted amounts with an older code (spec #169). Notification preferences are not joined yet.
 
 `CancelDeletion` (#105) is "Keep my account" on the restore sheet: `members.CancelDeletion` under the phone's
 key, whose `failed_precondition` for a stamp past the 24 hours reaches the phone as it is. The sheet itself is
