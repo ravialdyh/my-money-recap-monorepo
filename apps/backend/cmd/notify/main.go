@@ -23,8 +23,8 @@ func main() {
 }
 
 // run is the start-up every database-backed binary shares (internal/serve), given this service's
-// name, its schema step, its handler and its consumer.
-func run() error { return serve.Main("notify", notify.Migrate, handler, consumer) }
+// name, its schema step, its handler and its two consumers.
+func run() error { return serve.Main("notify", notify.Migrate, handler, consumer, membersConsumer) }
 
 // handler is NotifyService behind the bearer check, EmailMagicLink exempt (§4.2 point 3). NOTIFY_MEMBERS_URL
 // takes the ownership read with the caller's token; NOTIFY_LEDGER_URL the schedules' reads with notify's own (§4.2).
@@ -41,5 +41,13 @@ func consumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 	url := env.Get("NOTIFY_AMQP_URL", "")
 	return func(ctx context.Context) {
 		events.Consume(ctx, db, url, notify.Queue, notify.Keys, notify.StampFromEvent)
+	}
+}
+
+// membersConsumer keeps the replica from members' events on the same broker (§7.3 "Consumes").
+func membersConsumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
+	url := env.Get("NOTIFY_AMQP_URL", "")
+	return func(ctx context.Context) {
+		events.Consume(ctx, db, url, notify.MembersQueue, notify.MembersKeys, notify.ApplyMemberEvent)
 	}
 }
