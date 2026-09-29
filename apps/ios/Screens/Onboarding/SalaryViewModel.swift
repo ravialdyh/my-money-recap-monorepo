@@ -67,14 +67,23 @@ final class SalaryViewModel {
     /// month is shorter or the Payday is "last" (PRD §8.2).
     nonisolated static func paydays(_ payday: String, from today: Date, calendar: Calendar) -> [Date] {
         let day = calendar.startOfDay(for: today)
-        guard let month = calendar.dateInterval(of: .month, for: today)?.start else { return [] }
-        let dates = (0 ... 3).compactMap { offset -> Date? in
-            guard let start = calendar.date(byAdding: .month, value: offset, to: month),
-                  let length = calendar.range(of: .day, in: .month, for: start)?.count
-            else { return nil }
-            return calendar.date(byAdding: .day, value: min(Int(payday) ?? length, length) - 1, to: start)
-        }
+        let dates = (0 ... 3).compactMap { effective(payday, monthsAfter: $0, today, calendar: calendar) }
         return Array(dates.filter { $0 >= day }.prefix(3))
+    }
+
+    /// The effective Payday in the month `offset` months after `date`'s: the day, or the month's last day when the
+    /// month is shorter or the Payday is "last" (PRD §8.2).
+    nonisolated static func effective(
+        _ payday: String,
+        monthsAfter offset: Int,
+        _ date: Date,
+        calendar: Calendar
+    ) -> Date? {
+        guard let month = calendar.dateInterval(of: .month, for: date)?.start,
+              let start = calendar.date(byAdding: .month, value: offset, to: month),
+              let length = calendar.range(of: .day, in: .month, for: start)?.count
+        else { return nil }
+        return calendar.date(byAdding: .day, value: min(Int(payday) ?? length, length) - 1, to: start)
     }
 
     var canContinue: Bool {

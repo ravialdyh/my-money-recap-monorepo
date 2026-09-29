@@ -489,7 +489,7 @@ Copy depends on whether Payday has passed (D53):
 - **Payday edits (D56).** Always effective from the next month. The screen says so: "Your new payday starts in {next month}."
 - **Saving Target edits (D65).** Always effective from the next month, no sheet. The screen says so.
 
-*Worked:* Maya edits £2,400 → £2,800 on 27 September. The sheet appears. "The £2,800 I was paid on 25 September" makes September's Money In £2,800 and its target £560. "My new salary, from 25 October" leaves September at £2,400 and Home reads "£2,800 from your next payday, 25 October." Editing on 20 September shows no sheet and applies to September.
+*Worked:* Maya edits £2,400 → £2,800 on 27 September. The sheet appears. "The £2,800 I was paid on 25 September" makes September's Money In £2,800 and its target £560. "My new salary, from 25 October" leaves September at £2,400, and Salary and payday then reads "£2,800 from your next payday, 25 October." under the amount card; Home is unchanged. Editing on 20 September shows no sheet and applies to September.
 
 ### 8.11 Partial months (new, D52, D64)
 

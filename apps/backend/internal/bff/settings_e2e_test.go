@@ -16,8 +16,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestSettingsEndToEnd (#170): on a Member with last month's Recap and a stamped warning, a Salary and a Target edit
-// each answer the Home GetHome answers, and GetSettings then reads both edits waiting for next month, in rupiah.
+// TestSettingsEndToEnd (#170, #171): on a Member with last month's Recap and a stamped warning, a Salary edit after
+// Payday with no answer is refused; "from next month" keeps Money In; each edit answers GetHome's Home.
 func TestSettingsEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	ledgerDSN := os.Getenv("LEDGER_TEST_DATABASE_URL")
@@ -66,15 +66,28 @@ func TestSettingsEndToEnd(t *testing.T) {
 			t.Fatalf("%s answered Home %v, GetHome %v (%v); want the same", what, h, home, err)
 		}
 	}
-	salary := connect.NewRequest(&moneyrecapv1.BffServiceSaveSalaryRequest{
-		Amount: &moneyrecapv1.Money{Amount: "2000000", CurrencyCode: "IDR"}, Payday: "1", AppliesFrom: moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_NEXT_MONTH,
-	})
-	keyed(salary)
-	saved, err := client.SaveSalary(ctx, salary)
+	before, err := client.GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	edit := func(applies moneyrecapv1.SalaryAppliesFrom) (*connect.Response[moneyrecapv1.BffServiceSaveSalaryResponse], error) {
+		salary := connect.NewRequest(&moneyrecapv1.BffServiceSaveSalaryRequest{
+			Amount: &moneyrecapv1.Money{Amount: "2000000", CurrencyCode: "IDR"}, Payday: "1", AppliesFrom: applies,
+		})
+		keyed(salary)
+		return client.SaveSalary(ctx, salary)
+	}
+	if _, err := edit(moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_UNSPECIFIED); connect.CodeOf(err) != connect.CodeFailedPrecondition {
+		t.Fatalf("an edit on or after the 1st with no D56 answer: %v, want failed_precondition", err)
+	}
+	saved, err := edit(moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_NEXT_MONTH)
 	if err != nil {
 		t.Fatal(err)
 	}
 	sameAsGetHome("SaveSalary", saved.Msg.Home)
+	if got, want := saved.Msg.Home.MoneyIn.GetAmount(), before.Msg.Home.MoneyIn.GetAmount(); got != want || want != "1000000" {
+		t.Fatalf("Money In after a raise from next month: %s, want this month's %s", got, want)
+	}
 	target := connect.NewRequest(&moneyrecapv1.BffServiceSaveTargetRequest{Percent: 40})
 	keyed(target)
 	aimed, err := client.SaveTarget(ctx, target)

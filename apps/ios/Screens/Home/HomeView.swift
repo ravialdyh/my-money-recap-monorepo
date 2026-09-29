@@ -46,6 +46,8 @@ struct HomeView: View {
         }, saveProfile: { request, headers in
             await SaveResult(BffClient.retried(session) { await client.saveProfile(request: request, headers: headers) }
                 .result)
+        }, saveSalary: { request, headers in
+            await BffClient.retried(session) { await client.saveSalary(request: request, headers: headers) }.result
         }))
         self.open = open
     }

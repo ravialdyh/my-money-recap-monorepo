@@ -135,8 +135,11 @@ White `Sheet variant="full"` on violet.
 | D1 | push denied | The Notifications row reads `Off in iOS Settings` instead of a count. |
 | D1 | offline | Offline `Banner` at top; every row that writes sits at 40%. |
 | D2 | Profile | Name field + `AvatarGrid`. Note that past recaps show the **current** name: nothing about a Recap is stored. |
-| D3 | Salary and payday | D51 `DayPicker` with `Last day` and the three-date helper. D56: a line under the payday card reading `Your new payday starts in {next month}.` |
-| D3 | which salary is this | D56. Sheet shown only when the current month's payday has passed. Two `ListRow`s: `The £2,800 I was paid on 25 September` and `My new salary, from 25 October`. Cancel returns without saving. |
+| D3 | Salary and payday | Headline `Salary and payday`. Setup's `AmountField` labelled `Amount, after tax`, filled with the Salary in force, at most the Currency's decimals and 11 digits (D57). D51 `DayPicker` with `Last day` and `Next paydays: {d1} · {d2} · {d3}` counted from today. `Save`, on once the amount is above zero and it or the Payday changed. A save returns to D1, its stored Settings replaced from the answer; a failed one keeps what was typed over `We couldn't save this. Try again.` Held sideways it scrolls. |
+| D3 | first Salary | None in force and none waiting: the field starts empty on Payday 25, and Save asks nothing; the Salary counts from this month (PRD §8.10). |
+| D3 | payday changed | D56. Once the picked day differs from the saved one, a line under the payday card: `Your new payday starts in {Month}.`, or with the amount changed too `Your new salary and payday start in {Month}.` No sheet: both start next month. |
+| D3 | waiting salary | A later Salary is saved: a line under the amount card, `{amount} from your next payday, {date}.` (owner, 2026-09-29). Home shows nothing of it. |
+| D3 | which salary is this | D56. A changed amount with the same Payday, on or after this month's effective Payday (the answer's `payday_passed_this_month`), or a save answered `failed_precondition`, opens the sheet `Which salary is this?`: `You were paid on {date}. A date alone can't tell a correction from a raise, so tell us which this is.`, then two `ListRow`s in a tinted card, `The {amount} I was paid on {date}` over `Fixes {Month}` (this month) and `My new salary, from {date}` over `{Month} stays at {amount}` (next month); the dates are this and next month's effective Payday. `Cancel` saves nothing. Held sideways it scrolls. |
 | D4 | Saving target | D65. Slider and preview, then the forward-only line `Your new target starts in {next month}.` No sheet. |
 | D5 | Currency | `ListRow trailing="check"` list, tapping opens D6. |
 | D6 | Currency confirm | Rate, before/after rows, Convert + Cancel. |
@@ -193,6 +196,7 @@ One string, one place. Where two screens show the same idea, they show the same 
 | Streak badge, 7+ | `New badge unlocked.` |
 | Streak badge, under 7 | `Beat it next month.` |
 | Spend save failed | `We couldn't save this spend. Try again.` |
+| Settings save failed (D2, D3) | `We couldn't save this. Try again.` |
 | Offline | `No connection. You can look, but not log.` |
 | Stale cache | `Last updated {day} {time}.` |
 | Avatar grid label | `Pick your avatar` |
