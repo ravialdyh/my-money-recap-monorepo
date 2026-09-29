@@ -3,8 +3,8 @@
 The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and every outbound email.
 It serves `EmailMagicLink` (#68, PR #77) and, since #132, the Target Warning state:
 `GetWarningState` and `EvaluateWarning`, and since #176 its own copy of each Member ("The replica", below)
-and the `idempotency` table, and since #178 `RegisterDevice`. Preferences, pushes, the CSV export
-email, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
+and the `idempotency` table, since #178 `RegisterDevice`, and since #179 `GetPrefs` and `SavePrefs`
+("The preferences", below). Pushes, the CSV export email, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
 Its `Ledger` client sends `notify`'s own service-account token, fetched with the client-credentials grant and
 cached until it expires (#177, ARCHITECTURE §4.2), which `ledger` accepts for `GetSpentToday` and
@@ -19,7 +19,7 @@ host rolls it back. An empty key is `invalid_argument`.
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary: its name, its schema step, its handler and its consumer, handed to `serve.Main`. |
-| `../../internal/notify/` | `notify.go` (the magic-link email, its SMTP client and the idempotent write), `warning.go` (the Target Warning, its event backup and the ownership check), `replica.go` (the `notify.members` consumer) and `migrations/*.sql` (embedded). |
+| `../../internal/notify/` | `notify.go` (the magic-link email, its SMTP client and the idempotent write), `warning.go` (the Target Warning, its event backup and the ownership check), `replica.go` (the `notify.members` consumer), `device.go`, `prefs.go` (the preferences) and `migrations/*.sql` (embedded). |
 
 ## Environment
 
@@ -93,7 +93,16 @@ newer event has written.
 key inside its own transaction (`internal/idempotency`), a repeated key replays the stored answer, a key
 reused for another request is `invalid_argument`, and keys older than 24 hours are swept. `RegisterDevice`
 (#178) is its first write: it upserts the `device` row on the phone's token, lowercase hex, so a phone another
-Member signs in on moves to them and a Member may hold several; the preference and export writes will follow.
+Member signs in on moves to them and a Member may hold several. `SavePrefs` (#179) is its second; the export write
+will follow.
+
+## The preferences
+
+`notification_preference` holds one row per Member: `recap_ready`, `daily_reminder`, `daily_reminder_time` and
+`target_warning`. `GetPrefs` answers PRD §10's defaults before any save: Recap ready on, the daily reminder off at
+20:00, the Target Warning on. `SavePrefs` replaces the row with the whole message under the Member's key, refusing a
+reminder time that is not `HH:MM` on a 24-hour clock, and answers it as stored. Both check the owner as
+`GetWarningState` does. No schedule reads the row yet.
 
 ## The magic-link table
 

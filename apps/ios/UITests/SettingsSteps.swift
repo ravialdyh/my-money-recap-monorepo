@@ -15,7 +15,7 @@ extension SignInUITests {
         let day = Calendar.current.component(.day, from: .now) == 1 ? "2nd" : "1st"
         XCTAssert(row("Salary and payday", " · \(day)").exists, "the Salary with its Payday")
         XCTAssert(row("Saving target", "25%").exists)
-        XCTAssert(app.buttons["Notifications"].exists && app.buttons["Export spends"].exists)
+        XCTAssert(row("Notifications", "2 on").exists && app.buttons["Export spends"].exists)
         XCTAssert(app.buttons["Delete account"].exists && app.buttons["Log out"].exists)
         snapshot("27-settings")
         sideways(app, reaching: app.buttons["Log out"], "settings")
@@ -137,5 +137,30 @@ extension SignInUITests {
         NSDecimalRound(&rounded, &source, 0, .plain)
         let whole = rounded == amount
         return amount.formatted(.currency(code: "GBP").precision(.fractionLength(whole ? 0 : 2)))
+    }
+
+    /// #179: with notifications allowed after the first Spend, D1's row counts PRD §10's two defaults; D8 turns the
+    /// Daily reminder on, which grows its `Remind me at` row and saves at once, and D1 then counts three.
+    func turnOnTheReminder(_ app: XCUIApplication) {
+        app.buttons["Settings"].tap()
+        let row = { (value: String) in
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Notifications' AND label CONTAINS %@", value))
+                .firstMatch
+        }
+        XCTAssert(row("2 on").waitForExistence(timeout: 30), "Recap ready and Target warning are on by default")
+        row("2 on").tap()
+        let reminder = app.switches["Daily reminder"]
+        XCTAssert(reminder.waitForExistence(timeout: 10), "the row opens D8")
+        XCTAssert(app.switches["Recap ready"].exists && app.switches["Target warning"].exists)
+        XCTAssertFalse(app.staticTexts["Remind me at"].exists, "no time row while the reminder is off")
+        reminder.tap()
+        XCTAssert(app.staticTexts["Remind me at"].waitForExistence(timeout: 10), "the reminder's time row")
+        XCTAssertFalse(app.staticTexts["We couldn't save this. Try again."].waitForExistence(timeout: 3), "saved")
+        snapshot("36-notifications-reminder-on")
+        sideways(app, reaching: app.switches["Target warning"], "notifications")
+        app.buttons["Back"].tap()
+        XCTAssert(row("3 on").waitForExistence(timeout: 30), "D1 asks again and counts the reminder")
+        app.buttons["Back"].tap()
+        XCTAssert(app.buttons["Log a spend"].waitForExistence(timeout: 30), "back on Home")
     }
 }

@@ -22,6 +22,7 @@ final class HomeViewModel {
     private let saveTarget: TargetEditViewModel.Save
     private let previewCurrency: CurrencyEditViewModel.Preview
     private let changeCurrency: CurrencyEditViewModel.Change
+    private let saveNotifications: NotificationsViewModel.Save
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -59,7 +60,8 @@ final class HomeViewModel {
         previewCurrency: @escaping CurrencyEditViewModel
             .Preview = { _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         changeCurrency: @escaping CurrencyEditViewModel
-            .Change = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
+            .Change = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        saveNotifications: @escaping NotificationsViewModel.Save = { _, _ in nil }
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
@@ -73,6 +75,7 @@ final class HomeViewModel {
         self.saveTarget = saveTarget
         self.previewCurrency = previewCurrency
         self.changeCurrency = changeCurrency
+        self.saveNotifications = saveNotifications
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -145,7 +148,8 @@ final class HomeViewModel {
             }, previewCurrency: previewCurrency, changeCurrency: { [weak self] in
                 let result = await change($0, $1)
                 return self?.keep(result, \.home) ?? result
-            }, context: context, locale: locale, connection: connection
+            }, saveNotifications: saveNotifications, push: push, context: context, locale: locale,
+            connection: connection
         )
     }
 
@@ -184,7 +188,7 @@ final class HomeViewModel {
     func logSheetClosed() async {
         guard loggedInSheet else { return }
         loggedInSheet = false
-        await push?.spendSaved()
+        await push?.askOnce()
     }
 
     /// Each launch registers an allowed phone for pushes again (IOS I8).

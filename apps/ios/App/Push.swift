@@ -23,8 +23,9 @@ struct PushSystem {
     }
 }
 
-/// B5 (PRD §10, IOS I8): asks once, after a Spend is saved, when iOS never asked; once allowed, registers on every
-/// launch and hands the token as hex to RegisterDevice, remembering it for Log out. A failure is ignored.
+/// B5 (PRD §10, IOS I8): asks once, after a Spend is saved or a D8 switch turns on, when iOS never asked; once allowed,
+/// registers on every launch and hands the token as hex to RegisterDevice, remembering it for Log out. A failure is
+/// ignored.
 @MainActor
 final class PushRegistration {
     typealias Send = (_ token: String, _ headers: Headers) async -> SaveResult
@@ -51,8 +52,14 @@ final class PushRegistration {
         }
     }
 
-    /// A Spend save's sheet has closed: the system alert when iOS never asked, then registration when allowed.
-    func spendSaved() async {
+    /// iOS's answer so far: D8 reads denied, never asked and allowed from it.
+    func status() async -> UNAuthorizationStatus {
+        await system.status()
+    }
+
+    /// A Spend save's sheet has closed or a D8 switch turned on: the system alert when iOS never asked, then
+    /// registration when allowed.
+    func askOnce() async {
         guard await system.status() == .notDetermined, await system.ask() else { return }
         await register()
     }

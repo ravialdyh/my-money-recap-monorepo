@@ -86,8 +86,8 @@ final class TargetEditViewModelTests: XCTestCase {
         XCTAssertEqual(sent[0].1, sent[1].1, "the retry counts once")
     }
 
-    /// D1 opens D4 over its stored answer; a save's Settings replace the stored copy; D4's no-Salary card puts D3 in
-    /// its place.
+    /// D1 opens D4 over its stored answer; a save's Settings replace the stored copy, keeping the stored notification
+    /// preferences the answer lacks; D4's no-Salary card puts D3 in its place.
     func testSettingsOpensD4AndItsSaveReplacesTheStoredSettings() async throws {
         let context = try SettingsViewModelTests.context()
         let answer = try MoneyRecap_V1_BffServiceSaveTargetResponse.with {
@@ -103,8 +103,10 @@ final class TargetEditViewModelTests: XCTestCase {
         settings.openTarget()
         let saved = try await XCTUnwrap(settings.targetEdit).commit()
         XCTAssertTrue(saved)
-        XCTAssertEqual(SettingsSnapshot.load(from: context), answer.settings)
-        XCTAssertEqual(settings.settings, answer.settings)
+        var kept = answer.settings
+        kept.notificationPrefs = try SettingsViewModelTests.recorded("settings-filled").notificationPrefs
+        XCTAssertEqual(SettingsSnapshot.load(from: context), kept, "the answer, with the stored preferences it lacks")
+        XCTAssertEqual(settings.settings, kept)
         settings.setSalaryFirst()
         XCTAssertNil(settings.targetEdit)
         XCTAssertNotNil(settings.salaryEdit, "D3 opens in D4's place")

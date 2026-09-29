@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// D1 Settings (PRD §6.16), the full sheet Home's Settings chip opens: four groups of rows with their values. Profile
-/// opens D2, Currency D5, Salary and payday D3, Saving target D4; later tickets' rows open nothing yet.
-/// Offline, only Log out is live.
+/// D1 Settings (PRD §6.16), the Settings chip's full sheet: four groups of rows with their values. Profile opens D2,
+/// Currency D5, Salary and payday D3, Saving target D4, Notifications D8; the rest nothing yet. Offline, Log out only.
 struct SettingsView: View {
     @State private var model: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
@@ -27,7 +26,7 @@ struct SettingsView: View {
                         ListRow(label: "Saving target", value: model.target) { model.openTarget() }
                     }
                     group("Alerts") {
-                        ListRow(label: "Notifications")
+                        ListRow(label: "Notifications", value: model.notificationsValue) { model.openNotifications() }
                     }
                 }
                 .disabled(model.offline)
@@ -56,6 +55,11 @@ struct SettingsView: View {
                     CurrencyEditView(model: currency)
                 }
             }
+            .navigationDestination(isPresented: notificationsOpen) {
+                if let notifications = model.notifications {
+                    NotificationsView(model: notifications)
+                }
+            }
             .navigationDestination(isPresented: profileOpen) {
                 if let profile = model.profile {
                     ProfileView(model: profile) {
@@ -66,6 +70,16 @@ struct SettingsView: View {
             }
         }
         .task { await model.refresh() }
+    }
+
+    /// D8 closes back to D1, which asks again, since the saves answer only the preferences.
+    private var notificationsOpen: Binding<Bool> {
+        Binding(get: { model.notifications != nil }, set: {
+            if !$0 {
+                model.notifications = nil
+                Task { await model.refresh() }
+            }
+        })
     }
 
     private var profileOpen: Binding<Bool> {

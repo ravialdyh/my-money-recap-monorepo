@@ -31,6 +31,12 @@
             "currencyCode": "IDR",
             "hasAmountsToConvert": true,
             "newSavingTargetFrom": "2026-10"
+        },
+        "notificationPrefs": {
+            "recapReady": true,
+            "dailyReminder": true,
+            "reminderTime": "20:00",
+            "targetWarning": true
         }
     }
 }

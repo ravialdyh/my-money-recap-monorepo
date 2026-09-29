@@ -159,7 +159,8 @@ final class SalaryEditViewModelTests: XCTestCase {
         XCTAssertEqual(sent()[0].headers, sent()[1].headers, "the retry counts once")
     }
 
-    /// D1 opens D3 over its stored answer; a save's Settings replace the stored copy and the row.
+    /// D1 opens D3 over its stored answer; a save's Settings replace the stored copy and the row, keeping the stored
+    /// notification preferences, which a Salary save's answer does not carry.
     func testASaveReplacesTheStoredSettings() async throws {
         let context = try SettingsViewModelTests.context()
         let answer = try MoneyRecap_V1_BffServiceSaveSalaryResponse.with {
@@ -178,7 +179,9 @@ final class SalaryEditViewModelTests: XCTestCase {
         _ = await edit.commit()
         let saved = await edit.answer(.nextMonth)
         XCTAssertTrue(saved)
-        XCTAssertEqual(SettingsSnapshot.load(from: context), answer.settings)
-        XCTAssertEqual(settingsModel.settings, answer.settings)
+        var kept = answer.settings
+        kept.notificationPrefs = try settings("settings-filled").notificationPrefs
+        XCTAssertEqual(SettingsSnapshot.load(from: context), kept, "the answer, with the stored preferences it lacks")
+        XCTAssertEqual(settingsModel.settings, kept)
     }
 }
