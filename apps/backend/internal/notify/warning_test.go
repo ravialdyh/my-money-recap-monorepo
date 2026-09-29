@@ -18,8 +18,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// fakeMembers answers GetProfile for the one Member each bearer token owns, as members does (§4.2 point 3);
-// the tests' tokens are the subject itself, and a nil map is members down.
+// fakeMembers answers GetProfile for the one Member each bearer token owns, as members does (§4.2 point 3), in
+// Asia/Jakarta at the token's address; the tests' tokens are the subject itself, and a nil map is members down.
 type fakeMembers struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
 	owns map[string]string
@@ -29,10 +29,11 @@ func (f fakeMembers) GetProfile(_ context.Context, req *connect.Request[moneyrec
 	if f.owns == nil {
 		return nil, connect.NewError(connect.CodeUnavailable, errors.New("members is down"))
 	}
-	if f.owns[strings.TrimPrefix(req.Header().Get("Authorization"), "Bearer ")] != req.Msg.MemberId {
+	token := strings.TrimPrefix(req.Header().Get("Authorization"), "Bearer ")
+	if f.owns[token] != req.Msg.MemberId {
 		return nil, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
 	}
-	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId}}), nil
+	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId, Timezone: "Asia/Jakarta", Email: token + "@example.test"}}), nil
 }
 
 // warningService is a Service over the notify database whose members answers owns, with id's rows removed at the end.

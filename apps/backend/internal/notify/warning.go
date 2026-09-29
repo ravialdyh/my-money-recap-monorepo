@@ -100,22 +100,24 @@ func (s *Service) kept(ctx context.Context, id, month string) (*moneyrecapv1.Tar
 	return &moneyrecapv1.TargetWarning{Message: message}, nil
 }
 
-// owns is ARCHITECTURE §4.2 point 3: the replica keeps the subject whose token last proved the Member, and any other
-// token is a miss that members.GetProfile answers under that token, so a Member it does not own is not_found.
+// owns is ARCHITECTURE §4.2 point 3: a token other than the one the replica kept, or a row lacking a zone or an
+// email, is a miss members.GetProfile answers under that token; the read fills both unless a newer event has.
 func (s *Service) owns(ctx context.Context, id string) error {
 	if err := (&pgtype.UUID{}).Scan(id); err != nil {
 		return connect.NewError(connect.CodeNotFound, errors.New("no such member"))
 	}
 	subject := auth.From(ctx).Subject
 	var kept string
-	err := s.DB.QueryRow(ctx, `SELECT keycloak_subject FROM member_facts WHERE member_id = $1`, id).Scan(&kept)
+	var complete bool
+	err := s.DB.QueryRow(ctx, `SELECT coalesce(keycloak_subject, ''), timezone IS NOT NULL AND email IS NOT NULL FROM member_facts WHERE member_id = $1`, id).Scan(&kept, &complete)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return storeFailed(ctx, err)
 	}
-	if kept != "" && kept == subject {
+	if kept != "" && kept == subject && complete {
 		return nil
 	}
-	_, err = s.Members.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: id}))
+	asked := time.Now()
+	res, err := s.Members.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: id}))
 	if connect.CodeOf(err) == connect.CodeNotFound {
 		return connect.NewError(connect.CodeNotFound, errors.New("no such member"))
 	}
@@ -123,7 +125,14 @@ func (s *Service) owns(ctx context.Context, id string) error {
 		log.Printf("notify: members.GetProfile: %v", err)
 		return connect.NewError(connect.CodeUnavailable, errors.New("members.GetProfile failed"))
 	}
-	if _, err := s.DB.Exec(ctx, `INSERT INTO member_facts (member_id, keycloak_subject) VALUES ($1, $2) ON CONFLICT (member_id) DO UPDATE SET keycloak_subject = EXCLUDED.keycloak_subject`, id, subject); err != nil {
+	p := res.Msg.GetProfile()
+	if _, err := s.DB.Exec(ctx, `
+		INSERT INTO member_facts (member_id, keycloak_subject, timezone, email, facts_at) VALUES ($1, $2, nullif($3, ''), nullif($4, ''), $5)
+		ON CONFLICT (member_id) DO UPDATE SET keycloak_subject = EXCLUDED.keycloak_subject,
+			timezone = CASE WHEN member_facts.facts_at > EXCLUDED.facts_at THEN member_facts.timezone ELSE coalesce(EXCLUDED.timezone, member_facts.timezone) END,
+			email = CASE WHEN member_facts.facts_at > EXCLUDED.facts_at THEN member_facts.email ELSE coalesce(EXCLUDED.email, member_facts.email) END,
+			facts_at = greatest(member_facts.facts_at, EXCLUDED.facts_at)`,
+		id, subject, p.GetTimezone(), p.GetEmail(), asked); err != nil {
 		return storeFailed(ctx, err)
 	}
 	return nil

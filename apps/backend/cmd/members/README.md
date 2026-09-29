@@ -76,7 +76,7 @@ A first sight stages `members.created`, and a write that changes any of the fact
 (`MemberFacts`: the Display Name, zone, sign-up date, Currency and email) stages one `members.updated`
 carrying all of them, in the outbox, inside the write's own transaction (ARCHITECTURE §4.3, A4). A write
 that changes none of them stages nothing: an Avatar, a step, the same answer again, a replayed key.
-`CancelDeletion` stages `members.deletion.cancelled` the same way, which nothing consumes yet. The
+`CancelDeletion` stages `members.deletion.cancelled` the same way, which `notify` consumes since #176. The
 relay beside the handler polls the outbox every second, publishes with publisher confirms and marks a row
 sent only once the broker has confirmed it; `FOR UPDATE SKIP LOCKED` keeps two relays off the same row
 (`internal/events`). A relay that loses the broker logs it and dials again five seconds later.

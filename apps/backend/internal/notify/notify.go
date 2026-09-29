@@ -1,6 +1,5 @@
-// Package notify is the notify service (ARCHITECTURE §7.3): the magic-link email since #68 and the
-// Target Warning's month flag since #132, stamped from ledger's Spend events too since #135, with the replica row
-// that proves a Member's owner.
+// Package notify is the notify service (ARCHITECTURE §7.3): the magic-link email (#68), the Target Warning's month
+// flag (#132), stamped from ledger's Spend events too (#135), and each Member's replica, fed from members' events (#176).
 package notify
 
 import (
@@ -18,9 +17,11 @@ import (
 	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/migrate"
 )
 
@@ -57,6 +58,22 @@ type Service struct {
 	SMTP string
 	// From is the envelope sender and the From header.
 	From string
+}
+
+// write is A14 in notify's idempotency table: a repeated key replays answer, a key reused for another request is
+// invalid_argument, and a connect error raised inside write reaches the caller as it is.
+func (s *Service) write(ctx context.Context, memberID, key string, req, answer proto.Message, write func(pgx.Tx) error) error {
+	err := idempotency.Write(ctx, s.DB, memberID, key, req, answer, write)
+	var ce *connect.Error
+	switch {
+	case err == nil:
+		return nil
+	case errors.As(err, &ce):
+		return ce
+	case errors.Is(err, idempotency.ErrReused):
+		return connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	return storeFailed(ctx, err)
 }
 
 // EmailMagicLink sends the link once per address and idempotency key: the row is claimed first and a
