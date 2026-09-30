@@ -51,7 +51,7 @@ func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyreca
 			return err
 		}
 		l.salaries = append(l.salaries, salaryRow{amount: amount, original: amount, originalCurrency: l.cash.code, payday: payday, from: from})
-		answer.Settings, answer.Month = l.settings(l.today), l.summary(monthOf(l.today), l.today)
+		answer.Settings, answer.Month = l.settings(l.today, req.Msg.Setup), l.summary(monthOf(l.today), l.today)
 		return nil
 	})
 	if err != nil {
@@ -90,7 +90,7 @@ func (s *Service) RelabelCurrency(ctx context.Context, req *connect.Request[mone
 			return err
 		}
 		l.cash = c
-		answer.Settings = l.settings(l.today)
+		answer.Settings = l.settings(l.today, false)
 		return nil
 	})
 	if err != nil {
@@ -144,20 +144,14 @@ func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyreca
 	if len(l.salaries) == 0 {
 		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("no Saving Target without a Salary (D44)"))
 	}
-	from := monthOf(l.today).next()
-	switch {
-	case req.Msg.Setup:
-		from = monthOf(l.signedUp)
-	case len(l.targets) == 0:
-		from = monthOf(l.today)
-	}
+	from := l.targetStarts(l.today, req.Msg.Setup)
 	answer := &moneyrecapv1.SaveTargetResponse{}
 	err = idempotency.Write(ctx, s.DB, l.id, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
 		if _, err := tx.Exec(ctx, `INSERT INTO saving_target_setting (member_id, percent, effective_from) VALUES ($1, $2, $3)`, l.id, req.Msg.Percent, from.day(1)); err != nil {
 			return err
 		}
 		l.targets = append(l.targets, targetRow{percent: req.Msg.Percent, from: from})
-		answer.Settings, answer.Month = l.settings(l.today), l.summary(monthOf(l.today), l.today)
+		answer.Settings, answer.Month = l.settings(l.today, req.Msg.Setup), l.summary(monthOf(l.today), l.today)
 		return nil
 	})
 	if err != nil {

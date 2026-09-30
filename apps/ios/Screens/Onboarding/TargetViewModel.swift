@@ -48,13 +48,18 @@ final class TargetViewModel {
     /// "£480 of £2,400 each month": the one sum the phone does, for display while the knob moves, never stored or sent;
     /// the saved Target's amount is ledger's (ARCHITECTURE A2, IOS I6). Half up to the Currency's decimals, as ledger.
     var preview: String? {
-        guard let salary, let whole = Decimal(string: salary.amount) else { return nil }
+        salary.flatMap { Self.preview(of: $0, percent: percent, digits: digits, locale: locale) }
+    }
+
+    /// `preview` for any Salary, which D4 shows too.
+    static func preview(of salary: MoneyRecap_V1_Money, percent: Int, digits: Int, locale: Locale) -> String? {
+        guard let whole = Decimal(string: salary.amount) else { return nil }
         var share = whole * Decimal(percent) / 100
         var rounded = Decimal()
         NSDecimalRound(&rounded, &share, digits, .plain)
         let exact = rounded.formatted(.number.precision(.fractionLength(digits)).grouping(.never)
             .locale(Locale(identifier: "en_US_POSIX")))
-        let printed = { Money.format($0, currency: salary.currencyCode, locale: self.locale) }
+        let printed = { Money.format($0, currency: salary.currencyCode, locale: locale) }
         return "\(printed(exact)) of \(printed(salary.amount)) each month"
     }
 

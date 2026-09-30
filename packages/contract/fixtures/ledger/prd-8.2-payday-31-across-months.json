@@ -141,6 +141,7 @@
     },
     "paydayPassedThisMonth": true,
     "currencyCode": "GBP",
-    "hasAmountsToConvert": true
+    "hasAmountsToConvert": true,
+    "newSavingTargetFrom": "2028-02"
   }
 }

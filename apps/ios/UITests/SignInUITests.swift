@@ -110,6 +110,7 @@ final class SignInUITests: XCTestCase {
         editAndDeleteTheSpend(app, from: 25000, to: 40000)
         openTheMonthSoFar(app)
         renameInSettings(app, from: "Maya", to: "Tess")
+        editTargetInSettings(app, salary: 15_000_000)
 
         app.terminate()
         app.launch()

@@ -76,6 +76,7 @@
     },
     "paydayPassedThisMonth": false,
     "currencyCode": "IDR",
-    "hasAmountsToConvert": true
+    "hasAmountsToConvert": true,
+    "newSavingTargetFrom": "2026-10"
   }
 }

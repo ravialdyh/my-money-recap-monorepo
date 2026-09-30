@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// D1 Settings (PRD §6.16), the full sheet Home's Settings chip opens: four groups of rows, each with its current
-/// value. Profile opens D2 and Salary and payday D3; the rows later tickets build open nothing yet. Offline, only Log
-/// out is live.
+/// value. Profile opens D2, Salary and payday D3, Saving target D4; the rows later tickets build open nothing yet.
+/// Offline, only Log out is live.
 struct SettingsView: View {
     @State private var model: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
@@ -24,7 +24,7 @@ struct SettingsView: View {
                     }
                     group("Money") {
                         ListRow(label: "Salary and payday", value: model.salary) { model.openSalary() }
-                        ListRow(label: "Saving target", value: model.target)
+                        ListRow(label: "Saving target", value: model.target) { model.openTarget() }
                     }
                     group("Alerts") {
                         ListRow(label: "Notifications")
@@ -46,6 +46,11 @@ struct SettingsView: View {
                     SalaryEditView(model: salary) { model.salaryEdit = nil }
                 }
             }
+            .navigationDestination(isPresented: targetOpen) {
+                if let target = model.targetEdit {
+                    TargetEditView(model: target, onSetSalary: model.setSalaryFirst) { model.targetEdit = nil }
+                }
+            }
             .navigationDestination(isPresented: profileOpen) {
                 if let profile = model.profile {
                     ProfileView(model: profile) {
@@ -62,6 +67,14 @@ struct SettingsView: View {
         Binding(get: { model.profile != nil }, set: {
             if !$0 {
                 model.profile = nil
+            }
+        })
+    }
+
+    private var targetOpen: Binding<Bool> {
+        Binding(get: { model.targetEdit != nil }, set: {
+            if !$0 {
+                model.targetEdit = nil
             }
         })
     }

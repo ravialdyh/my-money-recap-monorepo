@@ -16,8 +16,9 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestSettingsEndToEnd (#170, #171): on a Member with last month's Recap and a stamped warning, a Salary edit after
-// Payday with no answer is refused; "from next month" keeps Money In; each edit answers GetHome's Home.
+// TestSettingsEndToEnd (#170 to #172): on a Member with last month's Recap and a stamped warning, a Salary edit after
+// Payday with no answer is refused; "from next month" keeps Money In; a Target edit starts next month; each edit
+// answers GetHome's Home.
 func TestSettingsEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	ledgerDSN := os.Getenv("LEDGER_TEST_DATABASE_URL")
@@ -95,6 +96,9 @@ func TestSettingsEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 	sameAsGetHome("SaveTarget", aimed.Msg.Home)
+	if l, next := aimed.Msg.Settings.LedgerSettings, first.AddDate(0, 1, 0).Format(monthLayout); l.NextSavingTarget.GetEffectiveFrom() != next || l.NewSavingTargetFrom != next {
+		t.Fatalf("SaveTarget answered %v, want the edit and any later one to start next month, %s (D65)", l, next)
+	}
 
 	res, err := client.GetSettings(ctx, connect.NewRequest(&moneyrecapv1.BffServiceGetSettingsRequest{}))
 	if err != nil {

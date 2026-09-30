@@ -41,6 +41,10 @@ this check in `fixtures_test.go` first. After `convert`, every other row (`setti
 `originalAmount`, a `SalarySetting` paired by `effectiveFrom` and a `Spend` by `id`; a row with no
 input row fails. `fixtures_test.go` checks all three and names the row that drifts.
 
+Every file that asserts `settings` names `newSavingTargetFrom`, the month a Saving Target saved on `asOf` would
+start in (D65, #172): `asOf`'s own month in a file with no `savingTargets`, the month after in every other file, since
+each of their rows counts as saved after setup.
+
 `streakDay` on a month is the month's Streak so far (§8.5, the glossary's Streak): the longest
 spend-free run in the window up to `asOf`. With no Spends it is the elapsed days, which the empty Spend list prints
 as "Streak day {n}" (SCREEN-STATES B6: 23 on 26 September for a 4 September sign-up). `streak.days`

@@ -115,13 +115,20 @@ func TestSalaryAndTargetRows(t *testing.T) {
 		}
 		return res.Msg, nil
 	}
+	if res, err := s.GetSettings(ctx, connect.NewRequest(&moneyrecapv1.GetSettingsRequest{MemberId: id})); err != nil || res.Msg.Settings.NewSavingTargetFrom != "2026-09" {
+		t.Fatalf("no Target yet: %v, %v, want a first one to start this month, 2026-09", res, err)
+	}
 	firstTarget, err := target("t1", 20)
 	if err != nil || firstTarget.Settings.SavingTarget.GetEffectiveFrom() != "2026-09" || firstTarget.Month.SavingTarget.GetAmount().GetAmount() != "700000" {
 		t.Fatalf("first Target: %v, %v, want 20%% from 2026-09, 3500000 × 20%% = 700000", firstTarget, err)
 	}
+	if firstTarget.Settings.NewSavingTargetFrom != "2026-10" {
+		t.Fatalf("after the first Target, an edit starts in %q, want 2026-10 (D65)", firstTarget.Settings.NewSavingTargetFrom)
+	}
 	later, err := target("t2", 30)
-	if err != nil || later.Settings.SavingTarget.GetPercent() != 20 || later.Settings.NextSavingTarget.GetPercent() != 30 || later.Settings.NextSavingTarget.GetEffectiveFrom() != "2026-10" {
-		t.Fatalf("a later Target: %v, %v, want 20%% now and 30%% from 2026-10 (D65)", later, err)
+	if err != nil || later.Settings.SavingTarget.GetPercent() != 20 || later.Settings.NextSavingTarget.GetPercent() != 30 || later.Settings.NextSavingTarget.GetEffectiveFrom() != "2026-10" ||
+		later.Settings.NewSavingTargetFrom != "2026-10" {
+		t.Fatalf("a later Target: %v, %v, want 20%% now and 30%% from 2026-10, where the next edit starts too (D65)", later, err)
 	}
 	if _, err := target("t3", 101); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Errorf("101%%: %v, want invalid_argument", err)

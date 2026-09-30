@@ -21,7 +21,8 @@ struct RecapArchetypePage: View {
                 PromptCard(
                     title: "Set a saving target to get an archetype",
                     helper: "Your archetype comes from what you kept against what you meant to keep.",
-                    height: Tokens.Size.homeHeroCard
+                    height: Tokens.Size.homeHeroCard,
+                    action: { Task { await model.editTarget() } }
                 )
                 .padding(.top, Tokens.Space._6)
                 Spacer(minLength: Tokens.Space._6)

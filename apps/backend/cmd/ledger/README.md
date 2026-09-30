@@ -54,7 +54,9 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, ev
 - After it, a Salary follows D56 and §8.10: a new Payday starts next month, and so does an amount sent as
   next month's; one sent as this month's applies now; one sent with no answer applies now before this
   month's Payday and is `failed_precondition` from it on, which the phone answers with the D56 sheet.
-- A later Saving Target starts next month (D65), and none can be set without a Salary (D44).
+- A later Saving Target starts next month (D65), a 0% row counting as saved, and none can be set without a Salary
+  (D44). Every Settings answer names the month a Target saved now would start in, `new_saving_target_from`, by the
+  same rule; a setup save's answer names the sign-up month (#172).
 - An amount is in the Member's Currency, above zero, D57's 11 digits at most before the separator, and no
   more decimals than the Currency has. Every amount answered carries that Currency's CLDR decimals
   (`internal/cldr`, ARCHITECTURE §7.2), which the phone prints exactly: GBP `2400.00`, IDR `3000000`. A

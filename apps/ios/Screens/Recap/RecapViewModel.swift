@@ -23,7 +23,10 @@ final class RecapViewModel: Identifiable {
     var page = 0
     /// The poster Share drew, presented in the system share sheet until it closes.
     var shared: SharedPicture?
+    /// D4, opened from a target card over the Recap, which keeps its page (spec #169).
+    var targetEdit: TargetEditViewModel?
     private let fetch: Fetch
+    private let openTarget: () async -> TargetEditViewModel?
     private let context: ModelContext?
     let dates: Date.FormatStyle
     private let locale: Locale
@@ -36,10 +39,12 @@ final class RecapViewModel: Identifiable {
         fetch: @escaping Fetch,
         context: ModelContext? = nil,
         locale: Locale = .autoupdatingCurrent,
-        today: Date = .now
+        today: Date = .now,
+        openTarget: @escaping () async -> TargetEditViewModel? = { nil }
     ) {
         self.month = month
         self.fetch = fetch
+        self.openTarget = openTarget
         self.context = context
         self.locale = locale
         self.today = today
@@ -55,6 +60,11 @@ final class RecapViewModel: Identifiable {
             try? RecapSnapshot.replace(with: fresh, in: context)
         }
         answer = fresh
+    }
+
+    /// A target card's action: D4 over this page.
+    func editTarget() async {
+        targetEdit = await openTarget()
     }
 
     /// No page before the answer; then the situation chooses (PRD §8.11).

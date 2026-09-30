@@ -37,4 +37,33 @@ extension SignInUITests {
         XCTAssert(app.staticTexts["Hi, \(new)"].waitForExistence(timeout: 30), "Home greets the new name")
         snapshot("29-home-greets-new-name")
     }
+
+    /// #172: Saving target opens D4 over the setup Target, 25%, with the forward-only line, since the setup save was
+    /// the first; the slider moves the preview, D4 sideways reaches Save, and Save returns to D1, where 25% stays in
+    /// force this month (D65).
+    func editTargetInSettings(_ app: XCUIApplication, salary: Int) {
+        app.buttons["Settings"].tap()
+        let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Saving target' AND label CONTAINS '25%'"))
+            .firstMatch
+        XCTAssert(row.waitForExistence(timeout: 30), "the row reads the setup Target")
+        row.tap()
+        XCTAssert(app.staticTexts["Share of salary to keep"].waitForExistence(timeout: 10), "D4 opens setup's card")
+        XCTAssert(app.staticTexts[Self.preview(salary / 4, of: salary)].exists, "over the Target in force")
+        let next = Calendar.current.date(byAdding: .month, value: 1, to: .now) ?? .now
+        XCTAssert(app.staticTexts["Your new target starts in \(next.formatted(.dateTime.month(.wide)))."].exists)
+        let slider = app.sliders["Saving target"]
+        slider.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5))
+            .press(forDuration: 0.1, thenDragTo: slider.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.5)))
+        XCTAssert(
+            app.staticTexts[Self.preview(salary * 3 / 10, of: salary)].waitForExistence(timeout: 5),
+            "live at 30%"
+        )
+        snapshot("30-saving-target-edit")
+        sideways(app, reaching: app.buttons["Save"], "saving-target")
+        app.buttons["Save"].tap()
+        XCTAssert(row.waitForExistence(timeout: 30), "Save returns to D1, 25% still in force this month")
+        XCTAssertFalse(app.staticTexts["Share of salary to keep"].exists)
+        app.buttons["Back"].tap()
+        XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "back to Home")
+    }
 }
