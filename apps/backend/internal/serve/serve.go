@@ -34,6 +34,14 @@ func (e *Env) Get(key, def string) string {
 	return def
 }
 
+// Optional is Get for a variable that may stay unset: its value, from <key>_FILE first, or "" and no error.
+func (e *Env) Optional(key string) string {
+	if v := e.fromFile(key); v != "" {
+		return v
+	}
+	return os.Getenv(key)
+}
+
 // fromFile is the trimmed contents of the file <key>_FILE names, and "" when that variable is unset
 // or the file holds only whitespace. A named file that cannot be read is the first error: a mount the
 // container cannot reach is not a missing variable.

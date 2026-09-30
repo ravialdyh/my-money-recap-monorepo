@@ -41,7 +41,7 @@ mode weighs them alongside the steps.
 | `apple_push_key` | `notify`'s push sender, planned |
 | `google_client_id` | The Keycloak Google identity provider's client id, an OpenTofu variable (#71) |
 | `google_client_secret` | The same provider, through Keycloak's file vault as `${vault.google_client_secret}` |
-| `open_exchange_rates_app_id` | The planned `currency` service's rate fetch |
+| `open_exchange_rates_app_id` | `currency`'s rate fetch, as the machine's `OPEN_EXCHANGE_RATES_APP_ID` (`machine-env.sh`); empty on a laptop, where every fetch fails (#175) |
 | `smtp_token` | `notify`'s SMTP login on the machine, owed by #87 (`notify` sends no AUTH yet); Mailpit needs none locally |
 | `domain` | The deploy workflow's SSH host, and the machine's `MMR_HOST` |
 | `registrar_token` | The DNS records of the machine root (#87), not written yet |
@@ -118,7 +118,7 @@ infra/secrets/decrypt-smoke.sh
 It generates a throwaway age key, encrypts `example.yaml` with it, runs the same `decrypt.sh` the
 deploy runs, and asserts one file per key with mode 0400 and the value intact. It then runs
 `infra/compose/machine-env.sh` over those files, as the deploy does next, and asserts the machine's
-`.env` carries the stack values intact, `ssl_required` `external`, no test Member password and no
+`.env` carries the stack values and the rates App ID intact, `ssl_required` `external`, no test Member password and no
 deploy key, and that a value holding a quote stops it rather than reaching Compose. Nothing secret is
 committed and no GitHub secret is needed. CI runs it in the `backend` job, which installs `sops`
 and `age` pinned to a checksum in `.github/workflows/ci.yml`.

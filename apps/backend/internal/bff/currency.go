@@ -12,15 +12,15 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/cldr"
 )
 
-// errNoQuote is PreviewCurrencyChange without a typed rate while no rate provider is wired (#175): the phone shows
-// the failed fetch and "Enter it myself" (PRD §8.9 step 1).
-var errNoQuote = errors.New("no rate provider answers yet: enter the rate")
+// errNoQuote is PreviewCurrencyChange without a typed rate when currency does not quote one: the phone shows the
+// failed fetch and "Enter it myself" (PRD §8.9 step 1).
+var errNoQuote = errors.New("no rate could be fetched: enter the rate")
 
 // errNeedsRate refuses the direct change for a Member with amounts, which only a conversion may move (PRD §8.9).
 var errNeedsRate = errors.New("there are amounts to convert: send the rate the confirm sheet showed")
 
 // PreviewCurrencyChange is the Currency sheet's preview (PRD §8.9 steps 1 to 3): nothing_to_convert with no quote for
-// a Member with no amounts, ledger's preview of a typed rate, and otherwise unavailable, the failed fetch.
+// a Member with no amounts, else ledger's preview of the typed rate as MANUAL or of currency.Quote's as PROVIDER.
 func (s *Service) PreviewCurrencyChange(ctx context.Context, req *connect.Request[moneyrecapv1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[moneyrecapv1.BffServicePreviewCurrencyChangeResponse], error) {
 	to := req.Msg.ToCurrencyCode
 	if err := answers.CurrencyCode(to); err != nil {
@@ -35,20 +35,46 @@ func (s *Service) PreviewCurrencyChange(ctx context.Context, req *connect.Reques
 		return nil, err
 	}
 	preview := &moneyrecapv1.CurrencyChangePreview{FromCurrencyCode: held.CurrencyCode, ToCurrencyCode: to, NothingToConvert: !held.HasAmountsToConvert}
-	switch {
-	case preview.NothingToConvert:
-	case req.Msg.ManualRate == "":
-		return nil, connect.NewError(connect.CodeUnavailable, errNoQuote)
-	default:
-		ctx, cancel := context.WithTimeout(ctx, s.timeout())
-		defer cancel()
-		res, err := s.Ledger.PreviewConversion(ctx, connect.NewRequest(&moneyrecapv1.PreviewConversionRequest{MemberId: p.MemberId, Rate: req.Msg.ManualRate, ToCurrencyCode: to}))
-		if err != nil {
-			return nil, requiredCallFailed("ledger.PreviewConversion", connect.CodeOf(err), err)
-		}
-		preview.Source, preview.Preview = moneyrecapv1.RateSource_RATE_SOURCE_MANUAL, res.Msg.Preview
+	if preview.NothingToConvert {
+		return connect.NewResponse(&moneyrecapv1.BffServicePreviewCurrencyChangeResponse{Preview: preview}), nil
 	}
+	rate := req.Msg.ManualRate
+	preview.Source = moneyrecapv1.RateSource_RATE_SOURCE_MANUAL
+	if rate == "" {
+		quote, err := s.quote(ctx, held.CurrencyCode, to)
+		if connect.CodeOf(err) == connect.CodeFailedPrecondition {
+			preview.UnsupportedPair = true
+			return connect.NewResponse(&moneyrecapv1.BffServicePreviewCurrencyChangeResponse{Preview: preview}), nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		rate, preview.Source, preview.AsOf = quote.Rate, quote.Source, quote.AsOf
+	}
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	res, err := s.Ledger.PreviewConversion(ctx, connect.NewRequest(&moneyrecapv1.PreviewConversionRequest{MemberId: p.MemberId, Rate: rate, ToCurrencyCode: to}))
+	if err != nil {
+		return nil, requiredCallFailed("ledger.PreviewConversion", connect.CodeOf(err), err)
+	}
+	preview.Preview = res.Msg.Preview
 	return connect.NewResponse(&moneyrecapv1.BffServicePreviewCurrencyChangeResponse{Preview: preview}), nil
+}
+
+// quote is currency.Quote, optional: its failed_precondition, the unsupported pair, passes through, and any other
+// failure or no answer is unavailable, the failed fetch.
+func (s *Service) quote(ctx context.Context, from, to string) (*moneyrecapv1.QuoteResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	res, err := s.Currency.Quote(ctx, connect.NewRequest(&moneyrecapv1.QuoteRequest{FromCurrencyCode: from, ToCurrencyCode: to}))
+	switch {
+	case connect.CodeOf(err) == connect.CodeFailedPrecondition:
+		return nil, err
+	case err != nil:
+		logOptionalCallDegraded("currency.Quote", "the failed fetch", err)
+		return nil, connect.NewError(connect.CodeUnavailable, errNoQuote)
+	}
+	return res.Msg, nil
 }
 
 // ChangeCurrency is the confirm sheet's Convert, ledger's conversion under the phone's key, or with no rate the direct

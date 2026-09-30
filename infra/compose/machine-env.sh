@@ -20,6 +20,6 @@ line MMR_HOST domain
 echo REALM_SSL_REQUIRED=external
 echo NGINX_HOST_PORT=80
 stack=$("$(dirname "$0")/../secrets/keyset.sh" stack)
-for key in $stack google_client_id apple_services_id apple_team_id apple_sign_in_key_id; do
+for key in $stack google_client_id apple_services_id apple_team_id apple_sign_in_key_id open_exchange_rates_app_id; do
   line "$(tr '[:lower:]' '[:upper:]' <<<"$key")" "$key"
 done

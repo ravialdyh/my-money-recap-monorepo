@@ -14,7 +14,7 @@ A Buf module, package `money_recap.v1`, under `money_recap/v1/*.proto`:
 | `ledger.proto`, `ledger_views.proto`, `ledger_writes.proto`, `ledger_events.proto` | `LedgerService` (§7.2): its reads, what it computes, its writes (each opening with `idempotency_key`, A14) and the `ledger.*` events |
 | `ledger_fixture.proto` | `LedgerFixture`, test-only (A2): the shape of every file in `fixtures/ledger/` (see its README) |
 | `notify.proto`, `notify_events.proto` | `NotifyService` (§7.3), `NotificationPrefs`, the `EmailBounced` error detail; `notify.member.purged` |
-| `currency.proto`, `currency_events.proto` | `CurrencyService` (§7.4), the `UnsupportedPair` error detail (D35); `currency.member.purged` |
+| `currency.proto` | `CurrencyService` (§7.4) and the `UnsupportedPair` error detail (D35); `currency` publishes no event |
 
 The `.proto` files are the inventory: each service block lists its RPCs, and each message says what
 it is for. The phone-facing request and response messages carry the `BffService` prefix the

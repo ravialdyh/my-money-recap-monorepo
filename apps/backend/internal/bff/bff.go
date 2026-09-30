@@ -33,6 +33,8 @@ type Service struct {
 	Members moneyrecapv1connect.MembersServiceClient
 	Ledger  moneyrecapv1connect.LedgerServiceClient
 	Notify  Notify
+	// Currency quotes the day's rate; optional, so its absence is only the failed fetch (spec #169).
+	Currency moneyrecapv1connect.CurrencyServiceClient
 	// MagicLink is the realm and the notify client RequestMagicLink needs (magiclink.go, A10).
 	MagicLink MagicLink
 	// Timeout bounds each call to a service; zero means the §6.1 one second.

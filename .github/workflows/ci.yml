@@ -197,7 +197,7 @@ jobs:
       - name: Compose stack with the migration steps, the realm, members, notify, Mailpit and the BFF
         working-directory: infra/compose
         run: |
-          sed 's/=$/=ci-throwaway/' .env.example > .env
+          sed '/_APP_ID=$/!s/=$/=ci-throwaway/' .env.example > .env
           docker compose --profile mail up -d --build --wait
       - name: Go tests; -p 1 because members and bff both sign in as the realm's one test Member
         run: |
@@ -222,7 +222,7 @@ jobs:
         run: |
           test -f .env || { echo "the stack never started; the real failure is above"; exit 0; }
           docker compose --profile mail ps
-          docker compose logs keycloak realm-apply members-migrate members notify-migrate notify mailpit bff nginx
+          docker compose logs keycloak realm-apply members-migrate members notify-migrate notify mailpit bff currency nginx
       - name: Teardown
         if: always()
         working-directory: infra/compose

@@ -57,8 +57,11 @@ preferences are not joined yet.
 `PreviewCurrencyChange` (#173) is the Currency sheet's preview (PRD §8.9 steps 1 to 3). It reads
 `ledger.GetSettings` first: with no Salary and no Spends it answers `nothing_to_convert` and asks for no quote.
 With the rate the Member typed it answers `ledger.PreviewConversion` as `MANUAL`, `ledger`'s `invalid_argument`
-and D57's `out_of_range` passed through. Without one it is `unavailable`, the failed fetch, until `currency.Quote`
-exists (#175). `ChangeCurrency` (#173) with a rate is `ledger.ApplyCurrencyConversion` under the phone's key, and
+and D57's `out_of_range` passed through. Without one it asks `currency.Quote` for the held code to the new one
+(#175) and answers `ledger.PreviewConversion` of that rate as `PROVIDER`, with the rate's date. `currency`'s
+`failed_precondition`, a pair the rates site does not cover, is `unsupported_pair` with no preview; any other
+failure, or no answer within the one second, is `unavailable`, the failed fetch, which is every laptop stack's answer,
+since none has an App ID. `currency` is optional: the BFF starts without it. `ChangeCurrency` (#173) with a rate is `ledger.ApplyCurrencyConversion` under the phone's key, and
 answers the fresh Home and Settings in the new Currency while `members` learns the code by event. With no rate it
 is the direct change: `failed_precondition` while `ledger` holds amounts, otherwise onboarding's two writes under
 the one key, `members.SaveProfile` with the code and then `ledger.RelabelCurrency`, so both hold it before the
@@ -154,6 +157,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
 | `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `http://<domain>:80/magic` on the machine today and `https://<domain>/magic` once TLS arrives (#87), `http://localhost:8090/magic` on a laptop, where Nginx serves the fallback page on `NGINX_HOST_PORT` (#72). |
+| `BFF_CURRENCY_URL` | required | The `currency` service: `http://currency:8080` in Compose. `PreviewCurrencyChange` asks it for the day's rate when the Member typed none; Compose does not make the BFF wait for it. |
 | `BFF_REDIS_ADDR` | required | Redis for the two limits and the idempotency fast path: `redis:6379` in Compose, `localhost:REDIS_HOST_PORT` from the host. No default, because a BFF that cannot find Redis refuses every magic-link request (§4.4); the per-Member limit and the fast path let requests through without it. |
 | `BFF_LISTEN` | `:8080` | Listen address. |
 
@@ -167,7 +171,7 @@ By hand, against that stack's Keycloak, `members` and `ledger`, on a port the st
 
 ```bash
 cd apps/backend
-BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_LEDGER_URL=http://localhost:8084 BFF_NOTIFY_URL=http://localhost:8083 BFF_REALM_URL=http://localhost:8080/realms/mmr BFF_CLIENT_SECRET="$BFF_CLIENT_SECRET" BFF_MAGIC_LINK_BASE_URL=http://localhost:8090/magic BFF_REDIS_ADDR=localhost:6379 BFF_LISTEN=:8085 go run ./cmd/bff
+BFF_OIDC_ISSUER=http://localhost:8080/realms/mmr BFF_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs BFF_MEMBERS_URL=http://localhost:8081 BFF_LEDGER_URL=http://localhost:8084 BFF_NOTIFY_URL=http://localhost:8083 BFF_REALM_URL=http://localhost:8080/realms/mmr BFF_CLIENT_SECRET="$BFF_CLIENT_SECRET" BFF_MAGIC_LINK_BASE_URL=http://localhost:8090/magic BFF_REDIS_ADDR=localhost:6379 BFF_CURRENCY_URL=http://localhost:8085 BFF_LISTEN=:8086 go run ./cmd/bff
 ```
 
 A token for the realm's test Member and the `GetHome` call are in `infra/compose/README.md`, "Try it".

@@ -12,7 +12,7 @@ Deployment and infrastructure-as-code.
 Planned, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
 
 - `infra/tofu/`: a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root. It is #87's, and is not written until the hosting company is chosen there. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/` (#72).
-- `infra/compose/` grows to the full §10 set: `currency`, `otel-lgtm`, `pg-backup`.
+- `infra/compose/` grows to the full §10 set: `otel-lgtm`, `pg-backup`.
 - `infra/pg-backup/`: the nightly `pg_dump` image.
 
 ## Deploying
@@ -43,7 +43,7 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
    nothing here**: a hosted runner starts with an empty `known_hosts` every run, so every deploy trusts
    whichever host answers at the domain and then sends it the machine's `.env`. Pinning the machine's
    host key through cloud-init, and checking it strictly here, belongs to the machine root (#87).
-4. Build `members`, `notify`, `ledger` and `bff` from the one `apps/backend/Dockerfile`, one `CMD` build
+4. Build `members`, `notify`, `ledger`, `bff` and `currency` from the one `apps/backend/Dockerfile`, one `CMD` build
    argument each, and push them to GHCR as `ghcr.io/<owner>/<repository>/<service>:<tag>`. GHCR
    needs no account beyond the repository's own.
 5. Copy to `~/mmr` on the machine, replacing what the last deploy left: `infra/compose/compose.yaml`
@@ -54,8 +54,8 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
    laptop keeps its placeholders. That directory is mode 0700 and the two files 0644: Keycloak runs as
    uid 2000 in the Phase Two image and `ubuntu` is uid 1000, so a file only its owner can read would be
    unreadable to Keycloak, while the directory keeps every other account on the machine out.
-6. Log the machine in to GHCR with the job's token, pull the four images, tag them `mmr-members`,
-   `mmr-notify`, `mmr-ledger` and `mmr-bff` (the names Compose gives the images it builds on a laptop), and
+6. Log the machine in to GHCR with the job's token, pull the five images, tag them `mmr-members`,
+   `mmr-notify`, `mmr-ledger`, `mmr-bff` and `mmr-currency` (the names Compose gives the images it builds on a laptop), and
    `docker compose up -d --wait`. Compose finds its images present and builds nothing; the
    `build:` sections stay for the laptop. `realm-apply` builds the realm and the migration steps run
    in the order `service_completed_successfully` already gives them. `nginx` is restarted last,
@@ -65,9 +65,9 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
 **The machine's `.env`** is the laptop's with four differences: `MMR_HOST` is the domain,
 `REALM_SSL_REQUIRED=external` sets the realm's `ssl_required` (spec #61: never the laptop's `none`),
 `NGINX_HOST_PORT=80`, and there is no `TEST_USER_PASSWORD`, so the realm creates no test Member.
-The fourteen stack values in `infra/secrets/example.yaml`, and the four identity-provider ids the realm
+The fourteen stack values in `infra/secrets/example.yaml`, the four identity-provider ids the realm
 takes as variables (`GOOGLE_CLIENT_ID`, `APPLE_SERVICES_ID`, `APPLE_TEAM_ID`,
-`APPLE_SIGN_IN_KEY_ID`), arrive under their names in capitals, so none is left at `replace-me`. Every
+`APPLE_SIGN_IN_KEY_ID`) and `currency`'s `OPEN_EXCHANGE_RATES_APP_ID` (#175) arrive under their names in capitals, so none is left at `replace-me`. Every
 value is single-quoted, so Compose interpolates nothing inside it, and a value holding a quote or a
 line break stops the deploy instead.
 

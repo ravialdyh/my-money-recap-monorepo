@@ -94,7 +94,7 @@ func TestCurrencyChangeEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := preview("IDR", ""); connect.CodeOf(err) != connect.CodeUnavailable {
-		t.Errorf("no rate: %v, want unavailable until a provider answers", err)
+		t.Errorf("no rate: %v, want unavailable, since the stack's currency has no App ID", err)
 	}
 	if _, err := change("IDR", ""); connect.CodeOf(err) != connect.CodeFailedPrecondition {
 		t.Errorf("the direct change with amounts: %v, want failed_precondition", err)

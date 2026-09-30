@@ -4,7 +4,7 @@ Runnable products.
 
 | Path | What lives here |
 | --- | --- |
-| `apps/backend/` | The one Go module for the backend (spec #10): the generated contract package under `gen/`, shared packages under `internal/`, one binary per app under `cmd/`, and one `Dockerfile` that builds any of them (`--build-arg CMD=<name>`) from the module root, per `docs/ARCHITECTURE.md` §10. Today: `cmd/members`, `cmd/notify`, `cmd/ledger` and `cmd/bff` (see their READMEs); `currency` lands with a later slice. |
+| `apps/backend/` | The one Go module for the backend (spec #10): the generated contract package under `gen/`, shared packages under `internal/`, one binary per app under `cmd/`, and one `Dockerfile` that builds any of them (`--build-arg CMD=<name>`) from the module root, per `docs/ARCHITECTURE.md` §10. Today: `cmd/members`, `cmd/notify`, `cmd/ledger`, `cmd/bff` and `cmd/currency` (see their READMEs). |
 | `apps/ios/` | The SwiftUI app (`docs/IOS.md`); `apps/ios/README.md` says what is built and how to open, build and run it against local Compose. |
 
 The iOS app consumes the design tokens from `my-money-recap-ds` (generated into
@@ -26,7 +26,7 @@ and runs them with `-p 1`, as the CI job `backend` does.
 
 ### Every service
 
-What `members`, `notify`, `ledger` and the BFF share, stated once here; each `cmd/<name>/README.md` holds only
+What `members`, `notify`, `ledger`, `currency` and the BFF share, stated once here; each `cmd/<name>/README.md` holds only
 what is its own.
 
 - **One image.** `apps/backend/Dockerfile` builds any binary from the module root:
@@ -45,7 +45,8 @@ what is its own.
   pings the pool, and the shutdown. `<name> migrate` applies `internal/<name>/migrations/NNNN_name.sql`
   (embedded) in file-name order, each in one transaction, recorded in `schema_migrations`, and exits;
   Compose runs it as a one-shot step the service waits on. Add a new numbered file; never edit an
-  applied one.
+  applied one. The BFF and `currency` own no database, so each has a small start-up of its own that
+  builds the same bearer check and serves through `serve.Run`.
 - **One events package** (`internal/events`, §4.3, A4, A5). A service that publishes stages each event with
   `events.Stage` inside the change's own transaction and hands `serve.Main` a worker running `events.Relay`;
   one that consumes hands it a worker running `events.Consume`, whose handler runs in the transaction that
