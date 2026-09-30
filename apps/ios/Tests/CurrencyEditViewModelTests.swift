@@ -231,8 +231,10 @@ final class CurrencyEditViewModelTests: XCTestCase {
         await currency.convert()
         XCTAssertEqual(home.home, converted.home)
         XCTAssertEqual(HomeSnapshot.load(from: context)?.bytes, try converted.home.serializedBytes() as Data)
-        XCTAssertEqual(settings.settings, converted.settings)
-        XCTAssertEqual(SettingsSnapshot.load(from: context), converted.settings)
+        var kept = converted.settings
+        kept.notificationPrefs = try SettingsViewModelTests.recorded("settings-filled").notificationPrefs
+        XCTAssertEqual(settings.settings, kept, "the answer, with the stored preferences it lacks")
+        XCTAssertEqual(SettingsSnapshot.load(from: context), kept)
         XCTAssertEqual(settings.currency, "GBP")
         XCTAssertNil(SpendListSnapshot.load("2026-09", from: context))
         XCTAssertNil(RecapSnapshot.load("2026-09", from: context))

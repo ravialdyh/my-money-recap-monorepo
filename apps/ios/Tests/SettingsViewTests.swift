@@ -1,11 +1,11 @@
 import MoneyRecapContract
 import SwiftUI
+import UserNotifications
 import XCTest
 @testable import MyMoneyRecap
 
-/// D1 to D4 as drawn (SCREEN-STATES D1 to D4): filled, with nothing set, offline, D3 with a waiting Salary, D4 with and
-/// without its line and with no Salary, and held sideways, where each, the D56 sheet included, scrolls rather than
-/// clips.
+/// D1 to D4 and D8 as drawn (SCREEN-STATES): filled, not set, offline, push denied; D3 waiting; D4 with and without its
+/// line and Salary; D8 reminder on and denied; each held sideways, the D56 sheet too, scrolls rather than clips.
 @MainActor
 final class SettingsViewTests: XCTestCase {
     private let sideways = CGSize(width: 852, height: 393)
@@ -83,5 +83,45 @@ final class SettingsViewTests: XCTestCase {
         XCTAssertNotEqual(edit, first, "the line under the card")
         XCTAssertNotEqual(first, blocked, "Set a salary first in the slider's place")
         try XCTAssertGreaterThan(overflow(target("settings-filled"), size: sideways), 0, "D4 scrolls sideways")
+    }
+
+    private func notifications(
+        _ status: UNAuthorizationStatus,
+        prefs: MoneyRecap_V1_NotificationPrefs = NotificationsViewModelTests.defaults
+    ) async -> NotificationsView {
+        let model = NotificationsViewModelTests.model(.init(status), .init(), prefs: prefs)
+        await model.readPermission()
+        return NotificationsView(model: model)
+    }
+
+    /// D8 with the reminder on grows the `Remind me at` row; denied, the info Banner and the rows at 40%; held
+    /// sideways, it scrolls rather than clips.
+    func testNotificationsDrawTheReminderAndTheDeniedState() async {
+        var reminder = NotificationsViewModelTests.defaults
+        reminder.dailyReminder = true
+        let allowed = await picture(notifications(.authorized))
+        let reminding = await picture(notifications(.authorized, prefs: reminder))
+        let denied = await picture(notifications(.denied))
+        XCTAssertNotNil(allowed)
+        XCTAssertNotEqual(allowed, reminding, "the time row under Daily reminder")
+        XCTAssertNotEqual(allowed, denied, "the Banner and the rows at 40%")
+        let held = await notifications(.denied, prefs: reminder)
+        XCTAssertGreaterThan(overflow(held, size: sideways), 0, "sideways it scrolls")
+    }
+
+    /// D1's Notifications row reads the count, or `Off in iOS Settings` when denied.
+    func testTheNotificationsRowReadsOffWhenDenied() async throws {
+        let ios = NotificationsViewModelTests.FakeIOS(.authorized)
+        let context = try SettingsViewModelTests.context()
+        try SettingsSnapshot.replace(with: SettingsViewModelTests.recorded("settings-filled"), in: context)
+        let model = SettingsViewModel(
+            fetch: { try SettingsViewModelTests.recorded("settings-filled") }, saveProfile: { _, _ in .saved },
+            push: ios.push, context: context
+        )
+        await model.refresh()
+        let counted = picture(SettingsView(model: model))
+        ios.status = .denied
+        await model.refresh()
+        XCTAssertNotEqual(counted, picture(SettingsView(model: model)))
     }
 }

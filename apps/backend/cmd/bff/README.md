@@ -1,7 +1,7 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
-serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `GetSettings`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend`, `EditSpend`, `DeleteSpend`, `RegisterDevice`, `ListSpends`, `GetRecap`, `PreviewCurrencyChange`, `ChangeCurrency` and `RequestMagicLink`; the rest of
+serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `GetSettings`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend`, `EditSpend`, `DeleteSpend`, `RegisterDevice`, `SaveNotificationPrefs`, `ListSpends`, `GetRecap`, `PreviewCurrencyChange`, `ChangeCurrency` and `RequestMagicLink`; the rest of
 `BffService` is planned. Every RPC but
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
@@ -48,11 +48,14 @@ Salary or Target starts in the current month and later ones follow D56 and D65 (
 whole Home `GetHome` answers, read in the Member's zone with `notify`'s banner, and the Settings view (#170).
 
 `GetSettings` (#170) is Settings' view: the Profile from `members.GetOrCreateBySubject`, then
-`ledger.GetSettings`, both required, each with the one-second timeout and its code passed through with no
-upstream text. The Profile's Currency code and decimals are replaced by the code `ledger` holds the amounts in,
+`ledger.GetSettings` and `notify.GetPrefs` at once, each with the one-second timeout. `ledger` is required, its
+code passed through with no upstream text; `notify` is optional (#179), and when it does not answer the view comes
+back without preferences and a log line. The Profile's Currency code and decimals are replaced by the code `ledger` holds the amounts in,
 so no view pairs converted amounts with an older code (spec #169). Home, the Spend list and a Recap do the same
-with the code `ledger` answered Spent in, the Profile's only when `ledger` named none (#173). Notification
-preferences are not joined yet.
+with the code `ledger` answered Spent in, the Profile's only when `ledger` named none (#173).
+
+`SaveNotificationPrefs` (#179) hands the whole preferences message to `notify.SavePrefs` under the phone's key and
+answers it as `notify` stored it, passing notify's code through; the phone puts the switch back on any failure.
 
 `PreviewCurrencyChange` (#173) is the Currency sheet's preview (PRD §8.9 steps 1 to 3). It reads
 `ledger.GetSettings` first: with no Salary and no Spends it answers `nothing_to_convert` and asks for no quote.
@@ -81,7 +84,7 @@ that is down never locks a Member out of their money (§4.4, A6).
 
 Redis also answers a retried Member write (#127), after the per-Member limit has counted it. `SetTimezone`,
 `SaveProfile`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend`, `EditSpend`, `DeleteSpend`,
-`RegisterDevice` and `ChangeCurrency` are listed in `internal/bff/replay.go`, and a write is covered by being listed there. A successful answer is kept
+`RegisterDevice`, `ChangeCurrency` and `SaveNotificationPrefs` are listed in `internal/bff/replay.go`, and a write is covered by being listed there. A successful answer is kept
 24 hours under `idem:<subject>:<Idempotency-Key>`, its bytes after the request hash `internal/idempotency`
 computes; the same key with the same request gets those bytes back and no service is called, while the same
 key with another request goes on to the owning service, which refuses it. A failed answer is never kept,
@@ -135,7 +138,7 @@ for a malformed or later month, `not_found` for a past month with no Spend and n
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary; serves on `BFF_LISTEN` (default `:8080`). No subcommands, and its own start-up rather than `serve.Main` (see below). |
-| `../../internal/bff/` | The handlers, the Salary save in `salary.go`, the `Notify` interface, the magic-link path in `magiclink.go`, `LogSpend`, `EditSpend` and `DeleteSpend` and `RegisterDevice` beside the other Member writes in `writes.go`, `ListSpends` in `spends.go`, `GetRecap` in `bff.go`, the currency change in `currency.go`, the unit tests with a fake `ledger` served over Connect, and the end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestOnboardingEndToEnd`, `TestLogSpendEndToEnd`, `TestTargetWarningEndToEnd`, `TestGetRecapEndToEnd`, `TestRegisterDeviceEndToEnd`, `TestCurrencyChangeEndToEnd`, `TestEdge`). |
+| `../../internal/bff/` | The handlers, the Salary save in `salary.go`, the `Notify` interface, the magic-link path in `magiclink.go`, `LogSpend`, `EditSpend` and `DeleteSpend` and `RegisterDevice` beside the other Member writes in `writes.go`, `GetSettings` and `SaveNotificationPrefs` in `settings.go`, `ListSpends` in `spends.go`, `GetRecap` in `bff.go`, the currency change in `currency.go`, the unit tests with a fake `ledger` served over Connect, and the end-to-end tests (`TestEndToEnd`, `TestMagicLinkEndToEnd`, `TestOnboardingEndToEnd`, `TestLogSpendEndToEnd`, `TestTargetWarningEndToEnd`, `TestGetRecapEndToEnd`, `TestRegisterDeviceEndToEnd`, `TestNotificationPrefsEndToEnd`, `TestCurrencyChangeEndToEnd`, `TestEdge`). |
 | `../../internal/auth/` | The JWT interceptor and the token-forwarding client interceptor. |
 
 The BFF keeps its own `main.go` rather than `serve.Main` (`apps/README.md`, "Every service") because
@@ -153,7 +156,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry. |
 | `BFF_MEMBERS_URL` | required | The `members` service: `http://members:8080` in Compose. |
 | `BFF_LEDGER_URL` | required | The `ledger` service: `http://ledger:8080` in Compose. `GetHome`, `GetOnboardingState`, `SaveProfile`, `SaveSalary`, `SaveTarget`, `LogSpend`, `EditSpend`, `DeleteSpend`, `ListSpends`, `GetRecap`, `GetSettings`, `PreviewCurrencyChange` and `ChangeCurrency` call it, forwarding the caller's token. |
-| `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. `RequestMagicLink` calls it, `GetHome`, `LogSpend`, `EditSpend` and `DeleteSpend` for the Target Warning, and `RegisterDevice`, forwarding the caller's token. |
+| `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. `RequestMagicLink` calls it, `GetHome`, `LogSpend`, `EditSpend` and `DeleteSpend` for the Target Warning, `RegisterDevice`, `GetSettings` and `SaveNotificationPrefs`, forwarding the caller's token. |
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
 | `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `http://<domain>:80/magic` on the machine today and `https://<domain>/magic` once TLS arrives (#87), `http://localhost:8090/magic` on a laptop, where Nginx serves the fallback page on `NGINX_HOST_PORT` (#72). |

@@ -26,16 +26,17 @@ const (
 // memberWrites are the Member writes the fast path answers, each with how its stored answer is read
 // back. A write is covered by being listed; RequestMagicLink is not, having no Member (A6, A14).
 var memberWrites = map[string]func([]byte) (connect.AnyResponse, error){
-	moneyrecapv1connect.BffServiceSetTimezoneProcedure:    stored[moneyrecapv1.BffServiceSetTimezoneResponse],
-	moneyrecapv1connect.BffServiceSaveProfileProcedure:    stored[moneyrecapv1.BffServiceSaveProfileResponse],
-	moneyrecapv1connect.BffServiceSaveSalaryProcedure:     stored[moneyrecapv1.BffServiceSaveSalaryResponse],
-	moneyrecapv1connect.BffServiceSaveTargetProcedure:     stored[moneyrecapv1.BffServiceSaveTargetResponse],
-	moneyrecapv1connect.BffServiceCancelDeletionProcedure: stored[moneyrecapv1.BffServiceCancelDeletionResponse],
-	moneyrecapv1connect.BffServiceLogSpendProcedure:       stored[moneyrecapv1.BffServiceLogSpendResponse],
-	moneyrecapv1connect.BffServiceEditSpendProcedure:      stored[moneyrecapv1.BffServiceEditSpendResponse],
-	moneyrecapv1connect.BffServiceDeleteSpendProcedure:    stored[moneyrecapv1.BffServiceDeleteSpendResponse],
-	moneyrecapv1connect.BffServiceRegisterDeviceProcedure: stored[moneyrecapv1.BffServiceRegisterDeviceResponse],
-	moneyrecapv1connect.BffServiceChangeCurrencyProcedure: stored[moneyrecapv1.BffServiceChangeCurrencyResponse],
+	moneyrecapv1connect.BffServiceSetTimezoneProcedure:           stored[moneyrecapv1.BffServiceSetTimezoneResponse],
+	moneyrecapv1connect.BffServiceSaveProfileProcedure:           stored[moneyrecapv1.BffServiceSaveProfileResponse],
+	moneyrecapv1connect.BffServiceSaveSalaryProcedure:            stored[moneyrecapv1.BffServiceSaveSalaryResponse],
+	moneyrecapv1connect.BffServiceSaveTargetProcedure:            stored[moneyrecapv1.BffServiceSaveTargetResponse],
+	moneyrecapv1connect.BffServiceCancelDeletionProcedure:        stored[moneyrecapv1.BffServiceCancelDeletionResponse],
+	moneyrecapv1connect.BffServiceLogSpendProcedure:              stored[moneyrecapv1.BffServiceLogSpendResponse],
+	moneyrecapv1connect.BffServiceEditSpendProcedure:             stored[moneyrecapv1.BffServiceEditSpendResponse],
+	moneyrecapv1connect.BffServiceDeleteSpendProcedure:           stored[moneyrecapv1.BffServiceDeleteSpendResponse],
+	moneyrecapv1connect.BffServiceRegisterDeviceProcedure:        stored[moneyrecapv1.BffServiceRegisterDeviceResponse],
+	moneyrecapv1connect.BffServiceChangeCurrencyProcedure:        stored[moneyrecapv1.BffServiceChangeCurrencyResponse],
+	moneyrecapv1connect.BffServiceSaveNotificationPrefsProcedure: stored[moneyrecapv1.BffServiceSaveNotificationPrefsResponse],
 }
 
 // stored reads an answer's bytes back into the response type its procedure's handler returns.

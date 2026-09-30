@@ -16,9 +16,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestSettingsEndToEnd (#170 to #172): on a Member with last month's Recap and a stamped warning, a Salary edit after
-// Payday with no answer is refused; "from next month" keeps Money In; a Target edit starts next month; each edit
-// answers GetHome's Home.
+// TestSettingsEndToEnd (#170 to #172, #179): with last month's Recap and a stamped warning, a Salary edit after Payday
+// with no answer is refused; "from next month" keeps Money In; a Target starts next month; each answers GetHome's Home.
 func TestSettingsEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	ledgerDSN := os.Getenv("LEDGER_TEST_DATABASE_URL")
@@ -105,10 +104,10 @@ func TestSettingsEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 	v, next := res.Msg.Settings, first.AddDate(0, 1, 0).Format(monthLayout)
-	if l := v.LedgerSettings; v.Profile.DisplayName != "Test" || v.Profile.CurrencyCode != "IDR" || v.Profile.CurrencyDigits != 0 || v.NotificationPrefs != nil ||
+	if l := v.LedgerSettings; v.Profile.DisplayName != "Test" || v.Profile.CurrencyCode != "IDR" || v.Profile.CurrencyDigits != 0 || !v.NotificationPrefs.GetRecapReady() || v.NotificationPrefs.GetDailyReminder() ||
 		l.Salary.GetAmount().GetAmount() != "1000000" || l.NextSalary.GetAmount().GetAmount() != "2000000" || l.NextSalary.GetEffectiveFrom() != next ||
 		l.SavingTarget.GetPercent() != 50 || l.NextSavingTarget.GetPercent() != 40 || l.NextSavingTarget.GetEffectiveFrom() != next {
-		t.Fatalf("GetSettings: %v, want Test in IDR, 1000000 now and 2000000 from %s, 50%% now and 40%% from %s, no preferences", v, next, next)
+		t.Fatalf("GetSettings: %v, want Test in IDR, 1000000 now and 2000000 from %s, 50%% now and 40%% from %s, the default preferences", v, next, next)
 	}
 	t.Logf("Settings read after both edits: Salary %s then %s, Target %d%% then %d%%", v.LedgerSettings.Salary.GetAmount().GetAmount(),
 		v.LedgerSettings.NextSalary.GetAmount().GetAmount(), v.LedgerSettings.SavingTarget.GetPercent(), v.LedgerSettings.NextSavingTarget.GetPercent())

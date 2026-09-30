@@ -130,10 +130,11 @@ White `Sheet variant="full"` on violet.
 
 | ID | State | What it must show |
 |---|---|---|
-| D1 | Settings | Sections, `ListRow`s, destructive Delete, Log out. |
+| D1 | Settings | Sections, `ListRow`s, destructive Delete, Log out. The Notifications row reads `{n} on`, or `All off` when none is on. |
 | D1 | no salary | Both money rows read `Not set`. |
 | D1 | push denied | The Notifications row reads `Off in iOS Settings` instead of a count. |
 | D1 | offline | Offline `Banner` at top; every row that writes sits at 40%. |
+| D1 | no preferences | `notify` did not answer and nothing is stored: the Notifications row shows no count and opens nothing. An answer without them keeps the stored ones. |
 | D2 | Profile | Name field + `AvatarGrid`. Note that past recaps show the **current** name: nothing about a Recap is stored. |
 | D3 | Salary and payday | Headline `Salary and payday`. Setup's `AmountField` labelled `Amount, after tax`, filled with the Salary in force, at most the Currency's decimals and 11 digits (D57). D51 `DayPicker` with `Last day` and `Next paydays: {d1} · {d2} · {d3}` counted from today. `Save`, on once the amount is above zero and it or the Payday changed. A save returns to D1, its stored Settings replaced from the answer; a failed one keeps what was typed over `We couldn't save this. Try again.` Held sideways it scrolls. |
 | D3 | first Salary | None in force and none waiting: the field starts empty on Payday 25, and Save asks nothing; the Salary counts from this month (PRD §8.10). |
@@ -150,9 +151,9 @@ White `Sheet variant="full"` on violet.
 | D6 | nothing to convert | No Salary and no Spends: no sheet; the Currency changes on the tap and the row shows `Changed ✓` beside its check until the list next opens. |
 | D6, D7 | refused | Past D57: `That's more than the app can store.` in the sheet, `Convert` disabled. Any other failed Convert: `We couldn't convert your amounts. Try again.`, and `Convert` tries again under the same key. |
 | D7 | Manual rate | The same sheet, opened by `Enter it myself` or directly for a pair the provider does not cover. `TextField` `Rate: 1 {from} =` with the new code after it and the helper `We couldn't fetch this rate. Enter it yourself to continue.`; at most 11 digits before the separator and 12 after. Until a rate is typed, `All your amounts will be converted at the rate you enter. This can't be undone.`; a moment after typing stops the API previews it, and D6's salary sentence and rows replace that line. `Convert` stays disabled until the rate is above zero and that preview has answered. |
-| D8 | Notifications | Three toggles writing immediately. |
-| D8 | permission denied | All three at 40%, deep-link to iOS Settings. |
-| D8 | reminder on | Nested time row, 20:00. |
+| D8 | Notifications | Headline `Notifications`; three `Toggle`s (51 by 31, violet when on), each over its helper line. Each change sends the whole preferences message at once; a failed save puts the switch back over `We couldn't save this. Try again.` Never asked, turning one on shows the system alert first, and nothing is saved unless it is allowed. Offline, the switches sit at 40% and do nothing. |
+| D8 | permission denied | The info `Banner`, `Notifications are off for this app. Turn them on in iOS Settings.` with `Open Settings`, the app's notification settings in iOS. All three at 40%, and tapping one opens iOS Settings too. |
+| D8 | reminder on | `Remind me at` under Daily reminder, its time, 20:00 by default, printed in the device locale; tapping it opens the system wheel, and each settled time is saved. |
 | D9 | Export spends | One `Send it` button. |
 | D9 | sent | D67. The button itself becomes `Sent ✓` and dims for 60 seconds. |
 | D9 | no deliverable address | `InlineError`: `We can't reach {email}.` with a link to Profile. |
@@ -200,7 +201,7 @@ One string, one place. Where two screens show the same idea, they show the same 
 | Streak badge, 7+ | `New badge unlocked.` |
 | Streak badge, under 7 | `Beat it next month.` |
 | Spend save failed | `We couldn't save this spend. Try again.` |
-| Settings save failed (D2, D3) | `We couldn't save this. Try again.` |
+| Settings save failed (D2, D3, D8) | `We couldn't save this. Try again.` |
 | Offline | `No connection. You can look, but not log.` |
 | Stale cache | `Last updated {day} {time}.` |
 | Avatar grid label | `Pick your avatar` |
@@ -239,3 +240,6 @@ One string, one place. Where two screens show the same idea, they show the same 
 | Restore account, the request | `You asked us to delete this account {day} at {time}. Nothing has gone yet.` ({day} is `today` or `yesterday`) |
 | Restore account, what is lost | `Keep it and every spend, every recap and every setting stays exactly as it was. Continue and it all goes at {time} {day}, for good.` ({day} is `today` or `tomorrow`, 24 hours after the request) |
 | Restore account, keep failed | `We couldn't keep your account. Try again.` |
+| Notifications row (D1) | `{n} on` / `All off` / `Off in iOS Settings` |
+| Notifications (D8) | `Notifications` / `Recap ready` / `09:00 on the 1st, when last month has data.` / `Daily reminder` / `Only if you haven't logged a spend that day.` / `Remind me at` / `Target warning` / `Once a month, the first time you pass your saving line.` |
+| Notifications denied (D8) | `Notifications are off for this app. Turn them on in iOS Settings.` / `Open Settings` |

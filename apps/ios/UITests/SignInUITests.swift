@@ -112,6 +112,7 @@ final class SignInUITests: XCTestCase {
         renameInSettings(app, from: "Maya", to: "Tess")
         editTargetInSettings(app, salary: 15_000_000)
         convertToPoundsInSettings(app, salary: 15_000_000, rate: "0.000046", pounds: 690)
+        turnOnTheReminder(app)
 
         app.terminate()
         app.launch()

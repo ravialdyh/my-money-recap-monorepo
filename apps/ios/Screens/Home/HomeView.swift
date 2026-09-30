@@ -54,6 +54,10 @@ struct HomeView: View {
             await BffClient.retried(session) { await client.previewCurrencyChange(request: request) }.result
         }, changeCurrency: { request, headers in
             await BffClient.retried(session) { await client.changeCurrency(request: request, headers: headers) }.result
+        }, saveNotifications: { prefs, headers in
+            try? await BffClient.retried(session) {
+                await client.saveNotificationPrefs(request: .with { $0.prefs = prefs }, headers: headers)
+            }.result.get().prefs
         }))
         self.open = open
     }

@@ -55,7 +55,7 @@ final class PushRegistrationTests: XCTestCase {
     func testAllowingRegistersAndSendsTheTokenAsHexUnderAKey() async throws {
         let fake = FakeSystem(), api = FakeAPI()
         let push = try push(fake, api)
-        await push.spendSaved()
+        await push.askOnce()
         XCTAssertEqual(fake.asked, 1, "iOS never asked, so the alert shows")
         XCTAssertEqual(fake.registered, 1, "allowed, so the phone registers")
         XCTAssertEqual(api.sent.map(\.token), ["dead01"])
@@ -66,11 +66,11 @@ final class PushRegistrationTests: XCTestCase {
     func testTheAlertNeverShowsTwice() async throws {
         let fake = FakeSystem(), api = FakeAPI()
         let push = try push(fake, api)
-        await push.spendSaved()
-        await push.spendSaved()
+        await push.askOnce()
+        await push.askOnce()
         XCTAssertEqual(fake.asked, 1, "iOS has asked now, whatever the answer")
         fake.status = .denied
-        await push.spendSaved()
+        await push.askOnce()
         XCTAssertEqual(fake.asked, 1)
     }
 
@@ -78,7 +78,7 @@ final class PushRegistrationTests: XCTestCase {
         let fake = FakeSystem(), api = FakeAPI()
         fake.allows = false
         let push = try push(fake, api)
-        await push.spendSaved()
+        await push.askOnce()
         XCTAssertEqual(fake.asked, 1)
         XCTAssertEqual(fake.registered, 0)
         XCTAssertNil(push.token)
