@@ -148,3 +148,31 @@ func TestAPoisonMessageWaitsForAPerson(t *testing.T) {
 		t.Errorf("processed_events holds %d ids (%v), want only the good one", processed, err)
 	}
 }
+
+// ackOnly answers the consumer's ack or reject for one delivery handed to Process directly.
+type ackOnly struct{}
+
+func (ackOnly) Ack(uint64, bool) error        { return nil }
+func (ackOnly) Nack(uint64, bool, bool) error { return errors.New("nacked") }
+func (ackOnly) Reject(uint64, bool) error     { return nil }
+
+// A function handed to AfterCommit runs once its handler's transaction commits and never after a rollback, and
+// AfterCommit outside Process does nothing (§4.3: notify pushes only a committed stamp).
+func TestAfterCommitRunsOnlyOnACommit(t *testing.T) {
+	db := scratch(t, "LEDGER_TEST_DATABASE_URL", ledger.Migrate)
+	ran := map[string]int{}
+	handle := func(ctx context.Context, _ pgx.Tx, d amqp.Delivery) error {
+		events.AfterCommit(ctx, func() { ran[d.MessageId]++ })
+		if d.MessageId == "rolled-back" {
+			return errors.New("poison")
+		}
+		return nil
+	}
+	for _, id := range []string{"committed", "rolled-back"} {
+		events.Process(t.Context(), db, amqp.Delivery{Acknowledger: ackOnly{}, MessageId: id}, handle)
+	}
+	events.AfterCommit(t.Context(), func() { ran["outside"]++ })
+	if ran["committed"] != 1 || ran["rolled-back"] != 0 || ran["outside"] != 0 {
+		t.Errorf("ran %v, want only the committed delivery's function, once", ran)
+	}
+}
