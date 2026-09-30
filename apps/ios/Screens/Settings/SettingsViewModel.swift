@@ -21,10 +21,14 @@ final class SettingsViewModel: Identifiable {
     var salaryEdit: SalaryEditViewModel?
     /// D4 Saving target, while it is open.
     var targetEdit: TargetEditViewModel?
+    /// D5 Currency, while it is open.
+    var currencyEdit: CurrencyEditViewModel?
     private let fetch: Fetch
     private let saveProfile: NameAvatarViewModel.Save
     private let saveSalary: SalaryEditViewModel.Save
     private let saveTarget: TargetEditViewModel.Save
+    private let previewCurrency: CurrencyEditViewModel.Preview
+    private let changeCurrency: CurrencyEditViewModel.Change
     private let context: ModelContext
     private let locale: Locale
     private let connection: Connection
@@ -36,6 +40,10 @@ final class SettingsViewModel: Identifiable {
             .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         saveTarget: @escaping TargetEditViewModel
             .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        previewCurrency: @escaping CurrencyEditViewModel
+            .Preview = { _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        changeCurrency: @escaping CurrencyEditViewModel
+            .Change = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
         connection: Connection? = nil
@@ -44,6 +52,8 @@ final class SettingsViewModel: Identifiable {
         self.saveProfile = saveProfile
         self.saveSalary = saveSalary
         self.saveTarget = saveTarget
+        self.previewCurrency = previewCurrency
+        self.changeCurrency = changeCurrency
         self.context = context
         self.locale = locale
         self.connection = connection ?? .shared
@@ -119,6 +129,25 @@ final class SettingsViewModel: Identifiable {
             let result = await save(request, headers)
             if case let .success(answer) = result {
                 self?.replace(with: answer.settings)
+            }
+            return result
+        }
+    }
+
+    /// D5 over the Currency held; nil before Settings has any. A change's Settings replace the stored copy, and every
+    /// stored Spend list and Recap is erased, since they hold the old Currency (spec #169).
+    func openCurrency() {
+        guard let saved = settings else { return }
+        let change = changeCurrency
+        currencyEdit = CurrencyEditViewModel(
+            current: saved.profile.currencyCode, locale: locale, preview: previewCurrency
+        ) { [weak self] request, headers in
+            let result = await change(request, headers)
+            if case let .success(answer) = result, let self {
+                replace(with: answer.settings)
+                try? context.delete(model: SpendListSnapshot.self)
+                try? context.delete(model: RecapSnapshot.self)
+                try? context.save()
             }
             return result
         }

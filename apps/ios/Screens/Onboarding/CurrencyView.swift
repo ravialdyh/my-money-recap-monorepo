@@ -54,12 +54,15 @@ struct CurrencyView: View {
             if model.offline {
                 InlineError(text: NoConnectionView.copy)
             }
-            search
-            if let noMatch = model.noMatch {
-                empty(noMatch)
-            } else {
-                list
-            }
+            CurrencyPicker(
+                query: $model.query,
+                visible: model.visible,
+                noMatch: model.noMatch,
+                selected: model.selected,
+                searching: $searching,
+                choose: model.choose,
+                clear: model.clearSearch
+            )
         }
     }
 
@@ -74,6 +77,30 @@ struct CurrencyView: View {
         }
         .disabled(!model.canContinue)
     }
+}
+
+/// A5's search pill over the matching rows, or its empty line and Clear search; D5 reuses it with `value` beside the
+/// chosen row, its `Changed ✓` (SCREEN-STATES D5).
+struct CurrencyPicker: View {
+    @Binding var query: String
+    let visible: [CurrencyViewModel.Option]
+    let noMatch: String?
+    let selected: String?
+    var value: String?
+    /// D5's fixed list height, the canvas's 336pt, so the sheet around it scrolls; nil fills what the step leaves.
+    var listHeight: CGFloat?
+    var searching: FocusState<Bool>.Binding
+    let choose: (String) -> Void
+    let clear: () -> Void
+
+    var body: some View {
+        search
+        if let noMatch {
+            empty(noMatch)
+        } else {
+            list
+        }
+    }
 
     /// The canvas's search pill: a magnifier and the field on the field surface, ringed violet while typing.
     private var search: some View {
@@ -82,19 +109,22 @@ struct CurrencyView: View {
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(Tokens.Text.secondary)
                 .accessibilityHidden(true)
-            TextField("Search by name or code", text: $model.query)
+            TextField("Search by name or code", text: $query)
                 .textStyle(Tokens.TypeRamp.bodyM)
                 .foregroundStyle(Tokens.Text.primary)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)
-                .focused($searching)
+                .focused(searching)
                 .accessibilityLabel("Search by name or code")
         }
         .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, minHeight: Tokens.Size.fieldHeight)
         .background(Tokens.Surface.field, in: Capsule())
-        .overlay(Capsule().strokeBorder(searching ? Tokens.State.focusRing : Tokens.Palette.ink100, lineWidth: 2))
+        .overlay(Capsule().strokeBorder(
+            searching.wrappedValue ? Tokens.State.focusRing : Tokens.Palette.ink100,
+            lineWidth: 2
+        ))
     }
 
     /// Every matching row, scrolled so the chosen one shows; a tap chooses and puts the keyboard away, uncovering Next.
@@ -103,20 +133,26 @@ struct CurrencyView: View {
         ScrollViewReader { reader in
             ScrollView {
                 VStack(spacing: 0) {
-                    ForEach(model.visible) { option in
-                        ListRow(label: option.label, trailing: .check, selected: model.selected == option.code) {
-                            model.choose(option.code)
-                            searching = false
+                    ForEach(visible) { option in
+                        ListRow(
+                            label: option.label,
+                            value: selected == option.code ? value : nil,
+                            trailing: .check,
+                            selected: selected == option.code
+                        ) {
+                            choose(option.code)
+                            searching.wrappedValue = false
                         }
                         .accessibilityLabel("\(option.name), \(option.code)")
                         .id(option.code)
                     }
                 }
             }
+            .frame(height: listHeight)
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)
             .onAppear {
-                if let selected = model.selected {
+                if let selected {
                     reader.scrollTo(selected, anchor: .center)
                 }
             }
@@ -130,7 +166,7 @@ struct CurrencyView: View {
                 .textStyle(Tokens.TypeRamp.bodyS)
                 .foregroundStyle(Tokens.Text.secondary)
                 .multilineTextAlignment(.center)
-            TextLink(title: "Clear search") { model.clearSearch() }
+            TextLink(title: "Clear search", action: clear)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 48)

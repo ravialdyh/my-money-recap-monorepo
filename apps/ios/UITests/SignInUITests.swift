@@ -111,6 +111,7 @@ final class SignInUITests: XCTestCase {
         openTheMonthSoFar(app)
         renameInSettings(app, from: "Maya", to: "Tess")
         editTargetInSettings(app, salary: 15_000_000)
+        convertToPoundsInSettings(app, salary: 15_000_000, rate: "0.000046", pounds: 690)
 
         app.terminate()
         app.launch()
@@ -126,7 +127,7 @@ final class SignInUITests: XCTestCase {
         app.launch()
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10))
         XCTAssert(
-            app.staticTexts["Money in \(Self.zero("IDR"))"].exists,
+            app.staticTexts["Money in \(Self.zero("GBP"))"].exists,
             "a Member who finished setup reaches Home from the stored answer with no signal (PRD D61, spec #92)"
         )
         snapshot("09-bff-unreachable-snapshot-still-shown")

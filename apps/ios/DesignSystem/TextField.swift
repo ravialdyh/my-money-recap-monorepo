@@ -7,6 +7,8 @@ struct MMRTextField: View {
     @Binding var text: String
     var placeholder = ""
     var helper: String?
+    /// The trailing affix (`TextField.tsx`'s `suffix`), D7's code after the rate.
+    var suffix: String?
     var invalid = false
     var focused = false
     var keyboard: UIKeyboardType = .default
@@ -18,20 +20,26 @@ struct MMRTextField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.Space._3) {
             Text(label).textStyle(Tokens.TypeRamp.labelS).foregroundStyle(Tokens.Text.secondary)
-            TextField(placeholder, text: $text)
-                .textStyle(Tokens.TypeRamp.bodyM)
-                .foregroundStyle(Tokens.Text.primary)
-                .textInputAutocapitalization(capitalization)
-                .autocorrectionDisabled()
-                .keyboardType(keyboard)
-                .textContentType(content)
-                .submitLabel(submit)
-                .onSubmit(onSubmit)
-                .accessibilityLabel(label)
-                .padding(.horizontal, Tokens.Space._6)
-                .frame(maxWidth: .infinity, minHeight: Tokens.Size.fieldHeight, alignment: .leading)
-                .background(Tokens.Surface.field, in: Capsule())
-                .overlay(Capsule().strokeBorder(ring, lineWidth: 2))
+            HStack(spacing: Tokens.Space._3) {
+                TextField(placeholder, text: $text)
+                    .textStyle(Tokens.TypeRamp.bodyM)
+                    .foregroundStyle(Tokens.Text.primary)
+                    .textInputAutocapitalization(capitalization)
+                    .autocorrectionDisabled()
+                    .keyboardType(keyboard)
+                    .textContentType(content)
+                    .submitLabel(submit)
+                    .onSubmit(onSubmit)
+                    .accessibilityLabel(label)
+                if let suffix {
+                    Text(suffix).textStyle(Tokens.TypeRamp.bodyM).fontWeight(.heavy)
+                        .foregroundStyle(Tokens.Text.secondary)
+                }
+            }
+            .padding(.horizontal, Tokens.Space._6)
+            .frame(maxWidth: .infinity, minHeight: Tokens.Size.fieldHeight, alignment: .leading)
+            .background(Tokens.Surface.field, in: Capsule())
+            .overlay(Capsule().strokeBorder(ring, lineWidth: 2))
             if let helper {
                 Text(helper)
                     .textStyle(Tokens.TypeRamp.bodyS)

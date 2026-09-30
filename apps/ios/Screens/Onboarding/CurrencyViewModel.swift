@@ -55,12 +55,17 @@ final class CurrencyViewModel {
         self.save = save
     }
 
-    private var needle: String {
-        query.trimmingCharacters(in: .whitespaces)
+    var visible: [Option] {
+        Self.matching(query, in: options)
+    }
+
+    var noMatch: String? {
+        Self.noMatch(query, in: options)
     }
 
     /// The rows whose code or name holds the query, ignoring case and accents; every row for an empty query.
-    var visible: [Option] {
+    nonisolated static func matching(_ query: String, in options: [Option]) -> [Option] {
+        let needle = query.trimmingCharacters(in: .whitespaces)
         guard !needle.isEmpty else { return options }
         return options.filter {
             $0.code.range(of: needle, options: .caseInsensitive) != nil
@@ -69,8 +74,9 @@ final class CurrencyViewModel {
     }
 
     /// `No currency matches "{query}".` (SCREEN-STATES A5) while the query matches no row.
-    var noMatch: String? {
-        visible.isEmpty ? "No currency matches \"\(needle)\"." : nil
+    nonisolated static func noMatch(_ query: String, in options: [Option]) -> String? {
+        let needle = query.trimmingCharacters(in: .whitespaces)
+        return matching(needle, in: options).isEmpty ? "No currency matches \"\(needle)\"." : nil
     }
 
     func choose(_ code: String) {
