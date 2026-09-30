@@ -77,9 +77,9 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `saveTarget`(request: MoneyRecap_V1_BffServiceSaveTargetRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveTargetResponse>
 
-    /// nothing_to_convert, no quote, when ledger holds no amounts; with
-    /// manual_rate, ledger.PreviewConversion; else currency.Quote, unavailable
-    /// when the fetch fails (PRD §8.9 step 1), always until #175 adds currency.
+    /// nothing_to_convert, no quote, when ledger holds no amounts; else
+    /// ledger.PreviewConversion of manual_rate or of currency.Quote's rate:
+    /// unsupported_pair, or unavailable when the fetch fails (PRD §8.9 step 1).
     /// out_of_range past 11 digits (D57).
     @available(iOS 13, *)
     func `previewCurrencyChange`(request: MoneyRecap_V1_BffServicePreviewCurrencyChangeRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServicePreviewCurrencyChangeResponse>

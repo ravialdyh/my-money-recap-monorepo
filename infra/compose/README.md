@@ -12,15 +12,16 @@ Docker Desktop must be running.
 cp infra/compose/.env.example infra/compose/.env
 ```
 
-Fill every empty value in `.env`: any string will do locally, except that `MEMBERS_DB_PASSWORD` and
-`NOTIFY_DB_PASSWORD` go into a connection URL unescaped, so use letters and digits for those. They are
+Fill every empty value in `.env` but `OPEN_EXCHANGE_RATES_APP_ID`: any string will do locally, except that `MEMBERS_DB_PASSWORD` and
+`NOTIFY_DB_PASSWORD` go into a connection URL unescaped, so use letters and digits for those. Left empty, the App ID
+makes every rate fetch fail, and the Member types the rate; a free App ID of your own there shows live rates (#175). They are
 development credentials, and `.gitignore` keeps the file out of git. Then:
 
 ```bash
 docker compose -f infra/compose/compose.yaml --profile mail up -d --build --wait
 ```
 
-`--build` builds the `members`, `notify`, `ledger` and `bff` images from `apps/backend`; `--wait` returns
+`--build` builds the `members`, `notify`, `ledger`, `bff` and `currency` images from `apps/backend`; `--wait` returns
 once every container reports healthy and the three migration steps and `realm-apply` have exited 0. Check
 with:
 
@@ -40,9 +41,9 @@ The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.y
 
 | Container | Image | Host port | Notes |
 | --- | --- | --- | --- |
-| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members`, `notify` and `ledger`, four of the five A9 plans, one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). A volume made before `ledger` existed (#99) has no `ledger` database, and only `down -v` makes the script run again (see "Chosen once"). |
+| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members`, `notify` and `ledger`, the four A9 plans (`currency` has none), one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). A volume made before `ledger` existed (#99) has no `ledger` database, and only `down -v` makes the script run again (see "Chosen once"). |
 | keycloak | `quay.io/phasetwo/phasetwo-keycloak`, one full Phase Two tag pinned in `compose.yaml` | `KEYCLOAK_HOST_PORT` | Never `latest` or a shorter tag (§7.5). Its file vault reads the two identity-provider secrets from `/run/secrets` (see "Secrets"). |
-| redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's three §4.4 jobs built: the magic-link limit, the per-Member limit and the idempotency fast path (`apps/backend/cmd/bff/README.md`); the JWKS is cached in each process's memory (`internal/auth`). |
+| redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's three §4.4 jobs built: the magic-link limit, the per-Member limit and the idempotency fast path (`apps/backend/cmd/bff/README.md`), and `currency`'s day's rate table (`apps/backend/cmd/currency/README.md`); the JWKS is cached in each process's memory (`internal/auth`). |
 | rabbitmq | `rabbitmq:4-management` | 127.0.0.1:`RABBITMQ_HOST_PORT` | The broker (§4.3): `members`' outbox relay publishes to it and `ledger` consumes from it (#101), and since #135 `ledger`'s relay publishes the spend events `notify` consumes, since #173 the conversion event `members` consumes, all as the user `mmr` through the `amqp_url` secret. It runs as its own `rabbitmq` user: any RabbitMQ command run as root before the server has written its Erlang cookie, such as the health check on a slow first start, wrote that file as root, and the server then died reading it (`eacces`, #93). Its management port stays inside the stack. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | none | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy (see "The `mmr` realm"). |
 | members-migrate | the `members` image, `migrate` command | none | One-shot: applies the `members` migrations and exits, reading its connection string from `/run/secrets/members_database_url` as `members` does. The three migrate steps share `compose.yaml`'s `x-migrate` block: the image is never pulled, the command is `migrate`, and each waits for a healthy Postgres. |
@@ -52,7 +53,8 @@ The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.y
 | members | built from `apps/backend` (`Dockerfile`, `CMD=members`) | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect (`apps/backend/cmd/members/README.md`), the consumer that takes a converted Currency from `ledger`'s events on `members.ledger`, and the relay that publishes its outbox every second. Starts after its migration step and the realm step completed and RabbitMQ is healthy. |
 | notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect (`apps/backend/cmd/notify/README.md`), and the consumer that stamps the Target Warning from `ledger`'s spend events on `notify.ledger`. Starts after its migration step, the realm step and a healthy RabbitMQ. |
 | ledger | built from `apps/backend` (`Dockerfile`, `CMD=ledger`) | 127.0.0.1:`LEDGER_HOST_PORT` | `LedgerService` over Connect, the money service (`apps/backend/cmd/ledger/README.md`), the consumer that keeps its replica from `members`' events on `ledger.members`, and the relay that publishes its outbox every second. Starts after its migration step, the realm step, a healthy RabbitMQ and a healthy `members`, which answers the profile read that fills a replica an event has not reached. |
-| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect, what the phone calls (`apps/backend/cmd/bff/README.md`). Starts after `members`, `ledger` and Redis are healthy and the realm step completed. |
+| bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect, what the phone calls (`apps/backend/cmd/bff/README.md`). Starts after `members`, `ledger` and Redis are healthy and the realm step completed; it never waits for `currency`. |
+| currency | built from `apps/backend` (`Dockerfile`, `CMD=currency`) | 127.0.0.1:`CURRENCY_HOST_PORT` | `CurrencyService` over Connect, the day's exchange rate (`apps/backend/cmd/currency/README.md`), with no database and no broker. Its App ID is `OPEN_EXCHANGE_RATES_APP_ID`, empty by default, so every quote is `unavailable`. Starts after Redis is healthy. |
 | nginx | `nginx:stable` | `NGINX_HOST_PORT` | The edge (§5, A7), plain HTTP until a certificate exists (see "The edge"). Nginx resolves `bff` and `keycloak` once, at start, so Compose restarts it whenever an `up` recreates either (`restart: true`); otherwise `/api/` and `/auth/` could answer 502 from an old address. |
 | acme | `neilpang/acme.sh`, pinned | none | The certificate sidecar (§5, §10), sharing the `acme-certs` volume with Nginx; what it does with no domain is in [`../nginx/README.md`](../nginx/README.md#tls-and-the-acmesh-sidecar). |
 
@@ -66,7 +68,7 @@ management port while a first boot is still bootstrapping on 8080, and `realm-ap
 `503 Service Unavailable` from the token endpoint.
 
 Keycloak, the BFF and Nginx publish on every interface because the phone reaches them. The Postgres,
-Redis, RabbitMQ (AMQP only), `members`, `notify`, `ledger` and Mailpit ports bind to loopback, for the Go tests ("Running the Go tests
+Redis, RabbitMQ (AMQP only), `members`, `notify`, `ledger`, `currency` and Mailpit ports bind to loopback, for the Go tests ("Running the Go tests
 against this stack") and for a service run on the host by hand.
 
 ## Secrets
@@ -115,10 +117,10 @@ Compose identifies a stack by project name, so two worktrees that both run this 
 each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
 sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
 `BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `LEDGER_HOST_PORT`, `POSTGRES_HOST_PORT`, `REDIS_HOST_PORT`,
-`RABBITMQ_HOST_PORT`, `MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`); the defaults in `compose.yaml` are the stock
+`RABBITMQ_HOST_PORT`, `MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`, `CURRENCY_HOST_PORT`); the defaults in `compose.yaml` are the stock
 stack the iOS app signs in against. `KC_HOSTNAME`, and with it the token issuer and the issuer checks in
-`members`, `notify` and the BFF, follow `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
-Volumes and the `members`, `notify`, `ledger` and `bff` images are named after the project, so stacks do not share data either.
+`members`, `notify`, `currency` and the BFF, follow `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
+Volumes and the `members`, `notify`, `ledger`, `bff` and `currency` images are named after the project, so stacks do not share data either.
 
 ## A phone on the LAN
 
@@ -288,7 +290,7 @@ are the facts more than one suite reads; the others belong to one suite.
 | `MEMBERS_TEST_BFF_CLIENT_SECRET` | `$BFF_CLIENT_SECRET` | **Optional.** Set it and the suite adds the wrong-audience case: a `bff` service-account token, which `members` must reject as unauthenticated. Unset, that assertion silently does not run. |
 | `BFF_TEST_URL` | `http://localhost:8082` | The BFF on `BFF_HOST_PORT`, the HTTP boundary every `*EndToEnd` test in `internal/bff` drives. Each adds `MMR_TEST_KEYCLOAK`, `MMR_TEST_USER_PASSWORD` and `MMR_TEST_MEMBERS_DATABASE_URL`; `TestMagicLinkEndToEnd` takes `MMR_TEST_MAILPIT` in place of the password, because it spends a fresh address and never signs in as `test`, and `TestTargetWarningEndToEnd` also takes `MEMBERS_TEST_URL`, `LEDGER_TEST_URL`, `NOTIFY_TEST_URL` and the `ledger` and `notify` databases, and `TestCurrencyChangeEndToEnd` `LEDGER_TEST_URL` and the `ledger` database. |
 | `BFF_TEST_EDGE` | `http://localhost:8090` | Nginx on `NGINX_HOST_PORT`, the edge `TestEdge` drives. With `BFF_TEST_URL`, `MMR_TEST_KEYCLOAK` and `MMR_TEST_USER_PASSWORD` it is that test's whole set: it compares one `GetHome` through the edge with the same call straight to the BFF, fetches the `/magic` page and the association file, and proves the stricter limit zone matches the `RequestMagicLink` path and nothing else (#72). |
-| `BFF_TEST_REDIS` | `localhost:6379` | Redis on `REDIS_HOST_PORT`, for the in-process tests of the idempotency fast path (`internal/bff`, #127): each signs in as a subject of its own, so its keys never meet the stack's. |
+| `BFF_TEST_REDIS` | `localhost:6379` | Redis on `REDIS_HOST_PORT`, for the in-process tests of the idempotency fast path (`internal/bff`, #127): each signs in as a subject of its own, so its keys never meet the stack's. The rate-cache tests (`internal/currency`, #175) run on a clock in 2001, for the same reason. |
 | `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all, and one of `TestTargetWarningEndToEnd`'s services. |
 | `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests, the Target Warning's month flag and its stamp from an event, the replica's consumer and its profile-read fill, the idempotency table, and, when `MMR_TEST_MEMBERS_DATABASE_URL` is unset, the shared migration runner's tests. |
 | `NOTIFY_TEST_SMTP` | `localhost:1025` | Mailpit's SMTP port on `MAILPIT_SMTP_HOST_PORT`, for the in-process send. |

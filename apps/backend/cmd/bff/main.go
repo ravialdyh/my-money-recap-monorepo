@@ -32,6 +32,7 @@ func run() error {
 	issuer, jwks := env.Get("BFF_OIDC_ISSUER", ""), env.Get("BFF_OIDC_JWKS_URL", "")
 	audience, membersURL := env.Get("BFF_OIDC_AUDIENCE", "bff"), env.Get("BFF_MEMBERS_URL", "")
 	ledgerURL, notifyURL, realm := env.Get("BFF_LEDGER_URL", ""), env.Get("BFF_NOTIFY_URL", ""), env.Get("BFF_REALM_URL", "")
+	currencyURL := env.Get("BFF_CURRENCY_URL", "")
 	clientSecret, linkBase := env.Get("BFF_CLIENT_SECRET", ""), env.Get("BFF_MAGIC_LINK_BASE_URL", "")
 	redisAddr, listen := env.Get("BFF_REDIS_ADDR", ""), env.Get("BFF_LISTEN", ":8080")
 	if err := env.Err(); err != nil {
@@ -41,9 +42,10 @@ func run() error {
 	defer func() { _ = cache.Close() }()
 	verifier := auth.NewVerifier(ctx, issuer, jwks, audience)
 	svc := &bff.Service{
-		Members: moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, membersURL, connect.WithInterceptors(auth.Forward())),
-		Ledger:  moneyrecapv1connect.NewLedgerServiceClient(http.DefaultClient, ledgerURL, connect.WithInterceptors(auth.Forward())),
-		Notify:  moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, notifyURL, connect.WithInterceptors(auth.Forward())),
+		Members:  moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, membersURL, connect.WithInterceptors(auth.Forward())),
+		Ledger:   moneyrecapv1connect.NewLedgerServiceClient(http.DefaultClient, ledgerURL, connect.WithInterceptors(auth.Forward())),
+		Notify:   moneyrecapv1connect.NewNotifyServiceClient(http.DefaultClient, notifyURL, connect.WithInterceptors(auth.Forward())),
+		Currency: moneyrecapv1connect.NewCurrencyServiceClient(http.DefaultClient, currencyURL, connect.WithInterceptors(auth.Forward())),
 		MagicLink: bff.MagicLink{
 			Realm:        realm,
 			ClientSecret: clientSecret,

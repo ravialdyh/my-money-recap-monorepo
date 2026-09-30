@@ -116,9 +116,7 @@ services:
     secrets: [members_database_url]
 
   members:
-    build:
-      context: ../../apps/backend
-      args: { CMD: members }
+    build: { context: ../../apps/backend, args: { CMD: members } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-members
     environment:
       MEMBERS_DATABASE_URL_FILE: *members-db-file
@@ -160,9 +158,7 @@ services:
     secrets: [notify_database_url]
 
   notify:
-    build:
-      context: ../../apps/backend
-      args: { CMD: notify }
+    build: { context: ../../apps/backend, args: { CMD: notify } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-notify
     environment:
       NOTIFY_DATABASE_URL_FILE: *notify-db-file
@@ -195,9 +191,7 @@ services:
     secrets: [ledger_database_url]
 
   ledger:
-    build:
-      context: ../../apps/backend
-      args: { CMD: ledger }
+    build: { context: ../../apps/backend, args: { CMD: ledger } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-ledger
     environment:
       LEDGER_DATABASE_URL_FILE: *ledger-db-file
@@ -220,9 +214,7 @@ services:
     healthcheck: *go-healthcheck
 
   bff:
-    build:
-      context: ../../apps/backend
-      args: { CMD: bff }
+    build: { context: ../../apps/backend, args: { CMD: bff } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-bff
     environment:
       BFF_OIDC_ISSUER: *issuer
@@ -234,6 +226,7 @@ services:
       BFF_CLIENT_SECRET: ${BFF_CLIENT_SECRET:?set in .env}
       BFF_MAGIC_LINK_BASE_URL: http://${MMR_HOST:-localhost}:${NGINX_HOST_PORT:-8090}/magic
       BFF_REDIS_ADDR: redis:6379
+      BFF_CURRENCY_URL: http://currency:8080
     ports:
       - "${BFF_HOST_PORT:-8082}:8080"
     depends_on:
@@ -243,6 +236,18 @@ services:
         condition: service_healthy
       realm-apply:
         condition: service_completed_successfully
+    healthcheck: *go-healthcheck
+
+  currency:
+    build: { context: ../../apps/backend, args: { CMD: currency } }
+    image: ${COMPOSE_PROJECT_NAME:-mmr}-currency
+    environment:
+      CURRENCY_OIDC_ISSUER: *issuer
+      CURRENCY_OIDC_JWKS_URL: *jwks
+      CURRENCY_REDIS_ADDR: redis:6379
+      CURRENCY_OPEN_EXCHANGE_RATES_APP_ID: ${OPEN_EXCHANGE_RATES_APP_ID:-}
+    ports: ["127.0.0.1:${CURRENCY_HOST_PORT:-8085}:8080"]
+    depends_on: { redis: { condition: service_healthy } }
     healthcheck: *go-healthcheck
 
   nginx:

@@ -44,6 +44,7 @@ ids=$(grep -oE '\$\{[A-Z_]+:-replace-me\}' ../compose/compose.yaml | sed -E 's/^
 for name in $ids; do
   grep -qxF "$name='$(expected "$(tr '[:upper:]' '[:lower:]' <<<"$name")")'" "$env" || fail "the machine's .env leaves $name at replace-me"
 done
+grep -qxF "OPEN_EXCHANGE_RATES_APP_ID='$(expected open_exchange_rates_app_id)'" "$env" || fail "the machine's .env lost the rates App ID"
 grep -qxF "REALM_SSL_REQUIRED=external" "$env" || fail "the machine's .env leaves ssl_required at the laptop's none"
 ! grep -qE '^(TEST_USER_PASSWORD|DEPLOY_SSH_PRIVATE_KEY)=' "$env" || fail "the machine's .env carries a test password or the deploy key"
 cp -R "$work/out" "$work/quoted" && chmod u+w "$work/quoted/bff_client_secret"

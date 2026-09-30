@@ -70,6 +70,18 @@ func TestEnvReportsTheFirstMissingRequiredVariable(t *testing.T) {
 	}
 }
 
+func TestEnvOptionalIsEmptyWithoutAnError(t *testing.T) {
+	os.Unsetenv("MMR_TEST_OPTIONAL")
+	var env Env
+	if got := env.Optional("MMR_TEST_OPTIONAL"); got != "" || env.Err() != nil {
+		t.Errorf("Optional = %q, Err = %v; want empty and nil", got, env.Err())
+	}
+	t.Setenv("MMR_TEST_OPTIONAL", "set")
+	if got := env.Optional("MMR_TEST_OPTIONAL"); got != "set" {
+		t.Errorf("Optional = %q, want set", got)
+	}
+}
+
 func TestRunAnswersHealthzAndReturnsNilOnShutdown(t *testing.T) {
 	addr := freeAddr(t)
 	ctx, cancel := context.WithCancel(context.Background())

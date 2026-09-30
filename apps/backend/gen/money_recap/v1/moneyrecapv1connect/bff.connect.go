@@ -123,9 +123,9 @@ type BffServiceClient interface {
 	// after setup starts this month, later ones next month (D65);
 	// failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
-	// nothing_to_convert, no quote, when ledger holds no amounts; with
-	// manual_rate, ledger.PreviewConversion; else currency.Quote, unavailable
-	// when the fetch fails (PRD §8.9 step 1), always until #175 adds currency.
+	// nothing_to_convert, no quote, when ledger holds no amounts; else
+	// ledger.PreviewConversion of manual_rate or of currency.Quote's rate:
+	// unsupported_pair, or unavailable when the fetch fails (PRD §8.9 step 1).
 	// out_of_range past 11 digits (D57).
 	PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error)
 	// ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
@@ -441,9 +441,9 @@ type BffServiceHandler interface {
 	// after setup starts this month, later ones next month (D65);
 	// failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
-	// nothing_to_convert, no quote, when ledger holds no amounts; with
-	// manual_rate, ledger.PreviewConversion; else currency.Quote, unavailable
-	// when the fetch fails (PRD §8.9 step 1), always until #175 adds currency.
+	// nothing_to_convert, no quote, when ledger holds no amounts; else
+	// ledger.PreviewConversion of manual_rate or of currency.Quote's rate:
+	// unsupported_pair, or unavailable when the fetch fails (PRD §8.9 step 1).
 	// out_of_range past 11 digits (D57).
 	PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error)
 	// ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
