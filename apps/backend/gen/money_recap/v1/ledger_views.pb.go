@@ -722,6 +722,10 @@ type LedgerSettings struct {
 	// False with no Salary and no Spends: a currency change then skips the
 	// confirm sheet (PRD §8.9 step 2).
 	HasAmountsToConvert bool `protobuf:"varint,7,opt,name=has_amounts_to_convert,json=hasAmountsToConvert,proto3" json:"has_amounts_to_convert,omitempty"`
+	// "YYYY-MM" a Saving Target saved now starts in: this month while none was
+	// saved after setup, next month once one was, a 0 percent row included
+	// (D65); the sign-up month in a setup save's answer (spec #92).
+	NewSavingTargetFrom string `protobuf:"bytes,8,opt,name=new_saving_target_from,json=newSavingTargetFrom,proto3" json:"new_saving_target_from,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -803,6 +807,13 @@ func (x *LedgerSettings) GetHasAmountsToConvert() bool {
 		return x.HasAmountsToConvert
 	}
 	return false
+}
+
+func (x *LedgerSettings) GetNewSavingTargetFrom() string {
+	if x != nil {
+		return x.NewSavingTargetFrom
+	}
+	return ""
 }
 
 // The before-and-after values for the currency confirm sheet (PRD §8.9 step
@@ -977,7 +988,7 @@ const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\x0foriginal_amount\x18\x04 \x01(\v2\x15.money_recap.v1.MoneyR\x0eoriginalAmount\"V\n" +
 	"\x13SavingTargetSetting\x12\x18\n" +
 	"\apercent\x18\x01 \x01(\x05R\apercent\x12%\n" +
-	"\x0eeffective_from\x18\x02 \x01(\tR\reffectiveFrom\"\x8f\x04\n" +
+	"\x0eeffective_from\x18\x02 \x01(\tR\reffectiveFrom\"\xc4\x04\n" +
 	"\x0eLedgerSettings\x12:\n" +
 	"\x06salary\x18\x01 \x01(\v2\x1d.money_recap.v1.SalarySettingH\x00R\x06salary\x88\x01\x01\x12C\n" +
 	"\vnext_salary\x18\x02 \x01(\v2\x1d.money_recap.v1.SalarySettingH\x01R\n" +
@@ -986,7 +997,8 @@ const file_money_recap_v1_ledger_views_proto_rawDesc = "" +
 	"\x12next_saving_target\x18\x04 \x01(\v2#.money_recap.v1.SavingTargetSettingH\x03R\x10nextSavingTarget\x88\x01\x01\x127\n" +
 	"\x18payday_passed_this_month\x18\x05 \x01(\bR\x15paydayPassedThisMonth\x12#\n" +
 	"\rcurrency_code\x18\x06 \x01(\tR\fcurrencyCode\x123\n" +
-	"\x16has_amounts_to_convert\x18\a \x01(\bR\x13hasAmountsToConvertB\t\n" +
+	"\x16has_amounts_to_convert\x18\a \x01(\bR\x13hasAmountsToConvert\x123\n" +
+	"\x16new_saving_target_from\x18\b \x01(\tR\x13newSavingTargetFromB\t\n" +
 	"\a_salaryB\x0e\n" +
 	"\f_next_salaryB\x10\n" +
 	"\x0e_saving_targetB\x15\n" +

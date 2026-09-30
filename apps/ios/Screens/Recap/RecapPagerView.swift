@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// The Recap pager (spec #151, PRD D46): full screen over Home, its pages swiped left and right, the close control
-/// laid over every page top-left. Before the answer it draws the cover's ground and illustration only (§6.19).
+/// laid over every page top-left, a target card's D4 over it (#172). Before the answer: cover ground, illustration
+/// (§6.19).
 struct RecapPagerView: View {
     @Bindable var model: RecapViewModel
     @Environment(\.dismiss) private var dismiss
@@ -21,6 +22,7 @@ struct RecapPagerView: View {
                 .padding(.top, RecapLayout.closeTop)
         }
         .background(ground.ignoresSafeArea())
+        .fullScreenCover(item: $model.targetEdit) { TargetEditView(model: $0) { model.targetEdit = nil } }
         .task { await model.load() }
     }
 

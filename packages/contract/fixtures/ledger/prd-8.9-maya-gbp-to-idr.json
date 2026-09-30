@@ -130,11 +130,7 @@
     }
   ],
   "asOf": "2026-09-30",
-  "convert": {
-    "rate": "20150",
-    "source": "RATE_SOURCE_PROVIDER",
-    "toCurrencyCode": "IDR"
-  },
+  "convert": { "rate": "20150", "source": "RATE_SOURCE_PROVIDER", "toCurrencyCode": "IDR" },
   "settings": {
     "salary": {
       "amount": {
@@ -154,7 +150,8 @@
     },
     "paydayPassedThisMonth": true,
     "currencyCode": "IDR",
-    "hasAmountsToConvert": true
+    "hasAmountsToConvert": true,
+    "newSavingTargetFrom": "2026-10"
   },
   "conversionPreview": {
     "fromCurrencyCode": "GBP",

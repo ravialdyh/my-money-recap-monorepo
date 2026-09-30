@@ -19,6 +19,7 @@ final class HomeViewModel {
     private let getSettings: SettingsViewModel.Fetch
     private let saveProfile: NameAvatarViewModel.Save
     private let saveSalary: SalaryEditViewModel.Save
+    private let saveTarget: TargetEditViewModel.Save
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -50,6 +51,8 @@ final class HomeViewModel {
         getSettings: @escaping SettingsViewModel.Fetch = { throw ConnectError(code: .unavailable, message: nil) },
         saveProfile: @escaping NameAvatarViewModel.Save = { _, _ in .offline },
         saveSalary: @escaping SalaryEditViewModel
+            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        saveTarget: @escaping TargetEditViewModel
             .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
     ) {
         self.fetch = fetch
@@ -61,6 +64,7 @@ final class HomeViewModel {
         self.getSettings = getSettings
         self.saveProfile = saveProfile
         self.saveSalary = saveSalary
+        self.saveTarget = saveTarget
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -122,12 +126,27 @@ final class HomeViewModel {
         ) }
     }
 
-    /// D1 Settings over its stored copy (IOS I4), in the locale Home was given.
+    /// D1 Settings over its stored copy (IOS I4), in the locale Home was given. A saved Target's Home replaces this
+    /// one.
     func settings() -> SettingsViewModel {
-        SettingsViewModel(
-            fetch: getSettings, saveProfile: saveProfile, saveSalary: saveSalary, context: context, locale: locale,
-            connection: connection
+        let save = saveTarget
+        return SettingsViewModel(
+            fetch: getSettings, saveProfile: saveProfile, saveSalary: saveSalary, saveTarget: { [weak self] in
+                let result = await save($0, $1)
+                if case let .success(answer) = result {
+                    self?.replace(with: answer.home)
+                }
+                return result
+            }, context: context, locale: locale, connection: connection
         )
+    }
+
+    /// D4 over a Recap: Settings read afresh, or its stored copy when that fails; nil with neither.
+    func targetEdit() async -> TargetEditViewModel? {
+        let settings = settings()
+        await settings.refresh()
+        settings.openTarget()
+        return settings.targetEdit
     }
 
     /// A write's answer replaces the stored Home whole, as a refresh does (IOS I4).
@@ -224,7 +243,7 @@ final class HomeViewModel {
 
     /// One month's Recap pager: a past-Recap row's month, last month, or Home's own month for the preview (D47).
     func recap(_ month: String) -> RecapViewModel {
-        RecapViewModel(month: month, fetch: getRecap, context: context, locale: locale)
+        RecapViewModel(month: month, fetch: getRecap, context: context, locale: locale, openTarget: targetEdit)
     }
 
     /// The month before Home's when it is in the past-Recap list, what "See last month" opens; nil disables it

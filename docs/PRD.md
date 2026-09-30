@@ -304,7 +304,7 @@ Reached by tapping the Home hero card (D42 makes the hero the Spent figure, so t
 
 **The streak line's cases** (owner, 2026-09-26). The dates are ledger's (§8.5), printed in the device locale's day and month order: "12 to 20 September", or "September 12 to 20" in American English. A one-day run prints its one date: "12 September. Beat it next month." With no spend-free day the dates are left out and the badge copy stands alone.
 
-With no Saving Target the headline drops its second sentence and the compare card becomes the target card: eyebrow "Saving target", "Set a target to see how you did", helper "Pick a share of your salary to keep each month, and next month's recap will score it.", drawn with no action until Settings exists (owner, 2026-09-26). In the React component that is its own no-target branch: pass `targetAmount={null}`, never `undefined`.
+With no Saving Target the headline drops its second sentence and the compare card becomes the target card: eyebrow "Saving target", "Set a target to see how you did", helper "Pick a share of your salary to keep each month, and next month's recap will score it.", which opens Saving target over the Recap (#172). In the React component that is its own no-target branch: pass `targetAmount={null}`, never `undefined`.
 
 ### 6.13 Recap · screen 3 Target and spending
 
@@ -312,7 +312,7 @@ With no Saving Target the headline drops its second sentence and the compare car
 
 `Card` accent "The splurge": "{amount} on {note or Category}. Your biggest single buy." With no Spend the card reads "Where it went" and "Nothing spent this month", adds "You kept every penny that came in." only when Money In is above 0, and has no splurge: pass `splurge={null}`, never `undefined`.
 
-**No Saving Target set.** Reachable whenever the Member skipped onboarding step 4 (D44 forbids only the reverse: a target with no salary). The headline becomes "Where {Spent} went", even when nothing was spent ("Where IDR 0 went", as the design system's `RecapGoalScreen` prints it; owner, 2026-09-28), because there is no percentage to state. The saving-target `Card` becomes a `PromptCard` "Set a saving target", drawn with no action until Settings exists (owner, 2026-09-26). The Category breakdown and the Splurge are unaffected: neither needs a target.
+**No Saving Target set.** Reachable whenever the Member skipped onboarding step 4 (D44 forbids only the reverse: a target with no salary). The headline becomes "Where {Spent} went", even when nothing was spent ("Where IDR 0 went", as the design system's `RecapGoalScreen` prints it; owner, 2026-09-28), because there is no percentage to state. The saving-target `Card` becomes a `PromptCard` "Set a saving target", which opens Saving target over the Recap (#172). The Category breakdown and the Splurge are unaffected: neither needs a target.
 
 ### 6.14 Recap · screen 4 Archetype
 
@@ -322,7 +322,7 @@ With no Saving Target the headline drops its second sentence and the compare car
 
 The component keys its mascot off the `archetype` prop through an internal map; there is no illustration prop. `Illustration maxHeight` is already applied, so the taller Hustler mascot no longer clips the pill row.
 
-**No Archetype (§8.6).** A month screen 4 draws always has Money In above 0 (a month without it is a Partial Recap or is not listed, §8.11), so here no Archetype means no Saving Target. Screen 4 shows a `PromptCard` "Set a saving target to get an archetype", helper "Your archetype comes from what you kept against what you meant to keep.", at the hero card's height in place of the mascot, drawn with no action until Settings exists; the Saved and Spent bars stay, the four pills sit at 40% and the Share button is hidden. A "Set your monthly salary to get a recap" card can never show and is not built (owner, 2026-09-26). Home's list row shows "Partial" rather than an Archetype name.
+**No Archetype (§8.6).** A month screen 4 draws always has Money In above 0 (a month without it is a Partial Recap or is not listed, §8.11), so here no Archetype means no Saving Target. Screen 4 shows a `PromptCard` "Set a saving target to get an archetype", helper "Your archetype comes from what you kept against what you meant to keep.", at the hero card's height in place of the mascot, which opens Saving target over the Recap (#172); the Saved and Spent bars stay, the four pills sit at 40% and the Share button is hidden. A "Set your monthly salary to get a recap" card can never show and is not built (owner, 2026-09-26). Home's list row shows "Partial" rather than an Archetype name.
 
 ### 6.15 Share
 

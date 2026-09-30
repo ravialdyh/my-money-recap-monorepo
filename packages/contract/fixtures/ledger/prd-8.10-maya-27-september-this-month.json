@@ -180,7 +180,8 @@
     },
     "paydayPassedThisMonth": true,
     "currencyCode": "GBP",
-    "hasAmountsToConvert": true
+    "hasAmountsToConvert": true,
+    "newSavingTargetFrom": "2026-10"
   },
   "salariesAfter": [
     {

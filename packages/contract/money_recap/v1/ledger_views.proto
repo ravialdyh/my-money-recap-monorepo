@@ -165,6 +165,10 @@ message LedgerSettings {
   // False with no Salary and no Spends: a currency change then skips the
   // confirm sheet (PRD §8.9 step 2).
   bool has_amounts_to_convert = 7;
+  // "YYYY-MM" a Saving Target saved now starts in: this month while none was
+  // saved after setup, next month once one was, a 0 percent row included
+  // (D65); the sign-up month in a setup save's answer (spec #92).
+  string new_saving_target_from = 8;
 }
 
 // The before-and-after values for the currency confirm sheet (PRD §8.9 step

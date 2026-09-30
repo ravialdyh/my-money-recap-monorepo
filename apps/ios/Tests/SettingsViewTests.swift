@@ -3,8 +3,9 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// D1 to D3 as drawn (SCREEN-STATES D1 to D3): filled, with nothing set, offline, D3 with a waiting Salary, and held
-/// sideways, where each, the D56 sheet included, scrolls rather than clips.
+/// D1 to D4 as drawn (SCREEN-STATES D1 to D4): filled, with nothing set, offline, D3 with a waiting Salary, D4 with and
+/// without its line and with no Salary, and held sideways, where each, the D56 sheet included, scrolls rather than
+/// clips.
 @MainActor
 final class SettingsViewTests: XCTestCase {
     private let sideways = CGSize(width: 852, height: 393)
@@ -57,5 +58,30 @@ final class SettingsViewTests: XCTestCase {
         XCTAssertGreaterThan(overflow(SalaryEditView(model: edit) {}, size: sideways), 0, "D3 scrolls sideways")
         edit.amount = "17500000"
         XCTAssertGreaterThan(overflow(WhichSalarySheet(model: edit) { _ in }, size: sideways), 0, "so does its sheet")
+    }
+
+    private func target(_ name: String, starts: String? = nil) throws -> TargetEditView {
+        var settings = try SettingsViewModelTests.recorded(name)
+        if let starts {
+            settings.ledgerSettings.newSavingTargetFrom = starts
+        }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Jakarta") ?? .gmt
+        let today = try XCTUnwrap(calendar.date(from: DateComponents(year: 2026, month: 9, day: 29, hour: 9)))
+        return TargetEditView(model: TargetEditViewModel(
+            settings: settings, today: today, calendar: calendar, locale: Locale(identifier: "id_ID")
+        ) { _, _ in .success(.init()) }) {}
+    }
+
+    /// D4 draws the forward-only line only for a save that starts next month, and setup's no-Salary card in place of
+    /// the slider; held sideways it scrolls rather than clips.
+    func testSavingTargetDrawsItsLineAndTheNoSalaryCard() throws {
+        let edit = try picture(target("settings-filled"))
+        let first = try picture(target("settings-filled", starts: "2026-09"))
+        let blocked = try picture(target("settings-not-set"))
+        XCTAssertNotNil(edit)
+        XCTAssertNotEqual(edit, first, "the line under the card")
+        XCTAssertNotEqual(first, blocked, "Set a salary first in the slider's place")
+        try XCTAssertGreaterThan(overflow(target("settings-filled"), size: sideways), 0, "D4 scrolls sideways")
     }
 }

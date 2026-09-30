@@ -225,11 +225,14 @@ func ordinal(d int) string {
 	return strconv.Itoa(d) + suffix
 }
 
-// settings is GetSettings on the Member's local today (PRD §6.16): the rows in force this month, any saved
-// for a later month, and whether this month's Payday has come, which opens the D56 sheet.
-func (l ledgerOf) settings(today time.Time) *moneyrecapv1.LedgerSettings {
+// settings is GetSettings on the Member's local today (PRD §6.16): the rows in force this month, any saved for a
+// later month, whether this month's Payday has come (D56), and when a Target saved now starts, in a setup save or not.
+func (l ledgerOf) settings(today time.Time, setup bool) *moneyrecapv1.LedgerSettings {
 	now := monthOf(today)
-	st := &moneyrecapv1.LedgerSettings{CurrencyCode: l.cash.code, HasAmountsToConvert: len(l.salaries)+len(l.spends) > 0}
+	st := &moneyrecapv1.LedgerSettings{
+		CurrencyCode: l.cash.code, HasAmountsToConvert: len(l.salaries)+len(l.spends) > 0,
+		NewSavingTargetFrom: l.targetStarts(today, setup).String(),
+	}
 	if sal, ok := inForce(l.salaries, salaryFrom, now); ok {
 		st.Salary = l.salarySetting(sal)
 		st.PaydayPassedThisMonth = !today.Before(now.day(effectivePayday(sal.payday, now)))
@@ -244,6 +247,18 @@ func (l ledgerOf) settings(today time.Time) *moneyrecapv1.LedgerSettings {
 		st.NextSavingTarget = &moneyrecapv1.SavingTargetSetting{Percent: tgt.percent, EffectiveFrom: tgt.from.String()}
 	}
 	return st
+}
+
+// targetStarts is the month a Saving Target saved on today starts in: a setup save in the sign-up month (spec #92), a
+// first one after setup this month (owner 2026-09-23), every later one next month, a 0% row counted (D65).
+func (l ledgerOf) targetStarts(today time.Time, setup bool) month {
+	switch {
+	case setup:
+		return monthOf(l.signedUp)
+	case len(l.targets) == 0:
+		return monthOf(today)
+	}
+	return monthOf(today).next()
 }
 
 // farFuture is a month after every effective month, so the row in force then is the last one saved.

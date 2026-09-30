@@ -117,8 +117,15 @@ func TestPastMonthsWithSpends(t *testing.T) {
 			{amount: big.NewRat(50, 1), date: time.Date(2026, 8, 3, 0, 0, 0, 0, time.UTC)},
 			{amount: big.NewRat(2000, 1), date: time.Date(2026, 9, 3, 0, 0, 0, 0, time.UTC)},
 		}}
-	if !(ledgerOf{cash: c, spends: l.spends}).settings(today).HasAmountsToConvert {
+	if !(ledgerOf{cash: c, spends: l.spends}).settings(today, false).HasAmountsToConvert {
 		t.Error("Spends and no Salary: nothing to convert, want something (§8.9 step 2)")
+	}
+	cleared := ledgerOf{cash: c, signedUp: l.signedUp, targets: []targetRow{{percent: 0, from: month{2026, time.October}}}}
+	if got := cleared.settings(today, false); got.SavingTarget != nil || got.NewSavingTargetFrom != "2026-11" {
+		t.Errorf("a lone 0%% row: %v, want Not set and the next Target from 2026-11, since the row counts as saved (D65)", got)
+	}
+	if got := cleared.settings(today, true).NewSavingTargetFrom; got != "2026-07" {
+		t.Errorf("a setup save's answer: the next Target from %s, want the sign-up month 2026-07 (spec #92)", got)
 	}
 	if aug := l.summary(month{2026, time.August}, today); !aug.Partial || aug.StreakDay != 28 {
 		t.Errorf("August: %v, want partial with a 28-day Streak", aug)

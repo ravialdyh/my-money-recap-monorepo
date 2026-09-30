@@ -19,9 +19,12 @@ final class SettingsViewModel: Identifiable {
     var profile: ProfileViewModel?
     /// D3 Salary and payday, while it is open.
     var salaryEdit: SalaryEditViewModel?
+    /// D4 Saving target, while it is open.
+    var targetEdit: TargetEditViewModel?
     private let fetch: Fetch
     private let saveProfile: NameAvatarViewModel.Save
     private let saveSalary: SalaryEditViewModel.Save
+    private let saveTarget: TargetEditViewModel.Save
     private let context: ModelContext
     private let locale: Locale
     private let connection: Connection
@@ -31,6 +34,8 @@ final class SettingsViewModel: Identifiable {
         saveProfile: @escaping NameAvatarViewModel.Save,
         saveSalary: @escaping SalaryEditViewModel
             .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        saveTarget: @escaping TargetEditViewModel
+            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
         connection: Connection? = nil
@@ -38,6 +43,7 @@ final class SettingsViewModel: Identifiable {
         self.fetch = fetch
         self.saveProfile = saveProfile
         self.saveSalary = saveSalary
+        self.saveTarget = saveTarget
         self.context = context
         self.locale = locale
         self.connection = connection ?? .shared
@@ -103,6 +109,25 @@ final class SettingsViewModel: Identifiable {
             }
             return result
         }
+    }
+
+    /// D4 over the saved answers; nil before Settings has any. A save's Settings replace the stored copy.
+    func openTarget() {
+        guard let saved = settings else { return }
+        let save = saveTarget
+        targetEdit = TargetEditViewModel(settings: saved, locale: locale) { [weak self] request, headers in
+            let result = await save(request, headers)
+            if case let .success(answer) = result {
+                self?.replace(with: answer.settings)
+            }
+            return result
+        }
+    }
+
+    /// D4's `Set a salary first`: D3 in its place (D44).
+    func setSalaryFirst() {
+        targetEdit = nil
+        openSalary()
     }
 
     /// A stored Payday as the row prints it: "25th", or "Last day" for the token (PRD D51).

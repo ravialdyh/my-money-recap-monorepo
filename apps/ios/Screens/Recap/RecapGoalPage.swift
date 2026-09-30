@@ -53,7 +53,8 @@ struct RecapGoalPage: View {
             PromptCard(
                 title: "Set a saving target",
                 helper: "Pick a share of your salary to keep each month.",
-                height: Tokens.Size.homeTargetCard
+                height: Tokens.Size.homeTargetCard,
+                action: { Task { await model.editTarget() } }
             )
             .padding(.top, RecapLayout.cardGap)
         }

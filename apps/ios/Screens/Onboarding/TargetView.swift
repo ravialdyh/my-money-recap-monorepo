@@ -55,18 +55,38 @@ struct TargetView: View {
     }
 
     private var slider: some View {
+        TargetCard(percent: $model.percent, preview: model.preview, error: model.offline ? NoConnectionView.copy : nil)
+    }
+
+    private func finish(_ save: @escaping () async -> Bool) {
+        Task {
+            if await save() {
+                onDone()
+            }
+        }
+    }
+}
+
+/// Setup's slider card, which D4 reuses: `Share of salary to keep`, the percentage, the slider from 0 to 100 in steps
+/// of 5 and the preview, under `error` when there is one.
+struct TargetCard: View {
+    @Binding var percent: Int
+    let preview: String?
+    var error: String?
+
+    var body: some View {
         Card {
-            if model.offline {
-                InlineError(text: NoConnectionView.copy)
+            if let error {
+                InlineError(text: error)
             }
             Text("Share of salary to keep")
                 .textStyle(Tokens.TypeRamp.labelS)
                 .foregroundStyle(Tokens.Text.secondary)
-            Text("\(model.percent)%")
+            Text("\(percent)%")
                 .textStyle(Tokens.TypeRamp.displayXl)
                 .monospacedDigit()
                 .accessibilityHidden(true)
-            Slider(label: "Saving target", value: $model.percent)
+            Slider(label: "Saving target", value: $percent)
             HStack {
                 Text("0%")
                 Spacer()
@@ -75,19 +95,11 @@ struct TargetView: View {
             .textStyle(Tokens.TypeRamp.labelS)
             .foregroundStyle(Tokens.Text.secondary)
             .accessibilityHidden(true)
-            if let preview = model.preview {
+            if let preview {
                 Text(preview)
                     .textStyle(Tokens.TypeRamp.bodyS)
                     .monospacedDigit()
                     .foregroundStyle(Tokens.Text.secondary)
-            }
-        }
-    }
-
-    private func finish(_ save: @escaping () async -> Bool) {
-        Task {
-            if await save() {
-                onDone()
             }
         }
     }

@@ -36,7 +36,8 @@ struct RecapKeptPage: View {
             PromptCard(
                 eyebrow: "Saving target",
                 title: "Set a target to see how you did",
-                helper: "Pick a share of your salary to keep each month, and next month's recap will score it."
+                helper: "Pick a share of your salary to keep each month, and next month's recap will score it.",
+                action: { Task { await model.editTarget() } }
             )
         }
     }

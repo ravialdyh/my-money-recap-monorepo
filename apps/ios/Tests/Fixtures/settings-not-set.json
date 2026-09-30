@@ -11,7 +11,8 @@
             "signedUpOn": "2026-09-29"
         },
         "ledgerSettings": {
-            "currencyCode": "IDR"
+            "currencyCode": "IDR",
+            "newSavingTargetFrom": "2026-09"
         }
     }
 }

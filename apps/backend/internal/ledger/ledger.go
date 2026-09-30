@@ -222,7 +222,7 @@ func (s *Service) GetSettings(ctx context.Context, req *connect.Request[moneyrec
 	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&moneyrecapv1.GetSettingsResponse{Settings: l.settings(l.today)}), nil
+	return connect.NewResponse(&moneyrecapv1.GetSettingsResponse{Settings: l.settings(l.today, false)}), nil
 }
 
 // storeFailed is serve.StoreFailed for this service.

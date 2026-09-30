@@ -411,6 +411,14 @@ public nonisolated struct MoneyRecap_V1_LedgerSettings: @unchecked Sendable {
     set {_uniqueStorage()._hasAmountsToConvert_p = newValue}
   }
 
+  /// "YYYY-MM" a Saving Target saved now starts in: this month while none was
+  /// saved after setup, next month once one was, a 0 percent row included
+  /// (D65); the sign-up month in a setup save's answer (spec #92).
+  public var newSavingTargetFrom: String {
+    get {_storage._newSavingTargetFrom}
+    set {_uniqueStorage()._newSavingTargetFrom = newValue}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -862,7 +870,7 @@ nonisolated extension MoneyRecap_V1_SavingTargetSetting: SwiftProtobuf.Message, 
 
 nonisolated extension MoneyRecap_V1_LedgerSettings: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".LedgerSettings"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}salary\0\u{3}next_salary\0\u{3}saving_target\0\u{3}next_saving_target\0\u{3}payday_passed_this_month\0\u{3}currency_code\0\u{3}has_amounts_to_convert\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}salary\0\u{3}next_salary\0\u{3}saving_target\0\u{3}next_saving_target\0\u{3}payday_passed_this_month\0\u{3}currency_code\0\u{3}has_amounts_to_convert\0\u{3}new_saving_target_from\0")
 
   fileprivate class _StorageClass {
     var _salary: MoneyRecap_V1_SalarySetting? = nil
@@ -872,6 +880,7 @@ nonisolated extension MoneyRecap_V1_LedgerSettings: SwiftProtobuf.Message, Swift
     var _paydayPassedThisMonth: Bool = false
     var _currencyCode: String = String()
     var _hasAmountsToConvert_p: Bool = false
+    var _newSavingTargetFrom: String = String()
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -889,6 +898,7 @@ nonisolated extension MoneyRecap_V1_LedgerSettings: SwiftProtobuf.Message, Swift
       _paydayPassedThisMonth = source._paydayPassedThisMonth
       _currencyCode = source._currencyCode
       _hasAmountsToConvert_p = source._hasAmountsToConvert_p
+      _newSavingTargetFrom = source._newSavingTargetFrom
     }
   }
 
@@ -914,6 +924,7 @@ nonisolated extension MoneyRecap_V1_LedgerSettings: SwiftProtobuf.Message, Swift
         case 5: try { try decoder.decodeSingularBoolField(value: &_storage._paydayPassedThisMonth) }()
         case 6: try { try decoder.decodeSingularStringField(value: &_storage._currencyCode) }()
         case 7: try { try decoder.decodeSingularBoolField(value: &_storage._hasAmountsToConvert_p) }()
+        case 8: try { try decoder.decodeSingularStringField(value: &_storage._newSavingTargetFrom) }()
         default: break
         }
       }
@@ -947,6 +958,9 @@ nonisolated extension MoneyRecap_V1_LedgerSettings: SwiftProtobuf.Message, Swift
       if _storage._hasAmountsToConvert_p != false {
         try visitor.visitSingularBoolField(value: _storage._hasAmountsToConvert_p, fieldNumber: 7)
       }
+      if !_storage._newSavingTargetFrom.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._newSavingTargetFrom, fieldNumber: 8)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -963,6 +977,7 @@ nonisolated extension MoneyRecap_V1_LedgerSettings: SwiftProtobuf.Message, Swift
         if _storage._paydayPassedThisMonth != rhs_storage._paydayPassedThisMonth {return false}
         if _storage._currencyCode != rhs_storage._currencyCode {return false}
         if _storage._hasAmountsToConvert_p != rhs_storage._hasAmountsToConvert_p {return false}
+        if _storage._newSavingTargetFrom != rhs_storage._newSavingTargetFrom {return false}
         return true
       }
       if !storagesAreEqual {return false}
