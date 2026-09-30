@@ -461,7 +461,8 @@ public nonisolated struct MoneyRecap_V1_ConversionPreview: Sendable {
   /// Clears the value of `salaryAfter`. Subsequent reads from it will return its default value.
   public mutating func clearSalaryAfter() {self._salaryAfter = nil}
 
-  /// The sum of every Spend that would be rewritten.
+  /// Every Spend of every month, not one month's (the D6 row "Spends"): the
+  /// sum before, and the sum of each Spend rewritten after.
   public var spendsBefore: MoneyRecap_V1_Money {
     get {_spendsBefore ?? MoneyRecap_V1_Money()}
     set {_spendsBefore = newValue}

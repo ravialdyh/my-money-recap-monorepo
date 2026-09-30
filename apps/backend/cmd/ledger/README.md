@@ -3,8 +3,8 @@
 The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary, Saving Target and Spends and every
 figure PRD §8 computes from them. Built by #99 (spec #92), with Spends since #128 and Recaps since #130: it serves `SaveSalary`,
 `RelabelCurrency`, `SaveTarget`, `LogSpend`, `EditSpend` and `DeleteSpend` (#133), `GetSettings`, `GetMonthSummary`, `GetRecap`, `ListSpends` and
-`ListMonthsWithData` (#131), and `GetSpentToday` (#177); `PreviewConversion`, `ApplyCurrencyConversion` and
-`ExportCSV` are planned. The BFF calls it since #103: Home's month,
+`ListMonthsWithData` (#131), `GetSpentToday` (#177), and `PreviewConversion` and `ApplyCurrencyConversion` (#173);
+`ExportCSV` is planned. The BFF calls it since #103: Home's month,
 onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, every Spend screen and, since #152, the Recap. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
 
@@ -16,7 +16,7 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, ev
 | Path | Holds |
 | --- | --- |
 | `main.go` | The binary: its name, its schema step, its handler, its consumer and its outbox relay, handed to `serve.Main`. |
-| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`, `EditSpend`, `DeleteSpend` and the events they stage), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `list.go` (`ListSpends`, `ListMonthsWithData`, the Category split and the months with data both lists share), `money.go` (a Currency's decimals and an amount inside a sentence), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
+| `../../internal/ledger/` | `ledger.go` (the replica and the reads), `writes.go` (the Salary and Target writes), `spends.go` (`LogSpend`, `EditSpend`, `DeleteSpend` and the events they stage), `month.go` (PRD §8's Home figures of a month), `recap.go` (`GetRecap` and Home's past-Recap list), `list.go` (`ListSpends`, `ListMonthsWithData`, the Category split and the months with data both lists share), `money.go` (a Currency's decimals and an amount inside a sentence), `convert.go` (the currency change), `consume.go` (the replica from events) and `migrations/*.sql` (embedded). |
 
 ## What it keeps
 
@@ -24,7 +24,7 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, ev
   needs. `members.created` and `members.updated` keep it fresh from the quorum queue `ledger.members`
   (#101, §4.3): each message id is recorded in `processed_events` in the transaction that applies it, so a
   second delivery changes nothing; an event older than the one applied (`facts_at`) is skipped, a Currency older
-  than the last `RelabelCurrency` (`currency_at`) is too, and an empty fact never clears a stored one. A message that fails five times waits in `ledger.members.dead`
+  than the last `RelabelCurrency` or conversion (`currency_at`) is too, and an empty fact never clears a stored one. A message that fails five times waits in `ledger.members.dead`
   for a person. On a miss, a fact no event has brought yet, it asks `members.GetProfile` once, under the
   caller's own token, which the service forwards (§6.2 step 3), and fills only what the row lacks, so a
   read racing a newer event cannot overwrite it. The row also keeps the subject
@@ -47,10 +47,19 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, ev
   replaces the setup row, a new Payday included (owner, 2026-09-23). Two rows sharing a month resolve newest first.
 - The **first** Salary or Saving Target saved **after** onboarding, from Home's prompt, takes effect this
   month, so no month already recapped gains one (owner, 2026-09-23). Every later save is an edit.
-- `RelabelCurrency` is onboarding's Currency change: every Salary row takes the new code, `original_currency`
-  included, each amount and original rounded half up to the new decimals and never below the smallest unit, and
-  the replica takes the code in the same transaction, so a save in it right after is not refused. No rate, no
-  conversion row (spec #92).
+- `RelabelCurrency` is onboarding's Currency change, and after onboarding the change with nothing to convert
+  (PRD §8.9 step 2): every Salary row takes the new code, `original_currency` included, each amount and original
+  rounded half up to the new decimals and never below the smallest unit, and the replica takes the code in the
+  same transaction, so a save in it right after is not refused. No rate, no conversion row (spec #92).
+- The currency change (PRD §8.9, #173): a rate is above zero, at most 11 digits before the separator and 12 after,
+  into an ISO 4217 Currency other than the one held. `PreviewConversion` answers the Salary in force and the total
+  of every Spend, before and after, the after total being the sum of each Spend rewritten; nothing is written.
+  `ApplyCurrencyConversion` locks the Member, checks the same, then in one transaction rewrites every Salary row
+  and every Spend (deleted ones too) to round-half-up(amount × rate) at the new decimals, never below the smallest
+  unit as the relabel keeps it, leaves each original untouched, writes the `currency_conversion` row with the rate
+  and its source, stamps the replica's Currency (`currency_at`) and stages `ledger.currency.converted`. Either call
+  is `out_of_range`, with nothing written, when any rewritten amount would pass D57's 11 digits. A repeated key
+  answers the first result (A14).
 - After it, a Salary follows D56 and §8.10: a new Payday starts next month, and so does an amount sent as
   next month's; one sent as this month's applies now; one sent with no answer applies now before this
   month's Payday and is `failed_precondition` from it on, which the phone answers with the D56 sheet.
@@ -84,15 +93,17 @@ onboarding's steps 3 and 4 (#104), a resumed step's saved answers since #129, ev
 - Every write needs an `idempotency_key`, claimed in `idempotency` inside the write's own transaction
   (`internal/idempotency`, A14), as `members` does.
 - Each Spend write stages `ledger.spend.logged`, `ledger.spend.edited` or `ledger.spend.deleted` in `outbox`
-  inside that same transaction (#135, ARCHITECTURE §4.3), carrying the answer's Spend, month and `crossed_line`;
-  a replayed key stages nothing more. The relay beside the handler publishes it as `members`' does.
+  inside that same transaction (#135, ARCHITECTURE §4.3), carrying the answer's Spend, month and `crossed_line`,
+  and a conversion stages `ledger.currency.converted`, which `members` consumes (#173); a replayed key stages
+  nothing more. The relay beside the handler publishes it as `members`' does.
 
 ## Tests
 
 `go test ./internal/ledger/` runs them. The money ones need the stack's `ledger` database, and the
 Connect-boundary one and `TestMembersEventsReachTheReplica` also need `ledger`, `members` and a real Keycloak token (`infra/compose/README.md`,
 "Running the Go tests against this stack"). `TestTheAnswerKey` runs every file in
-`packages/contract/fixtures/ledger/` but the one it names as left out with its reason, the currency change, until slice 7, so 23 run. Each goes through the service and
+`packages/contract/fixtures/ledger/`, none left out (#173). Each goes through the service and
 its database, its rows seeded, the last Spend logged on its own date where the file asserts `crossedLine`,
-its `saveSalary` made, the clock at its `asOf`, and every listed month, Recap, the settings and the Salary rows
-after are compared whole.
+its `saveSalary` made, its `conversionPreview` asked and its `convert` made, the clock at its `asOf`, and every
+listed month, Recap, the preview, the settings, the one conversion row and the Salary and Spend rows after are
+compared whole.

@@ -2,20 +2,20 @@
 
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
 subject. It serves `GetOrCreateBySubject` and `GetProfile` (#15), `SetTimezone` (#96), `SaveProfile`
-(#98) and `CancelDeletion` (#105); the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
+(#98) and `CancelDeletion` (#105), and consumes `ledger.currency.converted` (#173); the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
 (`apps/README.md`, "Every service"), plus four of its own.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `MEMBERS_AMQP_URL` | required | The broker its outbox relay publishes to: the `amqp_url` secret in Compose. |
+| `MEMBERS_AMQP_URL` | required | The broker its outbox relay publishes to and its consumer reads from: the `amqp_url` secret in Compose. |
 | `MEMBERS_REALM_URL` | required | The realm, whose token endpoint issues `members`' own service-account token: `http://keycloak:8080/realms/mmr` in Compose. |
 | `MEMBERS_REALM_ADMIN_URL` | required | The realm's admin address, where that account deletes Keycloak accounts: `http://keycloak:8080/admin/realms/mmr` in Compose. |
 | `MEMBERS_CLIENT_SECRET` | required | The `members` client's secret (`MEMBERS_CLIENT_SECRET_FILE` works too). |
 
 | Path | Holds |
 | --- | --- |
-| `main.go` | The binary: its name, its schema step, its handler and its outbox relay, handed to `serve.Main`. |
-| `../../internal/members/` | Store, Connect handler, the events it stages (`announce.go`) and `migrations/*.sql` (embedded). |
+| `main.go` | The binary: its name, its schema step, its handler, its consumer and its outbox relay, handed to `serve.Main`. |
+| `../../internal/members/` | Store, Connect handler, the events it stages (`announce.go`), the one it consumes (`consume.go`) and `migrations/*.sql` (embedded). |
 
 ## Run
 
@@ -80,6 +80,14 @@ that changes none of them stages nothing: an Avatar, a step, the same answer aga
 relay beside the handler polls the outbox every second, publishes with publisher confirms and marks a row
 sent only once the broker has confirmed it; `FOR UPDATE SKIP LOCKED` keeps two relays off the same row
 (`internal/events`). A relay that loses the broker logs it and dials again five seconds later.
+
+Its first consumer (#173) reads the quorum queue `members.ledger`, bound to `ledger.currency.converted`
+(ARCHITECTURE §7.2 currency flow). Each message id is recorded in `processed_events` in the transaction that
+applies it, so a second delivery changes nothing; the event sets `currency_code` and stages one
+`members.updated`, unless a conversion newer than it was already applied (`currency_at`), so a late delivery
+never takes the code back. A malformed event is rejected, never nacked, and after five tries waits in
+`members.ledger.dead` for a person. Until the event arrives the Profile's Currency lags `ledger`'s by seconds;
+every view the BFF answers takes its Currency from `ledger`, so no screen shows it.
 
 ## Tests
 

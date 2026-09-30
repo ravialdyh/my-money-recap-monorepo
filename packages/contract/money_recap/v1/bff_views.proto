@@ -16,7 +16,8 @@ message HomeView {
   // Empty until onboarding; Home omits the greeting when empty.
   string display_name = 1;
   string avatar_key = 2;
-  // ISO 4217 code every amount below is held in.
+  // ISO 4217 code every amount below is held in, ledger's, so it changes in
+  // the conversion's own answer while members' copy follows by event (§8.9).
   string currency_code = 3;
   // The current Recap Month as "YYYY-MM" in the Member's local dates.
   string month = 4;
@@ -53,7 +54,7 @@ message HomeView {
 
 // One month's Recap as the phone stores it (I4): ledger's Recap for the full
 // or the Partial Recap (PRD §6.11 to §6.14, §6.17) joined with the Member's
-// current Display Name and Currency, since nothing about a Recap is stored (§7).
+// current Display Name, since nothing about a Recap is stored (§7).
 message RecapView {
   reserved 3;
   reserved "avatar_key";
@@ -61,7 +62,7 @@ message RecapView {
   Recap recap = 1;
   // The current Display Name (PRD §6.11, §6.14, SCREEN-STATES D2).
   string display_name = 2;
-  // ISO 4217 code every amount in recap is held in.
+  // ISO 4217 code every amount in recap is held in, ledger's (HomeView).
   string currency_code = 4;
 }
 
@@ -70,7 +71,7 @@ message RecapView {
 message SpendListView {
   // "YYYY-MM" the list shows.
   string month = 1;
-  // ISO 4217 code every amount below is held in.
+  // ISO 4217 code every amount below is held in, ledger's (HomeView).
   string currency_code = 2;
   // Every month with a Spend or Money In, "YYYY-MM", newest first, the current
   // month included: what the month switcher lists (PRD D59).
@@ -94,7 +95,8 @@ message SpendListView {
 // Everything Settings draws (PRD §6.16): the profile from members, the rows
 // in force and the D56 facts from ledger, the toggles from notify.
 message SettingsView {
-  // Display Name, Avatar, Currency and the deletion stamp (§6.18).
+  // Display Name, Avatar, Currency and the deletion stamp (§6.18); the
+  // Currency and its decimals are ledger's, as in HomeView.
   Profile profile = 1;
   // Salary and Payday, Saving Target, payday_passed_this_month (D56) and
   // has_amounts_to_convert (§8.9 step 2); a "Not set" row is an absent field.

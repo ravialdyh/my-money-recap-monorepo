@@ -10,7 +10,7 @@ import (
 )
 
 // ListSpends is the Spend list (PRD §6.10, D59) for the month asked, or the current one in the Member's zone: ledger's
-// month, the switcher's months and the month's Streak, asked at once, each required, each code passed through.
+// month, the switcher's months and the Streak, asked at once, each required, each code passed through, in ledger's Currency.
 func (s *Service) ListSpends(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceListSpendsRequest]) (*connect.Response[moneyrecapv1.BffServiceListSpendsResponse], error) {
 	profile, err := s.member(ctx)
 	if err != nil {
@@ -52,8 +52,9 @@ func (s *Service) ListSpends(ctx context.Context, req *connect.Request[moneyreca
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
+	code, digits := heldIn(list.Msg.Spent.GetCurrencyCode(), profile)
 	return connect.NewResponse(&moneyrecapv1.BffServiceListSpendsResponse{Spends: &moneyrecapv1.SpendListView{
-		Month: month, CurrencyCode: profile.CurrencyCode, CurrencyDigits: profile.CurrencyDigits, Months: months.Msg.Months,
+		Month: month, CurrencyCode: code, CurrencyDigits: digits, Months: months.Msg.Months,
 		Spent: list.Msg.Spent, Categories: list.Msg.Categories, Spends: list.Msg.Spends, StreakDay: summary.Msg.Summary.GetStreakDay(),
 	}}), nil
 }

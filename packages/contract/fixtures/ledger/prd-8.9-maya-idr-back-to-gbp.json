@@ -1,0 +1,59 @@
+{
+  "doc": "PRD §8.9 step 6, Maya on 5 October converting her rupiah back to GBP at a typed 0.0000496, from the amounts prd-8.9-maya-gbp-to-idr left (£ originals) plus a Rp150.000 Spend logged since (a Rp original). Each amount is round-half-up(amount × 0.0000496) to 2 decimals, never from the original: Salary Rp48.360.000 → 2,398.656 → £2,398.66 (from the original it would be £0.12, and the original restored £2,400.00). Spends: 6.045.000 → 299.832 → 299.83, 3.022.500 → 149.916 → 149.92, 4.030.000 → 199.888 → 199.89, 5.037.500 → 249.86, 3.627.000 → 179.8992 → 179.90, 2.418.000 → 119.9328 → 119.93, 8.463.000 → 419.7648 → 419.76, 2.821.000 → 139.9216 → 139.92, 150.000 → 7.44. The preview's Spends row: Rp35.614.000 before, their sum £1,766.45 after. Originals untouched; the Target stays 20%; before Payday on the 5th.",
+  "timezone": "Europe/London",
+  "signedUpOn": "2026-08-01",
+  "currencyCode": "IDR",
+  "salaries": [
+    {"amount": {"amount": "48360000", "currencyCode": "IDR"}, "originalAmount": {"amount": "2400.00", "currencyCode": "GBP"}, "payday": "25", "effectiveFrom": "2026-08"}
+  ],
+  "savingTargets": [
+    {"percent": 20, "effectiveFrom": "2026-08"}
+  ],
+  "spends": [
+    {"id": "maya-01", "amount": {"amount": "6045000", "currencyCode": "IDR"}, "originalAmount": {"amount": "300.00", "currencyCode": "GBP"}, "category": "CATEGORY_BILLS", "date": "2026-09-03"},
+    {"id": "maya-02", "amount": {"amount": "3022500", "currencyCode": "IDR"}, "originalAmount": {"amount": "150.00", "currencyCode": "GBP"}, "category": "CATEGORY_SNACKS", "date": "2026-09-06"},
+    {"id": "maya-03", "amount": {"amount": "4030000", "currencyCode": "IDR"}, "originalAmount": {"amount": "200.00", "currencyCode": "GBP"}, "category": "CATEGORY_RIDES", "date": "2026-09-09"},
+    {"id": "maya-04", "amount": {"amount": "5037500", "currencyCode": "IDR"}, "originalAmount": {"amount": "250.00", "currencyCode": "GBP"}, "category": "CATEGORY_GAMES", "date": "2026-09-11"},
+    {"id": "maya-05", "amount": {"amount": "3627000", "currencyCode": "IDR"}, "originalAmount": {"amount": "180.00", "currencyCode": "GBP"}, "category": "CATEGORY_CLOTHES", "date": "2026-09-21"},
+    {"id": "maya-06", "amount": {"amount": "2418000", "currencyCode": "IDR"}, "originalAmount": {"amount": "120.00", "currencyCode": "GBP"}, "category": "CATEGORY_SNACKS", "date": "2026-09-24"},
+    {"id": "maya-07", "amount": {"amount": "8463000", "currencyCode": "IDR"}, "originalAmount": {"amount": "420.00", "currencyCode": "GBP"}, "category": "CATEGORY_TOYS", "date": "2026-09-27"},
+    {"id": "maya-08", "amount": {"amount": "2821000", "currencyCode": "IDR"}, "originalAmount": {"amount": "140.00", "currencyCode": "GBP"}, "category": "CATEGORY_GIFTS", "date": "2026-09-29"},
+    {"id": "maya-09", "amount": {"amount": "150000", "currencyCode": "IDR"}, "originalAmount": {"amount": "150000", "currencyCode": "IDR"}, "category": "CATEGORY_SNACKS", "date": "2026-10-02"}
+  ],
+  "asOf": "2026-10-05",
+  "convert": {
+    "rate": "0.0000496",
+    "source": "RATE_SOURCE_MANUAL",
+    "toCurrencyCode": "GBP"
+  },
+  "settings": {
+    "salary": {"amount": {"amount": "2398.66", "currencyCode": "GBP"}, "originalAmount": {"amount": "2400.00", "currencyCode": "GBP"}, "payday": "25", "effectiveFrom": "2026-08"},
+    "savingTarget": {"percent": 20, "effectiveFrom": "2026-08"},
+    "currencyCode": "GBP",
+    "hasAmountsToConvert": true,
+    "newSavingTargetFrom": "2026-11"
+  },
+  "conversionPreview": {
+    "fromCurrencyCode": "IDR",
+    "toCurrencyCode": "GBP",
+    "rate": "0.0000496",
+    "salaryBefore": {"amount": "48360000", "currencyCode": "IDR"},
+    "salaryAfter": {"amount": "2398.66", "currencyCode": "GBP"},
+    "spendsBefore": {"amount": "35614000", "currencyCode": "IDR"},
+    "spendsAfter": {"amount": "1766.45", "currencyCode": "GBP"}
+  },
+  "salariesAfter": [
+    {"amount": {"amount": "2398.66", "currencyCode": "GBP"}, "originalAmount": {"amount": "2400.00", "currencyCode": "GBP"}, "payday": "25", "effectiveFrom": "2026-08"}
+  ],
+  "spendsAfter": [
+    {"id": "maya-01", "amount": {"amount": "299.83", "currencyCode": "GBP"}, "originalAmount": {"amount": "300.00", "currencyCode": "GBP"}, "category": "CATEGORY_BILLS", "date": "2026-09-03"},
+    {"id": "maya-02", "amount": {"amount": "149.92", "currencyCode": "GBP"}, "originalAmount": {"amount": "150.00", "currencyCode": "GBP"}, "category": "CATEGORY_SNACKS", "date": "2026-09-06"},
+    {"id": "maya-03", "amount": {"amount": "199.89", "currencyCode": "GBP"}, "originalAmount": {"amount": "200.00", "currencyCode": "GBP"}, "category": "CATEGORY_RIDES", "date": "2026-09-09"},
+    {"id": "maya-04", "amount": {"amount": "249.86", "currencyCode": "GBP"}, "originalAmount": {"amount": "250.00", "currencyCode": "GBP"}, "category": "CATEGORY_GAMES", "date": "2026-09-11"},
+    {"id": "maya-05", "amount": {"amount": "179.90", "currencyCode": "GBP"}, "originalAmount": {"amount": "180.00", "currencyCode": "GBP"}, "category": "CATEGORY_CLOTHES", "date": "2026-09-21"},
+    {"id": "maya-06", "amount": {"amount": "119.93", "currencyCode": "GBP"}, "originalAmount": {"amount": "120.00", "currencyCode": "GBP"}, "category": "CATEGORY_SNACKS", "date": "2026-09-24"},
+    {"id": "maya-07", "amount": {"amount": "419.76", "currencyCode": "GBP"}, "originalAmount": {"amount": "420.00", "currencyCode": "GBP"}, "category": "CATEGORY_TOYS", "date": "2026-09-27"},
+    {"id": "maya-08", "amount": {"amount": "139.92", "currencyCode": "GBP"}, "originalAmount": {"amount": "140.00", "currencyCode": "GBP"}, "category": "CATEGORY_GIFTS", "date": "2026-09-29"},
+    {"id": "maya-09", "amount": {"amount": "7.44", "currencyCode": "GBP"}, "originalAmount": {"amount": "150000", "currencyCode": "IDR"}, "category": "CATEGORY_SNACKS", "date": "2026-10-02"}
+  ]
+}

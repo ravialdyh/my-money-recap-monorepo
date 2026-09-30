@@ -123,11 +123,15 @@ type BffServiceClient interface {
 	// after setup starts this month, later ones next month (D65);
 	// failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
-	// currency.Quote then ledger.PreviewConversion; unavailable when the rate
-	// fetch fails, the Retry InlineError (PRD §8.9 step 1).
+	// nothing_to_convert, no quote, when ledger holds no amounts; with
+	// manual_rate, ledger.PreviewConversion; else currency.Quote, unavailable
+	// when the fetch fails (PRD §8.9 step 1), always until #175 adds currency.
+	// out_of_range past 11 digits (D57).
 	PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error)
-	// ledger.ApplyCurrencyConversion, or members.SaveProfile when there is
-	// nothing to convert (PRD §8.9 steps 2 and 4).
+	// ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
+	// writes under one key: members.SaveProfile, then ledger.RelabelCurrency
+	// (PRD §8.9 steps 2 and 4). failed_precondition with no rate while ledger
+	// holds amounts; out_of_range past D57.
 	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
 	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
 	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
@@ -437,11 +441,15 @@ type BffServiceHandler interface {
 	// after setup starts this month, later ones next month (D65);
 	// failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
-	// currency.Quote then ledger.PreviewConversion; unavailable when the rate
-	// fetch fails, the Retry InlineError (PRD §8.9 step 1).
+	// nothing_to_convert, no quote, when ledger holds no amounts; with
+	// manual_rate, ledger.PreviewConversion; else currency.Quote, unavailable
+	// when the fetch fails (PRD §8.9 step 1), always until #175 adds currency.
+	// out_of_range past 11 digits (D57).
 	PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error)
-	// ledger.ApplyCurrencyConversion, or members.SaveProfile when there is
-	// nothing to convert (PRD §8.9 steps 2 and 4).
+	// ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
+	// writes under one key: members.SaveProfile, then ledger.RelabelCurrency
+	// (PRD §8.9 steps 2 and 4). failed_precondition with no rate while ledger
+	// holds amounts; out_of_range past D57.
 	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
 	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
 	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)

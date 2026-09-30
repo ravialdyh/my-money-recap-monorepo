@@ -102,9 +102,10 @@ type LedgerServiceClient interface {
 	// §8.10); later ones from the month applies_from names (D56), a new Payday
 	// next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
-	// Onboarding's Currency change (spec #92): every Salary row takes the new
-	// code, originals included, each amount re-rounded half up to its decimals;
-	// no rate and no CurrencyConversion row. The replica takes the code at once.
+	// Onboarding's Currency change (spec #92), and later the change with
+	// nothing to convert (PRD §8.9 step 2): every Salary row takes the code,
+	// originals included, re-rounded half up to its decimals; no rate, no
+	// conversion row. The replica takes it at once.
 	RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error)
 	// Appends a saving_target_setting row: a setup save takes effect in the
 	// sign-up month and a first save after setup this month (spec #92, owner
@@ -112,9 +113,12 @@ type LedgerServiceClient interface {
 	// a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error)
 	// The before-and-after values for the confirm sheet; nothing is written.
+	// out_of_range when any rewritten amount would pass 11 digits (D57).
 	PreviewConversion(context.Context, *connect.Request[v1.PreviewConversionRequest]) (*connect.Response[v1.PreviewConversionResponse], error)
 	// Rewrites every Salary and Spend amount in one transaction, keeping the
-	// originals, and records the conversion (PRD §8.9 step 4).
+	// originals, records it, stages ledger.currency.converted and stamps the
+	// replica's Currency (PRD §8.9 step 4); out_of_range past D57, nothing
+	// written.
 	ApplyCurrencyConversion(context.Context, *connect.Request[v1.ApplyCurrencyConversionRequest]) (*connect.Response[v1.ApplyCurrencyConversionResponse], error)
 	// Batched for the daily reminder: one call per 500 Members (§7.3). The other
 	// call notify's own token may make, with no owner check (ARCHITECTURE §4.2);
@@ -347,9 +351,10 @@ type LedgerServiceHandler interface {
 	// §8.10); later ones from the month applies_from names (D56), a new Payday
 	// next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
-	// Onboarding's Currency change (spec #92): every Salary row takes the new
-	// code, originals included, each amount re-rounded half up to its decimals;
-	// no rate and no CurrencyConversion row. The replica takes the code at once.
+	// Onboarding's Currency change (spec #92), and later the change with
+	// nothing to convert (PRD §8.9 step 2): every Salary row takes the code,
+	// originals included, re-rounded half up to its decimals; no rate, no
+	// conversion row. The replica takes it at once.
 	RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error)
 	// Appends a saving_target_setting row: a setup save takes effect in the
 	// sign-up month and a first save after setup this month (spec #92, owner
@@ -357,9 +362,12 @@ type LedgerServiceHandler interface {
 	// a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error)
 	// The before-and-after values for the confirm sheet; nothing is written.
+	// out_of_range when any rewritten amount would pass 11 digits (D57).
 	PreviewConversion(context.Context, *connect.Request[v1.PreviewConversionRequest]) (*connect.Response[v1.PreviewConversionResponse], error)
 	// Rewrites every Salary and Spend amount in one transaction, keeping the
-	// originals, and records the conversion (PRD §8.9 step 4).
+	// originals, records it, stages ledger.currency.converted and stamps the
+	// replica's Currency (PRD §8.9 step 4); out_of_range past D57, nothing
+	// written.
 	ApplyCurrencyConversion(context.Context, *connect.Request[v1.ApplyCurrencyConversionRequest]) (*connect.Response[v1.ApplyCurrencyConversionResponse], error)
 	// Batched for the daily reminder: one call per 500 Members (§7.3). The other
 	// call notify's own token may make, with no owner check (ARCHITECTURE §4.2);

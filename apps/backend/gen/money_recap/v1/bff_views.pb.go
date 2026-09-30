@@ -28,7 +28,8 @@ type HomeView struct {
 	// Empty until onboarding; Home omits the greeting when empty.
 	DisplayName string `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	AvatarKey   string `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3" json:"avatar_key,omitempty"`
-	// ISO 4217 code every amount below is held in.
+	// ISO 4217 code every amount below is held in, ledger's, so it changes in
+	// the conversion's own answer while members' copy follows by event (§8.9).
 	CurrencyCode string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	// The current Recap Month as "YYYY-MM" in the Member's local dates.
 	Month string `protobuf:"bytes,4,opt,name=month,proto3" json:"month,omitempty"`
@@ -209,14 +210,14 @@ func (x *HomeView) GetEarliestSpendDate() string {
 
 // One month's Recap as the phone stores it (I4): ledger's Recap for the full
 // or the Partial Recap (PRD §6.11 to §6.14, §6.17) joined with the Member's
-// current Display Name and Currency, since nothing about a Recap is stored (§7).
+// current Display Name, since nothing about a Recap is stored (§7).
 type RecapView struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Every figure of the month; situation says which four screens to draw.
 	Recap *Recap `protobuf:"bytes,1,opt,name=recap,proto3" json:"recap,omitempty"`
 	// The current Display Name (PRD §6.11, §6.14, SCREEN-STATES D2).
 	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// ISO 4217 code every amount in recap is held in.
+	// ISO 4217 code every amount in recap is held in, ledger's (HomeView).
 	CurrencyCode  string `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -279,7 +280,7 @@ type SpendListView struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// "YYYY-MM" the list shows.
 	Month string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
-	// ISO 4217 code every amount below is held in.
+	// ISO 4217 code every amount below is held in, ledger's (HomeView).
 	CurrencyCode string `protobuf:"bytes,2,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	// Every month with a Spend or Money In, "YYYY-MM", newest first, the current
 	// month included: what the month switcher lists (PRD D59).
@@ -392,7 +393,8 @@ func (x *SpendListView) GetCurrencyDigits() int32 {
 // in force and the D56 facts from ledger, the toggles from notify.
 type SettingsView struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Display Name, Avatar, Currency and the deletion stamp (§6.18).
+	// Display Name, Avatar, Currency and the deletion stamp (§6.18); the
+	// Currency and its decimals are ledger's, as in HomeView.
 	Profile *Profile `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
 	// Salary and Payday, Saving Target, payday_passed_this_month (D56) and
 	// has_amounts_to_convert (§8.9 step 2); a "Not set" row is an absent field.

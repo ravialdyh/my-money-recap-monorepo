@@ -38,7 +38,8 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
     set {_uniqueStorage()._avatarKey = newValue}
   }
 
-  /// ISO 4217 code every amount below is held in.
+  /// ISO 4217 code every amount below is held in, ledger's, so it changes in
+  /// the conversion's own answer while members' copy follows by event (§8.9).
   public var currencyCode: String {
     get {_storage._currencyCode}
     set {_uniqueStorage()._currencyCode = newValue}
@@ -160,7 +161,7 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
 
 /// One month's Recap as the phone stores it (I4): ledger's Recap for the full
 /// or the Partial Recap (PRD §6.11 to §6.14, §6.17) joined with the Member's
-/// current Display Name and Currency, since nothing about a Recap is stored (§7).
+/// current Display Name, since nothing about a Recap is stored (§7).
 public nonisolated struct MoneyRecap_V1_RecapView: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -179,7 +180,7 @@ public nonisolated struct MoneyRecap_V1_RecapView: Sendable {
   /// The current Display Name (PRD §6.11, §6.14, SCREEN-STATES D2).
   public var displayName: String = String()
 
-  /// ISO 4217 code every amount in recap is held in.
+  /// ISO 4217 code every amount in recap is held in, ledger's (HomeView).
   public var currencyCode: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -199,7 +200,7 @@ public nonisolated struct MoneyRecap_V1_SpendListView: Sendable {
   /// "YYYY-MM" the list shows.
   public var month: String = String()
 
-  /// ISO 4217 code every amount below is held in.
+  /// ISO 4217 code every amount below is held in, ledger's (HomeView).
   public var currencyCode: String = String()
 
   /// Every month with a Spend or Money In, "YYYY-MM", newest first, the current
@@ -246,7 +247,8 @@ public nonisolated struct MoneyRecap_V1_SettingsView: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Display Name, Avatar, Currency and the deletion stamp (§6.18).
+  /// Display Name, Avatar, Currency and the deletion stamp (§6.18); the
+  /// Currency and its decimals are ledger's, as in HomeView.
   public var profile: MoneyRecap_V1_Profile {
     get {_profile ?? MoneyRecap_V1_Profile()}
     set {_profile = newValue}

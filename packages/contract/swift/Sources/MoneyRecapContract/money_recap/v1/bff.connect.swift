@@ -77,13 +77,17 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `saveTarget`(request: MoneyRecap_V1_BffServiceSaveTargetRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveTargetResponse>
 
-    /// currency.Quote then ledger.PreviewConversion; unavailable when the rate
-    /// fetch fails, the Retry InlineError (PRD §8.9 step 1).
+    /// nothing_to_convert, no quote, when ledger holds no amounts; with
+    /// manual_rate, ledger.PreviewConversion; else currency.Quote, unavailable
+    /// when the fetch fails (PRD §8.9 step 1), always until #175 adds currency.
+    /// out_of_range past 11 digits (D57).
     @available(iOS 13, *)
     func `previewCurrencyChange`(request: MoneyRecap_V1_BffServicePreviewCurrencyChangeRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServicePreviewCurrencyChangeResponse>
 
-    /// ledger.ApplyCurrencyConversion, or members.SaveProfile when there is
-    /// nothing to convert (PRD §8.9 steps 2 and 4).
+    /// ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
+    /// writes under one key: members.SaveProfile, then ledger.RelabelCurrency
+    /// (PRD §8.9 steps 2 and 4). failed_precondition with no rate while ledger
+    /// holds amounts; out_of_range past D57.
     @available(iOS 13, *)
     func `changeCurrency`(request: MoneyRecap_V1_BffServiceChangeCurrencyRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceChangeCurrencyResponse>
 

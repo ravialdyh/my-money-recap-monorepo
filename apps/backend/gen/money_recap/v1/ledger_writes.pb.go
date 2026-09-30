@@ -844,7 +844,8 @@ type ApplyCurrencyConversionRequest struct {
 	// A14; see the package doc in shared.proto.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// Decimal string: units of to_currency_code per unit of the current one.
+	// Decimal string: units of to_currency_code per unit of the current one,
+	// limited as PreviewConversionRequest.rate.
 	Rate string `protobuf:"bytes,3,opt,name=rate,proto3" json:"rate,omitempty"`
 	// PROVIDER or MANUAL, for the CurrencyConversion row (PRD §7); UNSPECIFIED
 	// is invalid_argument.

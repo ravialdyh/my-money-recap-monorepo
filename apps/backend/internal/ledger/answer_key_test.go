@@ -42,7 +42,7 @@ func seed(t *testing.T, db *pgxpool.Pool, id, subject, zone, signedUp, code stri
 	t.Helper()
 	ctx := context.Background()
 	t.Cleanup(func() {
-		for _, table := range []string{"member_facts", "salary_setting", "saving_target_setting", "spend", "idempotency", "outbox"} {
+		for _, table := range []string{"member_facts", "salary_setting", "saving_target_setting", "spend", "idempotency", "outbox", "currency_conversion"} {
 			if _, err := db.Exec(ctx, `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
 				t.Logf("cleanup %s: %v", table, err)
 			}
@@ -90,19 +90,10 @@ func seedSpends(t *testing.T, db *pgxpool.Pool, id string, spends []*moneyrecapv
 	}
 }
 
-// leftOut names why a fixture does not run yet, or nothing when it runs.
-func leftOut(f *moneyrecapv1.LedgerFixture) string {
-	if f.Convert != nil || f.ConversionPreview != nil {
-		return "the currency change waits for slice 7"
-	}
-	return ""
-}
-
-// TestTheAnswerKey runs every PRD §8 fixture through the service and its database: rows seeded, the last Spend
-// logged on its own date where crossed_line is asserted, the Salary saved, then months, Recaps, settings and rows compared.
+// TestTheAnswerKey runs every PRD §8 fixture through the service and its database, none left out: rows seeded, the
+// crossing Spend logged, the Salary saved, the conversion previewed and made, then every expected field compared.
 func TestTheAnswerKey(t *testing.T) {
 	db := testDB(t)
-	ran := 0
 	for i, name := range fixtureNames(t, fixtureDir) {
 		raw, err := os.ReadFile(filepath.Join(fixtureDir, name+".json"))
 		if err != nil {
@@ -112,15 +103,7 @@ func TestTheAnswerKey(t *testing.T) {
 		if err := protojson.Unmarshal(raw, &f); err != nil {
 			t.Fatal(err)
 		}
-		if why := leftOut(&f); why != "" {
-			t.Logf("left out: %s: %s", name, why)
-			continue
-		}
-		ran++
 		t.Run(name, func(t *testing.T) { runFixture(t, db, fmt.Sprintf("00000000-0000-4000-8000-%012d", i), name, &f) })
-	}
-	if ran != 23 {
-		t.Fatalf("%d fixtures ran, want 23", ran)
 	}
 }
 
@@ -158,6 +141,27 @@ func runFixture(t *testing.T, db *pgxpool.Pool, id, name string, f *moneyrecapv1
 			t.Fatal(err)
 		}
 	}
+	held := f.CurrencyCode
+	if f.ConversionPreview != nil {
+		got, err := s.PreviewConversion(ctx, connect.NewRequest(&moneyrecapv1.PreviewConversionRequest{MemberId: id, Rate: f.Convert.GetRate(), ToCurrencyCode: f.Convert.GetToCurrencyCode()}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !proto.Equal(got.Msg.Preview, f.ConversionPreview) {
+			t.Errorf("preview:\n got %v\nwant %v", got.Msg.Preview, f.ConversionPreview)
+		}
+	}
+	if f.Convert != nil {
+		f.Convert.IdempotencyKey, f.Convert.MemberId, held = "convert", id, f.Convert.ToCurrencyCode
+		if _, err := s.ApplyCurrencyConversion(ctx, connect.NewRequest(f.Convert)); err != nil {
+			t.Fatal(err)
+		}
+		var rows int
+		if err := db.QueryRow(ctx, `SELECT count(*) FROM currency_conversion WHERE member_id = $1 AND from_code = $2 AND to_code = $3 AND rate = $4::numeric AND source = $5`,
+			id, f.CurrencyCode, f.Convert.ToCurrencyCode, f.Convert.Rate, int16(f.Convert.Source)).Scan(&rows); err != nil || rows != 1 {
+			t.Errorf("%d CurrencyConversion rows naming the change (%v), want 1 (PRD §12 AC8)", rows, err)
+		}
+	}
 	for _, want := range f.Months {
 		got, err := s.GetMonthSummary(ctx, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: id, Month: want.Month}))
 		if err != nil {
@@ -193,13 +197,31 @@ func runFixture(t *testing.T, db *pgxpool.Pool, id, name string, f *moneyrecapv1
 		if err != nil {
 			t.Fatal(err)
 		}
-		c, _ := currencyOf(f.CurrencyCode)
+		c, _ := currencyOf(held)
 		got := &moneyrecapv1.LedgerFixture{}
 		for _, r := range rows {
 			got.SalariesAfter = append(got.SalariesAfter, ledgerOf{cash: c}.salarySetting(r))
 		}
 		if !proto.Equal(got, &moneyrecapv1.LedgerFixture{SalariesAfter: f.SalariesAfter}) {
 			t.Errorf("salary rows:\n got %v\nwant %v", got.SalariesAfter, f.SalariesAfter)
+		}
+	}
+	if len(f.SpendsAfter) > 0 {
+		c, _ := currencyOf(held)
+		rows, err := spends(ctx, db, id, c)
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := &moneyrecapv1.LedgerFixture{}
+		for i, r := range rows {
+			if i < len(f.SpendsAfter) {
+				r.spend.Id = f.SpendsAfter[i].Id
+			}
+			r.spend.CreatedAt, r.spend.UpdatedAt = nil, nil
+			got.SpendsAfter = append(got.SpendsAfter, r.spend)
+		}
+		if !proto.Equal(got, &moneyrecapv1.LedgerFixture{SpendsAfter: f.SpendsAfter}) {
+			t.Errorf("spend rows:\n got %v\nwant %v", got.SpendsAfter, f.SpendsAfter)
 		}
 	}
 }

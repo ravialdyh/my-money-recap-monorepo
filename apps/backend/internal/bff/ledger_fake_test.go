@@ -17,8 +17,8 @@ import (
 // errLedgerDown is how a ledger whose database is gone fails, naming the address.
 var errLedgerDown = errors.New("dial tcp 172.18.0.5:5432: connect: connection refused")
 
-// fakeLedger is ledger as the BFF sees it: a zero month with 15 days left and recaps, settings of salary, target and
-// code, each read and write recorded with its token; err fails every call. LogSpend and EditSpend answer warning and crossed.
+// fakeLedger is ledger as the BFF sees it: a zero month in code with 15 days left and recaps, settings of salary, target,
+// code and amounts, each call recorded with its token; err fails every call. LogSpend and EditSpend answer warning and crossed.
 type fakeLedger struct {
 	moneyrecapv1connect.UnimplementedLedgerServiceHandler
 	err        error
@@ -28,6 +28,9 @@ type fakeLedger struct {
 	gotSalary  *moneyrecapv1.SaveSalaryRequest
 	gotTarget  *moneyrecapv1.SaveTargetRequest
 	gotRelabel *moneyrecapv1.RelabelCurrencyRequest
+	gotPreview *moneyrecapv1.PreviewConversionRequest
+	gotConvert *moneyrecapv1.ApplyCurrencyConversionRequest
+	amounts    bool
 	gotSpend   *moneyrecapv1.LogSpendRequest
 	gotEdit    *moneyrecapv1.EditSpendRequest
 	gotDelete  *moneyrecapv1.DeleteSpendRequest
@@ -50,7 +53,7 @@ func (f *fakeLedger) GetMonthSummary(_ context.Context, req *connect.Request[mon
 		return nil, f.err
 	}
 	summary := zeroMonth()
-	summary.DaysRemaining = 15
+	summary.DaysRemaining, summary.Spent.CurrencyCode = 15, f.code
 	return connect.NewResponse(&moneyrecapv1.GetMonthSummaryResponse{Summary: summary, RecapMonths: f.recaps, EarliestSpendDate: "2026-07-19"}), nil
 }
 
@@ -59,7 +62,25 @@ func (f *fakeLedger) GetSettings(context.Context, *connect.Request[moneyrecapv1.
 	if f.err != nil {
 		return nil, f.err
 	}
-	return connect.NewResponse(&moneyrecapv1.GetSettingsResponse{Settings: &moneyrecapv1.LedgerSettings{Salary: f.salary, SavingTarget: f.target, CurrencyCode: f.code}}), nil
+	return connect.NewResponse(&moneyrecapv1.GetSettingsResponse{Settings: &moneyrecapv1.LedgerSettings{Salary: f.salary, SavingTarget: f.target, CurrencyCode: f.code, HasAmountsToConvert: f.amounts}}), nil
+}
+
+func (f *fakeLedger) PreviewConversion(_ context.Context, req *connect.Request[moneyrecapv1.PreviewConversionRequest]) (*connect.Response[moneyrecapv1.PreviewConversionResponse], error) {
+	f.gotPreview = req.Msg
+	if f.err != nil {
+		return nil, f.err
+	}
+	return connect.NewResponse(&moneyrecapv1.PreviewConversionResponse{Preview: &moneyrecapv1.ConversionPreview{FromCurrencyCode: f.code, ToCurrencyCode: req.Msg.ToCurrencyCode, Rate: req.Msg.Rate}}), nil
+}
+
+// ApplyCurrencyConversion holds every amount in the new code from then on, as ledger does.
+func (f *fakeLedger) ApplyCurrencyConversion(_ context.Context, req *connect.Request[moneyrecapv1.ApplyCurrencyConversionRequest]) (*connect.Response[moneyrecapv1.ApplyCurrencyConversionResponse], error) {
+	f.gotConvert, f.gotToken = req.Msg, req.Header().Get("Authorization")
+	if f.err != nil {
+		return nil, f.err
+	}
+	f.code = req.Msg.ToCurrencyCode
+	return connect.NewResponse(&moneyrecapv1.ApplyCurrencyConversionResponse{Settings: &moneyrecapv1.LedgerSettings{CurrencyCode: f.code, HasAmountsToConvert: true}, Month: zeroMonth()}), nil
 }
 
 func (f *fakeLedger) SaveTarget(_ context.Context, req *connect.Request[moneyrecapv1.SaveTargetRequest]) (*connect.Response[moneyrecapv1.SaveTargetResponse], error) {
@@ -142,7 +163,7 @@ func (f *fakeLedger) GetRecap(_ context.Context, req *connect.Request[moneyrecap
 	if f.err != nil {
 		return nil, f.err
 	}
-	return connect.NewResponse(&moneyrecapv1.GetRecapResponse{Recap: &moneyrecapv1.Recap{Month: req.Msg.Month, ArchetypeTitle: "The Squirrel"}}), nil
+	return connect.NewResponse(&moneyrecapv1.GetRecapResponse{Recap: &moneyrecapv1.Recap{Month: req.Msg.Month, ArchetypeTitle: "The Squirrel", Spent: &moneyrecapv1.Money{Amount: "0", CurrencyCode: f.code}}}), nil
 }
 
 // ledgerClient serves f the way the BFF reaches the real ledger: over Connect, forwarding the caller's token.

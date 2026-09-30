@@ -75,7 +75,7 @@ func (s *Service) RelabelCurrency(ctx context.Context, req *connect.Request[mone
 	if err != nil {
 		return nil, err
 	}
-	unit := new(big.Rat).SetFrac(big.NewInt(1), new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(c.scale)), nil)).FloatString(c.scale)
+	unit := c.unit().FloatString(c.scale)
 	answer := &moneyrecapv1.RelabelCurrencyResponse{}
 	err = idempotency.Write(ctx, s.DB, l.id, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
 		if _, err := tx.Exec(ctx, `UPDATE member_facts SET currency_code = $2, currency_at = now() WHERE member_id = $1`, l.id, c.code); err != nil {

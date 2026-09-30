@@ -533,7 +533,8 @@ func (x *GetSettingsResponse) GetSettings() *LedgerSettings {
 type PreviewConversionRequest struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// Decimal string, from currency.Quote or typed by the Member (PRD §8.9).
+	// Decimal string, from currency.Quote or typed by the Member (PRD §8.9):
+	// above zero, at most 11 digits before the separator and 12 after.
 	Rate string `protobuf:"bytes,2,opt,name=rate,proto3" json:"rate,omitempty"`
 	// ISO 4217 code to convert into.
 	ToCurrencyCode string `protobuf:"bytes,3,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`

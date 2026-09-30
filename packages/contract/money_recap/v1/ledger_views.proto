@@ -183,7 +183,8 @@ message ConversionPreview {
   // The Salary in force; absent with no Salary.
   optional Money salary_before = 4;
   optional Money salary_after = 5;
-  // The sum of every Spend that would be rewritten.
+  // Every Spend of every month, not one month's (the D6 row "Spends"): the
+  // sum before, and the sum of each Spend rewritten after.
   Money spends_before = 6;
   Money spends_after = 7;
 }

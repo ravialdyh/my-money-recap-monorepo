@@ -75,9 +75,11 @@ func (s *Service) SaveProfile(ctx context.Context, req *connect.Request[moneyrec
 	}
 	answer := &moneyrecapv1.BffServiceSaveProfileResponse{Profile: saved.Msg.Profile}
 	if msg.CurrencyCode != nil && p.OnboardingStep < setupDone {
-		if answer.Salary, err = s.relabel(ctx, key, p, *msg.CurrencyCode); err != nil {
+		moved, err := s.relabel(ctx, key, p, *msg.CurrencyCode)
+		if err != nil {
 			return nil, err
 		}
+		answer.Salary = moved.GetSalary()
 	}
 	return connect.NewResponse(answer), nil
 }

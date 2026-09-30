@@ -58,7 +58,8 @@ type LedgerFixture struct {
 	Recaps []*Recap `protobuf:"bytes,12,rep,name=recaps,proto3" json:"recaps,omitempty"`
 	// GetSettings as of as_of.
 	Settings *LedgerSettings `protobuf:"bytes,13,opt,name=settings,proto3,oneof" json:"settings,omitempty"`
-	// PreviewConversion with convert's rate and Currency, as of as_of.
+	// PreviewConversion with convert's rate and Currency, as of as_of, before
+	// convert is made.
 	ConversionPreview *ConversionPreview `protobuf:"bytes,14,opt,name=conversion_preview,json=conversionPreview,proto3,oneof" json:"conversion_preview,omitempty"`
 	// Whether logging the last entry of spends, on its date, answered
 	// crossed_line (PRD §8.8).
