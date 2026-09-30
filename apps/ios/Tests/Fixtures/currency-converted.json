@@ -1,0 +1,59 @@
+{
+    "home": {
+        "displayName": "Test",
+        "avatarKey": "owl",
+        "currencyCode": "GBP",
+        "month": "2026-09",
+        "spent": {
+            "amount": "1.15",
+            "currencyCode": "GBP"
+        },
+        "moneyIn": {
+            "amount": "0.00",
+            "currencyCode": "GBP"
+        },
+        "salary": {
+            "amount": {
+                "amount": "690.00",
+                "currencyCode": "GBP"
+            },
+            "payday": "1",
+            "daysUntilPayday": 1
+        },
+        "daysRemaining": 1,
+        "firstRecapOn": "2026-10-01",
+        "currencyDigits": 2,
+        "earliestSpendDate": "2026-09-01"
+    },
+    "settings": {
+        "profile": {
+            "memberId": "a33989f9-14d2-4461-a593-a1bf3f382097",
+            "email": "test@example.com",
+            "displayName": "Test",
+            "avatarKey": "owl",
+            "currencyCode": "GBP",
+            "timezone": "Asia/Jakarta",
+            "onboardingStep": 4,
+            "signedUpOn": "2026-09-30",
+            "currencyDigits": 2
+        },
+        "ledgerSettings": {
+            "salary": {
+                "amount": {
+                    "amount": "690.00",
+                    "currencyCode": "GBP"
+                },
+                "payday": "1",
+                "effectiveFrom": "2026-09",
+                "originalAmount": {
+                    "amount": "15000000",
+                    "currencyCode": "IDR"
+                }
+            },
+            "paydayPassedThisMonth": true,
+            "currencyCode": "GBP",
+            "hasAmountsToConvert": true,
+            "newSavingTargetFrom": "2026-09"
+        }
+    }
+}

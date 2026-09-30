@@ -20,6 +20,8 @@ final class HomeViewModel {
     private let saveProfile: NameAvatarViewModel.Save
     private let saveSalary: SalaryEditViewModel.Save
     private let saveTarget: TargetEditViewModel.Save
+    private let previewCurrency: CurrencyEditViewModel.Preview
+    private let changeCurrency: CurrencyEditViewModel.Change
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -53,7 +55,11 @@ final class HomeViewModel {
         saveSalary: @escaping SalaryEditViewModel
             .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         saveTarget: @escaping TargetEditViewModel
-            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
+            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        previewCurrency: @escaping CurrencyEditViewModel
+            .Preview = { _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        changeCurrency: @escaping CurrencyEditViewModel
+            .Change = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
@@ -65,6 +71,8 @@ final class HomeViewModel {
         self.saveProfile = saveProfile
         self.saveSalary = saveSalary
         self.saveTarget = saveTarget
+        self.previewCurrency = previewCurrency
+        self.changeCurrency = changeCurrency
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -126,19 +134,30 @@ final class HomeViewModel {
         ) }
     }
 
-    /// D1 Settings over its stored copy (IOS I4), in the locale Home was given. A saved Target's Home replaces this
-    /// one.
+    /// D1 Settings over its stored copy (IOS I4), in the locale Home was given. A saved Target's Home, and a changed
+    /// Currency's, replaces this one.
     func settings() -> SettingsViewModel {
-        let save = saveTarget
+        let save = saveTarget, change = changeCurrency
         return SettingsViewModel(
             fetch: getSettings, saveProfile: saveProfile, saveSalary: saveSalary, saveTarget: { [weak self] in
                 let result = await save($0, $1)
-                if case let .success(answer) = result {
-                    self?.replace(with: answer.home)
-                }
-                return result
+                return self?.keep(result, \.home) ?? result
+            }, previewCurrency: previewCurrency, changeCurrency: { [weak self] in
+                let result = await change($0, $1)
+                return self?.keep(result, \.home) ?? result
             }, context: context, locale: locale, connection: connection
         )
+    }
+
+    /// A write's result, its Home replacing this one when it succeeded.
+    private func keep<Answer>(
+        _ result: Result<Answer, ConnectError>,
+        _ home: (Answer) -> MoneyRecap_V1_HomeView
+    ) -> Result<Answer, ConnectError> {
+        if case let .success(answer) = result {
+            replace(with: home(answer))
+        }
+        return result
     }
 
     /// D4 over a Recap: Settings read afresh, or its stored copy when that fails; nil with neither.
@@ -269,20 +288,4 @@ final class HomeViewModel {
 final class WarningDismissals {
     static let session = WarningDismissals()
     var months: Set<String> = []
-}
-
-/// The server's "YYYY-MM-DD" and "YYYY-MM" strings are calendar dates, not instants, so they are read and printed
-/// in one fixed zone; otherwise a phone west of Greenwich would show 30 September for `2026-10-01` (IOS I7).
-enum ISODate {
-    static func style(locale: Locale) -> Date.FormatStyle {
-        Date.FormatStyle(locale: locale, timeZone: .gmt)
-    }
-
-    static func day(_ string: String) -> Date? {
-        try? Date(string, strategy: .iso8601.year().month().day())
-    }
-
-    static func month(_ string: String) -> Date? {
-        day(string + "-01")
-    }
 }

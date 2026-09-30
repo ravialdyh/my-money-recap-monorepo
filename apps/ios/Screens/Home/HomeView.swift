@@ -50,6 +50,10 @@ struct HomeView: View {
             await BffClient.retried(session) { await client.saveSalary(request: request, headers: headers) }.result
         }, saveTarget: { request, headers in
             await BffClient.retried(session) { await client.saveTarget(request: request, headers: headers) }.result
+        }, previewCurrency: { request in
+            await BffClient.retried(session) { await client.previewCurrencyChange(request: request) }.result
+        }, changeCurrency: { request, headers in
+            await BffClient.retried(session) { await client.changeCurrency(request: request, headers: headers) }.result
         }))
         self.open = open
     }

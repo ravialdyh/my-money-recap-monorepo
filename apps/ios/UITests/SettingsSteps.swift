@@ -66,4 +66,76 @@ extension SignInUITests {
         app.buttons["Back"].tap()
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "back to Home")
     }
+
+    /// #174: D5 with the rupiah checked; the pound meets the failed fetch (no rates App ID) twice; D7's typed rate
+    /// previews the Salary; Convert returns to D5 on the pound; D1 and Home read pounds; the month so far is stored
+    /// again.
+    func convertToPoundsInSettings(_ app: XCUIApplication, salary: Int, rate: String, pounds: Decimal) {
+        app.buttons["Settings"].tap()
+        let row = { (label: String, value: String) in
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", label, value))
+                .firstMatch
+        }
+        XCTAssert(row("Currency", "IDR").waitForExistence(timeout: 30), "the row reads the rupiah")
+        row("Currency", "IDR").tap()
+        let search = app.textFields["Search by name or code"]
+        XCTAssert(search.waitForExistence(timeout: 10), "Currency opens D5 with setup's search")
+        XCTAssert(app.buttons["Indonesian Rupiah, IDR"].isSelected, "the Currency held is checked")
+        snapshot("31-currency")
+        sideways(app, reaching: search, "currency")
+        search.tap()
+        search.typeText("pound")
+        app.buttons["British Pound, GBP"].tap()
+        let failed = app.staticTexts["We couldn't get today's rate."]
+        XCTAssert(failed.waitForExistence(timeout: 30), "no rates App ID: the fetch fails (D6)")
+        XCTAssert(app.staticTexts["Convert everything to GBP?"].exists)
+        let enter = app.buttons["Enter it myself"]
+        XCTAssert(enter.exists && app.buttons["Cancel"].exists)
+        snapshot("32-currency-fetch-failed")
+        sideways(app, reaching: enter, "currency-fetch-failed")
+        app.buttons["Try again"].tap()
+        XCTAssert(enter.waitForExistence(timeout: 30) && failed.exists, "Try again meets the same failure")
+        enter.tap()
+        let field = app.textFields["Rate: 1 IDR ="]
+        XCTAssert(field.waitForExistence(timeout: 10), "Enter it myself opens D7")
+        XCTAssert(app.staticTexts["We couldn't fetch this rate. Enter it yourself to continue."].exists)
+        let untyped = "All your amounts will be converted at the rate you enter. This can't be undone."
+        XCTAssert(app.staticTexts[untyped].exists)
+        let convert = app.buttons["Convert"]
+        XCTAssertFalse(convert.isEnabled, "no rate yet")
+        snapshot("33-currency-manual-rate")
+        field.tap()
+        field.typeText(rate)
+        let after = Self.pounds(pounds)
+        let sentence = "Your \(Self.rupiah(salary)) salary becomes \(after). This can't be undone."
+        XCTAssert(app.staticTexts[sentence].waitForExistence(timeout: 30), "the preview answers after typing stops")
+        XCTAssert(row("Salary", after).exists, "the Salary row, before and after")
+        XCTAssert(convert.isEnabled)
+        snapshot("34-currency-manual-rate-typed")
+        sideways(app, reaching: convert, "currency-manual-rate")
+        convert.tap()
+        let pound = app.buttons.matching(NSPredicate(format: "label == 'British Pound, GBP' AND selected == true"))
+        XCTAssert(pound.firstMatch.waitForExistence(timeout: 30), "Convert returns to D5 on the pound")
+        app.buttons["Back"].tap()
+        XCTAssert(row("Currency", "GBP").waitForExistence(timeout: 10), "D1 reads the answer's Settings")
+        XCTAssert(row("Salary and payday", "\(after) · ").exists)
+        app.buttons["Back"].tap()
+        XCTAssert(app.staticTexts["Money in \(Self.zero("GBP"))"].waitForExistence(timeout: 30), "Home in pounds")
+        XCTAssert(app.staticTexts["\(Self.zero("GBP")) of \(Self.pounds(pounds / 4))"].exists, "the 25% Target")
+        snapshot("35-home-in-pounds")
+        sideways(app, reaching: app.buttons["Log a spend"], "home-in-pounds")
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on '")).firstMatch.tap()
+        let cover = app.staticTexts["\(Date().formatted(.dateTime.month(.wide))) so far"]
+        XCTAssert(cover.waitForExistence(timeout: 30), "the erased Recap is asked again, now in pounds")
+        app.buttons["Close"].tap()
+        XCTAssert(spentSoFar(app).waitForExistence(timeout: 10))
+    }
+
+    /// An amount in pounds as the app prints it (`Money`): no fraction when whole, else two decimals.
+    static func pounds(_ amount: Decimal) -> String {
+        var source = amount, rounded = Decimal()
+        NSDecimalRound(&rounded, &source, 0, .plain)
+        let whole = rounded == amount
+        return amount.formatted(.currency(code: "GBP").precision(.fractionLength(whole ? 0 : 2)))
+    }
 }

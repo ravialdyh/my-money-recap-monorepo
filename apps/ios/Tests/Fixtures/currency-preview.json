@@ -1,0 +1,28 @@
+{
+    "preview": {
+        "fromCurrencyCode": "IDR",
+        "toCurrencyCode": "GBP",
+        "source": "RATE_SOURCE_MANUAL",
+        "preview": {
+            "fromCurrencyCode": "IDR",
+            "toCurrencyCode": "GBP",
+            "rate": "0.000046",
+            "salaryBefore": {
+                "amount": "15000000",
+                "currencyCode": "IDR"
+            },
+            "salaryAfter": {
+                "amount": "690.00",
+                "currencyCode": "GBP"
+            },
+            "spendsBefore": {
+                "amount": "25000",
+                "currencyCode": "IDR"
+            },
+            "spendsAfter": {
+                "amount": "1.15",
+                "currencyCode": "GBP"
+            }
+        }
+    }
+}
