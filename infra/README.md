@@ -67,7 +67,7 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
 `NGINX_HOST_PORT=80`, and there is no `TEST_USER_PASSWORD`, so the realm creates no test Member.
 The fourteen stack values in `infra/secrets/example.yaml`, the four identity-provider ids the realm
 takes as variables (`GOOGLE_CLIENT_ID`, `APPLE_SERVICES_ID`, `APPLE_TEAM_ID`,
-`APPLE_SIGN_IN_KEY_ID`) and `currency`'s `OPEN_EXCHANGE_RATES_APP_ID` (#175) arrive under their names in capitals, so none is left at `replace-me`. Every
+`APPLE_SIGN_IN_KEY_ID`), `currency`'s `OPEN_EXCHANGE_RATES_APP_ID` (#175) and `notify`'s `APPLE_PUSH_KEY_ID` (#180) arrive under their names in capitals, so none is left at `replace-me`, and `APPLE_PUSH_KEY` carries the APNs `.p8` in base64 on one line, since the file holds line breaks. Every
 value is single-quoted, so Compose interpolates nothing inside it, and a value holding a quote or a
 line break stops the deploy instead.
 

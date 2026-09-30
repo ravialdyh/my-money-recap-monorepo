@@ -45,10 +45,15 @@ for name in $ids; do
   grep -qxF "$name='$(expected "$(tr '[:upper:]' '[:lower:]' <<<"$name")")'" "$env" || fail "the machine's .env leaves $name at replace-me"
 done
 grep -qxF "OPEN_EXCHANGE_RATES_APP_ID='$(expected open_exchange_rates_app_id)'" "$env" || fail "the machine's .env lost the rates App ID"
+grep -qxF "APPLE_PUSH_KEY_ID='$(expected apple_push_key_id)'" "$env" || fail "the machine's .env lost the push Key ID"
+cp -R "$work/out" "$work/p8" && chmod u+w "$work/p8/apple_push_key"
+printf 'first line\nsecond line' >"$work/p8/apple_push_key"
+p8=$(../compose/machine-env.sh "$work/p8" | grep '^APPLE_PUSH_KEY=' | cut -d "'" -f 2)
+[ "$(base64 -d <<<"$p8")" = "$(cat "$work/p8/apple_push_key")" ] || fail "the machine's .env does not carry the .p8 in base64 on one line"
 grep -qxF "REALM_SSL_REQUIRED=external" "$env" || fail "the machine's .env leaves ssl_required at the laptop's none"
 ! grep -qE '^(TEST_USER_PASSWORD|DEPLOY_SSH_PRIVATE_KEY)=' "$env" || fail "the machine's .env carries a test password or the deploy key"
 cp -R "$work/out" "$work/quoted" && chmod u+w "$work/quoted/bff_client_secret"
 printf "it's" >"$work/quoted/bff_client_secret"
 ! ../compose/machine-env.sh "$work/quoted" >/dev/null 2>&1 || fail "a value with a quote reached the machine's .env"
-echo "machine .env: $(wc -l <"$env" | tr -d ' ') lines, all $(wc -w <<<"$stack" | tr -d ' ') stack values and $(wc -w <<<"$ids" | tr -d ' ') provider ids intact, no test Member password, a quote refused"
+echo "machine .env: $(wc -l <"$env" | tr -d ' ') lines, all $(wc -w <<<"$stack" | tr -d ' ') stack values and $(wc -w <<<"$ids" | tr -d ' ') provider ids intact, the push key in base64, no test Member password, a quote refused"
 echo "secrets OK on $(sops --version --disable-version-check) and $(age-keygen --version)"

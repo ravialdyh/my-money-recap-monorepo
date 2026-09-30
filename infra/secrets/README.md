@@ -35,10 +35,11 @@ mode weighs them alongside the steps.
 | --- | --- |
 | `app_store_connect_api_key` | The TestFlight half of the tag deploy (A15), which #87 still owes |
 | `apple_services_id` | The Keycloak Apple identity provider's client id, an OpenTofu variable (#71) |
-| `apple_team_id` | The same provider's `teamId`, the issuer of the client-secret JWT it signs |
+| `apple_team_id` | The same provider's `teamId`, the issuer of the client-secret JWT it signs, and the issuer of `notify`'s push tokens (#180) |
 | `apple_sign_in_key_id` | The same provider's `keyId`, the JWT's `kid` |
 | `apple_sign_in_key` | The same provider, which signs the client secret on every token exchange; referenced as `${vault.apple_sign_in_key}`, which the pinned extension does not resolve (see "Keycloak's file vault") |
-| `apple_push_key` | `notify`'s push sender, planned |
+| `apple_push_key` | `notify`'s Apple push sender, which signs its tokens with it, as the machine's `APPLE_PUSH_KEY`: the `.p8` in base64 on one line (`machine-env.sh`, #180); empty on a laptop, where every push is recorded and not sent |
+| `apple_push_key_id` | The same sender's Key ID, the token's `kid`, as the machine's `APPLE_PUSH_KEY_ID` (#180) |
 | `google_client_id` | The Keycloak Google identity provider's client id, an OpenTofu variable (#71) |
 | `google_client_secret` | The same provider, through Keycloak's file vault as `${vault.google_client_secret}` |
 | `open_exchange_rates_app_id` | `currency`'s rate fetch, as the machine's `OPEN_EXCHANGE_RATES_APP_ID` (`machine-env.sh`); empty on a laptop, where every fetch fails (#175) |

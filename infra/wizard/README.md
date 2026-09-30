@@ -17,7 +17,7 @@ Check mode is non-interactive and touches nothing, so the developer can stop hal
 1. One age key pair
 2. Apple Developer Program enrolment
 3. App Store Connect API key
-4. Apple Services ID and the two `.p8` keys
+4. Apple Services ID and the two `.p8` keys, each with its Key ID
 5. Google OAuth client
 6. Open Exchange Rates App ID
 7. SMTP provider account and its first token

@@ -4,7 +4,8 @@ The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and ever
 It serves `EmailMagicLink` (#68, PR #77) and, since #132, the Target Warning state:
 `GetWarningState` and `EvaluateWarning`, and since #176 its own copy of each Member ("The replica", below)
 and the `idempotency` table, since #178 `RegisterDevice`, and since #179 `GetPrefs` and `SavePrefs`
-("The preferences", below). Pushes, the CSV export email, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
+("The preferences", below), and since #180 the Target Warning's push through the Apple sender ("The push", below).
+The other two pushes, the CSV export email, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
 Its `Ledger` client sends `notify`'s own service-account token, fetched with the client-credentials grant and
 cached until it expires (#177, ARCHITECTURE §4.2), which `ledger` accepts for `GetSpentToday` and
@@ -18,12 +19,12 @@ host rolls it back. An empty key is `invalid_argument`.
 
 | Path | Holds |
 | --- | --- |
-| `main.go` | The binary: its name, its schema step, its handler and its consumer, handed to `serve.Main`. |
-| `../../internal/notify/` | `notify.go` (the magic-link email, its SMTP client and the idempotent write), `warning.go` (the Target Warning, its event backup and the ownership check), `replica.go` (the `notify.members` consumer), `device.go`, `prefs.go` (the preferences) and `migrations/*.sql` (embedded). |
+| `main.go` | The binary: its name, its schema step, its handler and its two consumers, handed to `serve.Main`, and the Apple sender built from its variables. |
+| `../../internal/notify/` | `notify.go` (the magic-link email, its SMTP client and the idempotent write), `warning.go` (the Target Warning, its event backup and the ownership check), `replica.go` (the `notify.members` consumer), `device.go`, `prefs.go` (the preferences), `push.go` (the Apple sender and the Target Warning's push) and `migrations/*.sql` (embedded). |
 
 ## Environment
 
-Its own seven, besides the shared `NOTIFY_*` set:
+Its own twelve, besides the shared `NOTIFY_*` set:
 
 | Variable | Serve | Migrate | Meaning |
 | --- | --- | --- | --- |
@@ -34,6 +35,11 @@ Its own seven, besides the shared `NOTIFY_*` set:
 | `NOTIFY_LEDGER_URL` | required | none | `ledger`, for the schedules' two reads: `http://ledger:8080` in Compose. |
 | `NOTIFY_REALM_URL` | required | none | The realm, whose token endpoint issues `notify`'s own token: `http://keycloak:8080/realms/mmr` in Compose. |
 | `NOTIFY_CLIENT_SECRET` | required | none | The `notify` client's secret (`NOTIFY_CLIENT_SECRET_FILE` works too). |
+| `NOTIFY_APNS_HOST` | `https://api.push.apple.com` | none | The origin of Apple's push service. |
+| `NOTIFY_APNS_TOPIC` | `com.mymoneyrecap.app` | none | The topic every push names: the app's bundle id. |
+| `NOTIFY_APPLE_TEAM_ID` | empty | none | The Team ID, the push token's issuer: `.env`'s `APPLE_TEAM_ID`. |
+| `NOTIFY_APPLE_PUSH_KEY_ID` | empty | none | The push key's Key ID, the token's `kid`: `.env`'s `APPLE_PUSH_KEY_ID`. |
+| `NOTIFY_APPLE_PUSH_KEY` | empty | none | The APNs `.p8` file in base64 on one line: `.env`'s `APPLE_PUSH_KEY`. Empty on every laptop, so each push is recorded and not sent; a value that is not an EC `.p8` stops the start-up. |
 
 ## Run
 
@@ -58,19 +64,34 @@ The call and the message it produces are in `infra/compose/README.md`, "Mailpit"
 with the time and ledger's warning copy as it read then (PRD §8.8). `EvaluateWarning` stamps it only
 when `crossed_line` is true and the month is unstamped, and answers `fired`, `fired_now` and the kept
 copy; the primary key is its A14 guarantee, so a repeat answers the same copy and only the stamping
-call sees `fired_now`. It needs a key, and ledger's copy whenever `crossed_line` is true. It sends
-nothing yet: pushes are slice 7. `GetWarningState` answers the same two facts for a month.
+call sees `fired_now`. It needs a key, and ledger's copy whenever `crossed_line` is true. The stamping
+call pushes the month ("The push", below). `GetWarningState` answers the same two facts for a month.
 
 The event backup (#135, ARCHITECTURE §6.2 step 6) stamps the same way without the BFF's call: the
 consumer reads `ledger.spend.logged` and `ledger.spend.edited` from the quorum queue `notify.ledger`, and
 one with `crossed_line` stamps its month with its copy if unstamped, in the transaction that records its
-message id in `processed_events`, so a second delivery changes nothing. A crossing event without a
+message id in `processed_events`, so a second delivery changes nothing; a fresh stamp pushes once that
+transaction commits (`events.AfterCommit`). A crossing event without a
 Member, a month or a copy fails, and after five tries waits in `notify.ledger.dead` for a person.
 
 Both check ARCHITECTURE §4.2 point 3 as ledger does: `member_facts` keeps the subject whose token
 `members.GetProfile` last answered for the Member, and any other token is a miss that `members`
 answers under that token, so a Member it does not own is `not_found` and `members` down is
 `unavailable`.
+
+## The push
+
+The first stamp of a month, by `EvaluateWarning` or by the event, pushes "You've passed your saving line for
+{Month}.", the month's name in English, in the background once the stamp has committed (#180, ARCHITECTURE §4.3).
+The push first claims its `sent_log` row, primary key `(member_id, kind, period)`, with kind `target_warning` and
+the month as its period, so a crash can lose that one push but a second path or a second replica never sends it
+twice. Nothing is claimed or sent while the Member's `target_warning` switch is off or a deletion is pending; the
+stamp, and with it Home's banner, is unaffected.
+
+The Apple sender signs an ES256 token with the push key, its Key ID as `kid` and the Team ID as issuer, reused for
+40 minutes, and sends one HTTP/2 request per registered device to `/3/device/<token>` with the topic and the push
+type `alert`, the copy as the alert body. A device Apple answers 410 for is deleted. With no key configured the
+push is recorded and skipped with one log line.
 
 ## The replica
 
@@ -122,5 +143,6 @@ bound off notify's planned scheduler.
 `go test ./internal/notify/` runs them; each test's name and doc comment say what it proves. Only the
 empty-key test needs nothing: the Target Warning, replica and idempotency tests and the tests against fake
 mail hosts need the `notify` database, the zone test also the stack's `members`, Keycloak and broker, and
-the rest also send through Mailpit. The variables are in `infra/compose/README.md`, "Running the Go tests
+the rest also send through Mailpit. The push tests stand up a fake Apple push service over TLS and HTTP/2 inside
+the test, with a signing key generated there. The variables are in `infra/compose/README.md`, "Running the Go tests
 against this stack".

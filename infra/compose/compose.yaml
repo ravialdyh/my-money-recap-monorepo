@@ -171,16 +171,16 @@ services:
       NOTIFY_LEDGER_URL: http://ledger:8080
       NOTIFY_REALM_URL: *realm
       NOTIFY_CLIENT_SECRET: ${NOTIFY_CLIENT_SECRET:?set in .env}
+      NOTIFY_APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
+      NOTIFY_APPLE_PUSH_KEY_ID: ${APPLE_PUSH_KEY_ID:-}
+      NOTIFY_APPLE_PUSH_KEY: ${APPLE_PUSH_KEY:-}
     ports:
       - "127.0.0.1:${NOTIFY_HOST_PORT:-8083}:8080"
     secrets: [notify_database_url, amqp_url]
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      notify-migrate:
-        condition: service_completed_successfully
-      realm-apply:
-        condition: service_completed_successfully
+      rabbitmq: { condition: service_healthy }
+      notify-migrate: { condition: service_completed_successfully }
+      realm-apply: { condition: service_completed_successfully }
     healthcheck: *go-healthcheck
 
   ledger-migrate:

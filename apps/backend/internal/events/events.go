@@ -154,6 +154,19 @@ type outboxRow struct {
 // Handler applies one delivery inside the transaction that records it as processed.
 type Handler func(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error
 
+// committed carries the functions a Handler hands AfterCommit through its ctx.
+type committed struct{ after []func() }
+
+type committedKey struct{}
+
+// AfterCommit runs fn once the transaction of the Handler whose ctx this is has committed, after the ack, and never
+// when it rolls back. Outside Process it does nothing.
+func AfterCommit(ctx context.Context, fn func()) {
+	if c, ok := ctx.Value(committedKey{}).(*committed); ok {
+		c.after = append(c.after, fn)
+	}
+}
+
 // errNoMessageID refuses a delivery with no message id, which processed_events could not tell from another.
 var errNoMessageID = errors.New("the delivery carries no message id")
 
@@ -197,6 +210,8 @@ func consume(ctx context.Context, db *pgxpool.Pool, url, queue string, keys []st
 // so a repeat is only acked. A failure is rejected, never nacked: RabbitMQ 4.3 counts only a reject toward the
 // five tries.
 func Process(ctx context.Context, db *pgxpool.Pool, d amqp.Delivery, handle Handler) {
+	c := &committed{}
+	ctx = context.WithValue(ctx, committedKey{}, c)
 	err := pgx.BeginFunc(ctx, db, func(tx pgx.Tx) error {
 		if d.MessageId == "" {
 			return errNoMessageID
@@ -213,6 +228,9 @@ func Process(ctx context.Context, db *pgxpool.Pool, d amqp.Delivery, handle Hand
 		return
 	}
 	_ = d.Ack(false)
+	for _, fn := range c.after {
+		fn()
+	}
 }
 
 func wait(ctx context.Context, d time.Duration) {
