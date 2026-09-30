@@ -39,15 +39,16 @@ func (f fakeMembers) GetProfile(_ context.Context, req *connect.Request[moneyrec
 // warningService is a Service over the notify database whose members answers owns, with id's rows removed at the end.
 func warningService(t *testing.T, id string, owns map[string]string) *Service {
 	t.Helper()
-	db := testDB(t)
+	s := &Service{DB: testDB(t), Members: membersClient(t, owns)}
 	t.Cleanup(func() {
-		for _, table := range []string{"member_facts", "month_flag"} {
-			if _, err := db.Exec(context.Background(), `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
+		s.pushes.Wait()
+		for _, table := range []string{"member_facts", "month_flag", "sent_log"} {
+			if _, err := s.DB.Exec(context.Background(), `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
 				t.Logf("cleanup %s: %v", table, err)
 			}
 		}
 	})
-	return &Service{DB: db, Members: membersClient(t, owns)}
+	return s
 }
 
 // membersClient reaches a fakeMembers answering owns, forwarding the caller's token as the service does.
@@ -178,7 +179,7 @@ func TestAnEventStampsTheMonth(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		return pgx.BeginFunc(t.Context(), s.DB, func(tx pgx.Tx) error { return StampFromEvent(t.Context(), tx, amqp.Delivery{Body: body}) })
+		return pgx.BeginFunc(t.Context(), s.DB, func(tx pgx.Tx) error { return s.StampFromEvent(t.Context(), tx, amqp.Delivery{Body: body}) })
 	}
 	env := &moneyrecapv1.EventEnvelope{MemberId: id}
 	month := func(words string) *moneyrecapv1.MonthSummary {
@@ -215,7 +216,7 @@ func TestAnEventStampsTheMonth(t *testing.T) {
 			t.Errorf("a crossing event with %s: stamped, want an error", name)
 		}
 	}
-	if err := pgx.BeginFunc(t.Context(), s.DB, func(tx pgx.Tx) error { return StampFromEvent(t.Context(), tx, amqp.Delivery{Body: []byte{0xff}}) }); err == nil {
+	if err := pgx.BeginFunc(t.Context(), s.DB, func(tx pgx.Tx) error { return s.StampFromEvent(t.Context(), tx, amqp.Delivery{Body: []byte{0xff}}) }); err == nil {
 		t.Error("a body that is not a Spend event: no error")
 	}
 }

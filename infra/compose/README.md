@@ -12,9 +12,10 @@ Docker Desktop must be running.
 cp infra/compose/.env.example infra/compose/.env
 ```
 
-Fill every empty value in `.env` but `OPEN_EXCHANGE_RATES_APP_ID`: any string will do locally, except that `MEMBERS_DB_PASSWORD` and
+Fill every empty value in `.env` but `OPEN_EXCHANGE_RATES_APP_ID`, `APPLE_PUSH_KEY_ID` and `APPLE_PUSH_KEY`: any string will do locally, except that `MEMBERS_DB_PASSWORD` and
 `NOTIFY_DB_PASSWORD` go into a connection URL unescaped, so use letters and digits for those. Left empty, the App ID
-makes every rate fetch fail, and the Member types the rate; a free App ID of your own there shows live rates (#175). They are
+makes every rate fetch fail, and the Member types the rate; a free App ID of your own there shows live rates (#175). The two
+push values stay empty, so `notify` records each push and sends none (#180); a made-up key would stop it starting. They are
 development credentials, and `.gitignore` keeps the file out of git. Then:
 
 ```bash
@@ -51,7 +52,7 @@ The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.y
 | ledger-migrate | the `ledger` image, `migrate` command | none | The same for `ledger`. |
 | mailpit | `axllent/mailpit`, pinned | 127.0.0.1:`MAILPIT_HOST_PORT` and `MAILPIT_SMTP_HOST_PORT` | Behind the `mail` profile: the mail host `notify` sends to (see "Mailpit"). SMTP on 1025, what arrived on 8025. |
 | members | built from `apps/backend` (`Dockerfile`, `CMD=members`) | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect (`apps/backend/cmd/members/README.md`), the consumer that takes a converted Currency from `ledger`'s events on `members.ledger`, and the relay that publishes its outbox every second. Starts after its migration step and the realm step completed and RabbitMQ is healthy. |
-| notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect (`apps/backend/cmd/notify/README.md`), and the consumer that stamps the Target Warning from `ledger`'s spend events on `notify.ledger`. Starts after its migration step, the realm step and a healthy RabbitMQ. |
+| notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect (`apps/backend/cmd/notify/README.md`), and the consumer that stamps the Target Warning from `ledger`'s spend events on `notify.ledger` and pushes it, recorded and not sent while `.env` holds no push key (#180). Starts after its migration step, the realm step and a healthy RabbitMQ. |
 | ledger | built from `apps/backend` (`Dockerfile`, `CMD=ledger`) | 127.0.0.1:`LEDGER_HOST_PORT` | `LedgerService` over Connect, the money service (`apps/backend/cmd/ledger/README.md`), the consumer that keeps its replica from `members`' events on `ledger.members`, and the relay that publishes its outbox every second. Starts after its migration step, the realm step, a healthy RabbitMQ and a healthy `members`, which answers the profile read that fills a replica an event has not reached. |
 | bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect, what the phone calls (`apps/backend/cmd/bff/README.md`). Starts after `members`, `ledger` and Redis are healthy and the realm step completed; it never waits for `currency`. |
 | currency | built from `apps/backend` (`Dockerfile`, `CMD=currency`) | 127.0.0.1:`CURRENCY_HOST_PORT` | `CurrencyService` over Connect, the day's exchange rate (`apps/backend/cmd/currency/README.md`), with no database and no broker. Its App ID is `OPEN_EXCHANGE_RATES_APP_ID`, empty by default, so every quote is `unavailable`. Starts after Redis is healthy. |

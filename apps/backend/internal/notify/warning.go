@@ -14,6 +14,7 @@ import (
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/serve"
 )
 
@@ -32,8 +33,8 @@ func (s *Service) GetWarningState(ctx context.Context, req *connect.Request[mone
 	return connect.NewResponse(&moneyrecapv1.GetWarningStateResponse{Fired: warning != nil, Warning: warning}), nil
 }
 
-// EvaluateWarning stamps the month with ledger's copy when crossed_line and unstamped, and sends nothing yet. The
-// month flag's primary key is its A14 guarantee: a repeat answers the same kept copy, and only one call sees fired_now.
+// EvaluateWarning stamps the month with ledger's copy when crossed_line and unstamped, then pushes it in the
+// background. The month flag's primary key is its A14 guarantee: a repeat answers the kept copy, and one call fires.
 func (s *Service) EvaluateWarning(ctx context.Context, req *connect.Request[moneyrecapv1.EvaluateWarningRequest]) (*connect.Response[moneyrecapv1.EvaluateWarningResponse], error) {
 	m := req.Msg
 	if m.IdempotencyKey == "" {
@@ -55,6 +56,9 @@ func (s *Service) EvaluateWarning(ctx context.Context, req *connect.Request[mone
 			return nil, storeFailed(ctx, err)
 		}
 		answer.FiredNow = stamped.RowsAffected() == 1
+		if answer.FiredNow {
+			s.pushWarning(ctx, m.MemberId, m.Month)
+		}
 	}
 	warning, err := s.kept(ctx, m.MemberId, m.Month)
 	if err != nil {
@@ -71,8 +75,8 @@ const Queue = "notify.ledger"
 var Keys = []string{"ledger.spend.logged", "ledger.spend.edited"}
 
 // StampFromEvent is the event backup (§6.2 step 6) for ledger.spend.logged and ledger.spend.edited (one shape): with
-// crossed_line it stamps the event's month with its copy if unstamped, as EvaluateWarning does. It sends no push yet.
-func StampFromEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
+// crossed_line it stamps the event's month if unstamped, as EvaluateWarning does, and pushes once that commits.
+func (s *Service) StampFromEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 	var e moneyrecapv1.LedgerSpendLogged
 	if err := proto.Unmarshal(d.Body, &e); err != nil {
 		return err
@@ -84,7 +88,10 @@ func StampFromEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 	if id == "" || month == "" || message == "" {
 		return errors.New("a crossing event names no Member, no month or no warning copy")
 	}
-	_, err := tx.Exec(ctx, `INSERT INTO month_flag (member_id, year_month, target_warning_message) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, id, month, message)
+	stamped, err := tx.Exec(ctx, `INSERT INTO month_flag (member_id, year_month, target_warning_message) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`, id, month, message)
+	if err == nil && stamped.RowsAffected() == 1 {
+		events.AfterCommit(ctx, func() { s.pushWarning(ctx, id, month) })
+	}
 	return err
 }
 

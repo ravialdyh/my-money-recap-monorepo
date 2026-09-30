@@ -1,5 +1,5 @@
 // Package notify is the notify service (ARCHITECTURE §7.3): the magic-link email (#68), the Target Warning's month
-// flag (#132), stamped from ledger's Spend events too (#135), and each Member's replica, fed from members' events (#176).
+// flag (#132) stamped from ledger's events too (#135) and pushed (#180), and each Member's replica (#176).
 package notify
 
 import (
@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/smtp"
 	"net/textproto"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -58,6 +59,10 @@ type Service struct {
 	SMTP string
 	// From is the envelope sender and the From header.
 	From string
+	// Apple sends the pushes; nil, or one with no key, records each push and sends none.
+	Apple *Apple
+
+	pushes sync.WaitGroup
 }
 
 // write is A14 in notify's idempotency table: a repeated key replays answer, a key reused for another request is
