@@ -103,7 +103,7 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 }
 
 // GetRecap is one month's Recap view (PRD §6.11 to §6.14, §6.17): members for the Member, then ledger for the month,
-// each required, each code passed through; the current Display Name and Currency, never a stored copy (§7).
+// each required, each code passed through; the current Display Name and ledger's Currency, never a stored copy (§7).
 func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceGetRecapRequest]) (*connect.Response[moneyrecapv1.BffServiceGetRecapResponse], error) {
 	profile, err := s.member(ctx)
 	if err != nil {
@@ -115,8 +115,9 @@ func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv
 	if err != nil {
 		return nil, requiredCallFailed("ledger.GetRecap", connect.CodeOf(err), err)
 	}
+	code, _ := heldIn(res.Msg.Recap.GetSpent().GetCurrencyCode(), profile)
 	return connect.NewResponse(&moneyrecapv1.BffServiceGetRecapResponse{Recap: &moneyrecapv1.RecapView{
-		Recap: res.Msg.Recap, DisplayName: profile.DisplayName, CurrencyCode: profile.CurrencyCode,
+		Recap: res.Msg.Recap, DisplayName: profile.DisplayName, CurrencyCode: code,
 	}}), nil
 }
 
@@ -171,12 +172,13 @@ func (s *Service) home(ctx context.Context, profile *moneyrecapv1.Profile, evalu
 	return home, nil
 }
 
-// homeView joins the Profile and ledger's month into the HomeView, stamping money ledger left without a code with the
-// Member's Currency. The month and first_recap_on are the Member's local dates, days_remaining is ledger's (A2, A3).
+// homeView joins the Profile and ledger's month into the HomeView in the Currency ledger answered Spent in, stamping
+// money left without a code with it. The month and first_recap_on are local dates, days_remaining ledger's (A2, A3).
 func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recaps []*moneyrecapv1.RecapMonth, warning *moneyrecapv1.TargetWarning, now time.Time) *moneyrecapv1.HomeView {
+	code, digits := heldIn(summary.GetSpent().GetCurrencyCode(), p)
 	stamp := func(m *moneyrecapv1.Money) *moneyrecapv1.Money {
 		if m != nil && m.CurrencyCode == "" {
-			m.CurrencyCode = p.CurrencyCode
+			m.CurrencyCode = code
 		}
 		return m
 	}
@@ -184,8 +186,8 @@ func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recap
 	return &moneyrecapv1.HomeView{
 		DisplayName:    p.DisplayName,
 		AvatarKey:      p.AvatarKey,
-		CurrencyCode:   p.CurrencyCode,
-		CurrencyDigits: p.CurrencyDigits,
+		CurrencyCode:   code,
+		CurrencyDigits: digits,
 		Month:          now.Format(monthLayout),
 		Spent:          stamp(summary.GetSpent()),
 		MoneyIn:        stamp(summary.GetMoneyIn()),

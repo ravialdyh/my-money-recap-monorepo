@@ -1,0 +1,50 @@
+{
+  "doc": "PRD §12 acceptance 8, a Member in Bahrain on 30 September switching BHD → IDR at 42,137.5, three decimals to none (§8.9 step 4): each amount becomes round-half-up(amount × 42,137.5) to 0 decimals. Salary 1,250.000 × 42,137.5 = 52,671,875. Spends: 12.345 → 520,187.4375 → 520,187; 0.040 → 1,685.5 → 1,686 (a half rounds up); 7.120 → 300,019; 150.500 → 6,341,693.75 → 6,341,694. The preview's Spends row is every Spend: 170.005 BHD before, 520,187 + 1,686 + 300,019 + 6,341,694 = 7,163,586 IDR after. Each row keeps its BHD original; one CurrencyConversion row; the Saving Target stays 20% (step 5).",
+  "timezone": "Asia/Bahrain",
+  "signedUpOn": "2026-09-01",
+  "currencyCode": "BHD",
+  "salaries": [
+    {"amount": {"amount": "1250.000", "currencyCode": "BHD"}, "originalAmount": {"amount": "1250.000", "currencyCode": "BHD"}, "payday": "25", "effectiveFrom": "2026-09"}
+  ],
+  "savingTargets": [
+    {"percent": 20, "effectiveFrom": "2026-09"}
+  ],
+  "spends": [
+    {"id": "bh-01", "amount": {"amount": "12.345", "currencyCode": "BHD"}, "originalAmount": {"amount": "12.345", "currencyCode": "BHD"}, "category": "CATEGORY_BILLS", "date": "2026-09-03"},
+    {"id": "bh-02", "amount": {"amount": "0.040", "currencyCode": "BHD"}, "originalAmount": {"amount": "0.040", "currencyCode": "BHD"}, "category": "CATEGORY_SNACKS", "date": "2026-09-05"},
+    {"id": "bh-03", "amount": {"amount": "7.120", "currencyCode": "BHD"}, "originalAmount": {"amount": "7.120", "currencyCode": "BHD"}, "category": "CATEGORY_RIDES", "date": "2026-09-10"},
+    {"id": "bh-04", "amount": {"amount": "150.500", "currencyCode": "BHD"}, "originalAmount": {"amount": "150.500", "currencyCode": "BHD"}, "category": "CATEGORY_CLOTHES", "date": "2026-09-20"}
+  ],
+  "asOf": "2026-09-30",
+  "convert": {
+    "rate": "42137.5",
+    "source": "RATE_SOURCE_PROVIDER",
+    "toCurrencyCode": "IDR"
+  },
+  "settings": {
+    "salary": {"amount": {"amount": "52671875", "currencyCode": "IDR"}, "originalAmount": {"amount": "1250.000", "currencyCode": "BHD"}, "payday": "25", "effectiveFrom": "2026-09"},
+    "savingTarget": {"percent": 20, "effectiveFrom": "2026-09"},
+    "paydayPassedThisMonth": true,
+    "currencyCode": "IDR",
+    "hasAmountsToConvert": true,
+    "newSavingTargetFrom": "2026-10"
+  },
+  "conversionPreview": {
+    "fromCurrencyCode": "BHD",
+    "toCurrencyCode": "IDR",
+    "rate": "42137.5",
+    "salaryBefore": {"amount": "1250.000", "currencyCode": "BHD"},
+    "salaryAfter": {"amount": "52671875", "currencyCode": "IDR"},
+    "spendsBefore": {"amount": "170.005", "currencyCode": "BHD"},
+    "spendsAfter": {"amount": "7163586", "currencyCode": "IDR"}
+  },
+  "salariesAfter": [
+    {"amount": {"amount": "52671875", "currencyCode": "IDR"}, "originalAmount": {"amount": "1250.000", "currencyCode": "BHD"}, "payday": "25", "effectiveFrom": "2026-09"}
+  ],
+  "spendsAfter": [
+    {"id": "bh-01", "amount": {"amount": "520187", "currencyCode": "IDR"}, "originalAmount": {"amount": "12.345", "currencyCode": "BHD"}, "category": "CATEGORY_BILLS", "date": "2026-09-03"},
+    {"id": "bh-02", "amount": {"amount": "1686", "currencyCode": "IDR"}, "originalAmount": {"amount": "0.040", "currencyCode": "BHD"}, "category": "CATEGORY_SNACKS", "date": "2026-09-05"},
+    {"id": "bh-03", "amount": {"amount": "300019", "currencyCode": "IDR"}, "originalAmount": {"amount": "7.120", "currencyCode": "BHD"}, "category": "CATEGORY_RIDES", "date": "2026-09-10"},
+    {"id": "bh-04", "amount": {"amount": "6341694", "currencyCode": "IDR"}, "originalAmount": {"amount": "150.500", "currencyCode": "BHD"}, "category": "CATEGORY_CLOTHES", "date": "2026-09-20"}
+  ]
+}

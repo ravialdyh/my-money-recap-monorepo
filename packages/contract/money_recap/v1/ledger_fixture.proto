@@ -44,7 +44,8 @@ message LedgerFixture {
   repeated Recap recaps = 12;
   // GetSettings as of as_of.
   optional LedgerSettings settings = 13;
-  // PreviewConversion with convert's rate and Currency, as of as_of.
+  // PreviewConversion with convert's rate and Currency, as of as_of, before
+  // convert is made.
   optional ConversionPreview conversion_preview = 14;
   // Whether logging the last entry of spends, on its date, answered
   // crossed_line (PRD §8.8).

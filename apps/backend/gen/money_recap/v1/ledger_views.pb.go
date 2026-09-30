@@ -829,7 +829,8 @@ type ConversionPreview struct {
 	// The Salary in force; absent with no Salary.
 	SalaryBefore *Money `protobuf:"bytes,4,opt,name=salary_before,json=salaryBefore,proto3,oneof" json:"salary_before,omitempty"`
 	SalaryAfter  *Money `protobuf:"bytes,5,opt,name=salary_after,json=salaryAfter,proto3,oneof" json:"salary_after,omitempty"`
-	// The sum of every Spend that would be rewritten.
+	// Every Spend of every month, not one month's (the D6 row "Spends"): the
+	// sum before, and the sum of each Spend rewritten after.
 	SpendsBefore  *Money `protobuf:"bytes,6,opt,name=spends_before,json=spendsBefore,proto3" json:"spends_before,omitempty"`
 	SpendsAfter   *Money `protobuf:"bytes,7,opt,name=spends_after,json=spendsAfter,proto3" json:"spends_after,omitempty"`
 	unknownFields protoimpl.UnknownFields

@@ -56,11 +56,15 @@ service BffService {
   // after setup starts this month, later ones next month (D65);
   // failed_precondition without a Salary (D44).
   rpc SaveTarget(BffServiceSaveTargetRequest) returns (BffServiceSaveTargetResponse) {}
-  // currency.Quote then ledger.PreviewConversion; unavailable when the rate
-  // fetch fails, the Retry InlineError (PRD §8.9 step 1).
+  // nothing_to_convert, no quote, when ledger holds no amounts; with
+  // manual_rate, ledger.PreviewConversion; else currency.Quote, unavailable
+  // when the fetch fails (PRD §8.9 step 1), always until #175 adds currency.
+  // out_of_range past 11 digits (D57).
   rpc PreviewCurrencyChange(BffServicePreviewCurrencyChangeRequest) returns (BffServicePreviewCurrencyChangeResponse) {}
-  // ledger.ApplyCurrencyConversion, or members.SaveProfile when there is
-  // nothing to convert (PRD §8.9 steps 2 and 4).
+  // ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
+  // writes under one key: members.SaveProfile, then ledger.RelabelCurrency
+  // (PRD §8.9 steps 2 and 4). failed_precondition with no rate while ledger
+  // holds amounts; out_of_range past D57.
   rpc ChangeCurrency(BffServiceChangeCurrencyRequest) returns (BffServiceChangeCurrencyResponse) {}
   rpc SaveNotificationPrefs(BffServiceSaveNotificationPrefsRequest) returns (BffServiceSaveNotificationPrefsResponse) {}
   rpc RegisterDevice(BffServiceRegisterDeviceRequest) returns (BffServiceRegisterDeviceResponse) {}

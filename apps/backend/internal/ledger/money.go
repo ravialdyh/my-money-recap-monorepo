@@ -44,6 +44,11 @@ func (c cash) rounded(r *big.Rat) *big.Rat {
 	return v
 }
 
+// unit is the currency's smallest amount, 1 at 0 decimals and 0.01 at 2, the least a rewrite or relabel leaves.
+func (c cash) unit() *big.Rat {
+	return new(big.Rat).SetFrac(big.NewInt(1), new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(c.scale)), nil))
+}
+
 // printed is an amount in a sentence as the phone prints one (§8.7, #106): the home locale's symbol and grouping, a
 // space only after a code, no fraction when whole: "£320", "Rp400.000"; the code where x/text lacks one: "VES 1.500".
 func (c cash) printed(r *big.Rat) string {

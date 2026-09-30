@@ -160,8 +160,9 @@ public nonisolated struct MoneyRecap_V1_BffServicePreviewCurrencyChangeRequest: 
   /// ISO 4217 code the Member picked.
   public var toCurrencyCode: String = String()
 
-  /// Decimal string the Member typed after an unsupported-pair answer (D7);
-  /// empty asks currency.Quote.
+  /// Decimal string the Member typed after an unsupported pair or a failed
+  /// fetch (D7), at most 11 digits before the separator and 12 after; empty
+  /// asks currency.Quote.
   public var manualRate: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

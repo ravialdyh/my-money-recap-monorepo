@@ -6,11 +6,12 @@ the arithmetic that only `ledger` implements (ARCHITECTURE A2, §7.2) is checked
 the PRD wrote down, not numbers the implementation produced.
 
 Written in #42, #48 and #49. `apps/backend/internal/ledger/fixtures_test.go` decodes every file, and
-`ledger`'s `TestTheAnswerKey` (#99, #128, #130, #152) runs them through the service: it seeds the file's rows, logs
-the last Spend with `LogSpend` on its own date when the file asserts `crossedLine`, makes its `saveSalary`,
-sets the clock to `asOf` in `timezone` and compares what `GetMonthSummary`, `GetRecap`, `GetSettings` and the
-Salary rows answer to the expected fields. It names the one file it leaves out and why: the currency change,
-`prd-8.9-maya-gbp-to-idr`, until slice 7.
+`ledger`'s `TestTheAnswerKey` (#99, #128, #130, #152, #173) runs every one through the service, none left out: it
+seeds the file's rows, logs the last Spend with `LogSpend` on its own date when the file asserts `crossedLine`,
+makes its `saveSalary`, asks `PreviewConversion` for its `conversionPreview` and then makes its `convert`, sets the
+clock to `asOf` in `timezone` and compares what `GetMonthSummary`, `GetRecap`, `PreviewConversion`, `GetSettings`
+and the Salary and Spend rows answer to the expected fields; a file with `convert` must leave exactly one
+CurrencyConversion row naming it (PRD §12 acceptance 8).
 
 ## What a fixture is
 
@@ -31,12 +32,11 @@ reports for the currency (§8.4). A sentence that embeds an amount is written as
 (`£160`, `Rp2.600.000`).
 
 Every `SalarySetting` and every `Spend`, wherever it sits, carries `originalAmount`: the amount as
-typed, with its Currency (PRD §7, §8.9 step 4). Every file so far starts from a ledger never
-converted, so its input rows `salaries` and `spends`, and every row of a file without `convert`,
-have `originalAmount` equal to `amount`. That is a limit of today's files, not a rule of the
-ledger: converting again (§8.9 step 6) starts from Rp amounts with £ originals, and a file starting
-there, the only shape that catches a conversion from `originalAmount` instead of `amount`, widens
-this check in `fixtures_test.go` first. After `convert`, every other row (`settings.salary`,
+typed, with its Currency (PRD §7, §8.9 step 4). An input row, in `salaries` or `spends`, has
+`originalAmount` equal to `amount`, unless an earlier conversion made it: then `amount` is in the file's
+`currencyCode` and `originalAmount` in another Currency. `prd-8.9-maya-idr-back-to-gbp` starts there,
+converting again (§8.9 step 6) from Rp amounts with £ originals, the only shape that catches a conversion
+made from `originalAmount` instead of `amount`. After `convert`, every other row (`settings.salary`,
 `settings.nextSalary`, `salariesAfter`, `spendsAfter`, a Recap's `splurge`) keeps its input row's
 `originalAmount`, a `SalarySetting` paired by `effectiveFrom` and a `Spend` by `id`; a row with no
 input row fails. `fixtures_test.go` checks all three and names the row that drifts.

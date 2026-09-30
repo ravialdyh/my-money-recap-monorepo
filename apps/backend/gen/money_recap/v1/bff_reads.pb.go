@@ -365,8 +365,9 @@ type BffServicePreviewCurrencyChangeRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// ISO 4217 code the Member picked.
 	ToCurrencyCode string `protobuf:"bytes,1,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
-	// Decimal string the Member typed after an unsupported-pair answer (D7);
-	// empty asks currency.Quote.
+	// Decimal string the Member typed after an unsupported pair or a failed
+	// fetch (D7), at most 11 digits before the separator and 12 after; empty
+	// asks currency.Quote.
 	ManualRate    string `protobuf:"bytes,2,opt,name=manual_rate,json=manualRate,proto3" json:"manual_rate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

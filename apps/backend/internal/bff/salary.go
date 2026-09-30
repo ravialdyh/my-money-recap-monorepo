@@ -94,8 +94,9 @@ func (s *Service) recordStep(ctx context.Context, key string, p *moneyrecapv1.Pr
 }
 
 // relabel is the second half of a setup Currency change once members holds the new code: ledger moves any saved
-// Salary to it, never converting (spec #92). A first Currency, before step 2 was ever saved, has nothing to move.
-func (s *Service) relabel(ctx context.Context, key string, before *moneyrecapv1.Profile, code string) (*moneyrecapv1.SalarySetting, error) {
+// Salary to it, never converting (spec #92), and answers its settings. A first Currency, before step 2 was ever
+// saved, has nothing to move.
+func (s *Service) relabel(ctx context.Context, key string, before *moneyrecapv1.Profile, code string) (*moneyrecapv1.LedgerSettings, error) {
 	if before.OnboardingStep < 2 {
 		return nil, nil
 	}
@@ -107,5 +108,5 @@ func (s *Service) relabel(ctx context.Context, key string, before *moneyrecapv1.
 	if err != nil {
 		return nil, requiredCallFailed("ledger.RelabelCurrency", connect.CodeOf(err), err)
 	}
-	return moved.Msg.Settings.GetSalary(), nil
+	return moved.Msg.Settings, nil
 }

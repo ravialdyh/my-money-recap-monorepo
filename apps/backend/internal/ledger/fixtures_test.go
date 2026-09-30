@@ -26,6 +26,7 @@ var manifest = []string{
 	"prd-12.5-idr-warning-fires",
 	"prd-12.5-idr-warning-fires-once",
 	"prd-12.6-squirrel-kept-116",
+	"prd-12.8-bhd-to-idr",
 	"prd-8.10-maya-20-september-no-sheet",
 	"prd-8.10-maya-27-september-next-month",
 	"prd-8.10-maya-27-september-this-month",
@@ -45,6 +46,7 @@ var manifest = []string{
 	"prd-8.8-maya-20-september-before-payday",
 	"prd-8.8-maya-27-october-after-payday",
 	"prd-8.9-maya-gbp-to-idr",
+	"prd-8.9-maya-idr-back-to-gbp",
 }
 
 func fixtureNames(t *testing.T, dir string) []string {
@@ -168,10 +170,30 @@ func TestBadOriginalsSeesEachDrift(t *testing.T) {
 			Salaries:      []*moneyrecapv1.SalarySetting{{Amount: gbp, EffectiveFrom: "2026-08", OriginalAmount: gbp}},
 			SalariesAfter: []*moneyrecapv1.SalarySetting{{Amount: idr, EffectiveFrom: "2026-09", OriginalAmount: gbp}},
 		},
+		".spends[0] original_amount 6000000 IDR, want 6045000 IDR": {
+			CurrencyCode: "IDR",
+			Spends:       []*moneyrecapv1.Spend{{Id: "maya-01", Amount: &moneyrecapv1.Money{Amount: "6045000", CurrencyCode: "IDR"}, OriginalAmount: &moneyrecapv1.Money{Amount: "6000000", CurrencyCode: "IDR"}}},
+		},
 	} {
 		if bad := badOriginals(f); !slices.Equal(bad, []string{want}) {
 			t.Errorf("want [%s], got %v", want, bad)
 		}
+	}
+}
+
+// A ledger converted before the file starts holds amounts in its Currency and originals in another: that passes, and
+// each row after a second conversion keeps its input row's original.
+func TestBadOriginalsTakesAnEarlierConversion(t *testing.T) {
+	idr := &moneyrecapv1.Money{Amount: "48360000", CurrencyCode: "IDR"}
+	gbp := &moneyrecapv1.Money{Amount: "2400.00", CurrencyCode: "GBP"}
+	f := &moneyrecapv1.LedgerFixture{
+		CurrencyCode:  "IDR",
+		Convert:       &moneyrecapv1.ApplyCurrencyConversionRequest{Rate: "0.0000496", ToCurrencyCode: "GBP"},
+		Salaries:      []*moneyrecapv1.SalarySetting{{Amount: idr, EffectiveFrom: "2026-08", OriginalAmount: gbp}},
+		SalariesAfter: []*moneyrecapv1.SalarySetting{{Amount: &moneyrecapv1.Money{Amount: "2398.66", CurrencyCode: "GBP"}, EffectiveFrom: "2026-08", OriginalAmount: gbp}},
+	}
+	if bad := badOriginals(f); len(bad) != 0 {
+		t.Errorf("a second conversion's rows: %v, want none", bad)
 	}
 }
 
@@ -217,9 +239,8 @@ func badAmounts(m protoreflect.Message, path string) []string {
 	return bad
 }
 
-// badOriginals returns, by path, each Spend and SalarySetting breaking the README's original_amount
-// rule: always present, equal to amount until convert (a limit of today's files), then its input
-// row's (a Spend by id, a SalarySetting by effective_from).
+// badOriginals returns, by path, each Spend and SalarySetting breaking the README's original_amount rule: present; on
+// an input row its amount, or in another Currency after an earlier conversion; after convert its input row's.
 func badOriginals(f *moneyrecapv1.LedgerFixture) []string {
 	typed := map[string]*moneyrecapv1.Money{}
 	for _, s := range f.Salaries {
@@ -242,6 +263,9 @@ func badOriginals(f *moneyrecapv1.LedgerFixture) []string {
 			return
 		}
 		want := amount
+		if input && amount.GetCurrencyCode() == f.CurrencyCode && original.GetCurrencyCode() != f.CurrencyCode {
+			want = original
+		}
 		if f.Convert != nil && !input {
 			var paired bool
 			if want, paired = typed[key]; !paired {

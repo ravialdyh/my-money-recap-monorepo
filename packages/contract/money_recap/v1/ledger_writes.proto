@@ -133,7 +133,8 @@ message ApplyCurrencyConversionRequest {
   // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
-  // Decimal string: units of to_currency_code per unit of the current one.
+  // Decimal string: units of to_currency_code per unit of the current one,
+  // limited as PreviewConversionRequest.rate.
   string rate = 3;
   // PROVIDER or MANUAL, for the CurrencyConversion row (PRD §7); UNSPECIFIED
   // is invalid_argument.
