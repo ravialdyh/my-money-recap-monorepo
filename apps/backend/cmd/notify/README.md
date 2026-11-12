@@ -1,14 +1,14 @@
 # notify
 
 The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and every outbound email.
-It serves `EmailMagicLink` (#68, PR #77) and, since #132, the Target Warning state:
-`GetWarningState` and `EvaluateWarning`, and since #176 its own copy of each Member ("The replica", below)
-and the `idempotency` table, since #178 `RegisterDevice`, and since #179 `GetPrefs` and `SavePrefs`
-("The preferences", below), and since #180 the Target Warning's push through the Apple sender ("The push", below).
+It serves `EmailMagicLink`, the Target Warning state
+(`GetWarningState` and `EvaluateWarning`), its own copy of each Member ("The replica", below)
+and the `idempotency` table, `RegisterDevice`, `GetPrefs` and `SavePrefs`
+("The preferences", below), and the Target Warning's push through the Apple sender ("The push", below).
 The other two pushes, the CSV export email, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
 Its `Ledger` client sends `notify`'s own service-account token, fetched with the client-credentials grant and
-cached until it expires (#177, ARCHITECTURE §4.2), which `ledger` accepts for `GetSpentToday` and
+cached until it expires (ARCHITECTURE §4.2), which `ledger` accepts for `GetSpentToday` and
 `ListMonthsWithData` alone; no schedule calls it yet.
 
 `EmailMagicLink` is exempt from the bearer check by procedure name, never by service, because the
@@ -67,7 +67,7 @@ copy; the primary key is its A14 guarantee, so a repeat answers the same copy an
 call sees `fired_now`. It needs a key, and ledger's copy whenever `crossed_line` is true. The stamping
 call pushes the month ("The push", below). `GetWarningState` answers the same two facts for a month.
 
-The event backup (#135, ARCHITECTURE §6.2 step 6) stamps the same way without the BFF's call: the
+The event backup (ARCHITECTURE §6.2 step 6) stamps the same way without the BFF's call: the
 consumer reads `ledger.spend.logged` and `ledger.spend.edited` from the quorum queue `notify.ledger`, and
 one with `crossed_line` stamps its month with its copy if unstamped, in the transaction that records its
 message id in `processed_events`, so a second delivery changes nothing; a fresh stamp pushes once that
@@ -82,7 +82,7 @@ answers under that token, so a Member it does not own is `not_found` and `member
 ## The push
 
 The first stamp of a month, by `EvaluateWarning` or by the event, pushes "You've passed your saving line for
-{Month}.", the month's name in English, in the background once the stamp has committed (#180, ARCHITECTURE §4.3).
+{Month}.", the month's name in English, in the background once the stamp has committed (ARCHITECTURE §4.3).
 The push first claims its `sent_log` row, primary key `(member_id, kind, period)`, with kind `target_warning` and
 the month as its period, so a crash can lose that one push but a second path or a second replica never sends it
 twice. Nothing is claimed or sent while the Member's `target_warning` switch is off or a deletion is pending; the
@@ -95,7 +95,7 @@ push is recorded and skipped with one log line.
 
 ## The replica
 
-`member_facts` is notify's copy of each Member (spec #169, "The replica", #176): the owner's subject, the
+`member_facts` is notify's copy of each Member (spec #169, "The replica"): the owner's subject, the
 zone, the email and whether a deletion is pending, and no Display Name, since no push prints one. The
 consumer reads the quorum queue `notify.members`, bound to `members.created`, `members.updated`,
 `members.deletion.requested` and `members.deletion.cancelled`, once per message id through
@@ -113,8 +113,8 @@ newer event has written.
 `idempotency` is A14's table, the same shape as `members`' and `ledger`'s: a write claims its Member and
 key inside its own transaction (`internal/idempotency`), a repeated key replays the stored answer, a key
 reused for another request is `invalid_argument`, and keys older than 24 hours are swept. `RegisterDevice`
-(#178) is its first write: it upserts the `device` row on the phone's token, lowercase hex, so a phone another
-Member signs in on moves to them and a Member may hold several. `SavePrefs` (#179) is its second; the export write
+is its first write: it upserts the `device` row on the phone's token, lowercase hex, so a phone another
+Member signs in on moves to them and a Member may hold several. `SavePrefs` is its second; the export write
 will follow.
 
 ## The preferences

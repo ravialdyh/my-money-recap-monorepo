@@ -1,79 +1,10 @@
 # apps/ios
 
-The SwiftUI app (`docs/IOS.md`), iOS 17+, iPhone and iPad. Built so far:
-
-- **Sign in** (PRD §6.1 to §6.3): by email, through Enter email and Check your inbox to a link that opens the app
-  signed in with no browser (I1); Sign in with Apple and Continue with Google, which hand the system web sheet
-  straight to their provider (#71); and the authorization-code flow through Keycloak's login page, behind a
-  debug-only launch argument. The session lives in the Keychain (I2).
-- **Launch**: the generated Connect client (I3) sends the device's zone with `SetTimezone` on every launch, under
-  one `Idempotency-Key` (A3, A14), and the launch then routes as IOS I4 orders it: D11b Restore account, a stored
-  Home, or the first unanswered onboarding step. On the restore sheet (PRD §6.18, D60, #105), "Keep my account"
-  clears the deletion and continues, and "Continue with deletion" signs out on the phone; nothing in the app asks
-  for a deletion yet.
-- **Onboarding** (spec #92): step 1, Name and Avatar (PRD §6.4, #98), step 2, Currency (§6.5, #100), step 3,
-  Salary and Payday (§6.6, #103), and step 4, Saving Target (§6.7, #104), each with the answers already saved
-  filled in. Step 4 without a Salary shows the prompt back to step 3 and one Skip for now (D44). Each back chevron
-  returns to the step before without losing a later answer (#102), and a Currency saved again during setup
-  relabels step 3's Salary. With no connection, setup says `No connection. We need one to save your answers.`: on
-  its own with Try again at launch, and in the step's card otherwise, where Next tries again.
-- **Home** (PRD §6.8, D54, D69): drawn at zero, from the `HomeSnapshot` cache (I4) when one is stored, greeting the
-  Member by name with their Avatar and printing every figure in their Currency, with the Saving Target's card
-  filled in once one is set. A `failed_precondition` from `GetHome`, step 1 or 2 unanswered, deletes the stored
-  Home and reopens that step. The two prompt cards reopen step 3 and step 4, whose back chevron then returns to
-  Home. `Log a spend` opens its sheet (§6.9, #129), and a save moves Home's numbers to the answer's; a Spend that first
-  passes the warning line puts the coral Target Warning above the target card (§8.8, #132). With no network path,
-  the grey offline `Banner` shows and `Log a spend`, the empty list's plus button and an opened Spend's two actions
-  dim to 40% (D58, #134). The hero opens the Spend list (§6.10, #131), and the month chip opens it at its month switcher (D59): one
-  row per Category, largest first, each opening its Spends, and a month already opened reads offline from its
-  `SpendListSnapshot`. A Spend in a Category opens the Edit spend sheet (§6.10, #133), the log sheet prefilled with
-  Save changes and Delete this spend; after either write Home and every month it changed are asked again. Under a `Past recaps` label,
-  each past-Recap row opens its month's Recap, and before the first Recap the dashed preview card opens the month so
-  far; `See last month` is enabled only when the month before Home's is in that list, and opens it (spec #151, #153).
-  A Recap opens full screen on its first page, the cover (C1 for a full month, P1 for the month so far and both
-  partial situations), with its page dots and the close control that returns to Home. A month already opened draws
-  its stored `RecapSnapshot` at once and reads offline; with nothing stored, until the answer it draws the cover's
-  ground and illustration only, and the numbers fade in when it arrives. A swipe turns to page 2 on the yellow
-  ground, where the close control and the dots turn ink: C2, what was kept against the Saving Target as two bars (the
-  target card, which opens D4, when there is none) and the longest no-spend streak, its dates from
-  ledger and its dots with the run lit; P2, the streak alone, its dots stopping at today in the current month (#154).
-  Swiping on reaches the target and spending page (C3, P3, #155), then the last page on the green ground (#156): C4
-  names the month's Archetype with ledger's title and description, its mascot, Saved against Spent as two bars and
-  `Share your {Archetype}`, which draws the 1080 by 1920 poster (C6) and opens the system share sheet (#157), over the
-  four Archetype pills with the month's picked out and no page dots; with no Saving
-  Target the target card, which opens D4, stands in the mascot's place, the pills sit at 40% and there
-  is no Share. P4 closes with ledger's closing line over the pills at 40%. Bars reveal as their page comes on screen.
-- **Settings** (PRD §6.16, #170): the Settings chip opens D1 as a full white sheet over Home, drawn at once from the
-  stored `SettingsSnapshot` and replaced by `GetSettings`' answer: `You` (Profile with the Display Name, Currency
-  with its code), `Money` (Salary and payday as "{amount} · 25th" or "Last day", Saving target as "{n}%", each `Not
-  set` when absent), `Alerts` (Notifications) and `Your data` (Export spends, Delete account in coral and Log out,
-  neither with a chevron). Profile opens D2, setup's First name field and `Pick your avatar` grid, whose Save, on
-  once the name is valid and something changed, sends the name and Avatar and returns to D1; a failed save keeps
-  what was typed over `We couldn't save this. Try again.` Salary and payday opens D3 (#171), setup's amount field and
-  Payday picker over the Salary in force, with any waiting Salary's line and, for a new Payday, when it starts; Save
-  asks `Which salary is this?` only for a changed amount with the same Payday on or after this month's Payday, or
-  when the answer is `failed_precondition`, and the answer's Settings replace the stored copy. Saving target opens D4
-  (#172), setup's slider card over the last Target saved, with `Your new target starts in {Month}.` when ledger says a
-  save starts next month, or, with no Salary, setup's `Set a salary first` card, which opens D3 in its place; its save
-  replaces the stored Settings and Home. The three Recap target cards open the same D4 over the Recap, which keeps its
-  page. Currency opens D5 (#174), setup's searchable list with the Currency held checked; another code asks
-  `PreviewCurrencyChange` and changes at once with nothing to convert (`Changed ✓` on the row), or opens the confirm
-  sheet: D6 with a fetched rate, its failed fetch with `Try again` and `Enter it myself`, or D7's typed rate, previewed
-  again a moment after typing stops. `ChangeCurrency`'s answer replaces Home and Settings and erases every stored Spend
-  list and Recap. The Notifications row (#179) reads `{n} on`, `All off`, or `Off in iOS Settings` when iOS denied permission,
-  and opens D8: `Recap ready`, `Daily reminder` and `Target warning`, each a `Toggle` over its helper line, and
-  `Remind me at` while the reminder is on, its time the system picker in the device locale. Each change sends the
-  whole preferences message at once, and a failure puts the switch back over the Settings save line. Denied, the info
-  Banner offers `Open Settings`, the app's page in iOS Settings, and the switches sit at 40%, each tap opening it too;
-  never asked, turning one on asks first. Without notify's preferences the row shows no count, keeps the stored ones,
-  and opens nothing. The other rows are drawn and open nothing yet. Offline, the grey Banner sits at the top and every
-  row but Log out dims to 40%, D8's switches too; with nothing stored the rows have no values.
-  The back chevron closes Settings, and Home then asks again, so it greets a new name at once.
-- **Push permission** (SCREEN-STATES B5, #178): once the Log a spend sheet closes on a save and iOS has never
-  asked on this phone, the system alert appears over Home, whose numbers have already moved. Once allowed, every
-  launch registers for pushes and sends the token as hex to `RegisterDevice`, remembering it for Log out; a failed
-  registration, the simulator's normal case until #87's push entitlement, is ignored. With no notification
-  delegate, a push is never shown while the app is open and tapping one is a normal launch.
+The SwiftUI app (`docs/IOS.md`), iOS 17+, iPhone and iPad. It covers sign-in (email link, Apple, Google),
+onboarding, Home, the Spend list and sheets, the four Recap pages and the share poster, Settings with
+Profile, Salary and payday, Saving target, Currency and Notifications, and the push permission. What
+each screen shows is `docs/SCREEN-STATES.md`; the rules are `docs/PRD.md` §6; the code is under
+`Screens/` (see Layout below).
 
 ## Open
 
@@ -110,7 +41,7 @@ fails with `errSecMissingEntitlement`, so a relaunch shows Sign in again.
    `HomeSnapshot` before the network answers; stop Compose and it still draws the last snapshot. A link
    the realm refuses returns to Enter email with the A3 copy for its cause. Sign in with Apple and
    Continue with Google open the web sheet on `appleid.apple.com` and `accounts.google.com`, which
-   answer with their own `invalid_client` page until the realm holds real client ids (#71); cancel the
+   answer with their own `invalid_client` page until the realm holds real client ids; cancel the
    sheet to see the `InlineError` inside the card.
 
 Seams, all read at launch: argument `--reset-session` erases the stored session, `--reset-snapshot`
@@ -137,7 +68,7 @@ for a device build.
 Run the build and unit-test steps of the `ios` job in `.github/workflows/ci.yml` from `apps/ios`; they
 carry the coverage flags `tools/coverage/README.md` measures with. Delete `build/MyMoneyRecap.xcresult`
 before a rerun: xcodebuild refuses an existing result bundle and runs no test. Nothing names a
-simulator device or OS version (the "Device and OS coverage" section of issues #16 and #18): the build
+simulator device or OS version: the build
 uses the generic simulator destination and `scripts/simulator-udid.sh` picks a booted or available
 iPhone simulator through `simctl`.
 
@@ -179,13 +110,13 @@ step 3. The first skips itself unless the runner names Mailpit (`MMR_MAILPIT_URL
 second unless it carries the test Member's password; CI's `ios` job passes
 `-only-testing:MyMoneyRecapTests`, so it never runs them. No UI test opens Apple's or Google's page:
 with placeholder client ids each answers with its own error page, which the repository neither controls
-nor may assert as a round-trip (#71), so the hint the app sends is a unit test
+nor may assert as a round-trip, so the hint the app sends is a unit test
 (`Tests/AuthConfigTests.swift`) and the sheet on the provider's host was checked by hand.
 
 The same section asks for two simulator runtimes, both chosen when the script runs and never written
 down: the newest installed iOS runtime and the oldest. The oldest is iOS 26.0, not the deployment target's
 iOS 17: Xcode 27, which builds this app, offers no iOS 17 or 18 runtime for download, so 26.0 is the
-oldest that can be installed, and nothing here is proved on iOS 17 or 18 (#95).
+oldest that can be installed, and nothing here is proved on iOS 17 or 18.
 `scripts/ui-test.sh` builds once, then runs both UI tests on each against the stack
 `infra/compose/.env` describes: its `COMPOSE_PROJECT_NAME` and its Keycloak, BFF and Mailpit host ports,
 each falling back to the default, and each overridden by `MMR_ISSUER`, `MMR_BFF_URL` or
@@ -221,12 +152,12 @@ and runs once.
 | `Screens/` | One folder per SCREEN-STATES group, each screen a view plus an `@Observable` view model (I6): `SignIn/` holds A1 Sign in, A2 Enter email and A3 Check your inbox on one navigation stack; `Onboarding/` holds A4 Name and avatar, with `DisplayName`, the rule `members` applies (NFC, 1 to 30 code points of letters, spaces, hyphens and apostrophes), which the First name field enforces as it is typed, A5 Currency, the list built from `Locale.commonISOCurrencyCodes`, the platform's common currencies, named and sorted in British English, A6 Salary and Payday, whose three helper dates are `Calendar` arithmetic (PRD §8.2), and `NoConnectionView`, setup's one offline state; `Home/` holds B1 Home, B2 to B4 Log a spend and B7 Edit spend (one sheet, `LogSpendView`) and B6 and B6b, the Spend list and a Category's Spends; `Recap/` holds the Recap pager (`RecapPagerView`), its pages, each drawn by its case on its own ground: the cover, C1 and P1 (`RecapCoverPage`), kept and streak, C2 and P2 (`RecapKeptPage`, beside page 2's words), target and spending, C3 and P3 (`RecapGoalPage`), and the Archetype, C4 and P4 (`RecapArchetypePage`), beside `SharePoster`, the C6 share image drawn from its five facts, and `ShareSheet`, the system share sheet it opens in; `Account/` holds D11b Restore account; `Settings/` holds D1 Settings, D2 Profile, D3 Salary and payday with its D56 sheet, D4 Saving target and D5 Currency with its D6 and D7 sheet, and D8 Notifications. |
 | `DesignSystem/` | Generated `Tokens.swift` (do not edit; `npm run build:swift-tokens`), `TextStyle+Font` (applies a type-ramp entry to a view, its line height measured against the font's own), `Money` (the platform currency formatter at the amount's own decimals, I7) and the SwiftUI components mirrored one file per name from `my-money-recap-ds/src/components`: `Screen` (with its `ground`, ink type on the yellow one), `Headline` (`l`, `m`, `compact` and `display`, the white `l` and `display` drawn in a label at their tokens' line heights, which are under the font's own; + `SubCopy`, `Eyebrow` with its coral tone), `Illustration` (hanging into the card below by `hang`, filling the free height above it unless `grows` is false, a tall one capped by `maxHeight`, never shrunk to fit), `Avatar`, `AvatarGrid` (the six keys `Profile.avatar_key` lists, each named for VoiceOver), `Card` (+ `CardTitle`; `split` for an illustration at its edge, `accent` the violet card on the yellow ground), `Chip` (with `asLabel`, the step label pill, `tone`, a Category's selection chip, `highlight`, the yellow pill naming the Member on the Recap cover, and `inverse`, the ink pill), `ProgressBar` (violet, green and coral, with the `piggy` marker drawn from `glyphs.tsx`'s shapes), `CategoryBar`, `Icon` (the eight Category glyphs drawn from `glyphs.tsx`'s shapes), `StatHero` (80, 56 or 40pt, measured), `StatChip` (earned, saved and spent), `StatChipRow` (chips that wrap to a new line), `PromptCard`, `ListRow` (a chevron, the check a chosen row carries, or nothing; its label coral when destructive; disabled, the whole row at 40%), `Sheet` (the `full` variant: the white surface filling the ground under a back chevron and headline, D1 to D5 and D8), `MMRButton`, `MMRTextField` (with its optional suffix, D7's code), `AmountField` (the Currency's symbol and decimals, the D57 cap, grouped as typed inside a `UITextField` delegate so a fast keystroke is never lost), `DayPicker` (1 to 31 and Last day; its dates are the caller's), `InlineError` (with its optional action, D6's `Try again`), `Banner` (the coral Target Warning, the violet info tone with an optional link, D8's `Open Settings`, and the grey no-connection tone, with an optional ×), `MMRToggle` (`Toggle.tsx`'s 51 by 31 switch, violet when on, drawn rather than the system's, whose size differs between iOS versions, and heard by VoiceOver as a switch), `TextLink`, the helper-text link, `BackRow`, the canvases' 44pt back chevron beside a label pill, `StreakBadge`, `StreakDots` (one per day of the window, the run lit), `CompareBars` (two or more bars scaled to their total or their largest, revealed by `Reveal`), `PageDots` (each dot a control in its own 44pt-tall slice, ink `onLight`), `ArchetypePill` and `ArchetypeRow` (the four pills, the month's picked out) and `CloseControl`, the Recap pager's 44pt close control, ink `onLight`, which the canvases draw and the React design system does not. Colours, radii and type come only from the tokens. The React `ChipRow` is a plain `HStack` here, and `PromptCard` has a `dashed` variant (the D47 outline card) the React one draws by hand. |
 | `Resources/` | Asset catalog with the cover, envelope, jar and vending illustrations, the four Archetype mascots and the six Avatars at 3x, named by their contract keys (PNGs from `my-money-recap/assets/illustrations/`, `ill-cover.webp`, `ill-envelope.webp`, `ill-jar.webp`, `ill-vending.webp`, `ill-squirrel.webp`, `ill-hustler.webp`, `ill-treat.webp`, `ill-slowburner.webp` and `ill-avatar-<key>.webp`); `Fonts/` with Fredoka and Nunito and their licences. |
-| `Tests/`, `UITests/` | XCTest unit tests on the view models, the magic-link handler and session (against a stub realm), the Keychain and the token refresh, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test Member after steps 1 and 2, in rupiah, `Tests/Fixtures/home-recaps.json` one recorded with two past months, a Hustler and a Partial (#130), `log-spend.json` a recorded `LogSpend` answer, `list-spends.json` a recorded `ListSpends` answer, `settings-filled.json` and `settings-not-set.json` recorded `GetSettings` answers (a Salary on the 25th, a 20% Target and all three notifications on, then neither and PRD §10's defaults), `currency-*.json` recorded `PreviewCurrencyChange` and `ChangeCurrency` answers (nothing to convert and the direct change, then a Rp15.000.000 Salary and a Rp25.000 Spend previewed and converted to pounds at a typed 0.000046) and `recap-*.json` `GetRecap` answers (a full Squirrel month, the month so far, a sign-up month, a month with no Money In, a one-day run, no run (a Hustler), an overspent month and a Slow Burner (#156), with `recap-maya-september.json` ledger's answer key for §8.6 rather than a recording, since the stack cannot close a September before 1 October; for screen 3, Maya's months in pounds: target met, missed, no Spend, no Saving Target, and the month so far before and after Payday); steps 1 and 2, Home's first-load skeleton, its rupiah proof (X3), its Target Warning banner before and after Payday and dismissed, its offline Banner with and without the warning, the Log a spend and Edit spend sheets, the Spend list with its empty months and Category detail, the Recap cover, C1, P1, its loading state, held sideways and in rupiah (X4), page 2, C2 and its variants, P2 and held sideways, screen 3, C3 in each state and P3, held sideways, and screen 4, C4 for each Archetype and without one and P4 in each situation, held sideways, Settings filled, with nothing set, offline, with nothing stored and with push denied, D4 with and without its line and with no Salary, and D1, D2 and D4 held sideways, D6 in rupiah, its failed fetch, D7 before and after its preview, D5 with `Changed ✓`, D5 to D7 held sideways, and D8 with the reminder on and denied, held sideways too, drawn in a window (`NameAvatarViewTests`, `SettingsViewTests`, `CurrencyEditViewTests`, `CurrencyViewTests`, `HomeViewTests`, `LogSpendViewTests`, `SpendListViewTests`, `RecapViewTests`, `RecapKeptTests`, `RecapGoalViewTests`, `RecapArchetypeTests`, all through `Picture.swift`); the share image, one poster per Archetype at 1080 by 1920 and its rupiah proof (X5), with the share sheet presented and dismissed (`SharePosterTests`); every listed currency checked against the backend's CLDR file (`CurrencyViewModelTests`, which reads it from the repository); the two UI tests above. |
+| `Tests/`, `UITests/` | XCTest unit tests on the view models, the magic-link handler and session (against a stub realm), the Keychain and the token refresh, with `Tests/Fixtures/home-zero.json` the recorded `GetHome` answer for the test Member after steps 1 and 2, in rupiah, `Tests/Fixtures/home-recaps.json` one recorded with two past months, a Hustler and a Partial, `log-spend.json` a recorded `LogSpend` answer, `list-spends.json` a recorded `ListSpends` answer, `settings-filled.json` and `settings-not-set.json` recorded `GetSettings` answers (a Salary on the 25th, a 20% Target and all three notifications on, then neither and PRD §10's defaults), `currency-*.json` recorded `PreviewCurrencyChange` and `ChangeCurrency` answers (nothing to convert and the direct change, then a Rp15.000.000 Salary and a Rp25.000 Spend previewed and converted to pounds at a typed 0.000046) and `recap-*.json` `GetRecap` answers (a full Squirrel month, the month so far, a sign-up month, a month with no Money In, a one-day run, no run (a Hustler), an overspent month and a Slow Burner, with `recap-maya-september.json` ledger's answer key for §8.6 rather than a recording, since the stack cannot close a September before 1 October; for screen 3, Maya's months in pounds: target met, missed, no Spend, no Saving Target, and the month so far before and after Payday); steps 1 and 2, Home's first-load skeleton, its rupiah proof (X3), its Target Warning banner before and after Payday and dismissed, its offline Banner with and without the warning, the Log a spend and Edit spend sheets, the Spend list with its empty months and Category detail, the Recap cover, C1, P1, its loading state, held sideways and in rupiah (X4), page 2, C2 and its variants, P2 and held sideways, screen 3, C3 in each state and P3, held sideways, and screen 4, C4 for each Archetype and without one and P4 in each situation, held sideways, Settings filled, with nothing set, offline, with nothing stored and with push denied, D4 with and without its line and with no Salary, and D1, D2 and D4 held sideways, D6 in rupiah, its failed fetch, D7 before and after its preview, D5 with `Changed ✓`, D5 to D7 held sideways, and D8 with the reminder on and denied, held sideways too, drawn in a window (`NameAvatarViewTests`, `SettingsViewTests`, `CurrencyEditViewTests`, `CurrencyViewTests`, `HomeViewTests`, `LogSpendViewTests`, `SpendListViewTests`, `RecapViewTests`, `RecapKeptTests`, `RecapGoalViewTests`, `RecapArchetypeTests`, all through `Picture.swift`); the share image, one poster per Archetype at 1080 by 1920 and its rupiah proof (X5), with the share sheet presented and dismissed (`SharePosterTests`); every listed currency checked against the backend's CLDR file (`CurrencyViewModelTests`, which reads it from the repository); the two UI tests above. |
 | `scripts/` | `simulator-udid.sh`, `ui-test.sh`. |
 
 The Fredoka and Nunito variable fonts sit in `Resources/Fonts` with their SIL Open Font License text, from
 github.com/google/fonts, and `Info.plist` registers them (`UIAppFonts`), so the type ramp and the amount field's
-measuring both use them (#106). Every screen works held sideways on an iPhone: a screen with no scroll view of its
+measuring both use them. Every screen works held sideways on an iPhone: a screen with no scroll view of its
 own passes `Screen(scrolls: true)`, and steps 1 and 3 scroll their headline with their cards; the magic-link UI
-test turns the phone at each screen and reaches its main control (#106). Each Recap page scrolls the same way
-while swiping still turns the page (spec #151); the iPad column widths are left to the hardening slice.
+test turns the phone at each screen and reaches its main control. Each Recap page scrolls the same way
+while swiping still turns the page; the iPad column widths are left to the hardening slice.

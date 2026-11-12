@@ -1,6 +1,6 @@
 # currency
 
-The `currency` service (`docs/ARCHITECTURE.md` §7.4, #175): the day's exchange rate from Open Exchange Rates,
+The `currency` service (`docs/ARCHITECTURE.md` §7.4): the day's exchange rate from Open Exchange Rates,
 for the Currency sheet's preview (PRD §8.9 step 1, D35). It serves `Quote` and nothing else. Its image and bearer
 check are every service's (`apps/README.md`, "Every service"); it owns no database, no broker, no outbox and no
 consumer (owner, 2026-09-29), so, like the BFF, it has its own small start-up in `main.go` rather than

@@ -9,7 +9,7 @@ This repository is the monorepo for it: product docs and design record, illustra
 
 | Path | What lives here |
 | --- | --- |
-| `docs/` | Product-level docs: the PRD, the screen-state contract, the domain glossary, the backend architecture, the iOS design and the design handoff |
+| `docs/` | Product-level docs: `PRD.md` (rules, `D*` decisions), `SCREEN-STATES.md` (every screen state and its copy), `CONTEXT.md` (the glossary: read it before naming anything), `ARCHITECTURE.md` (backend, `A*` decisions), `IOS.md` (the app, `I*` decisions) and the design handoff |
 | `my-money-recap/` | Illustration source: the WebP artwork, the app icon, and the scripts and prompts that produce them |
 | `my-money-recap-ds/` | `@my-money-recap/ui`, the React design system: tokens, components, the four Recap screens |
 | `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members`, `notify` and `ledger` services) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
@@ -168,20 +168,6 @@ To move the iOS job onto your own Mac and stop paying for it entirely, register 
 `runs-on: ${{ vars.IOS_RUNNER || 'macos-latest' }}`, so nothing else changes, and unsetting the
 variable moves it straight back. Self-hosted runners are only safe on a private repository like this
 one: on a public repo a fork's pull request could run its own code on your machine.
-
-## Docs
-
-- [`docs/PRD.md`](docs/PRD.md): product requirements and the numbered decision log
-- [`docs/SCREEN-STATES.md`](docs/SCREEN-STATES.md): every screen and state, with its copy
-- [`docs/CONTEXT.md`](docs/CONTEXT.md): domain glossary (Member, Salary, Spend, Recap, Archetype…). Read this before naming anything.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): the backend design: Nginx, the Go BFF, the four services, RabbitMQ, Redis, Postgres, Keycloak, and the numbered `A*` decisions
-- [`docs/IOS.md`](docs/IOS.md): the iOS app's internals: sign-in, session, networking, the SwiftData cache, generated tokens, and the numbered `I*` decisions
-- [`docs/design/design_handoff_my_money_recap/README.md`](docs/design/design_handoff_my_money_recap/README.md): the design handoff: every canvas and artboard
-- [`my-money-recap-ds/README.md`](my-money-recap-ds/README.md): the design system: visual rules and component API
-- [`my-money-recap/README.md`](my-money-recap/README.md): how a rendered illustration becomes a shipped asset
-- [`apps/README.md`](apps/README.md): the Go backend and the iOS app: build, test, run
-- [`infra/compose/README.md`](infra/compose/README.md): the Compose stack: its containers and ports, the `mmr` realm, a phone on the LAN
-- [`packages/contract/README.md`](packages/contract/README.md): the contract: what is generated where, and the breaking-change rule
 
 ## Single source of truth
 

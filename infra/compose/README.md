@@ -16,7 +16,7 @@ Fill every empty value in `.env`, the set CI fills too: any string will do local
 `NOTIFY_DB_PASSWORD` go into a connection URL unescaped, so use letters and digits for those. Three optional keys are not
 in the file, because `compose.yaml` defaults each to empty; add one only with a real value. Without
 `OPEN_EXCHANGE_RATES_APP_ID` every rate fetch fails, and the Member types the rate; a free App ID of your own shows live
-rates (#175). Without `APPLE_PUSH_KEY_ID` and `APPLE_PUSH_KEY`, `notify` records each push and sends none (#180); a
+rates. Without `APPLE_PUSH_KEY_ID` and `APPLE_PUSH_KEY`, `notify` records each push and sends none; a
 made-up key would stop it starting. They are
 development credentials, and `.gitignore` keeps the file out of git. Then:
 
@@ -44,17 +44,17 @@ The host ports are the `*_HOST_PORT` variables, whose defaults are in `compose.y
 
 | Container | Image | Host port | Notes |
 | --- | --- | --- | --- |
-| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members`, `notify` and `ledger`, the four A9 plans (`currency` has none), one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). A volume made before `ledger` existed (#99) has no `ledger` database, and only `down -v` makes the script run again (see "Chosen once"). |
+| postgres | `postgres:17` | 127.0.0.1:`POSTGRES_HOST_PORT` | `postgres/10-databases.sh` runs once on a fresh volume: databases `keycloak`, `members`, `notify` and `ledger`, the four A9 plans (`currency` has none), one role each, `CONNECT` revoked from `PUBLIC` so no role can reach another's database (A9). A volume made before `ledger` existed has no `ledger` database, and only `down -v` makes the script run again (see "Chosen once"). |
 | keycloak | `quay.io/phasetwo/phasetwo-keycloak`, one full Phase Two tag pinned in `compose.yaml` | `KEYCLOAK_HOST_PORT` | Never `latest` or a shorter tag (§7.5). Its file vault reads the two identity-provider secrets from `/run/secrets` (see "Secrets"). |
 | redis | `redis:8` | 127.0.0.1:`REDIS_HOST_PORT` | The BFF's three §4.4 jobs built: the magic-link limit, the per-Member limit and the idempotency fast path (`apps/backend/cmd/bff/README.md`), and `currency`'s day's rate table (`apps/backend/cmd/currency/README.md`); the JWKS is cached in each process's memory (`internal/auth`). |
-| rabbitmq | `rabbitmq:4-management` | 127.0.0.1:`RABBITMQ_HOST_PORT` | The broker (§4.3): `members`' outbox relay publishes to it and `ledger` consumes from it (#101), and since #135 `ledger`'s relay publishes the spend events `notify` consumes, since #173 the conversion event `members` consumes, all as the user `mmr` through the `amqp_url` secret. It runs as its own `rabbitmq` user: any RabbitMQ command run as root before the server has written its Erlang cookie, such as the health check on a slow first start, wrote that file as root, and the server then died reading it (`eacces`, #93). Its management port stays inside the stack. |
+| rabbitmq | `rabbitmq:4-management` | 127.0.0.1:`RABBITMQ_HOST_PORT` | The broker (§4.3): `members`' outbox relay publishes to it and `ledger` consumes from it, `ledger`'s relay publishes the spend events `notify` consumes and the conversion event `members` consumes, all as the user `mmr` through the `amqp_url` secret. It runs as its own `rabbitmq` user: any RabbitMQ command run as root before the server has written its Erlang cookie, such as the health check on a slow first start, wrote that file as root, and the server then died reading it (`eacces`). Its management port stays inside the stack. |
 | realm-apply | `ghcr.io/opentofu/opentofu`, pinned | none | One-shot: copies `infra/tofu/realm` into a named volume, runs `tofu apply` against Keycloak's admin API and exits. Starts after Keycloak is healthy (see "The `mmr` realm"). |
 | members-migrate | the `members` image, `migrate` command | none | One-shot: applies the `members` migrations and exits, reading its connection string from `/run/secrets/members_database_url` as `members` does. The three migrate steps share `compose.yaml`'s `x-migrate` block: the image is never pulled, the command is `migrate`, and each waits for a healthy Postgres. |
 | notify-migrate | the `notify` image, `migrate` command | none | The same for `notify`. |
 | ledger-migrate | the `ledger` image, `migrate` command | none | The same for `ledger`. |
 | mailpit | `axllent/mailpit`, pinned | 127.0.0.1:`MAILPIT_HOST_PORT` and `MAILPIT_SMTP_HOST_PORT` | Behind the `mail` profile: the mail host `notify` sends to (see "Mailpit"). SMTP on 1025, what arrived on 8025. |
 | members | built from `apps/backend` (`Dockerfile`, `CMD=members`) | 127.0.0.1:`MEMBERS_HOST_PORT` | `MembersService` over Connect (`apps/backend/cmd/members/README.md`), the consumer that takes a converted Currency from `ledger`'s events on `members.ledger`, and the relay that publishes its outbox every second. Starts after its migration step and the realm step completed and RabbitMQ is healthy. |
-| notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect (`apps/backend/cmd/notify/README.md`), and the consumer that stamps the Target Warning from `ledger`'s spend events on `notify.ledger` and pushes it, recorded and not sent while `.env` holds no push key (#180). Starts after its migration step, the realm step and a healthy RabbitMQ. |
+| notify | built from `apps/backend` (`Dockerfile`, `CMD=notify`) | 127.0.0.1:`NOTIFY_HOST_PORT` | `NotifyService` over Connect (`apps/backend/cmd/notify/README.md`), and the consumer that stamps the Target Warning from `ledger`'s spend events on `notify.ledger` and pushes it, recorded and not sent while `.env` holds no push key. Starts after its migration step, the realm step and a healthy RabbitMQ. |
 | ledger | built from `apps/backend` (`Dockerfile`, `CMD=ledger`) | 127.0.0.1:`LEDGER_HOST_PORT` | `LedgerService` over Connect, the money service (`apps/backend/cmd/ledger/README.md`), the consumer that keeps its replica from `members`' events on `ledger.members`, and the relay that publishes its outbox every second. Starts after its migration step, the realm step, a healthy RabbitMQ and a healthy `members`, which answers the profile read that fills a replica an event has not reached. |
 | bff | built from `apps/backend` (`Dockerfile`, `CMD=bff`) | `BFF_HOST_PORT` | `BffService` over Connect, what the phone calls (`apps/backend/cmd/bff/README.md`). Starts after `members`, `ledger` and Redis are healthy and the realm step completed; it never waits for `currency`. |
 | currency | built from `apps/backend` (`Dockerfile`, `CMD=currency`) | 127.0.0.1:`CURRENCY_HOST_PORT` | `CurrencyService` over Connect, the day's exchange rate (`apps/backend/cmd/currency/README.md`), with no database and no broker. Its App ID is `OPEN_EXCHANGE_RATES_APP_ID`, empty by default, so every quote is `unavailable`. Starts after Redis is healthy. |
@@ -108,7 +108,7 @@ once: `realm-apply` re-applies them on every `up` (see "The `mmr` realm").
 
 Keycloak takes the Google client secret and the Apple `.p8` through its file vault (`KC_VAULT=file`,
 `KC_VAULT_DIR=/run/secrets`, the `KEY_ONLY` key resolver), so the realm holds only
-`${vault.google_client_secret}` and `${vault.apple_sign_in_key}` (#71). Their laptop and CI source
+`${vault.google_client_secret}` and `${vault.apple_sign_in_key}`. Their laptop and CI source
 is `vault/`, two committed files holding `replace-me`, which needs no `.env` line; Compose mounts
 each under the name Keycloak looks for, with every underscore doubled. Why, and why the Apple
 extension never asks the vault at all, is in
@@ -191,7 +191,7 @@ running `up` is enough to change it.
   `apple` (the image's Apple extension through the generic OIDC resource with
   `provider_id = "apple"`, the Team ID and Key ID in `extra_config`), both with "Trust email" on
   (PRD §9). The app sends `kc_idp_hint` with one of those two aliases, so Keycloak skips its own
-  login page and redirects straight to the provider (#71). Their client ids and the Apple Team ID
+  login page and redirects straight to the provider. Their client ids and the Apple Team ID
   and Key ID are `GOOGLE_CLIENT_ID`, `APPLE_SERVICES_ID`, `APPLE_TEAM_ID` and
   `APPLE_SIGN_IN_KEY_ID`, which `.env` may set and nothing requires: unset, each is `replace-me`,
   so the providers exist, the buttons reach them, and the provider answers with its own error
@@ -251,7 +251,7 @@ curl -s http://localhost:8090/magic | grep -o 'Open My Money Recap[^<]*'
 Mailpit is the only SMTP host `notify` has: `compose.yaml` sets `NOTIFY_SMTP_ADDR` to `mailpit:1025`
 and the sender to `no-reply@mymoneyrecap.test` for every stack, the machine's included. On a laptop
 and in CI that exercises the client on every run rather than first meeting a real provider on a VM.
-Mailpit sits behind the `mail` profile (#68), so it is not one of §10's thirteen containers, a
+Mailpit sits behind the `mail` profile, so it is not one of §10's thirteen containers, a
 default `up` does not start it and a plain `docker compose ps` does not list it. The deploy's `up`
 carries no profile, so the machine's `notify` cannot send until #87 item 8 gives it a provider
 ([`../README.md`](../README.md), "Not in the repository yet").
@@ -265,7 +265,7 @@ healthy with or without it, because its check is the shared one that pings only 
 making it dial SMTP instead would fail `--wait` on the machine every time a real provider blinks.
 So an `up` that forgets `--profile mail` gives a `notify` that answers every send `unavailable` with
 `dial tcp: lookup mailpit ... no such host` in its log, and every `RequestMagicLink` fails with that
-code, because the BFF's `EmailMagicLink` call does (#69). The commands in "Run it" carry the profile
+code, because the BFF's `EmailMagicLink` call does. The commands in "Run it" carry the profile
 so that following them cannot reach this. CI passes the same profile to its `up`, its `ps` and its
 `down` (`.github/workflows/ci.yml`, the `backend` job).
 
@@ -304,8 +304,8 @@ are the facts more than one suite reads; the others belong to one suite.
 | `MEMBERS_TEST_URL` | `http://localhost:8081` | `members` on `MEMBERS_HOST_PORT`, for the Connect-boundary test, with `MMR_TEST_KEYCLOAK` and `MMR_TEST_USER_PASSWORD`. With `NOTIFY_TEST_DATABASE_URL` too, it runs `TestAZoneChangeReachesNotify`, where two zone changes in `members` reach `notify`'s replica through the broker. |
 | `MEMBERS_TEST_BFF_CLIENT_SECRET` | `$BFF_CLIENT_SECRET` | **Optional.** Set it and the suite adds the wrong-audience case: a `bff` service-account token, which `members` must reject as unauthenticated. Unset, that assertion silently does not run. |
 | `BFF_TEST_URL` | `http://localhost:8082` | The BFF on `BFF_HOST_PORT`, the HTTP boundary every `*EndToEnd` test in `internal/bff` drives. Each adds `MMR_TEST_KEYCLOAK`, `MMR_TEST_USER_PASSWORD` and `MMR_TEST_MEMBERS_DATABASE_URL`; `TestMagicLinkEndToEnd` takes `MMR_TEST_MAILPIT` in place of the password, because it spends a fresh address and never signs in as `test`, and `TestTargetWarningEndToEnd` also takes `MEMBERS_TEST_URL`, `LEDGER_TEST_URL`, `NOTIFY_TEST_URL` and the `ledger` and `notify` databases, and `TestCurrencyChangeEndToEnd` `LEDGER_TEST_URL` and the `ledger` database. |
-| `BFF_TEST_EDGE` | `http://localhost:8090` | Nginx on `NGINX_HOST_PORT`, the edge `TestEdge` drives. With `BFF_TEST_URL`, `MMR_TEST_KEYCLOAK` and `MMR_TEST_USER_PASSWORD` it is that test's whole set: it compares one `GetHome` through the edge with the same call straight to the BFF, fetches the `/magic` page and the association file, and proves the stricter limit zone matches the `RequestMagicLink` path and nothing else (#72). |
-| `BFF_TEST_REDIS` | `localhost:6379` | Redis on `REDIS_HOST_PORT`, for the in-process tests of the idempotency fast path (`internal/bff`, #127): each signs in as a subject of its own, so its keys never meet the stack's. The rate-cache tests (`internal/currency`, #175) run on a clock in 2001, for the same reason. |
+| `BFF_TEST_EDGE` | `http://localhost:8090` | Nginx on `NGINX_HOST_PORT`, the edge `TestEdge` drives. With `BFF_TEST_URL`, `MMR_TEST_KEYCLOAK` and `MMR_TEST_USER_PASSWORD` it is that test's whole set: it compares one `GetHome` through the edge with the same call straight to the BFF, fetches the `/magic` page and the association file, and proves the stricter limit zone matches the `RequestMagicLink` path and nothing else. |
+| `BFF_TEST_REDIS` | `localhost:6379` | Redis on `REDIS_HOST_PORT`, for the in-process tests of the idempotency fast path (`internal/bff`): each signs in as a subject of its own, so its keys never meet the stack's. The rate-cache tests (`internal/currency`) run on a clock in 2001, for the same reason. |
 | `NOTIFY_TEST_URL` | `http://localhost:8083` | `notify` on `NOTIFY_HOST_PORT`, the Connect boundary the magic-link test drives with no bearer token at all, and one of `TestTargetWarningEndToEnd`'s services. |
 | `NOTIFY_TEST_DATABASE_URL` | `postgres://notify:$NOTIFY_DB_PASSWORD@localhost:5432/notify` | The `notify` database, where the tests read back the `magic_link_send` row and clean it up. Alone it enables the in-process store tests, the Target Warning's month flag and its stamp from an event, the replica's consumer and its profile-read fill, the idempotency table, and, when `MMR_TEST_MEMBERS_DATABASE_URL` is unset, the shared migration runner's tests. |
 | `NOTIFY_TEST_SMTP` | `localhost:1025` | Mailpit's SMTP port on `MAILPIT_SMTP_HOST_PORT`, for the in-process send. |
