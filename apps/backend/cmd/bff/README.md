@@ -6,21 +6,21 @@ serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `GetSettin
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
 
-`RequestMagicLink` (#69) is exempt from that check by procedure name, because it is sent before a
+`RequestMagicLink` is exempt from that check by procedure name, because it is sent before a
 Member has a token, so the handler reads the address from the request and never from the context's
 claims. It gets a login token from the realm on A10's terms, as the `bff` service account through
 the Phase Two extension's `login-token` endpoint, builds `BFF_MAGIC_LINK_BASE_URL?lt=…` from it, and
-hands the address and the link to `notify.EmailMagicLink` (§7.5), exempt on the same rule (#68). The
+hands the address and the link to `notify.EmailMagicLink` (§7.5), exempt on the same rule. The
 `Idempotency-Key` header is copied when the caller sends one and is a fresh version 4 UUID when it
 does not, because `notify` rejects an empty key (A14).
 
-`SetTimezone` (#96), which the app sends on every launch, is the first Member write, and a Member write
+`SetTimezone`, which the app sends on every launch, is the first Member write, and a Member write
 never gets a minted key: one without the `Idempotency-Key` header is `invalid_argument` before any
 service is called, since a key minted per call would make every retry a new write (A14). It creates the
 Member through `members.GetOrCreateBySubject`, as `GetHome` does, then hands the key, that Member's id
 and the zone to `members.SetTimezone`, and answers the Profile it returns.
 
-`GetOnboardingState` (#98) answers where onboarding resumes: step 1 until the Display Name and Avatar are
+`GetOnboardingState` answers where onboarding resumes: step 1 until the Display Name and Avatar are
 saved, step 2 until the Currency is, then, since steps 3 and 4 can be skipped, the highest step saved; 0
 once none is left. It carries the Profile so far, with the Currency's decimals `members` adds, and the
 `given_name` claim of the caller's own token as `suggested_name`, which fills step 1's First name field: the
@@ -30,59 +30,59 @@ or one Home's prompt reopens after setup, is filled in; a failed `ledger` call i
 rules `members` applies again, before any service call, then hands them and the step to
 `members.SaveProfile` under the phone's key, one write for both (A14). A Currency saved again during
 onboarding then goes to `ledger.RelabelCurrency` under the same key, which moves a saved Salary to the new
-code without converting it, and the answer carries that Salary (#103); after onboarding a Currency change is
+code without converting it, and the answer carries that Salary; after onboarding a Currency change is
 `failed_precondition`, since converting is `ChangeCurrency`'s (PRD §8.9).
 
-`SaveSalary` (#103) is step 3, and later Settings' Salary: `ledger.SaveSalary` under the phone's key, marked
+`SaveSalary` is step 3, and later Settings' Salary: `ledger.SaveSalary` under the phone's key, marked
 as a setup save while onboarding is unfinished, so the Salary starts in the sign-up month whatever it
-changes (spec #92), then, the first time, step 3 recorded in `members` under the same key, after `ledger`
+changes, then, the first time, step 3 recorded in `members` under the same key, after `ledger`
 answers. One call and one key for the phone, two writes to two services: a crash between them leaves the
 Salary saved and step 3 next, and saving again leaves the newest row in force. `ledger`'s code, such as
 `invalid_argument` for an amount with too many decimals or the D56 `failed_precondition`, reaches the phone
 as it is.
 
-`SaveTarget` (#104) is step 4, and later Settings' Saving Target, the same way: `ledger.SaveTarget` marked as a
+`SaveTarget` is step 4, and later Settings' Saving Target, the same way: `ledger.SaveTarget` marked as a
 setup save while onboarding is unfinished, then step 4 recorded in `members` under the same key, which ends
 onboarding. D44's `failed_precondition`, a Target with no Salary, records no step. After onboarding the first
 Salary or Target starts in the current month and later ones follow D56 and D65 (PRD §8.10). Both answer the
-whole Home `GetHome` answers, read in the Member's zone with `notify`'s banner, and the Settings view (#170).
+whole Home `GetHome` answers, read in the Member's zone with `notify`'s banner, and the Settings view.
 
-`GetSettings` (#170) is Settings' view: the Profile from `members.GetOrCreateBySubject`, then
+`GetSettings` is Settings' view: the Profile from `members.GetOrCreateBySubject`, then
 `ledger.GetSettings` and `notify.GetPrefs` at once, each with the one-second timeout. `ledger` is required, its
-code passed through with no upstream text; `notify` is optional (#179), and when it does not answer the view comes
+code passed through with no upstream text; `notify` is optional, and when it does not answer the view comes
 back without preferences and a log line. The Profile's Currency code and decimals are replaced by the code `ledger` holds the amounts in,
 so no view pairs converted amounts with an older code (spec #169). Home, the Spend list and a Recap do the same
-with the code `ledger` answered Spent in, the Profile's only when `ledger` named none (#173).
+with the code `ledger` answered Spent in, the Profile's only when `ledger` named none.
 
-`SaveNotificationPrefs` (#179) hands the whole preferences message to `notify.SavePrefs` under the phone's key and
+`SaveNotificationPrefs` hands the whole preferences message to `notify.SavePrefs` under the phone's key and
 answers it as `notify` stored it, passing notify's code through; the phone puts the switch back on any failure.
 
-`PreviewCurrencyChange` (#173) is the Currency sheet's preview (PRD §8.9 steps 1 to 3). It reads
+`PreviewCurrencyChange` is the Currency sheet's preview (PRD §8.9 steps 1 to 3). It reads
 `ledger.GetSettings` first: with no Salary and no Spends it answers `nothing_to_convert` and asks for no quote.
 With the rate the Member typed it answers `ledger.PreviewConversion` as `MANUAL`, `ledger`'s `invalid_argument`
 and D57's `out_of_range` passed through. Without one it asks `currency.Quote` for the held code to the new one
-(#175) and answers `ledger.PreviewConversion` of that rate as `PROVIDER`, with the rate's date. `currency`'s
+and answers `ledger.PreviewConversion` of that rate as `PROVIDER`, with the rate's date. `currency`'s
 `failed_precondition`, a pair the rates site does not cover, is `unsupported_pair` with no preview; any other
 failure, or no answer within the one second, is `unavailable`, the failed fetch, which is every laptop stack's answer,
-since none has an App ID. `currency` is optional: the BFF starts without it. `ChangeCurrency` (#173) with a rate is `ledger.ApplyCurrencyConversion` under the phone's key, and
+since none has an App ID. `currency` is optional: the BFF starts without it. `ChangeCurrency` with a rate is `ledger.ApplyCurrencyConversion` under the phone's key, and
 answers the fresh Home and Settings in the new Currency while `members` learns the code by event. With no rate it
 is the direct change: `failed_precondition` while `ledger` holds amounts, otherwise onboarding's two writes under
 the one key, `members.SaveProfile` with the code and then `ledger.RelabelCurrency`, so both hold it before the
 answer.
 
-`CancelDeletion` (#105) is "Keep my account" on the restore sheet: `members.CancelDeletion` under the phone's
+`CancelDeletion` is "Keep my account" on the restore sheet: `members.CancelDeletion` under the phone's
 key, whose `failed_precondition` for a stamp past the 24 hours reaches the phone as it is. The sheet itself is
 opened by the stamp in `SetTimezone`'s Profile, the launch call.
 
 Redis holds two of §4.4's limits, through one client. `RequestMagicLink` is counted against its address
 before the realm is asked, `ml:<address>:<hour>` with the address lower-cased: five per address per hour
 (PRD §11), failing closed with `resource_exhausted`. Every other RPC is counted against the token's subject
-once the bearer check has passed, `rl:<subject>:<minute>`: 120 per Member per minute (#97), past which the
+once the bearer check has passed, `rl:<subject>:<minute>`: 120 per Member per minute, past which the
 request is `resource_exhausted` before any service is called. That one fails open: when Redis does not
 answer within a quarter of a second the request goes on uncounted and a log line records it, so a cache
 that is down never locks a Member out of their money (§4.4, A6).
 
-Redis also answers a retried Member write (#127), after the per-Member limit has counted it. `SetTimezone`,
+Redis also answers a retried Member write, after the per-Member limit has counted it. `SetTimezone`,
 `SaveProfile`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend`, `EditSpend`, `DeleteSpend`,
 `RegisterDevice`, `ChangeCurrency` and `SaveNotificationPrefs` are listed in `internal/bff/replay.go`, and a write is covered by being listed there. A successful answer is kept
 24 hours under `idem:<subject>:<Idempotency-Key>`, its bytes after the request hash `internal/idempotency`
@@ -97,39 +97,38 @@ sends the write to its service and logs the degraded call. The owning services' 
 §5 step 5, first-sign-in detection), forwarding the caller's token unchanged so `members` verifies
 it again, with a one-second timeout; the Profile it answers is the one the HomeView shows. Until the
 Member has answered onboarding's steps 1 and 2, a name, an Avatar and a Currency, it stops there with
-`failed_precondition`, which the phone reads as "open onboarding" (spec #92): Home greets by name and
+`failed_precondition`, which the phone reads as "open onboarding": Home greets by name and
 prints every amount in that Currency, so neither has a fallback. Then the
 §6.1 fan-out runs in parallel with a one-second timeout each: `ledger.GetMonthSummary` (required) and
 `notify.GetWarningState` (optional). A failed `members` call reaches the phone with its own Connect
 code, a failed `ledger` call as `unavailable`, each with a message naming only the call; the upstream
-text, which can hold a host or a database name, goes to the log. `ledger` is the real service since #103,
-`notify` since #132, whose kept copy is the banner and whose failure is Home without it. The join
-takes the Currency `ledger` answered Spent in (#173) and stamps each amount left without a code with it. The month asked for, the month shown and
+text, which can hold a host or a database name, goes to the log. `notify`'s kept copy is the banner, and its failure is Home without it. The join
+takes the Currency `ledger` answered Spent in and stamps each amount left without a code with it. The month asked for, the month shown and
 `first_recap_on` are read in the Profile's zone, the one `ledger` reads "today" in, and `days_remaining` is
 `ledger`'s (A2, A3), so a Member in Jakarta just past midnight on the 1st sees the new month. The HomeView also
 carries that Currency's decimals, so the Log a spend amount field allows exactly that many, and
 `ledger`'s earliest Spend date (D72), where the sheet's date picker starts.
 
-`LogSpend` (#129) is ARCHITECTURE §6.2: `ledger.LogSpend` under the phone's key, its Connect code passed
+`LogSpend` is ARCHITECTURE §6.2: `ledger.LogSpend` under the phone's key, its Connect code passed
 through; for a Spend in the current month, `notify.EvaluateWarning` with ledger's `crossed_line` and copy under
-the same key, within 300 ms (#132); then the same join `GetHome` makes, so the answer is the Spend and the
+the same key, within 300 ms; then the same join `GetHome` makes, so the answer is the Spend and the
 current month's Home even for a Spend dated in a past month. The banner is `EvaluateWarning`'s kept copy when it
 answered, and `GetWarningState`'s otherwise, a past-month Spend included, which stamps nothing.
 
-`EditSpend` (#133) runs the same steps with `ledger.EditSpend`, notify told only when the Spend now sits in the
-current month. `DeleteSpend` (#133) calls `ledger.DeleteSpend` and never notify, since a delete crosses no line:
+`EditSpend` runs the same steps with `ledger.EditSpend`, notify told only when the Spend now sits in the
+current month. `DeleteSpend` calls `ledger.DeleteSpend` and never notify, since a delete crosses no line:
 its Home's banner is `GetWarningState`'s, so a warning already fired stays after the delete (PRD §8.8).
 
-`RegisterDevice` (#178) hands the phone's push token, as hex, to `notify.RegisterDevice` under the phone's key,
+`RegisterDevice` hands the phone's push token, as hex, to `notify.RegisterDevice` under the phone's key,
 passing notify's code through; the phone ignores a failure (IOS I8).
 
-`ListSpends` (#131) is the Spend list (PRD §6.10, D59) for the month asked, or with none the current month in
+`ListSpends` is the Spend list (PRD §6.10, D59) for the month asked, or with none the current month in
 the Profile's zone: `ledger.ListSpends`, `ledger.ListMonthsWithData` and `ledger.GetMonthSummary` for the
 month's Streak, asked at once with a one-second timeout each. All three are required, and a failed one reaches the
 phone with its own code, such as `invalid_argument` for a month that is not `YYYY-MM`. The view carries
 `ledger`'s Currency and its decimals, as the HomeView does.
 
-`GetRecap` (#152) is one month's Recap view (PRD §6.11 to §6.14, §6.17): the Member from `members`, then
+`GetRecap` is one month's Recap view (PRD §6.11 to §6.14, §6.17): the Member from `members`, then
 `ledger.GetRecap` for the month, each required with a one-second timeout, joined with the Member's current Display
 Name and `ledger`'s Currency code, so a new name reaches old Recaps too (§7). `ledger`'s codes pass through: `invalid_argument`
 for a malformed or later month, `not_found` for a past month with no Spend and no Money In. It is a read: no
@@ -159,7 +158,7 @@ service's start-up, which is a silent breakage away from a stack that does not c
 | `BFF_NOTIFY_URL` | required | The `notify` service: `http://notify:8080` in Compose. `RequestMagicLink` calls it, `GetHome`, `LogSpend`, `EditSpend` and `DeleteSpend` for the Target Warning, `RegisterDevice`, `GetSettings` and `SaveNotificationPrefs`, forwarding the caller's token. |
 | `BFF_REALM_URL` | required | The realm from this process, parent of the token and `login-token` endpoints: `http://keycloak:8080/realms/mmr` in Compose. Separate from `BFF_OIDC_ISSUER` for the same reason `BFF_OIDC_JWKS_URL` is. |
 | `BFF_CLIENT_SECRET` | required | The `bff` client's secret, which buys the service-account token the `login-token` endpoint needs. An OpenTofu variable rather than a generated value (§7.5), and the one secret the BFF reads; `BFF_CLIENT_SECRET_FILE` works like every other `_FILE`. |
-| `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `http://<domain>:80/magic` on the machine today and `https://<domain>/magic` once TLS arrives (#87), `http://localhost:8090/magic` on a laptop, where Nginx serves the fallback page on `NGINX_HOST_PORT` (#72). |
+| `BFF_MAGIC_LINK_BASE_URL` | required | The address the link is built on, the `lt` token its query: `http://<domain>:80/magic` on the machine today and `https://<domain>/magic` once TLS arrives (#87), `http://localhost:8090/magic` on a laptop, where Nginx serves the fallback page on `NGINX_HOST_PORT`. |
 | `BFF_CURRENCY_URL` | required | The `currency` service: `http://currency:8080` in Compose. `PreviewCurrencyChange` asks it for the day's rate when the Member typed none; Compose does not make the BFF wait for it. |
 | `BFF_REDIS_ADDR` | required | Redis for the two limits and the idempotency fast path: `redis:6379` in Compose, `localhost:REDIS_HOST_PORT` from the host. No default, because a BFF that cannot find Redis refuses every magic-link request (§4.4); the per-Member limit and the fast path let requests through without it. |
 | `BFF_LISTEN` | `:8080` | Listen address. |
