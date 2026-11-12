@@ -1,8 +1,8 @@
 # Screen states: the design contract
 
-Every screen and every state the app can be in, keyed to the ids in `design/design_handoff_my_money_recap/` so this file can be diffed against what already exists. `PRD.md` owns the rules; this file owns the states and the copy.
+Every screen and every state the app can be in, by screen id. `PRD.md` owns the rules; this file owns the states and the copy.
 
-**Canvases:** the eleven in `design/design_handoff_my_money_recap/`, whose README counts their artboards (live: <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>). Every row says what its screen must show, so this file can be diffed against the canvases.
+**Canvases:** the ids name the artboards of the 2026-09 design canvases, which left the repo on 2026-11-13 (`git log --diff-filter=D -- docs/design` finds them). Every row says what its screen must show, so it stands without them.
 
 **Rules that are not screen states**, but that the design agent must apply everywhere: every onboarding step after the first carries a 44pt back chevron and re-selects the saved answer on resume (PRD §6.4); the Home month chip opens the Spend list's month switcher (PRD §6.8); a Recap always shows the Member's *current* Display Name, because nothing about a Recap is stored (PRD §7), and no Avatar: no Recap screen draws one (owner, 2026-09-26).
 
