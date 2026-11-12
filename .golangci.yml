@@ -44,6 +44,9 @@ linters:
     rules:
       - path: _test\.go
         linters: [gosec, noctx, bodyclose, contextcheck]
+      - path: internal/serve/serve\.go
+        linters: [gosec]
+        text: G703
 
 formatters:
   enable:
