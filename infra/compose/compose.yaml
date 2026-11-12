@@ -34,6 +34,7 @@ services:
       KC_HOSTNAME: http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
+      JAVA_OPTS_KC_HEAP: ${KEYCLOAK_JAVA_HEAP:--XX:MaxRAMPercentage=70 -XX:MinRAMPercentage=70 -XX:InitialRAMPercentage=50}
       KC_BOOTSTRAP_ADMIN_USERNAME: &kc-admin admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: &kc-admin-password ${KC_BOOTSTRAP_ADMIN_PASSWORD:?set in .env}
       KC_VAULT: file
@@ -44,9 +45,7 @@ services:
       - { source: apple_sign_in_key, target: apple__sign__in__key }
     ports:
       - "${KEYCLOAK_HOST_PORT:-8080}:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
+    depends_on: { postgres: { condition: service_healthy } }
     healthcheck:
       test: ["CMD", "bash", "-c", 'exec 3<>/dev/tcp/127.0.0.1/9000 && printf "GET /health/ready HTTP/1.0\r\n\r\n" >&3 && grep -q "\"status\": \"UP\"" <&3 && exec 4<>/dev/tcp/127.0.0.1/8080 && printf "GET /realms/master HTTP/1.0\r\n\r\n" >&4 && grep -q "\"realm\":\"master\"" <&4']
       interval: 10s
