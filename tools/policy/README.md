@@ -86,7 +86,7 @@ so a generated one of those goes in `exclude`.
 **`exclude`**, which holds four kinds of path:
 
 - `my-money-recap/**` (the illustration pipeline: one-off tooling, not shipped code),
-  `my-money-recap-ds/.design-sync/**` (owned by the design-sync tool) and `docs/**`.
+  and `my-money-recap-ds/.design-sync/**` (owned by the design-sync tool).
 - Files a tool rewrites and nobody can shorten by hand: `package-lock.json`, `*/go.sum`,
   `*/.terraform.lock.hcl`, and `*.xcodeproj/*` (the Xcode project, its scheme and
   `Package.resolved`). The lockfiles grow with every dependency bump.

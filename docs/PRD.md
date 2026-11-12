@@ -8,7 +8,6 @@
 | Design system | `../my-money-recap-ds/` (`@my-money-recap/ui`). Its `README.md` carries the visual rules; `src/tokens/tokens.json` the values. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
 | Architecture | `ARCHITECTURE.md` (beside this file) is the backend design that implements these rules: the edge, the BFF, the four services, the broker, the cache and identity. Its decisions are numbered `A*`. |
-| Design handoff | `design/design_handoff_my_money_recap/`: eleven canvases holding all 111 artboards (four from 2026-09-08, seven under `design-files/2026-09-11/`), plus the quoted canvas notes. The live links are in that folder's README. Renders are not in git. |
 
 ## 1. Summary
 

@@ -9,7 +9,7 @@ This repository is the monorepo for it: product docs and design record, illustra
 
 | Path | What lives here |
 | --- | --- |
-| `docs/` | Product-level docs: `PRD.md` (rules, `D*` decisions), `SCREEN-STATES.md` (every screen state and its copy), `CONTEXT.md` (the glossary: read it before naming anything), `ARCHITECTURE.md` (backend, `A*` decisions), `IOS.md` (the app, `I*` decisions) and the design handoff |
+| `docs/` | Product-level docs: `PRD.md` (rules, `D*` decisions), `SCREEN-STATES.md` (every screen state and its copy), `CONTEXT.md` (the glossary: read it before naming anything), `ARCHITECTURE.md` (backend, `A*` decisions), `IOS.md` (the app, `I*` decisions) |
 | `my-money-recap/` | Illustration source: the WebP artwork, the app icon, and the scripts and prompts that produce them |
 | `my-money-recap-ds/` | `@my-money-recap/ui`, the React design system: tokens, components, the four Recap screens |
 | `apps/` | Runnable products: `apps/backend` (one Go module: the BFF and the `members`, `notify` and `ledger` services) and `apps/ios` (the SwiftUI app). See `apps/README.md` |
@@ -23,8 +23,7 @@ age are separate toolchains; each area's README says what it needs.
 
 ## How the pieces connect
 
-`docs/PRD.md` and `docs/SCREEN-STATES.md` hold the rules the design handoff
-(`docs/design/design_handoff_my_money_recap/`) draws. Every other link is a generator; "Single source
+`docs/PRD.md` and `docs/SCREEN-STATES.md` hold the rules every screen follows. Every other link is a generator; "Single source
 of truth" below lists each source, the command and what it writes. The design system reads the WebP
 artwork straight out of `my-money-recap/assets/illustrations/` via a relative path, so the two folders
 must stay siblings inside this repo.
@@ -180,6 +179,6 @@ one: on a public repo a fork's pull request could run its own code on your machi
 | Backend architecture decisions | `docs/ARCHITECTURE.md` (numbered `A*` decisions) | none |
 | iOS app decisions | `docs/IOS.md` (numbered `I*` decisions) | none |
 | Visual rules | `my-money-recap-ds/README.md` § Design rules | none |
-| Screens | `docs/design/design_handoff_my_money_recap/` | renders (not in git) |
+| Screens | `docs/SCREEN-STATES.md` | none |
 | Domain vocabulary | `docs/CONTEXT.md` | none |
 | Sample ledger | `docs/PRD.md` §8, and its answer key in `packages/contract/fixtures/ledger/` | not generated: the prop defaults in `my-money-recap-ds/src/screens/` copy Maya's September by hand for the stories and design-sync previews, and PRD §8 wins where they differ |

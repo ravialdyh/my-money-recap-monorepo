@@ -34,7 +34,6 @@ repos:
             |my-money-recap-ds/src/assets/illustrations\.ts
             |my-money-recap-ds/src/tokens/tokens\.css
             |my-money-recap-ds/\.design-sync/.*
-            |docs/design/.*
             |package-lock\.json
           )$
       - id: mixed-line-ending
