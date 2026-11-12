@@ -12,10 +12,12 @@ Docker Desktop must be running.
 cp infra/compose/.env.example infra/compose/.env
 ```
 
-Fill every empty value in `.env` but `OPEN_EXCHANGE_RATES_APP_ID`, `APPLE_PUSH_KEY_ID` and `APPLE_PUSH_KEY`: any string will do locally, except that `MEMBERS_DB_PASSWORD` and
-`NOTIFY_DB_PASSWORD` go into a connection URL unescaped, so use letters and digits for those. Left empty, the App ID
-makes every rate fetch fail, and the Member types the rate; a free App ID of your own there shows live rates (#175). The two
-push values stay empty, so `notify` records each push and sends none (#180); a made-up key would stop it starting. They are
+Fill every empty value in `.env`, the set CI fills too: any string will do locally, except that `MEMBERS_DB_PASSWORD` and
+`NOTIFY_DB_PASSWORD` go into a connection URL unescaped, so use letters and digits for those. Three optional keys are not
+in the file, because `compose.yaml` defaults each to empty; add one only with a real value. Without
+`OPEN_EXCHANGE_RATES_APP_ID` every rate fetch fails, and the Member types the rate; a free App ID of your own shows live
+rates (#175). Without `APPLE_PUSH_KEY_ID` and `APPLE_PUSH_KEY`, `notify` records each push and sends none (#180); a
+made-up key would stop it starting. They are
 development credentials, and `.gitignore` keeps the file out of git. Then:
 
 ```bash

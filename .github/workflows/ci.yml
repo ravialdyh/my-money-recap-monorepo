@@ -197,7 +197,7 @@ jobs:
       - name: Compose stack with the migration steps, the realm, members, notify, Mailpit and the BFF
         working-directory: infra/compose
         run: |
-          sed '/_APP_ID=$/!s/=$/=ci-throwaway/' .env.example > .env
+          sed 's/=$/=ci-throwaway/' .env.example > .env
           docker compose --profile mail up -d --build --wait
       - name: Go tests; -p 1 because members and bff both sign in as the realm's one test Member
         run: |
