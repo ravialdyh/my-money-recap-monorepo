@@ -150,7 +150,7 @@ The configs carry no comments, so the reasoning lives here.
   repoint it at code that runs with this job's token. The trailing `# vN` is Dependabot's, and
   `tools/policy` exempts it for that reason.
 - **The Compose stack** is documented in `infra/compose/README.md`, including the Keycloak pin, the
-  `/dev/tcp` health check and the parallel-worktree ports.
+  `/dev/tcp` health check and the one-stack-per-laptop rule.
 
 ### What CI costs, and why jobs are skipped
 

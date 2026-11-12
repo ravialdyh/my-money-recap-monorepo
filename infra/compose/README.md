@@ -112,16 +112,28 @@ each under the name Keycloak looks for, with every underscore doubled. Why, and 
 extension never asks the vault at all, is in
 [`../secrets/README.md`](../secrets/README.md#keycloaks-file-vault).
 
-## Parallel worktrees
+## One stack per laptop
 
-Compose identifies a stack by project name, so two worktrees that both run this file as `mmr` recreate
-each other's containers, and two Keycloaks cannot both bind 8080. Each worktree's `.env` therefore
-sets its own `COMPOSE_PROJECT_NAME` and host ports (`KEYCLOAK_HOST_PORT`, `MEMBERS_HOST_PORT`,
-`BFF_HOST_PORT`, `NOTIFY_HOST_PORT`, `LEDGER_HOST_PORT`, `POSTGRES_HOST_PORT`, `REDIS_HOST_PORT`,
-`RABBITMQ_HOST_PORT`, `MAILPIT_HOST_PORT`, `MAILPIT_SMTP_HOST_PORT`, `NGINX_HOST_PORT`, `CURRENCY_HOST_PORT`); the defaults in `compose.yaml` are the stock
-stack the iOS app signs in against. `KC_HOSTNAME`, and with it the token issuer and the issuer checks in
-`members`, `notify`, `currency` and the BFF, follow `KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
-Volumes and the `members`, `notify`, `ledger`, `bff` and `currency` images are named after the project, so stacks do not share data either.
+A laptop runs one stack: the stock `mmr` project on the default ports, the one the iOS app signs in
+against. No worktree, agent or subagent starts a second one, with its own `COMPOSE_PROJECT_NAME` or its
+own host ports. Each stack carries its own Keycloak, RabbitMQ and Postgres, and four of them at once
+filled Docker Desktop's memory on a 16 GB laptop (owner, 2026-11-12).
+
+Every worktree and every agent reuses the running `mmr` stack. Run
+`docker compose -f infra/compose/compose.yaml --profile mail ps` before `up`, and stop the stack with
+`--profile mail down` when the work is done. Only one session at a time runs `up`, `--build`, `down` or
+the Go tests against it, because an `up --build` from a worktree replaces the stack's images with that
+worktree's code, and because the realm has one test Member ("Running the Go tests against this stack").
+Work that needs no stack runs in parallel: the iOS unit and snapshot tests, which read
+`apps/ios/Tests/Fixtures`, the documents, and the Go tests that skip without their variables.
+
+The `*_HOST_PORT` variables stay, for a port another program already holds. `KC_HOSTNAME`, and with it
+the token issuer and the issuer checks in `members`, `notify`, `currency` and the BFF, follow
+`KEYCLOAK_HOST_PORT`, so a stack on port 18080 issues tokens for `http://localhost:18080/realms/mmr`.
+
+Keycloak's heap is `KEYCLOAK_JAVA_HEAP`, which `.env.example` sets to `-Xms64m -Xmx512m`. Unset, as on
+the machine, `compose.yaml` passes Keycloak's own container default: an initial heap of 50% and a
+maximum of 70% of the memory the container sees, which on a laptop is all of Docker Desktop's.
 
 ## A phone on the LAN
 
@@ -335,7 +347,7 @@ backend, `infra/` or the contract (the `backend` job, after the Go tests, with a
 infra/compose/a10-smoke.sh
 ```
 
-It reads `KEYCLOAK_HOST_PORT` from `.env` when set (see "Parallel worktrees").
+It reads `KEYCLOAK_HOST_PORT` from `.env` when set (see "One stack per laptop").
 
 ## The realm re-applies as a no-op
 

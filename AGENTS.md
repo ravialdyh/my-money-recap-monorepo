@@ -12,6 +12,16 @@ A branch is named `<type>/<kebab-summary>`, where `<type>` is the change's Conve
 
 A session that opens on a generated branch, `claude/confident-hypatia-bssrd9` and the like, renames it before the first commit (`git branch -m <type>/<summary>`) and pushes only the renamed name. That name carries no information into the pull request list, and `claude/clever-babbage-vf9f3y` in PR #32 is the one that got away. This paragraph is the standing permission to rename; do not stop to ask for it.
 
+## One Compose stack per laptop
+
+The laptop runs one Compose stack, the stock `mmr` project on the default ports
+(`infra/compose/README.md`, "One stack per laptop"). An agent, a subagent or a worktree never starts a
+second one: no other `COMPOSE_PROJECT_NAME`, no other host ports. Before `up`, run
+`docker compose -f infra/compose/compose.yaml --profile mail ps` and reuse what is running. Only one
+session at a time runs `up`, `--build`, `down` or the Go tests against it; parallel agents take work that
+needs no stack. Boot at most one iOS simulator. When the work is done, shut it down
+(`xcrun simctl shutdown all`) and stop the stack (`--profile mail down`).
+
 ## House rules the hooks enforce
 
 `pre-commit run --all-files` is the gate. Three rules are this repo's own, in
