@@ -107,6 +107,17 @@ func waiting(t *testing.T, conn *amqp.Connection, queue string) int {
 	return q.Messages
 }
 
+// settled is true once id is committed in processed_events and the pool holds no acquired connection: Process has
+// left its transaction without error, so its ack goes out before Consume returns.
+func settled(t *testing.T, db *pgxpool.Pool, id string) bool {
+	t.Helper()
+	var n int
+	if err := db.QueryRow(context.Background(), `SELECT count(*) FROM processed_events WHERE message_id = $1`, id).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	return n == 1 && db.Stat().AcquiredConns() == 0
+}
+
 // A message delivered twice runs its handler once, and both deliveries are acked (§4.3, spec #92): the
 // message behind them, processed in order, proves the second was handled before the consumer stops.
 func TestADuplicateDeliveryIsProcessedOnce(t *testing.T) {
@@ -116,7 +127,7 @@ func TestADuplicateDeliveryIsProcessedOnce(t *testing.T) {
 	c := &calls{runs: map[string]int{}}
 	stop := consume(t, db, url, q, c.handle)
 	publish(t, conn, q, "twice", "twice", "after")
-	eventually(t, "the message behind the duplicate is processed", func() bool { return c.count("after") == 1 })
+	eventually(t, "the message behind the duplicate is committed and its ack sent", func() bool { return settled(t, db, "after") })
 	stop()
 	if c.count("twice") != 1 {
 		t.Errorf("the handler ran %d times for a message delivered twice, want 1", c.count("twice"))
