@@ -27,3 +27,7 @@ pipx install pre-commit && pre-commit install --install-hooks
 ```
 
 Then run the backend with `infra/compose/README.md` ("Run it") and the app with `apps/ios/README.md` ("Open").
+
+## License
+
+MIT, in `LICENSE`. The Fredoka and Nunito fonts (`apps/ios/Resources/Fonts/`) are under the SIL Open Font License, and the CLDR currency data (`apps/backend/internal/cldr/`) under the Unicode License.
