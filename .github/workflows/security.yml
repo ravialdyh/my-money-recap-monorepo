@@ -91,7 +91,6 @@ jobs:
           skip-dirs: node_modules
 
   security:
-    name: all green
     if: always()
     needs: [dependencies, secrets, code, filesystem]
     runs-on: ubuntu-latest
