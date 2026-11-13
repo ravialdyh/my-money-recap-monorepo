@@ -11,7 +11,7 @@ import type { Archetype } from '../components/types';
 import { Icon } from '../icons';
 import { ARCHETYPE_BLURB, type MoneyProps, useMoney } from './shared';
 
-/** The mascot poster for each Archetype. Prompts: my-money-recap/illustration-prompts.md. */
+/** The mascot poster for each Archetype. Prompts: my-money-recap/docs/illustration-prompts.md. */
 const ARCHETYPE_ILLUSTRATION: Record<Archetype, string> = {
   squirrel: ILLUSTRATIONS.squirrel,
   hustler: ILLUSTRATIONS.hustler,

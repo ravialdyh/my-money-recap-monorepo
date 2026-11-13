@@ -1,16 +1,16 @@
 {
-  "doc": "PRD §8.4 and D45, Budi's IDR ledger on 30 September: target Rp15.000.000 × 20 ÷ 100 = Rp3.000.000; Spent Rp9.400.000, Money In Rp15.000.000 (§8.2), Saved Rp5.600.000 (§8.3); Streak 6, the 9th to the 14th (§8.5); allowance floor((15.000.000 − 3.000.000 − 9.400.000) ÷ 1) (§8.7); under the line (§8.8).",
+  "doc": "PRD §8.4 and D45, Budi's IDR ledger on 30 September: target Rp150.000.000 × 20 ÷ 100 = Rp30.000.000; Spent Rp94.000.000, Money In Rp150.000.000 (§8.2), Saved Rp56.000.000 (§8.3); Streak 6, the 9th to the 14th (§8.5); allowance floor((150.000.000 − 30.000.000 − 94.000.000) ÷ 1) (§8.7); under the line (§8.8).",
   "timezone": "Asia/Jakarta",
   "signedUpOn": "2026-08-01",
   "currencyCode": "IDR",
   "salaries": [
     {
       "amount": {
-        "amount": "15000000",
+        "amount": "150000000",
         "currencyCode": "IDR"
       },
       "originalAmount": {
-        "amount": "15000000",
+        "amount": "150000000",
         "currencyCode": "IDR"
       },
       "payday": "25",
@@ -27,11 +27,11 @@
     {
       "id": "budi-01",
       "amount": {
-        "amount": "4000000",
+        "amount": "40000000",
         "currencyCode": "IDR"
       },
       "originalAmount": {
-        "amount": "4000000",
+        "amount": "40000000",
         "currencyCode": "IDR"
       },
       "category": "CATEGORY_BILLS",
@@ -40,11 +40,11 @@
     {
       "id": "budi-02",
       "amount": {
-        "amount": "1200000",
+        "amount": "12000000",
         "currencyCode": "IDR"
       },
       "originalAmount": {
-        "amount": "1200000",
+        "amount": "12000000",
         "currencyCode": "IDR"
       },
       "category": "CATEGORY_SNACKS",
@@ -53,11 +53,11 @@
     {
       "id": "budi-03",
       "amount": {
-        "amount": "900000",
+        "amount": "9000000",
         "currencyCode": "IDR"
       },
       "originalAmount": {
-        "amount": "900000",
+        "amount": "9000000",
         "currencyCode": "IDR"
       },
       "category": "CATEGORY_RIDES",
@@ -66,11 +66,11 @@
     {
       "id": "budi-04",
       "amount": {
-        "amount": "1800000",
+        "amount": "18000000",
         "currencyCode": "IDR"
       },
       "originalAmount": {
-        "amount": "1800000",
+        "amount": "18000000",
         "currencyCode": "IDR"
       },
       "category": "CATEGORY_CLOTHES",
@@ -79,11 +79,11 @@
     {
       "id": "budi-05",
       "amount": {
-        "amount": "1500000",
+        "amount": "15000000",
         "currencyCode": "IDR"
       },
       "originalAmount": {
-        "amount": "1500000",
+        "amount": "15000000",
         "currencyCode": "IDR"
       },
       "category": "CATEGORY_GAMES",
@@ -95,20 +95,20 @@
     {
       "month": "2026-09",
       "spent": {
-        "amount": "9400000",
+        "amount": "94000000",
         "currencyCode": "IDR"
       },
       "moneyIn": {
-        "amount": "15000000",
+        "amount": "150000000",
         "currencyCode": "IDR"
       },
       "saved": {
-        "amount": "5600000",
+        "amount": "56000000",
         "currencyCode": "IDR"
       },
       "salary": {
         "amount": {
-          "amount": "15000000",
+          "amount": "150000000",
           "currencyCode": "IDR"
         },
         "payday": "25",
@@ -117,10 +117,10 @@
       "savingTarget": {
         "percent": 20,
         "amount": {
-          "amount": "3000000",
+          "amount": "30000000",
           "currencyCode": "IDR"
         },
-        "progressSentence": "Keep spending under Rp2.600.000 a day and you'll make it."
+        "progressSentence": "Keep spending under Rp26.000.000 a day and you'll make it."
       },
       "streakDay": 6,
       "daysRemaining": 1,
@@ -130,11 +130,11 @@
   "settings": {
     "salary": {
       "amount": {
-        "amount": "15000000",
+        "amount": "150000000",
         "currencyCode": "IDR"
       },
       "originalAmount": {
-        "amount": "15000000",
+        "amount": "150000000",
         "currencyCode": "IDR"
       },
       "payday": "25",

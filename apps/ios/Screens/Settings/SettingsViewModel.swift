@@ -100,7 +100,7 @@ final class SettingsViewModel: Identifiable {
         settings?.profile.currencyCode
     }
 
-    /// "Rp15.000.000 · 25th", "{amount} · Last day", or "Not set".
+    /// "Rp150.000.000 · 25th", "{amount} · Last day", or "Not set".
     var salary: String? {
         guard let ledger = settings?.ledgerSettings else { return nil }
         guard ledger.hasSalary else { return "Not set" }

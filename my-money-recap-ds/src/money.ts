@@ -4,7 +4,7 @@ export type MoneyFormat = (amount: number | string) => string;
 const formatters = new Map<string, Intl.NumberFormat>();
 /**
  * `display` formatters drop a zero fraction (the standard `trailingZeroDisplay: 'stripIfInteger'`): £2,400 and
- * £12.40, Rp 15.000.000, BHD 12. `entry` formatters keep the currency's full decimals, for a field being typed into.
+ * £12.40, Rp 150.000.000, BHD 12. `entry` formatters keep the currency's full decimals, for a field being typed into.
  */
 function formatter(currency: string, locale: string | undefined, kind: 'display' | 'entry'): Intl.NumberFormat {
   const key = `${kind}|${locale ?? ''}|${currency}`;
@@ -21,7 +21,7 @@ function formatter(currency: string, locale: string | undefined, kind: 'display'
   return f;
 }
 
-/** For display: formatMoney("15000000", "IDR", "id-ID") -> "Rp 15.000.000"; formatMoney(2400, "GBP", "en-GB") -> "£2,400"; formatMoney("12.40", "GBP", "en-GB") -> "£12.40". */
+/** For display: formatMoney("150000000", "IDR", "id-ID") -> "Rp 150.000.000"; formatMoney(2400, "GBP", "en-GB") -> "£2,400"; formatMoney("12.40", "GBP", "en-GB") -> "£12.40". */
 export function formatMoney(amount: number | string, currency: string, locale?: string): string {
   return formatter(currency, locale, 'display').format(amount as number);
 }

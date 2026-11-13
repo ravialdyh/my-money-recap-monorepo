@@ -5,7 +5,7 @@ import { useFitStep } from './fitStep';
 import { type FieldState, TextField } from './TextField';
 
 export interface AmountFieldProps {
-  /** The amount as an exact decimal string ("15000000", "12.40"), the same form it is stored in (PRD §7). */
+  /** The amount as an exact decimal string ("150000000", "12.40"), the same form it is stored in (PRD §7). */
   value: string;
   /** ISO 4217 code. The symbol and the decimals the field shows come from it, via the platform formatter. */
   currency: string;

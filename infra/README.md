@@ -4,14 +4,14 @@ Deployment and infrastructure-as-code.
 
 - `infra/compose/`: the phase-1 `compose.yaml` that a laptop, CI and the machine all run. [`compose/README.md`](compose/README.md) lists its containers and how to start it.
 - `infra/tofu/realm/`: the `mmr` realm in OpenTofu (official `keycloak/keycloak` provider, A13): the realm, the `ios` and `bff` clients, the `login-token` scope, the custom `ios direct grant` flow, the test Member, and the Google and Apple identity providers with their secrets as Keycloak vault references. The Compose stack applies it on every `up`; the lock file covers `linux_amd64`, `linux_arm64` and `darwin_arm64`, which are CI, the one-shot container and a Mac running pre-commit.
-- `infra/secrets/`: every secret, encrypted with SOPS and an age key (A13). The repository holds the shape and no real value: the key set, the decrypt step and its proof (#66, PR #76). See [`secrets/README.md`](secrets/README.md), and "Deploying" below for what reaches the machine.
+- `infra/secrets/`: every secret, encrypted with SOPS and an age key (A13). The repository holds the shape and no real value: the key set, the decrypt step and its proof. See [`secrets/README.md`](secrets/README.md), and "Deploying" below for what reaches the machine.
 - `infra/nginx/`: the edge (§5, A7): one configuration file with the four routes and the per-IP limits, the static `/magic` fallback page and the apple-app-site-association file. Compose mounts both read-only into `nginx:stable`, beside the `acme.sh` certificate sidecar. See [`nginx/README.md`](nginx/README.md).
 - `.github/workflows/deploy.yml`: the deploy (A15); see "Deploying" below.
-- `infra/wizard/`: the one-time script for the nine steps only a human can do (`docs/research/2026-09-14-setup-automation.md` §4), with a non-interactive check mode that reports which are done. See [`wizard/README.md`](wizard/README.md).
+- `infra/wizard/`: the one-time script for the nine steps only a human can do, with a non-interactive check mode that reports which are done. See [`wizard/README.md`](wizard/README.md).
 
 Planned, per `docs/ARCHITECTURE.md` §5, §7.5 and §10:
 
-- `infra/tofu/`: a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root. It is #87's, and is not written until the hosting company is chosen there. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/` (#72).
+- `infra/tofu/`: a second root for the machine: DNS records, the VM with cloud-init and firewall, and API tokens for providers that expose them. Separate state from the realm root. It is #87's, and is not written until the hosting company is chosen there. The apple-app-site-association file is not in it: Nginx serves that from `infra/nginx/html/`.
 - `infra/compose/` grows to the full §10 set: `otel-lgtm`, `pg-backup`.
 - `infra/pg-backup/`: the nightly `pg_dump` image.
 
@@ -67,7 +67,7 @@ secret. Everything else comes out of `infra/secrets/prod.yaml`. The registry log
 `NGINX_HOST_PORT=80`, and there is no `TEST_USER_PASSWORD`, so the realm creates no test Member.
 The fourteen stack values in `infra/secrets/example.yaml`, the four identity-provider ids the realm
 takes as variables (`GOOGLE_CLIENT_ID`, `APPLE_SERVICES_ID`, `APPLE_TEAM_ID`,
-`APPLE_SIGN_IN_KEY_ID`), `currency`'s `OPEN_EXCHANGE_RATES_APP_ID` (#175) and `notify`'s `APPLE_PUSH_KEY_ID` (#180) arrive under their names in capitals, so none is left at `replace-me`, and `APPLE_PUSH_KEY` carries the APNs `.p8` in base64 on one line, since the file holds line breaks. Every
+`APPLE_SIGN_IN_KEY_ID`), `currency`'s `OPEN_EXCHANGE_RATES_APP_ID` and `notify`'s `APPLE_PUSH_KEY_ID` arrive under their names in capitals, so none is left at `replace-me`, and `APPLE_PUSH_KEY` carries the APNs `.p8` in base64 on one line, since the file holds line breaks. Every
 value is single-quoted, so Compose interpolates nothing inside it, and a value holding a quote or a
 line break stops the deploy instead.
 

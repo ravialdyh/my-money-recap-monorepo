@@ -49,7 +49,7 @@ final class TargetViewModelTests: XCTestCase {
     func testDoneSavesThePercentWithOneKeyPerAnswer() async {
         var sent: [(MoneyRecap_V1_BffServiceSaveTargetRequest, Headers)] = []
         var answer = SaveResult.offline
-        let step = model(salary: money("15000000", "IDR"), saved: .with { $0.percent = 35 }) { request, headers in
+        let step = model(salary: money("150000000", "IDR"), saved: .with { $0.percent = 35 }) { request, headers in
             sent.append((request, headers))
             return answer
         }

@@ -11,7 +11,7 @@ rather than in a second file.
 | Route | What it does |
 | --- | --- |
 | `/api/` | `proxy_pass` to `bff:8080` with the prefix stripped, so `/api/money_recap.v1.BffService/GetHome` reaches the BFF as `/money_recap.v1.BffService/GetHome`. Connect speaks plain HTTP/1.1, so an ordinary `proxy_pass` is the whole of it (§4.1). |
-| `/auth/` | The same to `keycloak:8080`. On a laptop Keycloak also keeps its own published port and every caller uses it, so this route exists and nothing depends on it yet (#72). |
+| `/auth/` | The same to `keycloak:8080`. On a laptop Keycloak also keeps its own published port and every caller uses it, so this route exists and nothing depends on it yet. |
 | `/.well-known/apple-app-site-association` | The static file, served from its exact location with `default_type application/json`. |
 | `/magic` | The static fallback page. |
 
@@ -23,10 +23,9 @@ Anything else is `404`. Without that last location the image's own welcome page 
 and falls back to the location's `default_type`. That is how the header comes out as exactly
 `application/json`, which Apple requires, with no charset appended: the stock `nginx.conf` sets no
 `charset` directive. It is served from a `location =` with `try_files`, so there is no directory
-index and no trailing-slash redirect; Apple refuses a redirected association file
-(`docs/research/2026-09-14-setup-automation.md` §1.4). Its `appIDs` entry is
+index and no trailing-slash redirect; Apple refuses a redirected association file. Its `appIDs` entry is
 `TEAMID.com.mymoneyrecap.app`: the bundle identifier is real, the team identifier is a placeholder.
-The real one is `apple_team_id` in the secrets file, which the wizard's step 4 claims since #71, but
+The real one is `apple_team_id` in the secrets file, which the wizard's step 4 claims, but
 nothing writes it into this file yet: the deploy copies `html/` as it is.
 
 `html/magic.html` is the A3 web fallback page of `docs/SCREEN-STATES.md`: violet ground, an
@@ -57,7 +56,7 @@ each path and asserting that the edge refuses one of the magic-link six with its
 of the `GetHome` six.
 
 This zone is **not** PRD §11's five per email address per hour. `limit_req` cannot see an address
-inside a request body, so the BFF enforces that limit itself in Redis, fail closed (§4.4, #69).
+inside a request body, so the BFF enforces that limit itself in Redis, fail closed (§4.4).
 
 ## TLS and the `acme.sh` sidecar
 

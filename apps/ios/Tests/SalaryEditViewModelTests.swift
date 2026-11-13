@@ -50,7 +50,7 @@ final class SalaryEditViewModelTests: XCTestCase {
         XCTAssertEqual(edit.payday, "25", "setup's default Payday")
         XCTAssertFalse(edit.canSave)
         XCTAssertEqual(edit.nextPaydays, ["25 Oct", "25 Nov", "25 Dec"], "counted from today, 25 September passed")
-        edit.amount = "15000000"
+        edit.amount = "150000000"
         XCTAssertTrue(edit.canSave)
         XCTAssertNil(edit.startsLine, "no saved Payday to differ from")
         let saved = await edit.commit()
@@ -61,16 +61,16 @@ final class SalaryEditViewModelTests: XCTestCase {
             [.unspecified],
             "ledger counts a first Salary from this month"
         )
-        XCTAssertEqual(sent().first?.request.amount.amount, "15000000")
+        XCTAssertEqual(sent().first?.request.amount.amount, "150000000")
         XCTAssertEqual(sent().first?.request.payday, "25")
     }
 
     func testAChangedAmountBeforePaydaySavesForThisMonthWithNoQuestion() async throws {
         let (save, sent) = recording { .success(.init()) }
         let edit = try model(settings("settings-filled", passed: false), save: save)
-        XCTAssertEqual(edit.amount, "15000000", "the Salary in force")
+        XCTAssertEqual(edit.amount, "150000000", "the Salary in force")
         XCTAssertFalse(edit.canSave, "nothing changed")
-        edit.amount = "17500000"
+        edit.amount = "175000000"
         let saved = await edit.commit()
         XCTAssertTrue(saved)
         XCTAssertFalse(edit.asking)
@@ -80,7 +80,7 @@ final class SalaryEditViewModelTests: XCTestCase {
     func testAChangedAmountOnOrAfterPaydayAsksWhichSalaryItIs() async throws {
         let (save, sent) = recording { .success(.init()) }
         let edit = try model(settings("settings-filled"), save: save)
-        edit.amount = "17500000"
+        edit.amount = "175000000"
         let first = await edit.commit()
         XCTAssertFalse(first)
         XCTAssertTrue(edit.asking, "payday_passed_this_month opens the sheet")
@@ -90,10 +90,10 @@ final class SalaryEditViewModelTests: XCTestCase {
             "You were paid on 25 September. "
                 + "A date alone can't tell a correction from a raise, so tell us which this is."
         )
-        XCTAssertEqual(edit.correctionRow, "The IDR\u{00A0}17,500,000 I was paid on 25 September")
+        XCTAssertEqual(edit.correctionRow, "The IDR\u{00A0}175,000,000 I was paid on 25 September")
         XCTAssertEqual(edit.correctionDetail, "Fixes September")
         XCTAssertEqual(edit.raiseRow, "My new salary, from 25 October")
-        XCTAssertEqual(edit.raiseDetail, "September stays at IDR\u{00A0}15,000,000")
+        XCTAssertEqual(edit.raiseDetail, "September stays at IDR\u{00A0}150,000,000")
 
         edit.asking = false
         XCTAssertTrue(sent().isEmpty, "Cancel saves nothing")
@@ -111,7 +111,7 @@ final class SalaryEditViewModelTests: XCTestCase {
         var answer: Answer = .failure(ConnectError(code: .failedPrecondition, message: "this month's Payday has come"))
         let (save, sent) = recording { answer }
         let edit = try model(settings("settings-filled", passed: false), save: save)
-        edit.amount = "17500000"
+        edit.amount = "175000000"
         let refused = await edit.commit()
         XCTAssertFalse(refused)
         XCTAssertTrue(edit.asking, "the Payday passed while D3 was open")
@@ -128,7 +128,7 @@ final class SalaryEditViewModelTests: XCTestCase {
         edit.choose("last")
         XCTAssertEqual(edit.startsLine, "Your new payday starts in October.")
         XCTAssertEqual(edit.nextPaydays, ["30 Sep", "31 Oct", "30 Nov"])
-        edit.amount = "17500000"
+        edit.amount = "175000000"
         XCTAssertEqual(edit.startsLine, "Your new salary and payday start in October.")
         let saved = await edit.commit()
         XCTAssertTrue(saved)
@@ -141,7 +141,7 @@ final class SalaryEditViewModelTests: XCTestCase {
     func testAWaitingSalaryIsNamedUnderTheAmountCard() throws {
         XCTAssertEqual(
             try model(settings("settings-waiting")).waitingLine,
-            "IDR\u{00A0}17,500,000 from your next payday, 25 October."
+            "IDR\u{00A0}175,000,000 from your next payday, 25 October."
         )
         XCTAssertNil(try model(settings("settings-filled")).waitingLine)
     }
@@ -149,13 +149,13 @@ final class SalaryEditViewModelTests: XCTestCase {
     func testAFailedSaveKeepsWhatWasTypedAndRetriesUnderTheSameKey() async throws {
         let (save, sent) = recording { .failure(ConnectError(code: .unavailable, message: nil)) }
         let edit = try model(settings("settings-filled", passed: false), save: save)
-        edit.amount = "17500000"
+        edit.amount = "175000000"
         let first = await edit.commit()
         let second = await edit.commit()
         XCTAssertFalse(first || second)
         XCTAssertTrue(edit.failed)
         XCTAssertFalse(edit.asking)
-        XCTAssertEqual(edit.amount, "17500000", "what was typed stays")
+        XCTAssertEqual(edit.amount, "175000000", "what was typed stays")
         XCTAssertEqual(sent()[0].headers, sent()[1].headers, "the retry counts once")
     }
 
@@ -175,7 +175,7 @@ final class SalaryEditViewModelTests: XCTestCase {
         await settingsModel.refresh()
         settingsModel.openSalary()
         let edit = try XCTUnwrap(settingsModel.salaryEdit)
-        edit.amount = "16000000"
+        edit.amount = "160000000"
         _ = await edit.commit()
         let saved = await edit.answer(.nextMonth)
         XCTAssertTrue(saved)

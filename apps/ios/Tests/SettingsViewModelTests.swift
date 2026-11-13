@@ -41,7 +41,7 @@ final class SettingsViewModelTests: XCTestCase {
         await model.refresh()
         XCTAssertEqual(model.name, "Test")
         XCTAssertEqual(model.currency, "IDR", "ledger's code, which the BFF puts on the Profile")
-        XCTAssertEqual(model.salary, "Rp15.000.000 · 25th")
+        XCTAssertEqual(model.salary, "Rp150.000.000 · 25th")
         XCTAssertEqual(model.target, "20%")
     }
 

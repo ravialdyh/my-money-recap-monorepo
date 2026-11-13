@@ -1,7 +1,7 @@
 # My Money Recap: design system package
 
-Tokens and React components for My Money Recap, the adult personal-finance recap app in a kids' visual theme, built for the eleven design
-canvases in `../docs/design/design_handoff_my_money_recap/`. The product decisions are in `../docs/PRD.md`; the visual rules are
+Tokens and React components for My Money Recap, the adult personal-finance recap app in a kids' visual theme, whose screens are listed
+in `../docs/SCREEN-STATES.md`. The product decisions are in `../docs/PRD.md`; the visual rules are
 below; the values are in `src/tokens/tokens.json`.
 
 ## Layout

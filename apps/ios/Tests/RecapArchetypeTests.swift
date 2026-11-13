@@ -16,11 +16,11 @@ final class RecapArchetypeTests: XCTestCase {
         let cases = [
             Case(
                 name: "recap-squirrel", archetype: .squirrel, share: "Share your Squirrel",
-                figures: ["IDR\u{00A0}5,600,000", "IDR\u{00A0}9,400,000"]
+                figures: ["IDR\u{00A0}56,000,000", "IDR\u{00A0}94,000,000"]
             ),
             Case(
                 name: "recap-no-run", archetype: .hustler, share: "Share your Hustler",
-                figures: ["IDR\u{00A0}14,690,000", "IDR\u{00A0}310,000"]
+                figures: ["IDR\u{00A0}146,900,000", "IDR\u{00A0}3,100,000"]
             ),
             Case(
                 name: "recap-target-missed", archetype: .treatYourself, share: "Share your Treat-Yourself",
@@ -28,7 +28,7 @@ final class RecapArchetypeTests: XCTestCase {
             ),
             Case(
                 name: "recap-slow-burner", archetype: .slowBurner, share: "Share your Slow Burner",
-                figures: ["IDR\u{00A0}2,400,000", "IDR\u{00A0}12,600,000"]
+                figures: ["IDR\u{00A0}24,000,000", "IDR\u{00A0}126,000,000"]
             ),
         ]
         for test in cases {
@@ -50,7 +50,7 @@ final class RecapArchetypeTests: XCTestCase {
     func testAnOverspentMonthPrintsItsNegativeSavedAsItIsAndDrawsItEmpty() async throws {
         let model = try await RecapViewModelTests.loaded("recap-overspent")
         XCTAssertEqual(model.archetype, .treatYourself)
-        XCTAssertEqual(model.savedAgainstSpent.first?.display, "-IDR\u{00A0}200,000")
+        XCTAssertEqual(model.savedAgainstSpent.first?.display, "-IDR\u{00A0}2,000,000")
         XCTAssertEqual(CompareBars.fractions(model.savedAgainstSpent.map(\.value), scale: .total), [0, 1])
     }
 

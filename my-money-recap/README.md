@@ -1,8 +1,8 @@
 # my-money-recap: illustration source
 
 The artwork the design system ships, and the scripts and prompts that produce it. Everything else
-about the product lives elsewhere: the rules in `../docs/PRD.md`, the drawings in
-`../docs/design/design_handoff_my_money_recap/`, the visual rules and components in `../my-money-recap-ds/`.
+about the product lives elsewhere: the rules in `../docs/PRD.md`, the screens in
+`../docs/SCREEN-STATES.md`, the visual rules and components in `../my-money-recap-ds/`.
 
 ## Layout
 

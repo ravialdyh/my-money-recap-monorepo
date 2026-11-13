@@ -1,8 +1,8 @@
 # members
 
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
-subject. It serves `GetOrCreateBySubject` and `GetProfile` (#15), `SetTimezone` (#96), `SaveProfile`
-(#98) and `CancelDeletion` (#105), and consumes `ledger.currency.converted` (#173); the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
+subject. It serves `GetOrCreateBySubject` and `GetProfile`, `SetTimezone`, `SaveProfile`
+and `CancelDeletion`, and consumes `ledger.currency.converted`; the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
 (`apps/README.md`, "Every service"), plus four of its own.
 
 | Variable | Default | Meaning |
@@ -58,7 +58,7 @@ them: a Display Name stored in NFC and trimmed, 1 to 30 code points of letters i
 hyphens and apostrophes; one of the six Avatar keys `Profile.avatar_key` lists; an ISO 4217 Currency. It
 keeps `onboarding_step` at the highest step ever saved, so saving an earlier step again never lowers it,
 and it is keyed like `SetTimezone`. Every Profile it answers carries `currency_digits`, the Currency's decimals
-from `internal/cldr`, the data `ledger` rounds with, which step 3's amount field allows (#103).
+from `internal/cldr`, the data `ledger` rounds with, which step 3's amount field allows.
 
 `CancelDeletion` is "Keep my account" on the restore sheet (PRD §6.18, D60), keyed like `SetTimezone`: it
 clears a `deletion_requested_at` under 24 hours old and stages `members.deletion.cancelled` in the same
@@ -67,7 +67,7 @@ transaction. With no stamp it answers the Profile and changes nothing; a stamp 2
 arrives with the Settings slice, so the tests write it straight into the row.
 
 `Keycloak.DeleteAccount` deletes a Keycloak account by subject with `members`' own service account, which
-holds `manage-users` for the deletion job alone (#177, ARCHITECTURE §7.1 step 4, §4.2); a 404 counts as done.
+holds `manage-users` for the deletion job alone (ARCHITECTURE §7.1 step 4, §4.2); a 404 counts as done.
 No job calls it yet.
 
 ## Events
@@ -76,12 +76,12 @@ A first sight stages `members.created`, and a write that changes any of the fact
 (`MemberFacts`: the Display Name, zone, sign-up date, Currency and email) stages one `members.updated`
 carrying all of them, in the outbox, inside the write's own transaction (ARCHITECTURE §4.3, A4). A write
 that changes none of them stages nothing: an Avatar, a step, the same answer again, a replayed key.
-`CancelDeletion` stages `members.deletion.cancelled` the same way, which `notify` consumes since #176. The
+`CancelDeletion` stages `members.deletion.cancelled` the same way, which `notify` consumes. The
 relay beside the handler polls the outbox every second, publishes with publisher confirms and marks a row
 sent only once the broker has confirmed it; `FOR UPDATE SKIP LOCKED` keeps two relays off the same row
 (`internal/events`). A relay that loses the broker logs it and dials again five seconds later.
 
-Its first consumer (#173) reads the quorum queue `members.ledger`, bound to `ledger.currency.converted`
+Its first consumer reads the quorum queue `members.ledger`, bound to `ledger.currency.converted`
 (ARCHITECTURE §7.2 currency flow). Each message id is recorded in `processed_events` in the transaction that
 applies it, so a second delivery changes nothing; the event sets `currency_code` and stages one
 `members.updated`, unless a conversion newer than it was already applied (`currency_at`), so a late delivery

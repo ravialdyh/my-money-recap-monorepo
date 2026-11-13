@@ -8,11 +8,11 @@
             "toCurrencyCode": "GBP",
             "rate": "0.000046",
             "salaryBefore": {
-                "amount": "15000000",
+                "amount": "150000000",
                 "currencyCode": "IDR"
             },
             "salaryAfter": {
-                "amount": "690.00",
+                "amount": "6900.00",
                 "currencyCode": "GBP"
             },
             "spendsBefore": {

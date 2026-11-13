@@ -16,14 +16,13 @@ it on the runner; what it sends the machine, and how Compose hands each value on
 | `prod.yaml` | **no** | The real values. Git-ignored until it holds real values; committing it then, with `.sops.yaml`, is the first item of #87. |
 | `.sops.yaml`, at the **repository root** | **no** | The creation rule naming the age recipient. It sits at the root because sops resolves the rule by walking up from the working directory, not from the file it is given, so a copy in this directory is invisible to `sops edit infra/secrets/prod.yaml` run from the root. Git-ignored until `prod.yaml` is committed, and it could not be committed sooner: a rule with an invalid recipient makes `sops edit` fail outright rather than degrade, so it waits for a real key. |
 
-No age key has been generated yet, so the repository holds the shape and nothing else (#66, PR
-#76). The wizard's
+No age key has been generated yet, so the repository holds the shape and nothing else. The wizard's
 first step is `age-keygen`, which writes the new public key into `.sops.yaml` and creates `prod.yaml`
 from `example.yaml`.
 
 ## The key set
 
-Seven of the nine human steps (`docs/research/2026-09-14-setup-automation.md` §4) put a value here;
+Seven of the nine human steps put a value here;
 Apple Developer Program enrolment and `age-keygen` produce none. Which step fills which key, and where
 its value comes from, is `STEPS` in [`../wizard/setup.sh`](../wizard/setup.sh). The last fourteen keys,
 `keyset.sh stack`, come from no step: seven passwords fixed when their volume is first initialised
@@ -34,15 +33,15 @@ mode weighs them alongside the steps.
 | Key | Consumed by |
 | --- | --- |
 | `app_store_connect_api_key` | The TestFlight half of the tag deploy (A15), which #87 still owes |
-| `apple_services_id` | The Keycloak Apple identity provider's client id, an OpenTofu variable (#71) |
-| `apple_team_id` | The same provider's `teamId`, the issuer of the client-secret JWT it signs, and the issuer of `notify`'s push tokens (#180) |
+| `apple_services_id` | The Keycloak Apple identity provider's client id, an OpenTofu variable |
+| `apple_team_id` | The same provider's `teamId`, the issuer of the client-secret JWT it signs, and the issuer of `notify`'s push tokens |
 | `apple_sign_in_key_id` | The same provider's `keyId`, the JWT's `kid` |
 | `apple_sign_in_key` | The same provider, which signs the client secret on every token exchange; referenced as `${vault.apple_sign_in_key}`, which the pinned extension does not resolve (see "Keycloak's file vault") |
-| `apple_push_key` | `notify`'s Apple push sender, which signs its tokens with it, as the machine's `APPLE_PUSH_KEY`: the `.p8` in base64 on one line (`machine-env.sh`, #180); empty on a laptop, where every push is recorded and not sent |
-| `apple_push_key_id` | The same sender's Key ID, the token's `kid`, as the machine's `APPLE_PUSH_KEY_ID` (#180) |
-| `google_client_id` | The Keycloak Google identity provider's client id, an OpenTofu variable (#71) |
+| `apple_push_key` | `notify`'s Apple push sender, which signs its tokens with it, as the machine's `APPLE_PUSH_KEY`: the `.p8` in base64 on one line (`machine-env.sh`); empty on a laptop, where every push is recorded and not sent |
+| `apple_push_key_id` | The same sender's Key ID, the token's `kid`, as the machine's `APPLE_PUSH_KEY_ID` |
+| `google_client_id` | The Keycloak Google identity provider's client id, an OpenTofu variable |
 | `google_client_secret` | The same provider, through Keycloak's file vault as `${vault.google_client_secret}` |
-| `open_exchange_rates_app_id` | `currency`'s rate fetch, as the machine's `OPEN_EXCHANGE_RATES_APP_ID` (`machine-env.sh`); empty on a laptop, where every fetch fails (#175) |
+| `open_exchange_rates_app_id` | `currency`'s rate fetch, as the machine's `OPEN_EXCHANGE_RATES_APP_ID` (`machine-env.sh`); empty on a laptop, where every fetch fails |
 | `smtp_token` | `notify`'s SMTP login on the machine, owed by #87 (`notify` sends no AUTH yet); Mailpit needs none locally |
 | `domain` | The deploy workflow's SSH host, and the machine's `MMR_HOST` |
 | `registrar_token` | The DNS records of the machine root (#87), not written yet |
@@ -87,7 +86,7 @@ are bare values whose names carry no keyword context, so nothing would flag one 
 ## Keycloak's file vault
 
 The realm never holds the two identity-provider secrets, only a reference to each:
-`${vault.google_client_secret}` and `${vault.apple_sign_in_key}` (#71). Keycloak resolves a reference
+`${vault.google_client_secret}` and `${vault.apple_sign_in_key}`. Keycloak resolves a reference
 when it needs the value, from a file in its vault directory, `/run/secrets` inside the container,
 which Compose fills with `secrets:`. Two details of Keycloak 26.6 decide the file names, both proved
 on the pinned image:
@@ -108,7 +107,7 @@ client secret on every code exchange. The Apple extension pinned in the image (1
 reads the `.p8` from the raw client-secret field and base64-decodes the literal
 `${vault.apple_sign_in_key}`, so it signs nothing and sends Apple no client secret, even with a real
 key in the vault file. Until that changes, Sign in with Apple cannot finish a code exchange with real
-values (#71).
+values.
 
 ## Proving it
 

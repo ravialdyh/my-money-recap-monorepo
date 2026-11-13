@@ -56,7 +56,7 @@ final class SettingsViewTests: XCTestCase {
     func testSalaryAndItsSheetScrollSidewaysRatherThanClip() throws {
         let edit = try salary("settings-filled")
         XCTAssertGreaterThan(overflow(SalaryEditView(model: edit) {}, size: sideways), 0, "D3 scrolls sideways")
-        edit.amount = "17500000"
+        edit.amount = "175000000"
         XCTAssertGreaterThan(overflow(WhichSalarySheet(model: edit) { _ in }, size: sideways), 0, "so does its sheet")
     }
 

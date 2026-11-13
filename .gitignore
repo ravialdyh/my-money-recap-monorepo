@@ -7,8 +7,6 @@ my-money-recap/renders/
 
 .tmp-*
 
-docs/design/**/screens/
-
 .env
 .env.*
 !.env.example
