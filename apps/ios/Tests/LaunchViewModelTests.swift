@@ -107,7 +107,7 @@ final class LaunchViewModelTests: XCTestCase {
         let currency = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(2) })
         await currency.start()
         XCTAssertEqual(currency.route, .stepTwo(saved: ""))
-        let typed = salary("15000000", "IDR")
+        let typed = salary("150000000", "IDR")
         let salaried = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(3, salary: typed) })
         await salaried.start()
         XCTAssertEqual(salaried.route, .stepThree(currency: "IDR", digits: 0, saved: typed), "a crash after ledger")
@@ -132,7 +132,7 @@ final class LaunchViewModelTests: XCTestCase {
         await model.start()
         await model.open(step: 3)
         XCTAssertEqual(model.route, .stepThree(currency: "IDR", digits: 0, saved: nil))
-        let typed = salary("15000000", "IDR")
+        let typed = salary("150000000", "IDR")
         model.salarySaved(.with { $0.salary = typed })
         model.stepThreeDone()
         XCTAssertEqual(model.route, .stepFour(salary: typed.amount, digits: 0, saved: nil))
@@ -170,12 +170,12 @@ final class LaunchViewModelTests: XCTestCase {
     /// Step 3's back chevron re-selects the saved Currency; saving another relabels the typed Salary, which step 3
     /// fills in again in the new Currency with its decimals, and a later save without a Salary keeps it (spec #92).
     func testGoingBackFromStepThreeKeepsTheSalaryRelabelled() async {
-        let typed = salary("15000000", "IDR")
+        let typed = salary("150000000", "IDR")
         let model = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(3, salary: typed) })
         await model.start()
         model.back()
         XCTAssertEqual(model.route, .stepTwo(saved: "IDR"))
-        let relabelled = salary("15000000.00", "EUR")
+        let relabelled = salary("150000000.00", "EUR")
         model.saved(answer(profile("Maya", "otter", "EUR"), salary: relabelled))
         model.stepTwoSaved()
         XCTAssertEqual(model.route, .stepThree(currency: "EUR", digits: 2, saved: relabelled))

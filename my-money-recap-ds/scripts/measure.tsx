@@ -47,9 +47,9 @@ const cases: Array<[string, JSX.Element]> = [
     <RecapCoverScreen
       month="September 2026"
       childName="Budi"
-      total={15000000}
-      saved={5600000}
-      spent={9400000}
+      total={150000000}
+      saved={56000000}
+      spent={94000000}
       currency="IDR"
       locale="id-ID"
     />,
@@ -60,10 +60,10 @@ const cases: Array<[string, JSX.Element]> = [
     <RecapGoalScreen
       currency="IDR"
       locale="id-ID"
-      saved={5600000}
-      target={3000000}
-      spentTotal={9400000}
-      splurge="Rp 2.500.000 on a flight home. Your biggest single buy."
+      saved={56000000}
+      target={30000000}
+      spentTotal={94000000}
+      splurge="Rp 25.000.000 on a flight home. Your biggest single buy."
     />,
   ],
   [
@@ -94,10 +94,10 @@ const cases: Array<[string, JSX.Element]> = [
     'Long-number pieces · rupiah',
     <Screen ground="recap">
       <Card>
-        <StatHero eyebrow="Spent so far" value={9400000} currency="IDR" locale="id-ID" />
+        <StatHero eyebrow="Spent so far" value={94000000} currency="IDR" locale="id-ID" />
         <StatChipRow>
-          <StatChip tone="earned">Money in Rp 15.000.000</StatChip>
-          <StatChip tone="saved">Saved Rp 5.600.000</StatChip>
+          <StatChip tone="earned">Money in Rp 150.000.000</StatChip>
+          <StatChip tone="saved">Saved Rp 56.000.000</StatChip>
         </StatChipRow>
       </Card>
       <div style={{ marginTop: 12 }}>
@@ -110,7 +110,7 @@ const cases: Array<[string, JSX.Element]> = [
       <div style={{ marginTop: 12 }}>
         <Card>
           <StatHero eyebrow="Steps to 56" value={520000} currency="IDR" locale="id-ID" />
-          <StatHero eyebrow="Steps to 40" value={15000000} currency="IDR" locale="id-ID" />
+          <StatHero eyebrow="Steps to 40" value={150000000} currency="IDR" locale="id-ID" />
           <StatHero eyebrow="The cap at 40" value={99999999999} currency="GBP" locale="en-GB" />
         </Card>
       </div>
@@ -119,7 +119,7 @@ const cases: Array<[string, JSX.Element]> = [
       </div>
       <div style={{ marginTop: 12 }}>
         <Card>
-          <AmountField label="Salary" currency="IDR" locale="id-ID" value="15000000" />
+          <AmountField label="Salary" currency="IDR" locale="id-ID" value="150000000" />
           <AmountField
             label="Amount"
             currency="GBP"

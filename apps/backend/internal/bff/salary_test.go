@@ -26,7 +26,7 @@ func salaryAt(step int32) *moneyrecapv1.Profile {
 // ledger write records no step, a re-save records none again, and after setup the save is an edit (spec #92).
 func TestSaveSalaryWritesLedgerThenTheStep(t *testing.T) {
 	this := moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_THIS_MONTH
-	msg := &moneyrecapv1.BffServiceSaveSalaryRequest{Amount: &moneyrecapv1.Money{Amount: "15000000", CurrencyCode: "IDR"}, Payday: "25", AppliesFrom: this}
+	msg := &moneyrecapv1.BffServiceSaveSalaryRequest{Amount: &moneyrecapv1.Money{Amount: "150000000", CurrencyCode: "IDR"}, Payday: "25", AppliesFrom: this}
 	members, ledger := &fakeMembers{profile: salaryAt(2)}, &fakeLedger{}
 	s := newService(t, members, &fakeNotify{})
 	s.Ledger = ledgerClient(t, ledger)
@@ -104,15 +104,15 @@ func TestSaveTargetWritesLedgerThenTheStep(t *testing.T) {
 // carries the relabelled Salary; a first Currency moves nothing; after setup a change is refused (spec #92).
 func TestSaveProfileRelabelsDuringSetupAndRefusesAfter(t *testing.T) {
 	change := &moneyrecapv1.BffServiceSaveProfileRequest{CurrencyCode: proto.String("EUR"), OnboardingStep: proto.Int32(2)}
-	members, ledger := &fakeMembers{profile: salaryAt(3)}, &fakeLedger{salary: &moneyrecapv1.SalarySetting{Amount: &moneyrecapv1.Money{Amount: "15000000", CurrencyCode: "IDR"}}}
+	members, ledger := &fakeMembers{profile: salaryAt(3)}, &fakeLedger{salary: &moneyrecapv1.SalarySetting{Amount: &moneyrecapv1.Money{Amount: "150000000", CurrencyCode: "IDR"}}}
 	s := newService(t, members, &fakeNotify{})
 	s.Ledger = ledgerClient(t, ledger)
 	res, err := s.SaveProfile(ctx, keyed(change, "k1"))
 	if err != nil || members.gotProfile.GetCurrencyCode() != "EUR" || ledger.gotRelabel.GetCurrencyCode() != "EUR" || ledger.gotRelabel.GetIdempotencyKey() != "k1" {
 		t.Fatalf("back at step 2: %v, members %v, ledger %v; want EUR in both under k1", err, members.gotProfile, ledger.gotRelabel)
 	}
-	if got := res.Msg.Salary; got.GetAmount().GetCurrencyCode() != "EUR" || got.GetAmount().GetAmount() != "15000000" {
-		t.Errorf("answered Salary %v, want 15000000 relabelled EUR", got)
+	if got := res.Msg.Salary; got.GetAmount().GetCurrencyCode() != "EUR" || got.GetAmount().GetAmount() != "150000000" {
+		t.Errorf("answered Salary %v, want 150000000 relabelled EUR", got)
 	}
 
 	first := &fakeLedger{}
@@ -136,7 +136,7 @@ func TestSaveProfileRelabelsDuringSetupAndRefusesAfter(t *testing.T) {
 // A resume at step 3 or 4, or Home's prompts after setup, carry the saved Salary and Target from ledger; before the
 // Currency ledger is never asked, and a ledger that fails is unavailable rather than an empty step (spec #92).
 func TestGetOnboardingStateCarriesStepThreesAnswer(t *testing.T) {
-	saved := &moneyrecapv1.SalarySetting{Amount: &moneyrecapv1.Money{Amount: "15000000", CurrencyCode: "IDR"}, Payday: "last"}
+	saved := &moneyrecapv1.SalarySetting{Amount: &moneyrecapv1.Money{Amount: "150000000", CurrencyCode: "IDR"}, Payday: "last"}
 	target := &moneyrecapv1.SavingTargetSetting{Percent: 35, EffectiveFrom: "2026-09"}
 	ledger := &fakeLedger{salary: saved, target: target}
 	s := newService(t, &fakeMembers{profile: salaryAt(2)}, &fakeNotify{})

@@ -20,7 +20,7 @@ final class SalaryViewTests: XCTestCase {
     /// A save that could not reach the BFF draws `No connection. We need one to save your answers.` in the card.
     func testANoConnectionSaveIsDrawnInTheCard() async {
         let model = step(.offline)
-        model.amount = "15000000"
+        model.amount = "150000000"
         let before = picture(SalaryView(model: model, onBack: {}, onDone: {}))
         _ = await model.skip()
         XCTAssertTrue(model.offline)

@@ -54,8 +54,8 @@ final class RecapViewTests: XCTestCase {
     /// chips wrap, and the illustration narrows from 310 to 260pt so the page dots stay on screen.
     func testTheRupiahCoverFitsWithItsChipsWrapped() async throws {
         let page = try await pager(RecapViewModelTests.recorded("recap-squirrel"), locale: Locale(identifier: "id_ID"))
-        XCTAssertEqual(page.model.hero, "Rp15.000.000")
-        XCTAssertEqual(page.model.chips.map(\.text), ["Saved Rp5.600.000", "Spent Rp9.400.000"])
+        XCTAssertEqual(page.model.hero, "Rp150.000.000")
+        XCTAssertEqual(page.model.chips.map(\.text), ["Saved Rp56.000.000", "Spent Rp94.000.000"])
         let card = upright.width - 2 * 24 - 2 * Tokens.Space._7
         XCTAssertEqual(StatHero.size(for: page.model.hero, in: card), Tokens.Size.statHeroS)
         XCTAssertEqual(overflow(page, size: upright), 0, "the chips wrap and the page still fits")

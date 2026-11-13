@@ -53,11 +53,11 @@ final class SharePosterTests: XCTestCase {
         let maya = try await RecapViewModelTests.loaded("recap-maya-september")
         XCTAssertEqual(maya.poster, Self.four[0], "Maya's September is C6 as drawn")
         let budi = try await Self.x5()
-        XCTAssertEqual(budi.poster?.saved, "Rp5.600.000")
-        XCTAssertEqual(budi.poster?.spent, "Rp9.400.000")
+        XCTAssertEqual(budi.poster?.saved, "Rp56.000.000")
+        XCTAssertEqual(budi.poster?.spent, "Rp94.000.000")
         XCTAssertEqual(budi.poster?.displayName, "Budi")
         XCTAssertEqual(budi.poster?.archetype, .init(kind: .squirrel, title: "The Squirrel"))
-        XCTAssertEqual(budi.hero, "Rp15.000.000", "Money In exists and is not a fact of the poster")
+        XCTAssertEqual(budi.hero, "Rp150.000.000", "Money In exists and is not a fact of the poster")
     }
 
     func testNoPosterWhereScreen4HasNoShare() async throws {
@@ -133,7 +133,7 @@ final class SharePosterTests: XCTestCase {
         try keep(poster.picture(), "c6-longest-name")
     }
 
-    /// X5 (PRD D45): "Rp5.600.000" is too wide for its column at 120px, so Saved and Spent stack at 84px.
+    /// X5 (PRD D45): "Rp56.000.000" is too wide for its column at 120px, so Saved and Spent stack at 84px.
     func testTheRupiahPosterStacksSavedAndSpent() async throws {
         let model = try await Self.x5()
         let poster = try XCTUnwrap(model.poster)

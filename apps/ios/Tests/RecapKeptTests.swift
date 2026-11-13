@@ -44,9 +44,9 @@ final class RecapKeptTests: XCTestCase {
         let model = try await RecapViewModelTests.loaded("recap-overspent")
         XCTAssertEqual(
             model.keptHeadline,
-            "You kept -IDR\u{00A0}200,000 of IDR\u{00A0}15,000,000. That's 0% of your target."
+            "You kept -IDR\u{00A0}2,000,000 of IDR\u{00A0}150,000,000. That's 0% of your target."
         )
-        XCTAssertEqual(model.keptRows?.first?.display, "-IDR\u{00A0}200,000")
+        XCTAssertEqual(model.keptRows?.first?.display, "-IDR\u{00A0}2,000,000")
     }
 
     /// P2: the dates as the title and the badge copy under it; in the current month the dots stop at today (the

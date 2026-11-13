@@ -42,13 +42,13 @@ final class HomeViewTests: XCTestCase {
             $0.currencyCode = "IDR"
             $0.spent.amount = "0"
             $0.moneyIn.amount = "0"
-            $0.salary = .with { $0.amount.amount = "15000000"; $0.payday = "25"; $0.daysUntilPayday = 5 }
+            $0.salary = .with { $0.amount.amount = "150000000"; $0.payday = "25"; $0.daysUntilPayday = 5 }
         }
         let set = {
             var home = unset
             home.savingTarget = .with {
                 $0.percent = 20
-                $0.amount.amount = "3000000"
+                $0.amount.amount = "30000000"
                 $0.progressSentence = "Nothing to keep yet. Your salary lands on the 25th."
             }
             return home
@@ -73,25 +73,25 @@ final class HomeViewTests: XCTestCase {
             $0.avatarKey = "owl"
             $0.currencyCode = "IDR"
             $0.month = "2026-09"
-            $0.spent = rupiah("9400000")
-            $0.moneyIn = rupiah("15000000")
-            $0.saved = rupiah("5600000")
-            $0.salary = .with { $0.amount = rupiah("15000000"); $0.payday = "25" }
+            $0.spent = rupiah("94000000")
+            $0.moneyIn = rupiah("150000000")
+            $0.saved = rupiah("56000000")
+            $0.salary = .with { $0.amount = rupiah("150000000"); $0.payday = "25" }
             $0.savingTarget = .with {
                 $0.percent = 20
-                $0.amount = rupiah("3000000")
-                $0.progressSentence = "Keep spending under Rp520.000 a day and you'll make it."
+                $0.amount = rupiah("30000000")
+                $0.progressSentence = "Keep spending under Rp5.200.000 a day and you'll make it."
             }
             $0.firstRecapOn = "2026-10-01"
         }
         try HomeSnapshot.replace(with: budi, in: context)
         let model = HomeViewModel(fetch: { budi }, context: context, locale: Locale(identifier: "id_ID"))
-        XCTAssertEqual(model.money(budi.spent), "Rp9.400.000")
+        XCTAssertEqual(model.money(budi.spent), "Rp94.000.000")
 
         let card = 393 - 2 * 24 - 2 * Tokens.Space._7
         let width = { (line: String, font: UIFont) in (line as NSString).size(withAttributes: [.font: font]).width }
-        XCTAssertEqual(StatHero.size(for: "Rp9.400.000", in: card), Tokens.Size.statHeroS, "80 and 56pt do not fit")
-        XCTAssertLessThanOrEqual(width("Rp9.400.000", AmountField.font(of: Tokens.Size.statHeroS)), card)
+        XCTAssertEqual(StatHero.size(for: "Rp94.000.000", in: card), Tokens.Size.statHeroS, "80 and 56pt do not fit")
+        XCTAssertLessThanOrEqual(width("Rp94.000.000", AmountField.font(of: Tokens.Size.statHeroS)), card)
         let nunito = { (size: CGFloat) in
             UIFont(
                 descriptor: UIFontDescriptor(fontAttributes: [.family: Tokens.FontFamily.text])
@@ -100,7 +100,7 @@ final class HomeViewTests: XCTestCase {
             )
         }
         let label = nunito(Tokens.TypeRamp.labelS.size)
-        for chip in ["Money in Rp15.000.000", "Saved Rp5.600.000"] {
+        for chip in ["Money in Rp150.000.000", "Saved Rp56.000.000"] {
             XCTAssertLessThanOrEqual(width(chip, label) + 2 * Tokens.Space._5 + 14, card, "\(chip) fits a line alone")
         }
         XCTAssertLessThanOrEqual(try width(XCTUnwrap(model.targetProgress), nunito(Tokens.TypeRamp.labelM.size)), card)

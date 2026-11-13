@@ -6,7 +6,7 @@ import XCTest
 @testable import MyMoneyRecap
 
 /// D5 to D7 (PRD §8.9) from the BFF's recorded answers for the test Member in rupiah: with no amounts, then with a
-/// Rp15.000.000 Salary and a Rp25.000 Spend previewed and converted to pounds at a typed 0.000046.
+/// Rp150.000.000 Salary and a Rp25.000 Spend previewed and converted to pounds at a typed 0.000046.
 @MainActor
 final class CurrencyEditViewModelTests: XCTestCase {
     nonisolated static func recorded<Answer: SwiftProtobuf.Message>(
@@ -104,9 +104,9 @@ final class CurrencyEditViewModelTests: XCTestCase {
             model.rateLine,
             "All your amounts will be converted at today's rate, 1 IDR = 0,000046 GBP."
         )
-        XCTAssertEqual(model.salaryLine, "Your Rp15.000.000 salary becomes £690.")
+        XCTAssertEqual(model.salaryLine, "Your Rp150.000.000 salary becomes £6.900.")
         XCTAssertEqual(model.rows.map(\.label), ["Salary", "Spends"])
-        XCTAssertEqual(model.rows.map(\.value), ["Rp15.000.000 → £690", "Rp25.000 → £1,15"])
+        XCTAssertEqual(model.rows.map(\.value), ["Rp150.000.000 → £6.900", "Rp25.000 → £1,15"])
         XCTAssertTrue(model.canConvert)
         await model.convert()
         let sent = try XCTUnwrap(calls.changes.first?.0)
@@ -156,7 +156,7 @@ final class CurrencyEditViewModelTests: XCTestCase {
         XCTAssertFalse(model.canConvert, "not before the preview answers")
         await model.typing?.value
         XCTAssertEqual(calls.previews.last?.manualRate, "0.000046", "the BFF reads a point")
-        XCTAssertEqual(model.salaryLine, "Your Rp15.000.000 salary becomes £690.")
+        XCTAssertEqual(model.salaryLine, "Your Rp150.000.000 salary becomes £6.900.")
         XCTAssertNil(model.rateLine, "D7 has no today's rate")
         XCTAssertTrue(model.canConvert)
         await model.convert()

@@ -104,7 +104,7 @@ final class RecapGoalViewModelTests: XCTestCase {
             XCTAssertNil(model.paydayLine, name)
         }
         let sign = try await loaded("recap-sign-up")
-        XCTAssertEqual(sign.goalHeadline, "Where IDR\u{00A0}350,000 went")
+        XCTAssertEqual(sign.goalHeadline, "Where IDR\u{00A0}3,500,000 went")
         XCTAssertEqual(sign.rollUp, nil, "two Categories, no roll-up")
     }
 

@@ -113,24 +113,24 @@ func stepThree(ctx context.Context, t *testing.T, client moneyrecapv1connect.Bff
 		_, err := client.SaveSalary(ctx, req)
 		return err
 	}
-	if err := salary("15000000.5", "25"); connect.CodeOf(err) != connect.CodeInvalidArgument {
+	if err := salary("150000000.5", "25"); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Fatalf("a rupiah cent: %v, want invalid_argument, the Currency has 0 decimals", err)
 	}
-	if err := salary("15000000", "25"); err != nil {
+	if err := salary("150000000", "25"); err != nil {
 		t.Fatal(err)
 	}
 	s := state()
 	signUpMonth := s.Profile.SignedUpOn[:7]
-	if s.NextStep != 4 || s.Profile.OnboardingStep != 3 || s.Salary.GetAmount().GetAmount() != "15000000" || s.Salary.GetEffectiveFrom() != signUpMonth {
-		t.Fatalf("after step 3: %v, want step 4 next with 15000000 from %s", s, signUpMonth)
+	if s.NextStep != 4 || s.Profile.OnboardingStep != 3 || s.Salary.GetAmount().GetAmount() != "150000000" || s.Salary.GetEffectiveFrom() != signUpMonth {
+		t.Fatalf("after step 3: %v, want step 4 next with 150000000 from %s", s, signUpMonth)
 	}
 	if _, err := db.Exec(ctx, `UPDATE member SET onboarding_step = 2 WHERE keycloak_subject = $1`, sub); err != nil {
 		t.Fatal(err)
 	}
-	if s := state(); s.NextStep != 3 || s.Salary.GetAmount().GetAmount() != "15000000" {
+	if s := state(); s.NextStep != 3 || s.Salary.GetAmount().GetAmount() != "150000000" {
 		t.Fatalf("after a crash between the two writes: %v, want step 3 with the amount filled in", s)
 	}
-	if err := salary("15000000", "last"); err != nil {
+	if err := salary("150000000", "last"); err != nil {
 		t.Fatal(err)
 	}
 	if s := state(); s.NextStep != 4 || s.Salary.GetPayday() != "last" || s.Salary.GetEffectiveFrom() != signUpMonth {
@@ -139,8 +139,8 @@ func stepThree(ctx context.Context, t *testing.T, client moneyrecapv1connect.Bff
 	if err := save(&moneyrecapv1.BffServiceSaveProfileRequest{CurrencyCode: proto.String("EUR"), OnboardingStep: proto.Int32(2)}); err != nil {
 		t.Fatal(err)
 	}
-	if s := state(); s.Profile.CurrencyDigits != 2 || s.Salary.GetAmount().GetAmount() != "15000000.00" || s.Salary.GetOriginalAmount().GetCurrencyCode() != "EUR" {
-		t.Fatalf("back at step 2 for EUR: %v, want 15000000.00 EUR, original too, and 2 decimals to type", s)
+	if s := state(); s.Profile.CurrencyDigits != 2 || s.Salary.GetAmount().GetAmount() != "150000000.00" || s.Salary.GetOriginalAmount().GetCurrencyCode() != "EUR" {
+		t.Fatalf("back at step 2 for EUR: %v, want 150000000.00 EUR, original too, and 2 decimals to type", s)
 	}
 	if err := save(&moneyrecapv1.BffServiceSaveProfileRequest{CurrencyCode: proto.String("IDR"), OnboardingStep: proto.Int32(2)}); err != nil {
 		t.Fatal(err)
@@ -164,10 +164,10 @@ func stepFour(ctx context.Context, t *testing.T, client moneyrecapv1connect.BffS
 	}
 	first := target(20)
 	signUpMonth := first.Settings.Profile.SignedUpOn[:7]
-	if got := first.Home.SavingTarget; got.GetPercent() != 20 || got.GetAmount().GetAmount() != "3000000" || first.Settings.LedgerSettings.SavingTarget.GetEffectiveFrom() != signUpMonth {
-		t.Fatalf("step 4 at 20%%: %v, want 3000000 of 15000000 on Home, from %s", first, signUpMonth)
+	if got := first.Home.SavingTarget; got.GetPercent() != 20 || got.GetAmount().GetAmount() != "30000000" || first.Settings.LedgerSettings.SavingTarget.GetEffectiveFrom() != signUpMonth {
+		t.Fatalf("step 4 at 20%%: %v, want 30000000 of 150000000 on Home, from %s", first, signUpMonth)
 	}
-	if s := state(); s.NextStep != 0 || s.Profile.OnboardingStep != 4 || s.SavingTarget.GetPercent() != 20 || s.Salary.GetAmount().GetAmount() != "15000000" {
+	if s := state(); s.NextStep != 0 || s.Profile.OnboardingStep != 4 || s.SavingTarget.GetPercent() != 20 || s.Salary.GetAmount().GetAmount() != "150000000" {
 		t.Fatalf("after step 4: %v, want setup over with the Salary and Target Home's prompts reopen", s)
 	}
 	if edit := target(30); edit.Home.SavingTarget.GetPercent() != 20 || edit.Settings.LedgerSettings.NextSavingTarget.GetPercent() != 30 {

@@ -31,5 +31,5 @@ export function NoSpends() {
 export function NoTargetSet() { return <RecapGoalScreen target={null} spentTotal={1760} />; }
 /** D45: the same screen in rupiah on an Indonesian phone. */
 export function Rupiah() {
-  return <RecapGoalScreen currency="IDR" locale="id-ID" saved={5600000} target={3000000} spentTotal={9400000} splurge={`${formatMoney(2500000, 'IDR', 'id-ID')} on a flight home. Your biggest single buy.`} />;
+  return <RecapGoalScreen currency="IDR" locale="id-ID" saved={56000000} target={30000000} spentTotal={94000000} splurge={`${formatMoney(25000000, 'IDR', 'id-ID')} on a flight home. Your biggest single buy.`} />;
 }
