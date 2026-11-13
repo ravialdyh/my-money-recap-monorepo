@@ -3,21 +3,21 @@
         "recap": {
             "month": "2026-08",
             "moneyIn": {
-                "amount": "15000000",
+                "amount": "150000000",
                 "currencyCode": "IDR"
             },
             "spent": {
-                "amount": "15200000",
+                "amount": "152000000",
                 "currencyCode": "IDR"
             },
             "saved": {
-                "amount": "-200000",
+                "amount": "-2000000",
                 "currencyCode": "IDR"
             },
             "spendCount": 2,
             "salary": {
                 "amount": {
-                    "amount": "15000000",
+                    "amount": "150000000",
                     "currencyCode": "IDR"
                 },
                 "payday": "25"
@@ -25,10 +25,10 @@
             "savingTarget": {
                 "percent": 20,
                 "amount": {
-                    "amount": "3000000",
+                    "amount": "30000000",
                     "currencyCode": "IDR"
                 },
-                "progressSentence": "Rp3.200.000 short of your target."
+                "progressSentence": "Rp32.000.000 short of your target."
             },
             "keptPercent": 0,
             "streak": {
@@ -43,7 +43,7 @@
                 {
                     "category": "CATEGORY_BILLS",
                     "amount": {
-                        "amount": "9000000",
+                        "amount": "90000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 59,
@@ -52,7 +52,7 @@
                 {
                     "category": "CATEGORY_RIDES",
                     "amount": {
-                        "amount": "6200000",
+                        "amount": "62000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 41,
@@ -62,11 +62,11 @@
             "splurge": {
                 "id": "9d5331ac-4265-4b78-b0af-8b18f1bc6a0d",
                 "amount": {
-                    "amount": "9000000",
+                    "amount": "90000000",
                     "currencyCode": "IDR"
                 },
                 "originalAmount": {
-                    "amount": "9000000",
+                    "amount": "90000000",
                     "currencyCode": "IDR"
                 },
                 "category": "CATEGORY_BILLS",

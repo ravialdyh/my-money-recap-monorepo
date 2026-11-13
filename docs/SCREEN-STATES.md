@@ -1,8 +1,8 @@
 # Screen states: the design contract
 
-Every screen and every state the app can be in, keyed to the ids in `design/design_handoff_my_money_recap/` so this file can be diffed against what already exists. `PRD.md` owns the rules; this file owns the states and the copy.
+Every screen and every state the app can be in, by screen id. `PRD.md` owns the rules; this file owns the states and the copy.
 
-**Canvases:** the eleven in `design/design_handoff_my_money_recap/`, whose README counts their artboards (live: <https://claude.ai/design/p/5f615747-48cd-4708-9369-becee9793f4e> and <https://claude.ai/code/artifact/c2140f85-a23f-4979-a0a5-b1bdd1d2947c>). Every row says what its screen must show, so this file can be diffed against the canvases.
+**Canvases:** the ids name the artboards of the 2026-09 design canvases, which left the repo on 2026-11-13 (`git log --diff-filter=D -- docs/design` finds them). Every row says what its screen must show, so it stands without them.
 
 **Rules that are not screen states**, but that the design agent must apply everywhere: every onboarding step after the first carries a 44pt back chevron and re-selects the saved answer on resume (PRD §6.4); the Home month chip opens the Spend list's month switcher (PRD §6.8); a Recap always shows the Member's *current* Display Name, because nothing about a Recap is stored (PRD §7), and no Avatar: no Recap screen draws one (owner, 2026-09-26).
 
@@ -172,9 +172,9 @@ White `Sheet variant="full"` on violet.
 |---|---|
 | X1 | **iPad portrait.** D40 as amended by D68: the single column, capped at 600pt, centred on a full-bleed ground. One artboard, Home. |
 | X2 | **iPad landscape.** Same column, same centring, `Sheet`s anchored to the bottom of the column rather than the screen. One artboard, Log a spend over Home. |
-| X3 | **IDR proof · Home.** D45. B1 with Salary Rp15.000.000, Spent Rp9.400.000. Proves that `StatHero` shrinks to fit (80 → 56 → 40pt) and that separators follow the device language (D71). |
+| X3 | **IDR proof · Home.** D45. B1 with Salary Rp150.000.000, Spent Rp94.000.000. Proves that `StatHero` shrinks to fit (80 → 56 → 40pt) and that separators follow the device language (D71). |
 | X4 | **IDR proof · Recap cover.** C1 with the same ledger: the Saved and Spent chips wrap to two lines, so the cover illustration narrows from 310 to 260pt to keep the page dots on an 844pt screen. A picture test (IOS I9). |
-| X5 | **IDR proof · Share image.** C6 with the same ledger, at 1080×1920: Saved and Spent stack one per row at 84px, since `Rp5.600.000` is wider than its column (PRD §6.15), and the month prints in the device language (`Agustus 2026`). A picture test (IOS I9). |
+| X5 | **IDR proof · Share image.** C6 with the same ledger, at 1080×1920: Saved and Spent stack one per row at 84px, since `Rp56.000.000` is wider than its column (PRD §6.15), and the month prints in the device language (`Agustus 2026`). A picture test (IOS I9). |
 
 ---
 

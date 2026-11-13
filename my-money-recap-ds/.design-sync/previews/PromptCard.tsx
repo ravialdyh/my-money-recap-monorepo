@@ -18,8 +18,8 @@ export function HomeHeroPrompt() {
 export function HomeHeroPromptRupiah() {
   return (
     <div style={ground}><div style={stack}>
-      <Card><StatHero eyebrow="Spent so far" value={9400000} currency="IDR" locale="id-ID" />
-        <StatChipRow><StatChip tone="earned">Money in {formatMoney(15000000, 'IDR', 'id-ID')}</StatChip><StatChip tone="saved">Saved {formatMoney(5600000, 'IDR', 'id-ID')}</StatChip></StatChipRow>
+      <Card><StatHero eyebrow="Spent so far" value={94000000} currency="IDR" locale="id-ID" />
+        <StatChipRow><StatChip tone="earned">Money in {formatMoney(150000000, 'IDR', 'id-ID')}</StatChip><StatChip tone="saved">Saved {formatMoney(56000000, 'IDR', 'id-ID')}</StatChip></StatChipRow>
       </Card>
       <PromptCard height={233} title="Set a saving target" helper="Pick a share of your salary to keep each month." />
     </div></div>

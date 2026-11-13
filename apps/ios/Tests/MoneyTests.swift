@@ -13,7 +13,7 @@ final class MoneyTests: XCTestCase {
 
     func testFractionsKeepTheCurrencysDecimals() {
         XCTAssertEqual(Money.format("12.40", currency: "GBP", locale: gb), "£12.40")
-        XCTAssertEqual(Money.format("15000000", currency: "IDR", locale: Locale(identifier: "id_ID")), "Rp15.000.000")
+        XCTAssertEqual(Money.format("150000000", currency: "IDR", locale: Locale(identifier: "id_ID")), "Rp150.000.000")
     }
 
     /// The amount's own decimals win over the platform's count for the currency (PRD D71): iOS 26.0 and 27.0 give

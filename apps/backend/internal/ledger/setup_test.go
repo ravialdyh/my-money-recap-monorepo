@@ -120,7 +120,7 @@ func TestRelabelCurrency(t *testing.T) {
 	if err := db.QueryRow(ctx, `SELECT currency_code FROM member_facts WHERE member_id = $1`, id).Scan(&replica); err != nil || replica != "IDR" {
 		t.Errorf("the replica holds %q, %v, want IDR at once", replica, err)
 	}
-	if _, err := s.SaveSalary(ctx, connect.NewRequest(&moneyrecapv1.SaveSalaryRequest{IdempotencyKey: "s1", MemberId: id, Amount: idr("15000000"), Payday: "25", Setup: true})); err != nil {
+	if _, err := s.SaveSalary(ctx, connect.NewRequest(&moneyrecapv1.SaveSalaryRequest{IdempotencyKey: "s1", MemberId: id, Amount: idr("150000000"), Payday: "25", Setup: true})); err != nil {
 		t.Errorf("a rupiah save right after: %v, want it accepted", err)
 	}
 	if again, err := relabel("r1", "IDR"); err != nil || again.Salary.GetAmount().GetAmount() != "2401" {

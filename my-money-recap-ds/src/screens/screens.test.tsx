@@ -36,9 +36,9 @@ describe('RecapCoverScreen (PRD §8, D2)', () => {
   });
 
   it('formats every figure in the Member currency and the viewer locale', () => {
-    render(<RecapCoverScreen currency="IDR" locale="id-ID" total={15000000} saved={5000000} spent={10000000} />);
-    expect(text()).toContain('Rp 15.000.000');
-    expect(text()).toContain('Saved Rp 5.000.000');
+    render(<RecapCoverScreen currency="IDR" locale="id-ID" total={150000000} saved={50000000} spent={100000000} />);
+    expect(text()).toContain('Rp 150.000.000');
+    expect(text()).toContain('Saved Rp 50.000.000');
   });
 
   it('marks its place as the first of the four screen run', () => {

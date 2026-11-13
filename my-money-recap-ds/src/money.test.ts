@@ -22,8 +22,10 @@ describe('money formatting (PRD §7, §11, D71)', () => {
   });
 
   it('prints rupiah the same on every platform for whole amounts; a fraction follows the platform data (CLDR 47: 2 decimals, 48+: 0)', () => {
-    expect(formatMoney('15000000', 'IDR', 'id-ID').replace(NB, ' ')).toBe('Rp 15.000.000');
-    expect(['Rp 15.000.000,50', 'Rp 15.000.001']).toContain(formatMoney('15000000.5', 'IDR', 'id-ID').replace(NB, ' '));
+    expect(formatMoney('150000000', 'IDR', 'id-ID').replace(NB, ' ')).toBe('Rp 150.000.000');
+    expect(['Rp 150.000.000,50', 'Rp 150.000.001']).toContain(
+      formatMoney('150000000.5', 'IDR', 'id-ID').replace(NB, ' '),
+    );
   });
 
   it('accepts exact decimal strings, the storage form, without loss', () => {

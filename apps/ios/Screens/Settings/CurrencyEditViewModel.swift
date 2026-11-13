@@ -202,7 +202,7 @@ final class CurrencyEditViewModel: Identifiable {
             + "\(Self.number(conversion.rate, locale: locale)) \(conversion.toCurrencyCode)."
     }
 
-    /// "Your Rp15.000.000 salary becomes £690.", with a Salary only.
+    /// "Your Rp150.000.000 salary becomes £6.900.", with a Salary only.
     var salaryLine: String? {
         guard let conversion = preview?.preview, conversion.hasSalaryBefore else { return nil }
         return "Your \(money(conversion.salaryBefore)) salary becomes \(money(conversion.salaryAfter))."

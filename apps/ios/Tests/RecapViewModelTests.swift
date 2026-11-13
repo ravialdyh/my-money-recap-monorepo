@@ -34,16 +34,16 @@ final class RecapViewModelTests: XCTestCase {
         XCTAssertEqual(model.nameChip, "Budi's recap")
         XCTAssertEqual(model.headline, "Your August in money")
         XCTAssertEqual(model.eyebrow, "Money that came your way")
-        XCTAssertEqual(model.hero, "IDR\u{00A0}15,000,000")
-        XCTAssertEqual(model.chips.map(\.text), ["Saved IDR\u{00A0}5,600,000", "Spent IDR\u{00A0}9,400,000"])
+        XCTAssertEqual(model.hero, "IDR\u{00A0}150,000,000")
+        XCTAssertEqual(model.chips.map(\.text), ["Saved IDR\u{00A0}56,000,000", "Spent IDR\u{00A0}94,000,000"])
     }
 
     func testAnOverspentMonthPrintsItsNegativeSavedAsItIs() async throws {
         var answer = try Self.recorded("recap-squirrel")
-        answer.recap.saved.amount = "-200000"
+        answer.recap.saved.amount = "-2000000"
         let model = RecapViewModel(month: "2026-08", fetch: { _ in answer }, locale: Locale(identifier: "en_GB"))
         await model.load()
-        XCTAssertEqual(model.chips.first?.text, "Saved -IDR\u{00A0}200,000")
+        XCTAssertEqual(model.chips.first?.text, "Saved -IDR\u{00A0}2,000,000")
     }
 
     /// The three partial situations draw P1, headed by situation, Spent as the hero and never Money In (PRD §6.17):
@@ -51,7 +51,7 @@ final class RecapViewModelTests: XCTestCase {
     func testEachPartialSituationDrawsP1WithItsHeadline() async throws {
         let cases = [
             ("recap-preview", "September so far", "IDR\u{00A0}0", "No spends"),
-            ("recap-sign-up", "Your first 5 days", "IDR\u{00A0}350,000", "2 spends"),
+            ("recap-sign-up", "Your first 5 days", "IDR\u{00A0}3,500,000", "2 spends"),
             ("recap-no-money-in", "Your August spending", "IDR\u{00A0}25,000", "1 spend"),
         ]
         for (name, headline, spent, count) in cases {

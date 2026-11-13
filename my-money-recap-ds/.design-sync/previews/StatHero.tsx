@@ -8,4 +8,4 @@ export function CustomFormat() { return <div style={ground}><Card><StatHero eyeb
 /** PRD §11, D71: the value is drawn at 80px, or 56 / 40px when the full string does not fit the card, measured, not counted. */
 export function FitsAt80() { return <div style={ground}><Card><StatHero eyebrow="Fits at 80px" value={0} currency="IDR" locale="id-ID" /></Card></div>; }
 export function FitsAt56() { return <div style={ground}><Card><StatHero eyebrow="Too wide at 80, fits at 56px" value={520000} currency="IDR" locale="id-ID" /></Card></div>; }
-export function FitsAt40() { return <div style={ground}><Card><StatHero eyebrow="Too wide at 56, drawn at 40px" value={15000000} currency="IDR" locale="id-ID" /></Card></div>; }
+export function FitsAt40() { return <div style={ground}><Card><StatHero eyebrow="Too wide at 56, drawn at 40px" value={150000000} currency="IDR" locale="id-ID" /></Card></div>; }

@@ -10,5 +10,5 @@ export function BeforePayday() {
 
 /** D45, X4: Budi's cover in rupiah on an Indonesian phone. The hero steps down to fit and the chips wrap. */
 export function Rupiah() {
-  return <RecapCoverScreen month="September 2026" childName="Budi" total={15000000} saved={5600000} spent={9400000} currency="IDR" locale="id-ID" />;
+  return <RecapCoverScreen month="September 2026" childName="Budi" total={150000000} saved={56000000} spent={94000000} currency="IDR" locale="id-ID" />;
 }

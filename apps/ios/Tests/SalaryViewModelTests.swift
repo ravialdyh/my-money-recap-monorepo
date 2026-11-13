@@ -44,7 +44,7 @@ final class SalaryViewModelTests: XCTestCase {
         XCTAssertFalse(step.canContinue)
         step.amount = "0"
         XCTAssertFalse(step.canContinue, "zero is no Salary")
-        step.amount = "15000000."
+        step.amount = "150000000."
         XCTAssertTrue(step.canContinue)
         step.choose("last")
         let offline = await step.next()
@@ -56,7 +56,7 @@ final class SalaryViewModelTests: XCTestCase {
         XCTAssertFalse(step.offline)
         XCTAssertEqual(sent.count, 2)
         let request = try XCTUnwrap(sent.last?.0)
-        XCTAssertEqual(request.amount.amount, "15000000", "a trailing point is not sent")
+        XCTAssertEqual(request.amount.amount, "150000000", "a trailing point is not sent")
         XCTAssertEqual(request.amount.currencyCode, "IDR")
         XCTAssertEqual(request.payday, "last")
         XCTAssertEqual(request.appliesFrom, .thisMonth, "setup never asks which month")
@@ -76,7 +76,7 @@ final class SalaryViewModelTests: XCTestCase {
             skips.append((request, headers))
             return skips.count == 1 ? .offline : .saved
         })
-        step.amount = "15000000"
+        step.amount = "150000000"
         _ = await step.next()
         let first = await step.skip()
         let second = await step.skip()
@@ -91,10 +91,10 @@ final class SalaryViewModelTests: XCTestCase {
     /// A resume after a crash, or step 3 after going back, fills in ledger's answer (spec #92).
     func testTheSavedAnswerIsFilledIn() throws {
         let step = try model(saved: .with {
-            $0.amount.amount = "15000000"
+            $0.amount.amount = "150000000"
             $0.payday = "1"
         })
-        XCTAssertEqual(step.amount, "15000000")
+        XCTAssertEqual(step.amount, "150000000")
         XCTAssertEqual(step.payday, "1")
         XCTAssertTrue(step.canContinue)
     }

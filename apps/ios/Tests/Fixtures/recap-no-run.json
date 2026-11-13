@@ -3,21 +3,21 @@
         "recap": {
             "month": "2026-08",
             "moneyIn": {
-                "amount": "15000000",
+                "amount": "150000000",
                 "currencyCode": "IDR"
             },
             "spent": {
-                "amount": "310000",
+                "amount": "3100000",
                 "currencyCode": "IDR"
             },
             "saved": {
-                "amount": "14690000",
+                "amount": "146900000",
                 "currencyCode": "IDR"
             },
             "spendCount": 31,
             "salary": {
                 "amount": {
-                    "amount": "15000000",
+                    "amount": "150000000",
                     "currencyCode": "IDR"
                 },
                 "payday": "25"
@@ -25,10 +25,10 @@
             "savingTarget": {
                 "percent": 20,
                 "amount": {
-                    "amount": "3000000",
+                    "amount": "30000000",
                     "currencyCode": "IDR"
                 },
-                "progressSentence": "Target met. Rp11.690.000 to spare."
+                "progressSentence": "Target met. Rp116.900.000 to spare."
             },
             "keptPercent": 490,
             "streak": {
@@ -39,7 +39,7 @@
                 {
                     "category": "CATEGORY_SNACKS",
                     "amount": {
-                        "amount": "310000",
+                        "amount": "3100000",
                         "currencyCode": "IDR"
                     },
                     "percent": 100,
@@ -49,11 +49,11 @@
             "splurge": {
                 "id": "f84bb5fe-ee78-4599-83bc-ef0a5402742e",
                 "amount": {
-                    "amount": "10000",
+                    "amount": "100000",
                     "currencyCode": "IDR"
                 },
                 "originalAmount": {
-                    "amount": "10000",
+                    "amount": "100000",
                     "currencyCode": "IDR"
                 },
                 "category": "CATEGORY_SNACKS",

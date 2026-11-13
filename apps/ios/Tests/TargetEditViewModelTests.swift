@@ -27,9 +27,9 @@ final class TargetEditViewModelTests: XCTestCase {
         XCTAssertFalse(edit.isBlocked)
         XCTAssertEqual(edit.percent, 20, "the Target in force")
         XCTAssertEqual(edit.startsLine, "Your new target starts in October.")
-        XCTAssertEqual(edit.preview, "IDR\u{00A0}3,000,000 of IDR\u{00A0}15,000,000 each month")
+        XCTAssertEqual(edit.preview, "IDR\u{00A0}30,000,000 of IDR\u{00A0}150,000,000 each month")
         edit.percent = 35
-        XCTAssertEqual(edit.preview, "IDR\u{00A0}5,250,000 of IDR\u{00A0}15,000,000 each month")
+        XCTAssertEqual(edit.preview, "IDR\u{00A0}52,500,000 of IDR\u{00A0}150,000,000 each month")
     }
 
     func testAFirstTargetAfterSetupHasNoLine() throws {

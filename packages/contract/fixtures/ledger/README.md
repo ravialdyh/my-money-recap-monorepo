@@ -5,8 +5,8 @@ The answer key for PRD §8. Every worked example in §8 and every numeric accept
 the arithmetic that only `ledger` implements (ARCHITECTURE A2, §7.2) is checked against numbers
 the PRD wrote down, not numbers the implementation produced.
 
-Written in #42, #48 and #49. `apps/backend/internal/ledger/fixtures_test.go` decodes every file, and
-`ledger`'s `TestTheAnswerKey` (#99, #128, #130, #152, #173) runs every one through the service, none left out: it
+`apps/backend/internal/ledger/fixtures_test.go` decodes every file, and
+`ledger`'s `TestTheAnswerKey` runs every one through the service, none left out: it
 seeds the file's rows, logs the last Spend with `LogSpend` on its own date when the file asserts `crossedLine`,
 makes its `saveSalary`, asks `PreviewConversion` for its `conversionPreview` and then makes its `convert`, sets the
 clock to `asOf` in `timezone` and compares what `GetMonthSummary`, `GetRecap`, `PreviewConversion`, `GetSettings`
@@ -27,9 +27,9 @@ never compared: `Spend.id`, which `ledger` assigns (`maya-01` is a label that pa
 with `splurge` or `spendsAfter`), and `createdAt` and `updatedAt`, which `ledger` stamps.
 
 Amounts follow `Money`: a decimal string with at most 11 digits before the separator (D57) and an
-ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"15000000"`), the decimals CLDR
+ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"150000000"`), the decimals CLDR
 reports for the currency (§8.4). A sentence that embeds an amount is written as the PRD prints it
-(`£160`, `Rp2.600.000`).
+(`£160`, `Rp26.000.000`).
 
 Every `SalarySetting` and every `Spend`, wherever it sits, carries `originalAmount`: the amount as
 typed, with its Currency (PRD §7, §8.9 step 4). An input row, in `salaries` or `spends`, has
@@ -42,7 +42,7 @@ made from `originalAmount` instead of `amount`. After `convert`, every other row
 input row fails. `fixtures_test.go` checks all three and names the row that drifts.
 
 Every file that asserts `settings` names `newSavingTargetFrom`, the month a Saving Target saved on `asOf` would
-start in (D65, #172): `asOf`'s own month in a file with no `savingTargets`, the month after in every other file, since
+start in (D65): `asOf`'s own month in a file with no `savingTargets`, the month after in every other file, since
 each of their rows counts as saved after setup.
 
 `streakDay` on a month is the month's Streak so far (§8.5, the glossary's Streak): the longest
@@ -69,4 +69,4 @@ are the same assertion; only a message or `optional` field can be "absent".
 
 The past months of the Payday 31 and `Last day` files assert `daysRemaining` 1, the §8.7 clamp applied
 literally to a month already over, and `streakDay` equal to the month's length, the no-Spends rule
-over a full window. `ledger` answers both that way (#99), so the reading stands.
+over a full window. `ledger` answers both that way, so the reading stands.

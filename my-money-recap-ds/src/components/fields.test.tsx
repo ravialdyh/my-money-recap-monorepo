@@ -14,6 +14,30 @@ function fieldInput() {
   return document.querySelector('.mmr-field-input') as HTMLInputElement;
 }
 
+function FieldRefProbe() {
+  const row = useRef<HTMLSpanElement>(null);
+  return (
+    <>
+      <TextField fieldRef={row} />
+      <button type="button" onClick={() => row.current?.setAttribute('data-found', 'true')}>
+        probe
+      </button>
+    </>
+  );
+}
+
+function ForwardedRefProbe() {
+  const wrap = useRef<HTMLLabelElement>(null);
+  return (
+    <>
+      <TextField ref={wrap} />
+      <button type="button" onClick={() => wrap.current?.setAttribute('data-found', 'true')}>
+        probe
+      </button>
+    </>
+  );
+}
+
 describe('TextField', () => {
   it('draws the label, the helper and both affixes', () => {
     render(<TextField label="Salary" helper="After tax" prefix="£" suffix="/mo" />);
@@ -41,35 +65,13 @@ describe('TextField', () => {
   });
 
   it('hands fieldRef the padded row, which is the width a value must fit', () => {
-    function Harness() {
-      const row = useRef<HTMLSpanElement>(null);
-      return (
-        <>
-          <TextField fieldRef={row} />
-          <button type="button" onClick={() => row.current?.setAttribute('data-found', 'true')}>
-            probe
-          </button>
-        </>
-      );
-    }
-    render(<Harness />);
+    render(<FieldRefProbe />);
     fireEvent.click(screen.getByText('probe'));
     expect(field()?.getAttribute('data-found')).toBe('true');
   });
 
   it('puts its forwarded ref on the wrapping label, not the input', () => {
-    function Harness() {
-      const wrap = useRef<HTMLLabelElement>(null);
-      return (
-        <>
-          <TextField ref={wrap} />
-          <button type="button" onClick={() => wrap.current?.setAttribute('data-found', 'true')}>
-            probe
-          </button>
-        </>
-      );
-    }
-    render(<Harness />);
+    render(<ForwardedRefProbe />);
     expect(document.querySelector('label.mmr-field-wrap')).toBeTruthy();
     fireEvent.click(screen.getByText('probe'));
     expect(document.querySelector('label.mmr-field-wrap')?.getAttribute('data-found')).toBe('true');

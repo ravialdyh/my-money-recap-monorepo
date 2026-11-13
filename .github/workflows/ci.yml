@@ -27,8 +27,10 @@ jobs:
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
+          predicate-quantifier: some-with-excludes
           filters: |
             backend:
+              - '!**/*.md'
               - '.github/workflows/ci.yml'
               - '.golangci.yml'
               - 'apps/backend/**'
@@ -37,11 +39,13 @@ jobs:
               - 'tools/coverage/**'
               - 'tools/hooks/tofu.sh'
             contract:
+              - '!**/*.md'
               - '.github/workflows/ci.yml'
               - 'apps/backend/gen/**'
               - 'packages/contract/**'
               - 'tools/hooks/check-generated.sh'
             design-system:
+              - '!**/*.md'
               - '.github/workflows/ci.yml'
               - '.nvmrc'
               - 'apps/ios/DesignSystem/Tokens.swift'
@@ -53,6 +57,7 @@ jobs:
               - 'tools/coverage/**'
               - 'tools/hooks/check-generated.sh'
             ios:
+              - '!**/*.md'
               - '.github/workflows/ci.yml'
               - '.swiftformat'
               - '.swiftlint.yml'
@@ -197,7 +202,7 @@ jobs:
       - name: Compose stack with the migration steps, the realm, members, notify, Mailpit and the BFF
         working-directory: infra/compose
         run: |
-          sed '/_APP_ID=$/!s/=$/=ci-throwaway/' .env.example > .env
+          sed 's/=$/=ci-throwaway/' .env.example > .env
           docker compose --profile mail up -d --build --wait
       - name: Go tests; -p 1 because members and bff both sign in as the realm's one test Member
         run: |
@@ -233,7 +238,7 @@ jobs:
   ios:
     needs: changes
     if: needs.changes.outputs.ios == 'true'
-    runs-on: ${{ vars.IOS_RUNNER || 'macos-latest' }}
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: apps/ios
@@ -265,7 +270,6 @@ jobs:
           python3 ../../tools/coverage/coverage_gate.py ios "$pct"
 
   ci:
-    name: all green
     if: always()
     needs: [changes, quality, design-system, contract, backend, ios]
     runs-on: ubuntu-latest

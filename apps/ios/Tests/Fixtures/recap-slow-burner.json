@@ -3,21 +3,21 @@
         "recap": {
             "month": "2026-08",
             "moneyIn": {
-                "amount": "15000000",
+                "amount": "150000000",
                 "currencyCode": "IDR"
             },
             "spent": {
-                "amount": "12600000",
+                "amount": "126000000",
                 "currencyCode": "IDR"
             },
             "saved": {
-                "amount": "2400000",
+                "amount": "24000000",
                 "currencyCode": "IDR"
             },
             "spendCount": 7,
             "salary": {
                 "amount": {
-                    "amount": "15000000",
+                    "amount": "150000000",
                     "currencyCode": "IDR"
                 },
                 "payday": "25"
@@ -25,10 +25,10 @@
             "savingTarget": {
                 "percent": 20,
                 "amount": {
-                    "amount": "3000000",
+                    "amount": "30000000",
                     "currencyCode": "IDR"
                 },
-                "progressSentence": "Rp600.000 short of your target."
+                "progressSentence": "Rp6.000.000 short of your target."
             },
             "keptPercent": 80,
             "streak": {
@@ -43,7 +43,7 @@
                 {
                     "category": "CATEGORY_BILLS",
                     "amount": {
-                        "amount": "3000000",
+                        "amount": "30000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 24,
@@ -52,7 +52,7 @@
                 {
                     "category": "CATEGORY_CLOTHES",
                     "amount": {
-                        "amount": "2000000",
+                        "amount": "20000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 16,
@@ -61,7 +61,7 @@
                 {
                     "category": "CATEGORY_SNACKS",
                     "amount": {
-                        "amount": "1800000",
+                        "amount": "18000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 14,
@@ -70,7 +70,7 @@
                 {
                     "category": "CATEGORY_RIDES",
                     "amount": {
-                        "amount": "1600000",
+                        "amount": "16000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 13,
@@ -79,7 +79,7 @@
                 {
                     "category": "CATEGORY_GIFTS",
                     "amount": {
-                        "amount": "1500000",
+                        "amount": "15000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 12,
@@ -88,7 +88,7 @@
                 {
                     "category": "CATEGORY_OTHER",
                     "amount": {
-                        "amount": "1500000",
+                        "amount": "15000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 12,
@@ -97,7 +97,7 @@
                 {
                     "category": "CATEGORY_GAMES",
                     "amount": {
-                        "amount": "1200000",
+                        "amount": "12000000",
                         "currencyCode": "IDR"
                     },
                     "percent": 10,
@@ -107,11 +107,11 @@
             "splurge": {
                 "id": "1970431d-0184-40de-b588-8b9c4d5b780a",
                 "amount": {
-                    "amount": "3000000",
+                    "amount": "30000000",
                     "currencyCode": "IDR"
                 },
                 "originalAmount": {
-                    "amount": "3000000",
+                    "amount": "30000000",
                     "currencyCode": "IDR"
                 },
                 "category": "CATEGORY_BILLS",

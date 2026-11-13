@@ -14,7 +14,7 @@
         },
         "salary": {
             "amount": {
-                "amount": "690.00",
+                "amount": "6900.00",
                 "currencyCode": "GBP"
             },
             "payday": "1",
@@ -40,13 +40,13 @@
         "ledgerSettings": {
             "salary": {
                 "amount": {
-                    "amount": "690.00",
+                    "amount": "6900.00",
                     "currencyCode": "GBP"
                 },
                 "payday": "1",
                 "effectiveFrom": "2026-09",
                 "originalAmount": {
-                    "amount": "15000000",
+                    "amount": "150000000",
                     "currencyCode": "IDR"
                 }
             },

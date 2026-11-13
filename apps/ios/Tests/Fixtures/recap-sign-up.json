@@ -8,13 +8,13 @@
                 "currencyCode":  "IDR"
             },
             "spent":  {
-                "amount":  "350000",
+                "amount":  "3500000",
                 "currencyCode":  "IDR"
             },
             "spendCount":  2,
             "salary":  {
                 "amount":  {
-                    "amount":  "15000000",
+                    "amount":  "150000000",
                     "currencyCode":  "IDR"
                 },
                 "payday":  "25"
@@ -22,7 +22,7 @@
             "savingTarget":  {
                 "percent":  20,
                 "amount":  {
-                    "amount":  "3000000",
+                    "amount":  "30000000",
                     "currencyCode":  "IDR"
                 }
             },
@@ -37,7 +37,7 @@
                 {
                     "category":  "CATEGORY_SNACKS",
                     "amount":  {
-                        "amount":  "200000",
+                        "amount":  "2000000",
                         "currencyCode":  "IDR"
                     },
                     "percent":  57,
@@ -46,7 +46,7 @@
                 {
                     "category":  "CATEGORY_RIDES",
                     "amount":  {
-                        "amount":  "150000",
+                        "amount":  "1500000",
                         "currencyCode":  "IDR"
                     },
                     "percent":  43,
@@ -56,11 +56,11 @@
             "splurge":  {
                 "id":  "31204075-b3ca-4e61-b241-ae18f3d37593",
                 "amount":  {
-                    "amount":  "200000",
+                    "amount":  "2000000",
                     "currencyCode":  "IDR"
                 },
                 "originalAmount":  {
-                    "amount":  "200000",
+                    "amount":  "2000000",
                     "currencyCode":  "IDR"
                 },
                 "category":  "CATEGORY_SNACKS",
