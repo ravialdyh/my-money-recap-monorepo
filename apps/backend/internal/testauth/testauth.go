@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -103,16 +104,22 @@ func Mint(t *testing.T, key *rsa.PrivateKey, kid string, claims jwt.Claims) stri
 	return s
 }
 
-// Inbox is the ids of every message Mailpit holds for address, polled for three seconds until it
-// holds at least want, so an assertion on two waits for the second rather than reading the first poll.
+// Inbox is the ids of every message Mailpit holds for address (Search).
 func Inbox(t *testing.T, mailpit, address string, want int) []string {
+	t.Helper()
+	return Search(t, mailpit, "to:"+address, want)
+}
+
+// Search is the ids of every message matching Mailpit's query, polled for three seconds until it
+// holds at least want, so an assertion on two waits for the second rather than reading the first poll.
+func Search(t *testing.T, mailpit, query string, want int) []string {
 	t.Helper()
 	deadline := time.Now().Add(3 * time.Second)
 	for {
 		var found struct {
 			Messages []struct{ ID string }
 		}
-		getJSON(t, mailpit+"/api/v1/search?query="+url.QueryEscape("to:"+address), &found)
+		getJSON(t, mailpit+"/api/v1/search?query="+url.QueryEscape(query), &found)
 		ids := make([]string, 0, len(found.Messages))
 		for _, m := range found.Messages {
 			ids = append(ids, m.ID)
@@ -122,6 +129,33 @@ func Inbox(t *testing.T, mailpit, address string, want int) []string {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// Attachment is the file name and bytes of the Mailpit message id's only attachment, failing the test on any other count.
+func Attachment(t *testing.T, mailpit, id string) (name string, body []byte) {
+	t.Helper()
+	var message struct {
+		Attachments []struct{ PartID, FileName string }
+	}
+	getJSON(t, mailpit+"/api/v1/message/"+id, &message)
+	if len(message.Attachments) != 1 {
+		t.Fatalf("message %s has %d attachments, want 1", id, len(message.Attachments))
+	}
+	part := message.Attachments[0]
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, mailpit+"/api/v1/message/"+id+"/part/"+part.PartID, http.NoBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	body, err = io.ReadAll(res.Body)
+	if err != nil || res.StatusCode != http.StatusOK {
+		t.Fatalf("attachment of %s: status %d, %v", id, res.StatusCode, err)
+	}
+	return part.FileName, body
 }
 
 // MessageText is the plain-text body of the Mailpit message id.

@@ -45,9 +45,9 @@ public nonisolated struct MoneyRecap_V1_NotificationPrefs: Sendable {
   public init() {}
 }
 
-/// Typed error detail on EmailExport (ARCHITECTURE §7.3): the address has a
-/// hard bounce newer than its last change, so the BFF answers with the §6.16
-/// InlineError that offers Profile.
+/// Typed error detail on EmailExport (ARCHITECTURE §7.3): the mail host
+/// permanently refused the address at bounced_at, so the phone shows the §6.16
+/// line naming it, with no link.
 public nonisolated struct MoneyRecap_V1_EmailBounced: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

@@ -80,6 +80,30 @@ func (s *Service) RegisterDevice(ctx context.Context, req *connect.Request[money
 	return connect.NewResponse(&moneyrecapv1.BffServiceRegisterDeviceResponse{}), nil
 }
 
+// RequestExport is D9's Send it (PRD §6.16, D39): ledger's CSV, then notify mails it under the phone's key, both
+// required. notify bounds its own send, so its hop has no BFF timeout; a refusal keeps notify's EmailBounced detail.
+func (s *Service) RequestExport(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceRequestExportRequest]) (*connect.Response[moneyrecapv1.BffServiceRequestExportResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ledgerCtx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	exported, err := s.Ledger.ExportCSV(ledgerCtx, connect.NewRequest(&moneyrecapv1.ExportCSVRequest{MemberId: profile.MemberId}))
+	if err != nil {
+		return nil, requiredCallFailed("ledger.ExportCSV", connect.CodeOf(err), err)
+	}
+	_, err = s.Notify.EmailExport(ctx, connect.NewRequest(&moneyrecapv1.EmailExportRequest{IdempotencyKey: key, MemberId: profile.MemberId, Csv: exported.Msg.Csv}))
+	if err != nil {
+		return nil, requiredCallFailed("notify.EmailExport", connect.CodeOf(err), err)
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceRequestExportResponse{}), nil
+}
+
 // LogSpend is the Log a spend sheet's Save (PRD §6.9, ARCHITECTURE §6.2): ledger writes the Spend under the phone's
 // key, notify hears a current-month Spend's crossed_line, then the answer carries the current month's Home.
 func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceLogSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceLogSpendResponse], error) {

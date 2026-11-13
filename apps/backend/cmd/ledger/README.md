@@ -3,8 +3,8 @@
 The money service (`docs/ARCHITECTURE.md` §7.2): a Member's Salary, Saving Target and Spends and every
 figure PRD §8 computes from them. It serves `SaveSalary`,
 `RelabelCurrency`, `SaveTarget`, `LogSpend`, `EditSpend` and `DeleteSpend`, `GetSettings`, `GetMonthSummary`, `GetRecap`, `ListSpends` and
-`ListMonthsWithData`, `GetSpentToday`, and `PreviewConversion` and `ApplyCurrencyConversion`;
-`ExportCSV` is planned. The BFF calls it for Home's month,
+`ListMonthsWithData`, `GetSpentToday`, `PreviewConversion` and `ApplyCurrencyConversion`, and
+`ExportCSV`. The BFF calls it for Home's month,
 onboarding's steps 3 and 4, a resumed step's saved answers, every Spend screen and the Recap. Its image, bearer check, start-up, migrations and variables are every service's (`apps/README.md`,
 "Every service"), plus two of its own.
 

@@ -4,8 +4,9 @@ The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and ever
 It serves `EmailMagicLink`, the Target Warning state
 (`GetWarningState` and `EvaluateWarning`), its own copy of each Member ("The replica", below)
 and the `idempotency` table, `RegisterDevice`, `GetPrefs` and `SavePrefs`
-("The preferences", below), and the Target Warning's push through the Apple sender ("The push", below).
-The other two pushes, the CSV export email, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
+("The preferences", below), the Target Warning's push through the Apple sender ("The push", below), and
+`EmailExport`, the CSV export email.
+The other two pushes, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
 Its `Ledger` client sends `notify`'s own service-account token, fetched with the client-credentials grant and
 cached until it expires (ARCHITECTURE §4.2), which `ledger` accepts for `GetSpentToday` and
@@ -114,8 +115,8 @@ newer event has written.
 key inside its own transaction (`internal/idempotency`), a repeated key replays the stored answer, a key
 reused for another request is `invalid_argument`, and keys older than 24 hours are swept. `RegisterDevice`
 is its first write: it upserts the `device` row on the phone's token, lowercase hex, so a phone another
-Member signs in on moves to them and a Member may hold several. `SavePrefs` is its second; the export write
-will follow.
+Member signs in on moves to them and a Member may hold several. `SavePrefs` is its second, and `EmailExport`
+claims its key with the send, so a failed send frees it and a retried key sends once.
 
 ## The preferences
 

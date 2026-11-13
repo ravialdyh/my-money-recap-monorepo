@@ -21,9 +21,9 @@ message NotificationPrefs {
   bool target_warning = 4;
 }
 
-// Typed error detail on EmailExport (ARCHITECTURE §7.3): the address has a
-// hard bounce newer than its last change, so the BFF answers with the §6.16
-// InlineError that offers Profile.
+// Typed error detail on EmailExport (ARCHITECTURE §7.3): the mail host
+// permanently refused the address at bounced_at, so the phone shows the §6.16
+// line naming it, with no link.
 message EmailBounced {
   string address = 1;
   google.protobuf.Timestamp bounced_at = 2;
@@ -113,7 +113,7 @@ message EmailMagicLinkRequest {
 message EmailMagicLinkResponse {}
 
 message EmailExportRequest {
-  // A14; see the package doc in shared.proto. Dedupes the sent_log write.
+  // A14; see the package doc in shared.proto. Claimed with the send.
   string idempotency_key = 1;
   string member_id = 2;
   // Every non-deleted Spend as CSV, straight from ledger.ExportCSV; never
@@ -125,7 +125,7 @@ message EmailExportResponse {}
 
 // Notifications, device tokens, preferences, the Target Warning stamp and
 // every outbound email (ARCHITECTURE §7.3). Optional on every Member path;
-// RequestMagicLink requires it (A14).
+// RequestMagicLink and RequestExport require it (A14).
 service NotifyService {
   rpc GetWarningState(GetWarningStateRequest) returns (GetWarningStateResponse) {}
   // Stamps month_flag when crossed_line and unstamped, then pushes if the
@@ -141,7 +141,7 @@ service NotifyService {
   // send failure.
   rpc EmailMagicLink(EmailMagicLinkRequest) returns (EmailMagicLinkResponse) {}
   // Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
-  // failed_precondition with EmailBounced, which the BFF turns into the PRD
-  // §6.16 InlineError offering Profile; unavailable when SMTP refuses.
+  // failed_precondition with EmailBounced when the mail host permanently
+  // refuses the address; unavailable for any other send failure.
   rpc EmailExport(EmailExportRequest) returns (EmailExportResponse) {}
 }

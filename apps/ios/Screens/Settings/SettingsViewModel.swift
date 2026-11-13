@@ -27,6 +27,8 @@ final class SettingsViewModel: Identifiable {
     var notifications: NotificationsViewModel?
     /// iOS said no to notifications, which the Notifications row reads before any count.
     private(set) var pushDenied = false
+    /// D9 Export spends, while it is open.
+    var export: ExportViewModel?
     private let fetch: Fetch
     private let saveProfile: NameAvatarViewModel.Save
     private let saveSalary: SalaryEditViewModel.Save
@@ -35,6 +37,7 @@ final class SettingsViewModel: Identifiable {
     private let changeCurrency: CurrencyEditViewModel.Change
     private let saveNotifications: NotificationsViewModel.Save
     private let push: PushRegistration?
+    private let requestExport: ExportViewModel.Send
     private let context: ModelContext
     private let locale: Locale
     private let connection: Connection
@@ -52,6 +55,8 @@ final class SettingsViewModel: Identifiable {
             .Change = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         saveNotifications: @escaping NotificationsViewModel.Save = { _, _ in nil },
         push: PushRegistration? = nil,
+        requestExport: @escaping ExportViewModel
+            .Send = { _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
         connection: Connection? = nil
@@ -64,6 +69,7 @@ final class SettingsViewModel: Identifiable {
         self.changeCurrency = changeCurrency
         self.saveNotifications = saveNotifications
         self.push = push
+        self.requestExport = requestExport
         self.context = context
         self.locale = locale
         self.connection = connection ?? .shared
@@ -185,6 +191,12 @@ final class SettingsViewModel: Identifiable {
             }
             return result
         }
+    }
+
+    /// D9 naming the address the Member signed in with; nil before Settings has any.
+    func openExport() {
+        guard let saved = settings?.profile else { return }
+        export = ExportViewModel(email: saved.email, send: requestExport)
     }
 
     /// D4's `Set a salary first`: D3 in its place (D44).

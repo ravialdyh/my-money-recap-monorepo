@@ -113,6 +113,7 @@ final class SignInUITests: XCTestCase {
         editTargetInSettings(app, salary: 150_000_000)
         convertToPoundsInSettings(app, salary: 150_000_000, rate: "0.000046", pounds: 6900)
         turnOnTheReminder(app)
+        exportInSettings(app)
 
         app.terminate()
         app.launch()

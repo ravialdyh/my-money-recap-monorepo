@@ -23,6 +23,7 @@ final class HomeViewModel {
     private let previewCurrency: CurrencyEditViewModel.Preview
     private let changeCurrency: CurrencyEditViewModel.Change
     private let saveNotifications: NotificationsViewModel.Save
+    private let requestExport: ExportViewModel.Send
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -61,7 +62,9 @@ final class HomeViewModel {
             .Preview = { _ in .failure(ConnectError(code: .unavailable, message: nil)) },
         changeCurrency: @escaping CurrencyEditViewModel
             .Change = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        saveNotifications: @escaping NotificationsViewModel.Save = { _, _ in nil }
+        saveNotifications: @escaping NotificationsViewModel.Save = { _, _ in nil },
+        requestExport: @escaping ExportViewModel
+            .Send = { _ in .failure(ConnectError(code: .unavailable, message: nil)) }
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
@@ -76,6 +79,7 @@ final class HomeViewModel {
         self.previewCurrency = previewCurrency
         self.changeCurrency = changeCurrency
         self.saveNotifications = saveNotifications
+        self.requestExport = requestExport
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -148,8 +152,8 @@ final class HomeViewModel {
             }, previewCurrency: previewCurrency, changeCurrency: { [weak self] in
                 let result = await change($0, $1)
                 return self?.keep(result, \.home) ?? result
-            }, saveNotifications: saveNotifications, push: push, context: context, locale: locale,
-            connection: connection
+            }, saveNotifications: saveNotifications, push: push, requestExport: requestExport, context: context,
+            locale: locale, connection: connection
         )
     }
 

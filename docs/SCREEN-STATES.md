@@ -154,9 +154,10 @@ White `Sheet variant="full"` on violet.
 | D8 | Notifications | Headline `Notifications`; three `Toggle`s (51 by 31, violet when on), each over its helper line. Each change sends the whole preferences message at once; a failed save puts the switch back over `We couldn't save this. Try again.` Never asked, turning one on shows the system alert first, and nothing is saved unless it is allowed. Offline, the switches sit at 40% and do nothing. |
 | D8 | permission denied | The info `Banner`, `Notifications are off for this app. Turn them on in iOS Settings.` with `Open Settings`, the app's notification settings in iOS. All three at 40%, and tapping one opens iOS Settings too. |
 | D8 | reminder on | `Remind me at` under Daily reminder, its time, 20:00 by default, printed in the device locale; tapping it opens the system wheel, and each settled time is saved. |
-| D9 | Export spends | One `Send it` button. |
-| D9 | sent | D67. The button itself becomes `Sent ✓` and dims for 60 seconds. |
-| D9 | no deliverable address | `InlineError`: `We can't reach {email}.` with a link to Profile. |
+| D9 | Export spends | PRD §6.16. Headline `Export spends`. One card, `Email me a CSV of every spend` / `It goes to {email}. Every spend you've ever logged, with its date, category, amount and note.`, then `Send it`. Offline the Settings row sits at 40%. Held sideways it scrolls. |
+| D9 | sent | D67. The button itself becomes `Sent ✓` and dims to 40% for 60 seconds, then reads `Send it` again. |
+| D9 | refused | The mail host refused the address outright: `InlineError` `We can't reach {email}.` with no link, since Profile cannot change the address (owner, 2026-09-29). Bounces reported later wait for the mail provider (#87). |
+| D9 | send failed | Any other failure: `InlineError` `We couldn't send it. Try again.`, and `Send it` tries again under the same key. |
 | D10 | Delete account | Coral-100 card, explanation, coral button. |
 | D11 | Delete confirm | Typed `DELETE` enables the button. |
 | D11b | Restore account | D60. Shown after sign-in when deletion was requested under 24 hours ago. `Sheet variant="full"`, coral tint, headline `Welcome back`, body naming the deletion time and what is lost. `Keep my account` (ink) / `Continue with deletion` (secondary). No back control. Built in #105; until the Settings slice builds Delete account, only a test reaches it. |

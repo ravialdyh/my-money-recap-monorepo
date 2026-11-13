@@ -15,6 +15,8 @@ type fakeNotify struct {
 	kept      *moneyrecapv1.TargetWarning
 	evaluated *moneyrecapv1.EvaluateWarningRequest
 	device    *moneyrecapv1.RegisterDeviceRequest
+	exported  *moneyrecapv1.EmailExportRequest
+	exportErr error
 	reads     int
 	prefs     *moneyrecapv1.NotificationPrefs
 	saved     *moneyrecapv1.SavePrefsRequest
@@ -63,4 +65,12 @@ func (f *fakeNotify) SavePrefs(_ context.Context, req *connect.Request[moneyreca
 	}
 	f.prefs = req.Msg.Prefs
 	return connect.NewResponse(&moneyrecapv1.SavePrefsResponse{Prefs: f.prefs}), nil
+}
+
+func (f *fakeNotify) EmailExport(_ context.Context, req *connect.Request[moneyrecapv1.EmailExportRequest]) (*connect.Response[moneyrecapv1.EmailExportResponse], error) {
+	f.exported = req.Msg
+	if f.exportErr != nil {
+		return nil, f.exportErr
+	}
+	return connect.NewResponse(&moneyrecapv1.EmailExportResponse{}), nil
 }
