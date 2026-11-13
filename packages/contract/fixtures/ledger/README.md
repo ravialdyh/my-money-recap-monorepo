@@ -27,9 +27,9 @@ never compared: `Spend.id`, which `ledger` assigns (`maya-01` is a label that pa
 with `splurge` or `spendsAfter`), and `createdAt` and `updatedAt`, which `ledger` stamps.
 
 Amounts follow `Money`: a decimal string with at most 11 digits before the separator (D57) and an
-ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"15000000"`), the decimals CLDR
+ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"150000000"`), the decimals CLDR
 reports for the currency (§8.4). A sentence that embeds an amount is written as the PRD prints it
-(`£160`, `Rp2.600.000`).
+(`£160`, `Rp26.000.000`).
 
 Every `SalarySetting` and every `Spend`, wherever it sits, carries `originalAmount`: the amount as
 typed, with its Currency (PRD §7, §8.9 step 4). An input row, in `salaries` or `spends`, has

@@ -4,7 +4,7 @@
             "month":  "2026-09",
             "situation":  "PARTIAL_SITUATION_CURRENT_MONTH",
             "moneyIn":  {
-                "amount":  "15000000",
+                "amount":  "150000000",
                 "currencyCode":  "IDR"
             },
             "spent":  {
@@ -12,12 +12,12 @@
                 "currencyCode":  "IDR"
             },
             "saved":  {
-                "amount":  "15000000",
+                "amount":  "150000000",
                 "currencyCode":  "IDR"
             },
             "salary":  {
                 "amount":  {
-                    "amount":  "15000000",
+                    "amount":  "150000000",
                     "currencyCode":  "IDR"
                 },
                 "payday":  "25"
@@ -25,10 +25,10 @@
             "savingTarget":  {
                 "percent":  20,
                 "amount":  {
-                    "amount":  "3000000",
+                    "amount":  "30000000",
                     "currencyCode":  "IDR"
                 },
-                "progressSentence":  "Keep spending under Rp2.400.000 a day and you'll make it."
+                "progressSentence":  "Keep spending under Rp24.000.000 a day and you'll make it."
             },
             "keptPercent":  500,
             "streak":  {

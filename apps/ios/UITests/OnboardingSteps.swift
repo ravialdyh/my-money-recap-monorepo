@@ -75,8 +75,8 @@ extension XCTestCase {
         XCTAssertEqual(amount.value as? String, Int64(99_999_999_999).formatted(), "the 12th digit is refused")
         XCTAssert(app.staticTexts["That's more than the app can store."].exists, "SCREEN-STATES A6 amount too long")
         snapshot("step-3-amount-too-long")
-        amount.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 11) + "15000000")
-        XCTAssertEqual(amount.value as? String, Int64(15_000_000).formatted(), "grouped as the device writes it")
+        amount.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 11) + "150000000")
+        XCTAssertEqual(amount.value as? String, Int64(150_000_000).formatted(), "grouped as the device writes it")
         let payday = Calendar.current.component(.day, from: .now) == 1 ? "2" : "1"
         app.buttons[payday].tap()
         XCTAssert(app.buttons[payday].isSelected, "the tapped Payday reads as chosen")

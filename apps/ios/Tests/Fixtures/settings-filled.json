@@ -13,13 +13,13 @@
         "ledgerSettings": {
             "salary": {
                 "amount": {
-                    "amount": "15000000",
+                    "amount": "150000000",
                     "currencyCode": "IDR"
                 },
                 "payday": "25",
                 "effectiveFrom": "2026-09",
                 "originalAmount": {
-                    "amount": "15000000",
+                    "amount": "150000000",
                     "currencyCode": "IDR"
                 }
             },

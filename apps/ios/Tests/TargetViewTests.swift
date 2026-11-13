@@ -21,18 +21,18 @@ final class TargetViewTests: XCTestCase {
     }
 
     func testAnotherPercentIsDrawn() {
-        let model = step(salary: "15000000")
+        let model = step(salary: "150000000")
         let before = drawn(model)
         model.percent = 50
         XCTAssertNotEqual(before, drawn(model))
     }
 
     func testWithoutASalaryThePromptReplacesTheSlider() {
-        XCTAssertNotEqual(drawn(step(salary: nil)), drawn(step(salary: "15000000")))
+        XCTAssertNotEqual(drawn(step(salary: nil)), drawn(step(salary: "150000000")))
     }
 
     func testANoConnectionSaveIsDrawn() async {
-        for salary in [nil, "15000000"] {
+        for salary in [nil, "150000000"] {
             let model = step(salary: salary, .offline)
             let before = drawn(model)
             _ = await model.skip()

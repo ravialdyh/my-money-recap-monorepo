@@ -62,7 +62,7 @@ func TestSalaryAndTargetSavesAnswerTheWholeHome(t *testing.T) {
 			t.Errorf("%s answered Home %v after asking ledger for %q, want October with the Recap list, the banner and the earliest date", what, h, ledger.gotMonth)
 		}
 	}
-	salary, err := s.SaveSalary(ctx, keyed(&moneyrecapv1.BffServiceSaveSalaryRequest{Amount: &moneyrecapv1.Money{Amount: "15000000", CurrencyCode: "IDR"}, Payday: "25"}, "k1"))
+	salary, err := s.SaveSalary(ctx, keyed(&moneyrecapv1.BffServiceSaveSalaryRequest{Amount: &moneyrecapv1.Money{Amount: "150000000", CurrencyCode: "IDR"}, Payday: "25"}, "k1"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -79,7 +79,7 @@ func TestTheSpendListAndItsMonths(t *testing.T) {
 func TestSpentTodayIsEachMembersOwnToday(t *testing.T) {
 	db := testDB(t)
 	jakarta, london := "00000000-0000-4000-8000-00000000a771", "00000000-0000-4000-8000-00000000a772"
-	idrSalary := []*moneyrecapv1.SalarySetting{{Amount: idr("15000000"), OriginalAmount: idr("15000000"), Payday: "1", EffectiveFrom: "2026-09"}}
+	idrSalary := []*moneyrecapv1.SalarySetting{{Amount: idr("150000000"), OriginalAmount: idr("150000000"), Payday: "1", EffectiveFrom: "2026-09"}}
 	owner := seed(t, db, jakarta, "jakarta", "Asia/Jakarta", "2026-09-01", "IDR", idrSalary, nil)
 	seed(t, db, london, "london", "Europe/London", "2026-09-01", "GBP", nil, nil)
 	seedSpends(t, db, jakarta, []*moneyrecapv1.Spend{
