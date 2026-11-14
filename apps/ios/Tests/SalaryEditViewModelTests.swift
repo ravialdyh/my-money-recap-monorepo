@@ -167,8 +167,10 @@ final class SalaryEditViewModelTests: XCTestCase {
             $0.settings = try settings("settings-waiting")
         }
         let settingsModel = SettingsViewModel(
-            fetch: { try self.settings("settings-filled") }, saveProfile: { _, _ in .saved },
-            saveSalary: { _, _ in .success(answer) }, context: context, locale: Locale(identifier: "id_ID")
+            calls: SettingsCalls(
+                fetch: { try self.settings("settings-filled") }, saveProfile: { _, _ in .saved },
+                saveSalary: { _, _ in .success(answer) }
+            ), context: context, locale: Locale(identifier: "id_ID")
         )
         settingsModel.openSalary()
         XCTAssertNil(settingsModel.salaryEdit, "no answer yet: nothing to fill D3 with")

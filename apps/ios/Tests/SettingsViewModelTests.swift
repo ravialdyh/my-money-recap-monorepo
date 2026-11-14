@@ -28,7 +28,8 @@ final class SettingsViewModelTests: XCTestCase {
         save: @escaping NameAvatarViewModel.Save = { _, _ in .saved }
     ) -> SettingsViewModel {
         SettingsViewModel(
-            fetch: fetch, saveProfile: save, context: context, locale: Locale(identifier: "id_ID"),
+            calls: SettingsCalls(fetch: fetch, saveProfile: save), context: context,
+            locale: Locale(identifier: "id_ID"),
             connection: Connection(online: online)
         )
     }
