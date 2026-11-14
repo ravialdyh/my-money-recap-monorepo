@@ -1,5 +1,6 @@
 import Connect
 import Foundation
+import MoneyRecapContract
 import UIKit
 import UserNotifications
 
@@ -11,11 +12,14 @@ struct PushSystem {
     var ask: () async -> Bool
     /// APNs' device token, or nil when registration failed, the simulator's normal case until #87.
     var register: @MainActor () async -> Data?
+    /// Stops APNs delivering to this phone until it registers again.
+    var unregister: @MainActor () -> Void
 
     static let live = PushSystem(
         status: { await UNUserNotificationCenter.current().notificationSettings().authorizationStatus },
         ask: { await allowed(options: [.alert, .sound]) },
-        register: { await AppDelegate.register() }
+        register: { await AppDelegate.register() },
+        unregister: { UIApplication.shared.unregisterForRemoteNotifications() }
     )
 
     private static func allowed(options: UNAuthorizationOptions) async -> Bool {
@@ -23,26 +27,52 @@ struct PushSystem {
     }
 }
 
-/// B5 (PRD §10, IOS I8): asks once, after a Spend is saved or a D8 switch turns on, when iOS never asked; once allowed,
-/// registers on every launch and hands the token as hex to RegisterDevice, remembering it for Log out. A failure is
-/// ignored.
+/// B5 (PRD §10, IOS I8): asks once after a Spend save or a D8 switch, registers on every launch of an allowed phone,
+/// and sends the token as hex to RegisterDevice. Failures are ignored.
 @MainActor
 final class PushRegistration {
     typealias Send = (_ token: String, _ headers: Headers) async -> SaveResult
     static let tokenKey = "apnsToken"
     private let system: PushSystem
     private let send: Send
+    private let forgetToken: Send
     private let defaults: UserDefaults
 
-    init(system: PushSystem = .live, defaults: UserDefaults = .standard, send: @escaping Send) {
+    init(system: PushSystem, defaults: UserDefaults, send: @escaping Send, forget: @escaping Send) {
         self.system = system
         self.defaults = defaults
         self.send = send
+        forgetToken = forget
+    }
+
+    /// RegisterDevice and ForgetDevice through the signed-in client, each retried once after a token refresh (IOS I3).
+    static func live(session: AuthSession, client: MoneyRecap_V1_BffServiceClient) -> PushRegistration {
+        PushRegistration(system: .live, defaults: .standard, send: { token, headers in
+            await SaveResult(BffClient.retried(session) {
+                await client.registerDevice(request: .with { $0.apnsToken = token }, headers: headers)
+            }.result)
+        }, forget: { token, headers in
+            await SaveResult(BffClient.retried(session) {
+                await client.forgetDevice(request: .with { $0.apnsToken = token }, headers: headers)
+            }.result)
+        })
+    }
+
+    /// Every sign-out stops pushes on this phone and drops the token (IOS I8).
+    static func signedOut(system: PushSystem = .live, defaults: UserDefaults = .standard) {
+        system.unregister()
+        defaults.removeObject(forKey: tokenKey)
     }
 
     /// The token RegisterDevice last accepted, which Log out asks the API to forget.
     var token: String? {
         defaults.string(forKey: Self.tokenKey)
+    }
+
+    /// Log out's step: asks the API to forget the token RegisterDevice last accepted (D12).
+    func forget() async {
+        guard let token else { return }
+        _ = await forgetToken(token, SaveAttempt(token).headers)
     }
 
     /// Every launch registers an allowed phone again, since the token can change.

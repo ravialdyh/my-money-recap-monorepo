@@ -14,6 +14,7 @@ final class PushRegistrationTests: XCTestCase {
         var token: Data? = Data([0xDE, 0xAD, 0x01])
         var asked = 0
         var registered = 0
+        var unregistered = 0
 
         var system: PushSystem {
             PushSystem(
@@ -26,7 +27,8 @@ final class PushRegistrationTests: XCTestCase {
                 register: {
                     self.registered += 1
                     return self.token
-                }
+                },
+                unregister: { self.unregistered += 1 }
             )
         }
     }
@@ -34,10 +36,16 @@ final class PushRegistrationTests: XCTestCase {
     private final class FakeAPI {
         var answer = SaveResult.saved
         var sent: [(token: String, key: String?)] = []
+        var forgotten: [(token: String, key: String?)] = []
 
         func send(_ token: String, _ headers: Headers) -> SaveResult {
             sent.append((token, headers["Idempotency-Key"]?.first))
             return answer
+        }
+
+        func forget(_ token: String, _ headers: Headers) -> SaveResult {
+            forgotten.append((token, headers["Idempotency-Key"]?.first))
+            return .saved
         }
     }
 
@@ -49,7 +57,12 @@ final class PushRegistrationTests: XCTestCase {
     }
 
     private func push(_ fake: FakeSystem, _ api: FakeAPI) throws -> PushRegistration {
-        try PushRegistration(system: fake.system, defaults: defaults()) { api.send($0, $1) }
+        try PushRegistration(
+            system: fake.system,
+            defaults: defaults(),
+            send: { api.send($0, $1) },
+            forget: { api.forget($0, $1) }
+        )
     }
 
     func testAllowingRegistersAndSendsTheTokenAsHexUnderAKey() async throws {
@@ -115,6 +128,32 @@ final class PushRegistrationTests: XCTestCase {
         await push.launched()
         XCTAssertEqual(api.sent.map(\.token), ["0a"])
         XCTAssertNil(push.token)
+    }
+
+    func testSigningOutUnregistersOnceAndDropsTheToken() throws {
+        let fake = FakeSystem(), defaults = try defaults()
+        defaults.set("dead01", forKey: PushRegistration.tokenKey)
+        PushRegistration.signedOut(system: fake.system, defaults: defaults)
+        XCTAssertEqual(fake.unregistered, 1)
+        XCTAssertNil(defaults.string(forKey: PushRegistration.tokenKey))
+    }
+
+    func testForgetSendsTheStoredTokenUnderItsOwnKey() async throws {
+        let fake = FakeSystem(), api = FakeAPI()
+        fake.status = .authorized
+        let push = try push(fake, api)
+        await push.launched()
+        await push.forget()
+        XCTAssertEqual(api.forgotten.map(\.token), ["dead01"])
+        XCTAssertNotNil(api.forgotten.first?.key, "ForgetDevice needs the Idempotency-Key header (A14)")
+        XCTAssertNotEqual(api.forgotten.first?.key, api.sent.first?.key)
+    }
+
+    func testForgetWithNoStoredTokenSendsNothing() async throws {
+        let api = FakeAPI()
+        let push = try push(FakeSystem(), api)
+        await push.forget()
+        XCTAssertTrue(api.forgotten.isEmpty)
     }
 
     /// Home asks only after the Log a spend sheet closes on a save, once per save, and a sheet closed without one never

@@ -22,11 +22,7 @@ struct HomeView: View {
         onboardingNeeded: @escaping () -> Void
     ) {
         let client = BffClient.make(session: session)
-        let push = PushRegistration { token, headers in
-            await SaveResult(BffClient.retried(session) {
-                await client.registerDevice(request: .with { $0.apnsToken = token }, headers: headers)
-            }.result)
-        }
+        let push = PushRegistration.live(session: session, client: client)
         self.init(model: HomeViewModel(fetch: {
             try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
         }, context: context, push: push, onboardingNeeded: onboardingNeeded, logSpend: { request, headers in
@@ -63,15 +59,7 @@ struct HomeView: View {
         }, requestDeletion: { headers in
             await BffClient.retried(session) { await client.requestDeletion(request: .init(), headers: headers) }.result
         }, logOut: {
-            await session.logOut {
-                guard let token = push.token else { return }
-                _ = await BffClient.retried(session) {
-                    await client.forgetDevice(
-                        request: .with { $0.apnsToken = token },
-                        headers: SaveAttempt(token).headers
-                    )
-                }
-            }
+            await session.logOut(forget: push.forget)
         }))
         self.open = open
     }

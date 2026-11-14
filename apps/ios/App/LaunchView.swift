@@ -34,6 +34,11 @@ struct LaunchView: View {
         ))
     }
 
+    private func continueWithDeletion() {
+        let push = PushRegistration.live(session: session, client: client)
+        Task { await session.logOut(forget: push.forget) }
+    }
+
     var body: some View {
         Group {
             switch model.route {
@@ -43,7 +48,7 @@ struct LaunchView: View {
                 RestoreAccountView(
                     model: RestoreAccountViewModel(asked: asked, keep: cancelDeletion),
                     onKept: { Task { await model.kept() } },
-                    onContinue: { session.signOut() }
+                    onContinue: continueWithDeletion
                 )
             case .noConnection:
                 NoConnectionView(retrying: model.isRetrying) {
