@@ -32,7 +32,6 @@ apps/ios/build/
 __pycache__/
 *.pyc
 
-my-money-recap-ds/coverage/
 apps/backend/cover.out
 apps/backend/cover.filtered
 

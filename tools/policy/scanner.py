@@ -39,9 +39,6 @@ CSS = Style((), ("/*", "*/"), "\"'", "", False)
 STYLES = {
     ".go": C_FAMILY,
     ".swift": C_FAMILY,
-    ".ts": C_FAMILY,
-    ".tsx": C_FAMILY,
-    ".js": C_FAMILY,
     ".mjs": C_FAMILY,
     ".proto": C_FAMILY,
     ".css": CSS,

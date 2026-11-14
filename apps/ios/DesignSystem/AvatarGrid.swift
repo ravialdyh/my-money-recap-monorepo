@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The onboarding grid of the six Avatars (`AvatarGrid` in AvatarGrid.tsx, D36): 68pt circles named beneath, an
+/// The onboarding grid of the six Avatars (D36): 68pt circles named beneath, an
 /// 88pt hit area, the chosen one ringed white on a violet halo; VoiceOver hears "Pick your avatar", each animal.
 struct AvatarGrid: View {
     /// The six keys in grid order, the list the contract documents on `Profile.avatar_key`.

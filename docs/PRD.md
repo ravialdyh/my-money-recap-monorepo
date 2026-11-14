@@ -5,7 +5,7 @@
 | Status | Draft v2. Owner rulings made after the decisions log are dated where they apply. |
 | Platform | Native iOS 17+, iPhone and iPad |
 | Vocabulary | `CONTEXT.md` (beside this file) is the glossary. Terms in **bold caps** below are defined there. |
-| Design system | `../my-money-recap-ds/` (`@my-money-recap/ui`). Its `README.md` carries the visual rules; `src/tokens/tokens.json` the values. |
+| Design system | `../design-tokens/`. Its `README.md` carries the visual rules; `tokens.json` the values. |
 | Screen inventory | `SCREEN-STATES.md` is the per-screen contract. Every state named here has a row there. |
 | Architecture | `ARCHITECTURE.md` (beside this file) is the backend design that implements these rules: the edge, the BFF, the four services, the broker, the cache and identity. Its decisions are numbered `A*`. |
 
@@ -13,7 +13,7 @@
 
 My Money Recap is a personal money tracker for adults, dressed as a playful kids' app. A **Member** sets a monthly **Salary**, a **Payday** and a **Saving Target**, logs each **Spend** by hand, and at the end of every calendar month gets a four-screen, Wrapped-style **Recap**: what came in, what was kept, where the rest went, the longest no-spend **Streak**, and a money-personality **Archetype** to share.
 
-The four Recap screens exist as artboards and as React components in the design system. This document specifies the whole product around them: sign-in, onboarding, Home, Spend logging, the Recap rules, settings, notifications, offline behaviour, and the platform constraints.
+The four Recap screens exist as SwiftUI screens in the app. This document specifies the whole product around them: sign-in, onboarding, Home, Spend logging, the Recap rules, settings, notifications, offline behaviour, and the platform constraints.
 
 ## 2. Goals and non-goals
 
@@ -100,7 +100,7 @@ Every design question raised while writing this document, with the decision take
 | **D54** | **The Home hero when no Salary is set** | **Still Spent.** The hero shows the Spent figure and the Salary prompt moves below it as a `PromptCard`. Replacing the whole hero with a prompt (as drawn) hides a Spend the Member just logged. |
 | **D55** | **The month-so-far preview before Payday** | Shows Spent, the Category split and the Streak. The target percentage and the kept-vs-target bar are replaced by `Your salary lands on the {payday}.` A preview opened on the 10th would otherwise read `0% of your saving target`. |
 | **D56** | **Editing Salary after Payday has passed** | **Ask.** Saving after the current month's effective Payday opens a sheet: `The {amount} I was paid on {date}` (applies to this month) or `My new salary, from {next payday}` (applies from next month). A date-based rule cannot tell a correction from a raise. Editing *before* Payday needs no sheet. **Payday edits are always forward-only**, with no sheet, so moving Payday from the 25th to the 5th on the 20th cannot make a salary appear for a date that already passed. |
-| **D57** | **Maximum amount** | **11 digits before the decimal separator.** The field refuses further keystrokes and shows `That's more than the app can store.` An 8-digit IDR salary is ordinary; an untrapped typo breaks every layout. Eleven is the most the hero card can show at its smallest step for a currency with a symbol: `Rp 99.999.999.999` measures 297 of the card's 298pt at 40pt and a twelfth digit overflows (317pt). A currency the formatter prints as a three-letter code (`BHD 99,999,999,999` is 328pt) still overflows above nine digits; those amounts are absurd for a salary and the hero clips rather than wraps (2026-09-11, measured in `scripts/measure.tsx`). |
+| **D57** | **Maximum amount** | **11 digits before the decimal separator.** The field refuses further keystrokes and shows `That's more than the app can store.` An 8-digit IDR salary is ordinary; an untrapped typo breaks every layout. Eleven is the most the hero card can show at its smallest step for a currency with a symbol: `Rp 99.999.999.999` measures 297 of the card's 298pt at 40pt and a twelfth digit overflows (317pt). A currency the formatter prints as a three-letter code (`BHD 99,999,999,999` is 328pt) still overflows above nine digits; those amounts are absurd for a salary and the hero clips rather than wraps (2026-09-11). |
 | **D58** | **Logging a Spend with no connection** | The `Log a spend` button, and the empty Spend list's plus button, are disabled at 40% and Home carries a `Banner`: `No connection. You can look, but not log.` A connection that fails *during* a save keeps the existing behaviour: sheet open, values intact, Save enabled to retry. With no network path, an opened Spend (§6.10) stays readable but `Save changes` and `Delete this spend` sit at 40% too (owner, 2026-09-25). |
 | **D59** | **Reaching a past month's Spends** | **A month switcher at the top of the Spend list.** A current-month-only list would leave a mistake in last month's data unreachable, although D21 permits editing it. |
 | **D60** | **Signing in during the 24-hour deletion window** | **Signing in cancels the deletion**, after a confirm: the restore sheet (§6.18), whose copy SCREEN-STATES D11b owns (D48). The 24 hours becomes a grace period rather than a queue. Extends D39. |
@@ -163,7 +163,7 @@ Step by step:
 
 ## 6. Screen specifications
 
-Every screen uses `Screen` from the design system with one of the four grounds. Component names refer to exports of `@my-money-recap/ui`. Component states follow the design system: pressed = scale 0.97 and brightness 0.92, disabled = opacity 0.4. Motion follows the `motion.*` tokens in `tokens.json` and honours Reduce Motion. `SCREEN-STATES.md` carries the exact copy for every state named here and marks which are drawn.
+Every screen uses `Screen` from the design system with one of the four grounds. Component names refer to the SwiftUI components in `apps/ios/DesignSystem`. Component states follow the design system: pressed = scale 0.97 and brightness 0.92, disabled = opacity 0.4. Motion follows the `motion.*` tokens in `tokens.json` and honours Reduce Motion. `SCREEN-STATES.md` carries the exact copy for every state named here and marks which are drawn.
 
 ### 6.1 Sign in
 
@@ -303,7 +303,7 @@ Reached by tapping the Home hero card (D42 makes the hero the Spent figure, so t
 
 **The streak line's cases** (owner, 2026-09-26). The dates are ledger's (§8.5), printed in the device locale's day and month order: "12 to 20 September", or "September 12 to 20" in American English. A one-day run prints its one date: "12 September. Beat it next month." With no spend-free day the dates are left out and the badge copy stands alone.
 
-With no Saving Target the headline drops its second sentence and the compare card becomes the target card: eyebrow "Saving target", "Set a target to see how you did", helper "Pick a share of your salary to keep each month, and next month's recap will score it.", which opens Saving target over the Recap. In the React component that is its own no-target branch: pass `targetAmount={null}`, never `undefined`.
+With no Saving Target the headline drops its second sentence and the compare card becomes the target card: eyebrow "Saving target", "Set a target to see how you did", helper "Pick a share of your salary to keep each month, and next month's recap will score it.", which opens Saving target over the Recap. The card has its own no-target branch.
 
 ### 6.13 Recap · screen 3 Target and spending
 

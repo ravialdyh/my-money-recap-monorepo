@@ -43,7 +43,7 @@ CODE_SHAPE = re.compile(
     r"|^\s*\}"
 )
 
-_TS = re.compile(
+_JS = re.compile(
     r"^\s*(?:@\w+|export|declare|default|abstract|async|function|class|interface|type|enum"
     r"|const|let|var|readonly|public|private|protected|static|get|set|import"
     r"|[A-Za-z_$][\w$]*\??\s*[:(<])"
@@ -60,10 +60,7 @@ DECL = {
         r"^\s*(?:syntax|edition|package|import|option|message|enum|service|rpc|extend|oneof"
         r"|reserved|repeated|optional|required|map\s*<|[A-Za-z_][\w.]*\s+[A-Za-z_]\w*\s*=)"
     ),
-    ".ts": _TS,
-    ".tsx": _TS,
-    ".js": _TS,
-    ".mjs": _TS,
+    ".mjs": _JS,
 }
 
 

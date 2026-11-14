@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// `StreakDots` in Streak.tsx: one 12pt dot per day in a 15-column grid, the days of `active` (1-based) lit.
+/// `StreakDots`: one 12pt dot per day in a 15-column grid, the days of `active` (1-based) lit.
 struct StreakDots: View {
     let total: Int
     var active: ClosedRange<Int>?

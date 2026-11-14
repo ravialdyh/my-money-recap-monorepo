@@ -12,12 +12,9 @@ check() {
   fi
 }
 
-ds() {
-  npm run --silent build:tokens >/dev/null
-  npm run --silent build:swift-tokens >/dev/null
-  npm run --silent build:assets >/dev/null
-  check my-money-recap-ds/src/tokens/tokens.css my-money-recap-ds/src/styles/css.generated.ts \
-    my-money-recap-ds/src/assets/illustrations.ts apps/ios/DesignSystem/Tokens.swift
+tokens() {
+  node design-tokens/build-swift-tokens.mjs >/dev/null
+  check apps/ios/DesignSystem/Tokens.swift
 }
 
 contract() {
@@ -26,13 +23,13 @@ contract() {
 }
 
 case ${1:-} in
-  ds) ds ;;
+  tokens) tokens ;;
   contract) contract ;;
   "")
-    if command -v npm >/dev/null 2>&1 && [ -d node_modules ]; then
-      ds
+    if command -v node >/dev/null 2>&1; then
+      tokens
     else
-      printf 'check-generated: skipping the design-system generators, run npm ci first\n' >&2
+      printf 'check-generated: skipping the token generator, node not installed (CI runs it)\n' >&2
     fi
     if command -v buf >/dev/null 2>&1; then
       contract
@@ -41,7 +38,7 @@ case ${1:-} in
     fi
     ;;
   *)
-    printf 'usage: %s [ds|contract]\n' "$0" >&2
+    printf 'usage: %s [tokens|contract]\n' "$0" >&2
     exit 2
     ;;
 esac

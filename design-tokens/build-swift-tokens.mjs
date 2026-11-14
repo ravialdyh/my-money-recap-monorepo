@@ -1,10 +1,23 @@
-// Generates apps/ios/DesignSystem/Tokens.swift from src/tokens/tokens.json (docs/IOS.md I5).
+// Generates apps/ios/DesignSystem/Tokens.swift from design-tokens/tokens.json (docs/IOS.md I5).
 // Colours, radii, spacing, sizes, the type ramp and motion. Aliases like "{palette.violet.500}" become Palette.violet500.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { here, tokens, walk } from './lib.mjs';
+import { fileURLToPath } from 'node:url';
 
-const out = resolve(here, '../../apps/ios/DesignSystem/Tokens.swift');
+const here = dirname(fileURLToPath(import.meta.url));
+const tokens = JSON.parse(readFileSync(resolve(here, 'tokens.json'), 'utf8'));
+const out = resolve(here, '../apps/ios/DesignSystem/Tokens.swift');
+const isToken = (o) => o && typeof o === 'object' && '$value' in o;
+
+/** Calls visit(path, token) for every leaf under node; keys starting with $ are metadata, not tokens. */
+function walk(node, visit, path = []) {
+  for (const [k, v] of Object.entries(node)) {
+    if (k.startsWith('$')) continue;
+    const p = [...path, k];
+    if (isToken(v)) visit(p, v);
+    else if (v && typeof v === 'object') walk(v, visit, p);
+  }
+}
 
 const camel = (s) => s.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 const pascal = (s) => camel(s).replace(/^[a-z]/, (c) => c.toUpperCase());
@@ -66,7 +79,7 @@ const duration = Object.entries(tokens.motion.duration)
   .filter(([k]) => !k.startsWith('$'))
   .map(([k, { $value: d }]) => `            public static let ${ident([k])}: TimeInterval = ${ms(d)}`);
 
-const swift = `// Generated from my-money-recap-ds/src/tokens/tokens.json by scripts/build-swift-tokens.mjs. Do not edit by hand.
+const swift = `// Generated from design-tokens/tokens.json by design-tokens/build-swift-tokens.mjs. Do not edit by hand.
 import SwiftUI
 
 public struct TextStyle {
@@ -121,6 +134,5 @@ ${duration.join('\n')}
 }
 `;
 
-mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, swift);
 console.log(`Tokens.swift: ${(swift.match(/static let/g) || []).length} tokens`);

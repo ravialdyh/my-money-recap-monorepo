@@ -1,13 +1,13 @@
 import SwiftUI
 
-/// Single-line input inside a Card (`TextField.tsx`): a 52pt pill on the field surface with a 2pt stroke,
+/// Single-line input inside a Card: a 52pt pill on the field surface with a 2pt stroke,
 /// violet when focused and coral when invalid, and a helper line that turns coral with it.
 struct MMRTextField: View {
     let label: String
     @Binding var text: String
     var placeholder = ""
     var helper: String?
-    /// The trailing affix (`TextField.tsx`'s `suffix`), D7's code after the rate.
+    /// The trailing affix (`suffix`), D7's code after the rate.
     var suffix: String?
     var invalid = false
     var focused = false

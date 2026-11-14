@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// `CompareBars` in Bars.tsx: 18pt bars, each a label, a track and its amount, read by VoiceOver as "{label},
+/// `CompareBars`: 18pt bars, each a label, a track and its amount, read by VoiceOver as "{label},
 /// {amount}". The fills reveal (`Reveal`) when `shown` turns true.
 struct CompareBars: View {
     struct Row {

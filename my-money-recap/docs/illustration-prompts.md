@@ -169,13 +169,12 @@ All of Subjects 5 to 16 are generated, cut and wired in. Nothing in this file is
 - **Ask for the flat ground explicitly.** Left to itself the model adds a soft contact shadow under the character, which the style block forbids and which cuts out as a coloured blob. Spell out: no ground shadow, no ellipse under the feet, no floor, no horizon, no band of another colour along the bottom. `cut_flat_bg.py` also removes such a shadow if one survives, but a clean render is better.
 - **Subject sheets work when the subjects are siblings.** The six avatars came out consistent in one job. The three archetype mascots each need their own frame, because the "two sparkles in the upper corners" framing is per-image.
 
-## After generating: getting the files into the design system and Claude Design
+## After generating: getting the files into the app
 
 1. Save each render as `renders/<n>-<name>.png` next to the first four.
 2. Cut the background with the scripts in `scripts/`, which write the transparent WebP into `assets/illustrations/` as `ill-<key>.webp`. Keys: `envelope`, `avatar-fox`, `avatar-otter`, `avatar-panda`, `avatar-frog`, `avatar-owl`, `avatar-rabbit`, `hustler`, `treat`, `slowburner`, `jar`.
    - `python3 scripts/cut_flat_bg.py renders/<n>-<name>.png <key> <width>` for a hero on a flat ground. A plain colour key is not safe (the violet letter sits on the violet ground), so it keys only the background region connected to the frame border, erodes 2px, and re-feathers. Sizes to roughly 2× display width.
    - `python3 scripts/cut_avatars.py` for the avatar sheet: finds the six circles geometrically and masks each to its inscribed circle at 204px (3× the 68px grid).
    - Both need `Pillow` and `numpy` (`python3 -m pip install --user Pillow numpy`).
-3. In `../my-money-recap-ds/scripts/build-assets.mjs`, add the new keys to the `names` map, then run `npm run build:assets` so `src/assets/illustrations.ts` gains them. Hyphenated keys are quoted automatically; read them as `ILLUSTRATIONS['avatar-fox']`.
-4. Re-sync to Claude Design with `/design-sync` from the design-system folder. The `Illustration` card then offers the new keys.
-5. Use it on a canvas as `<Illustration src={ILLUSTRATIONS.<key>} width={…} />`; avatars are 68 px in `AvatarGrid` (A4, D2) and 56 px as the inline `Avatar` (Home).
+3. Add the WebP to `../apps/ios/Resources/Assets.xcassets` by hand (`../docs/IOS.md` I5).
+4. Show it with the `Illustration` component; avatars are 68pt in `AvatarGrid` (A4, D2) and 56pt as the inline `Avatar` (Home).

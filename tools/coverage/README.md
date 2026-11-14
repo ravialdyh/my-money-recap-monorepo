@@ -27,20 +27,14 @@ measurements is in the pull requests that raised them.
 | --- | --- | --- |
 | `go` | The `backend` job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify`, `internal/ledger` and the end-to-end tests really run. The floor sits at the target, not at the measurement, because the ratchet stops there. | 84.4% |
 | `ios` | The `ios` job's commands, `-enableCodeCoverage YES` on both halves of the build-then-test split, on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home and counts far higher. The floor sits at the target, as Go's does. | 85.9% |
-| `typescript` | `npm run test:coverage` in `my-money-recap-ds`. The floor sits at the target, as Go's does. | 97.8% |
 
 ## What is not counted
 
 Go drops `apps/backend/gen/**` (buf's output) and `internal/testauth` and `internal/testdb` (test helpers) from the profile
-before measuring. TypeScript drops `src/assets/illustrations.ts` and `src/styles/css.generated.ts`;
-those exclusions live in `my-money-recap-ds/vitest.config.ts`. Generated code is not code anyone
-writes tests for, and leaving it in the denominator makes the number say nothing.
+before measuring. Generated code is not code anyone writes tests for, and leaving it in the denominator
+makes the number say nothing.
 
 ## Where the gap is
-
-TypeScript has none left worth chasing: the suite renders components rather than only calling
-functions, so the fit-to-width measurement, the count-up animation and every event handler are
-exercised.
 
 Go's gap is `internal/members`, whose handlers the boundary test reaches in the Compose container,
 outside the profile, and `cmd/bff`, `cmd/ledger`, `cmd/members` and `cmd/notify`: their `main`, `run` and handler

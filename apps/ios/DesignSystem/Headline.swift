@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Fredoka headline, `m` by default as in Headline.tsx; `l` the sign-in and Recap cover size, `compact` the Recap's
+/// Fredoka headline, `m` by default; `l` the sign-in and Recap cover size, `compact` the Recap's
 /// 36pt, `display` the Archetype title. `l` and `display`, white, keep their tokens' line heights, under the font's
 /// own.
 struct Headline: View {
@@ -28,7 +28,7 @@ struct Headline: View {
     }
 }
 
-/// Nunito body line under a headline, muted on the ground (`SubCopy` in Headline.tsx).
+/// Nunito body line under a headline, muted on the ground.
 struct SubCopy: View {
     let text: String
 
@@ -40,7 +40,7 @@ struct SubCopy: View {
     }
 }
 
-/// Small label above a stat (`Eyebrow` in Headline.tsx): Nunito label, secondary ink; `coral` is the uppercase coral
+/// Small label above a stat: Nunito label, secondary ink; `coral` is the uppercase coral
 /// tone.
 struct Eyebrow: View {
     let text: String

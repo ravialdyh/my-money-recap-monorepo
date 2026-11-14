@@ -20,7 +20,7 @@ jobs:
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       contract: ${{ steps.filter.outputs.contract }}
-      design-system: ${{ steps.filter.outputs.design-system }}
+      tokens: ${{ steps.filter.outputs.tokens }}
       ios: ${{ steps.filter.outputs.ios }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,17 +44,12 @@ jobs:
               - 'apps/backend/gen/**'
               - 'packages/contract/**'
               - 'tools/hooks/check-generated.sh'
-            design-system:
+            tokens:
               - '!**/*.md'
               - '.github/workflows/ci.yml'
               - '.nvmrc'
               - 'apps/ios/DesignSystem/Tokens.swift'
-              - 'biome.json'
-              - 'my-money-recap-ds/**'
-              - 'my-money-recap/assets/illustrations/**'
-              - 'package-lock.json'
-              - 'package.json'
-              - 'tools/coverage/**'
+              - 'design-tokens/**'
               - 'tools/hooks/check-generated.sh'
             ios:
               - '!**/*.md'
@@ -92,27 +87,17 @@ jobs:
         env:
           SKIP: no-commit-to-branch,gitleaks,golangci-lint,gofmt,swiftlint,swiftformat,buf-lint,tofu-fmt,tofu-validate
 
-  design-system:
+  tokens:
     needs: changes
-    if: needs.changes.outputs.design-system == 'true'
+    if: needs.changes.outputs.tokens == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - name: Tokens, stylesheet, Swift tokens and inlined artwork are up to date with their sources
-        run: tools/hooks/check-generated.sh ds
-      - run: npm run typecheck
-      - name: Unit tests with coverage
-        working-directory: my-money-recap-ds
-        run: npm run test:coverage
-      - name: Coverage may not fall, see tools/coverage/README.md
-        run: |
-          pct=$(python3 -c "import json;print(json.load(open('my-money-recap-ds/coverage/coverage-summary.json'))['total']['statements']['pct'])")
-          python3 tools/coverage/coverage_gate.py typescript "$pct"
+      - name: Tokens.swift is up to date with tokens.json
+        run: tools/hooks/check-generated.sh tokens
 
   contract:
     needs: changes
@@ -271,7 +256,7 @@ jobs:
 
   ci:
     if: always()
-    needs: [changes, quality, design-system, contract, backend, ios]
+    needs: [changes, quality, tokens, contract, backend, ios]
     runs-on: ubuntu-latest
     steps:
       - name: Every needed job passed or had nothing to do

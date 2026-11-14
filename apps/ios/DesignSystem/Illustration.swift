@@ -1,8 +1,7 @@
 import SwiftUI
 
 /// Hero artwork from the asset catalog; hangs `hang`, `space.overlap` unless set, into the card below it. It fills the
-/// free height above that card unless `grows` is false (Recap page 2); `maxHeight` caps a tall one, as
-/// Illustration.tsx.
+/// free height above that card unless `grows` is false (Recap page 2); `maxHeight` caps a tall one.
 struct Illustration: View {
     let name: String
     let width: CGFloat

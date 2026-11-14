@@ -80,7 +80,7 @@ struct RecapArchetypePage: View {
             .padding(.leading, RecapLayout.pillsInset)
     }
 
-    /// The Archetype's mascot in the asset catalog (`ARCHETYPE_ILLUSTRATION` in RecapPersonalityScreen.tsx).
+    /// The Archetype's mascot in the asset catalog.
     static func mascot(_ archetype: ArchetypePill.Kind) -> String {
         switch archetype {
         case .squirrel: "ill-squirrel"

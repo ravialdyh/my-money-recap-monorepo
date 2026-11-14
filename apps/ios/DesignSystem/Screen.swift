@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// One ground per screen, from four (README "Design rules"): the violet `recap` ground unless `ground` names another.
+/// One ground per screen, from four (`design-tokens/README.md`, "Design rules"): the violet `recap` ground unless
+/// `ground` names another.
 /// Content sits inside the screen insets, its type white, or ink on the yellow `earning` ground.
 struct Screen<Content: View>: View {
     var ground = Tokens.Ground.recap

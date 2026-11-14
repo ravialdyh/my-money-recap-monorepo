@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// `StreakBadge` in Streak.tsx: a 64pt yellow circle with a Fredoka number over a tiny uppercase unit, read by
+/// `StreakBadge`: a 64pt yellow circle with a Fredoka number over a tiny uppercase unit, read by
 /// VoiceOver as "{value} {unit}".
 struct StreakBadge: View {
     let value: Int
