@@ -59,7 +59,7 @@ repos:
   - repo: local
     hooks:
       - id: policy
-        name: size and comment policy
+        name: size policy
         entry: python3 tools/policy/check_policy.py
         language: system
         pass_filenames: false
@@ -67,7 +67,7 @@ repos:
         require_serial: true
 
       - id: policy-tests
-        name: size and comment policy tests
+        name: size policy tests
         entry: python3 -m unittest discover -s tools/policy -t tools/policy
         language: system
         pass_filenames: false

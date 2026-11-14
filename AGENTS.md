@@ -22,18 +22,12 @@ needs no stack. Boot at most one iOS simulator. When the work is done, shut it d
 
 ## House rules the hooks enforce
 
-`pre-commit run --all-files` is the gate. Three rules are this repo's own, in
+`pre-commit run --all-files` is the gate. Two rules are this repo's own, in
 `tools/policy/README.md`:
 
 - **A line cap on every text file** outside the exclusions the policy README lists.
 - **No em dash anywhere**: not in code, comments, documents or canvases, excluded paths included; use a full
   stop, a comma or a colon.
-- **A comment either states a contract or is a directive.** Doc comments on a package, type or
-  member are how code cites a `D*`, `A*` or `I*` decision, and their length is capped. Comments
-  inside a function body are rejected: name the code instead. `TODO` and commented-out code are
-  rejected too. `//go:embed`, `//go:build`, `//nolint` and the other directives are untouched.
-
-A comment that restates the code is out as well, but no hook can see one: that rule is review's.
 
 Coverage has a floor per language that only rises, up to the target (`tools/coverage/README.md`).
 When coverage rises while a floor is still below the target, raise it in the same pull request.
