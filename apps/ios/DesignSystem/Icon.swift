@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// The eight Category glyphs of `Icon.tsx`, drawn from the shapes in `glyphs.tsx` on its 16-unit grid (PRD D20): each
+/// The eight Category glyphs, drawn on a 16-unit grid (PRD D20): each
 /// in its Category hue, or in `color` where the glyph sits on ink, a selected tone Chip.
 struct Icon: View {
-    /// The eight Categories in PRD D20's order, each with its hue (`CATEGORY_TONE`) and its label.
+    /// The eight Categories in PRD D20's order, each with its hue and its label.
     enum Name: CaseIterable {
         case snacks, games, toys, rides, clothes, bills, gifts, other
 

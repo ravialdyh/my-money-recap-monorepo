@@ -7,8 +7,7 @@ struct MMRButton: View {
     enum Variant { case primary, secondary, coral }
     let title: String
     var variant: Variant = .primary
-    /// SF Symbol name for the 20pt leading glyph ("plus" on Log a spend) until the design-system glyphs are drawn in
-    /// Swift.
+    /// SF Symbol name for the 20pt leading glyph ("plus" on Log a spend).
     var icon: String?
     var loading = false
     let action: () -> Void

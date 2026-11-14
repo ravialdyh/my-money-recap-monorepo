@@ -5,7 +5,7 @@ struct InlineError: View {
     let text: String
     /// The block's fill: coral, or white where the ground is coral itself, the restore sheet (D11b), so it still reads.
     var well = Tokens.Surface.wellCoral
-    /// The trailing control (`InlineError.tsx`'s `action`): heavy and underlined, D6's `Try again`; nil removes it.
+    /// The trailing control (`action`): heavy and underlined, D6's `Try again`; nil removes it.
     var action: (title: String, run: () -> Void)?
 
     var body: some View {

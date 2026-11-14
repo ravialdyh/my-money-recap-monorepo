@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The Saving Target slider (`Slider.tsx`, PRD §6.7): the violet `ProgressBar` with a 28pt ink knob ringed in white,
+/// The Saving Target slider (PRD §6.7): the violet `ProgressBar` with a 28pt ink knob ringed in white,
 /// dragged anywhere on the full 44pt row, snapping to `step`. VoiceOver and UI tests meet it as the system slider.
 struct Slider: View {
     let label: String

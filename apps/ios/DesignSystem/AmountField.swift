@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// Amount entry in a Card (`AmountField.tsx`): the symbol fixed, the amount grouped as the device writes it at 48,
+/// Amount entry in a Card: the symbol fixed, the amount grouped as the device writes it at 48,
 /// 36 or 28pt, measured (PRD §11). `amount` is an exact decimal: 11 whole digits (D57), `digits` decimals (#92).
 struct AmountField: View {
     static let cap = "That's more than the app can store."

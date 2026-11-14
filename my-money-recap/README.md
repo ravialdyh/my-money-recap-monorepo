@@ -2,13 +2,13 @@
 
 The artwork the design system ships, and the scripts and prompts that produce it. Everything else
 about the product lives elsewhere: the rules in `../docs/PRD.md`, the screens in
-`../docs/SCREEN-STATES.md`, the visual rules and components in `../my-money-recap-ds/`.
+`../docs/SCREEN-STATES.md`, the visual rules in `../design-tokens/` and the components in `../apps/ios/DesignSystem/`.
 
 ## Layout
 
 | Path | What lives here |
 | --- | --- |
-| `assets/illustrations/` | Shipped artwork: transparent WebP cut-outs, roughly 2× display size; the design system inlines them (`../my-money-recap-ds/README.md`, "Rebuilding generated files") |
+| `assets/illustrations/` | Shipped artwork: transparent WebP cut-outs, roughly 2× display size; the app takes them into its asset catalog by hand (`../docs/IOS.md` I5) |
 | `assets/icons/` | `app-icon-1024.png`, the opaque square for the iOS build once the app icon is wired into the asset catalog |
 | `assets/illustrations.json` | Manifest: file, sampled background hue, dimensions, weight, source render |
 | `renders/` | 4K originals the WebPs were cut from; untracked (`.gitignore`), present locally after a render run |
@@ -28,10 +28,6 @@ python3 scripts/cut_flat_bg.py renders/5-envelope.png envelope 640
 python3 scripts/cut_avatars.py
 ```
 
-Then inline the new artwork into the design system:
-
-```bash
-cd ../my-money-recap-ds && npm run build:assets
-```
+Then add the new artwork to `../apps/ios/Resources/Assets.xcassets` by hand (`../docs/IOS.md` I5).
 
 Full prompt recipes and the style block are in [`docs/illustration-prompts.md`](docs/illustration-prompts.md).

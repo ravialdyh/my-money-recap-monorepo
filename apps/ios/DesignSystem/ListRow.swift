@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Settings, Recap and Currency list row (`ListRow.tsx`): label over an optional detail, a right-aligned value, then
+/// Settings, Recap and Currency list row: label over an optional detail, a right-aligned value, then
 /// a chevron, a selected row's violet check, or nothing; a divider below. Destructive is coral; disabled, at 40%.
 struct ListRow: View {
     enum Trailing {

@@ -1,4 +1,4 @@
-// Generated from my-money-recap-ds/src/tokens/tokens.json by scripts/build-swift-tokens.mjs. Do not edit by hand.
+// Generated from design-tokens/tokens.json by design-tokens/build-swift-tokens.mjs. Do not edit by hand.
 import SwiftUI
 
 public struct TextStyle {

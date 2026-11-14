@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The 22pt goal track (`ProgressBar` in Bars.tsx): a pill in the tone's light track, filled to `fraction` in the
+/// The 22pt goal track: a pill in the tone's light track, filled to `fraction` in the
 /// tone's data colour, the `piggy` marker riding the fill's end. The fraction is drawing only, clamped (A2).
 struct ProgressBar: View {
     enum Tone {
@@ -48,7 +48,7 @@ struct ProgressBar: View {
     }
 }
 
-/// The saving-target bar's marker (`PiggyMarker` in glyphs.tsx), drawn from its shapes on the 64 by 30 grid.
+/// The saving-target bar's marker, drawn from its shapes on the 64 by 30 grid.
 struct PiggyMarker: View {
     static let size = CGSize(width: 64, height: 30)
 

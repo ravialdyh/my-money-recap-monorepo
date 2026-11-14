@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Itemised row (`DataRow.tsx`): the Category's `IconWell`, a one-line label with an optional secondary line under it,
+/// Itemised row: the Category's `IconWell`, a one-line label with an optional secondary line under it,
 /// the Fredoka amount, a divider below. With an `action` the row is a button; without one it only shows.
 struct DataRow: View {
     let icon: Icon.Name

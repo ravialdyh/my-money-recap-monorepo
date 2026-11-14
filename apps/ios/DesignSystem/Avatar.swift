@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A single round Avatar badge for the Home greeting (`Avatar` in AvatarGrid.tsx); an unknown key shows the violet well
+/// A single round Avatar badge for the Home greeting; an unknown key shows the violet well
 /// alone.
 struct Avatar: View {
     let key: String

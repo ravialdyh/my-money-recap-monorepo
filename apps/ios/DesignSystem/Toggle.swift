@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// `Toggle.tsx`: the iOS-proportioned switch, 51 by 31 with a 27pt white knob, violet when on and ink-100 when off.
+/// The iOS-proportioned switch, 51 by 31 with a 27pt white knob, violet when on and ink-100 when off.
 /// Drawn, since the system switch changes size between iOS versions; VoiceOver hears a native switch. Disabled, 40%.
 struct MMRToggle: View {
     let label: String

@@ -6,19 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": [
-      "my-money-recap-ds/src/**",
-      "my-money-recap-ds/scripts/**",
-      "package.json",
-      "my-money-recap-ds/package.json",
-      "!**/node_modules",
-      "!**/dist",
-      "!**/preview",
-      "!my-money-recap-ds/src/assets/illustrations.ts",
-      "!my-money-recap-ds/src/styles/css.generated.ts",
-      "!my-money-recap-ds/src/tokens/tokens.css",
-      "!my-money-recap-ds/src/tokens/tokens.json"
-    ]
+    "includes": ["design-tokens/*.mjs", "package.json", "!design-tokens/tokens.json"]
   },
   "formatter": {
     "enabled": true,
@@ -60,25 +48,5 @@
         "organizeImports": "on"
       }
     }
-  },
-  "css": {
-    "formatter": {
-      "enabled": false
-    },
-    "linter": {
-      "enabled": true
-    }
-  },
-  "overrides": [
-    {
-      "includes": ["my-money-recap-ds/scripts/**"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "useJsxKeyInIterable": "off"
-          }
-        }
-      }
-    }
-  ]
+  }
 }

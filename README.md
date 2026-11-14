@@ -11,7 +11,7 @@ Work in progress: slices 1–7 are done; the real deploy and the rest of phase 1
 | --- | --- |
 | `docs/` | The product rules (`PRD.md`), every screen state (`SCREEN-STATES.md`), the glossary (`CONTEXT.md`), and the backend and iOS decisions (`ARCHITECTURE.md`, `IOS.md`) |
 | `my-money-recap/` | The illustration artwork and the scripts that produce it |
-| `my-money-recap-ds/` | `@my-money-recap/ui`, the React design system |
+| `design-tokens/` | The token values generated into `Tokens.swift`, and the visual rules |
 | `apps/` | The Go backend and the SwiftUI app |
 | `packages/contract/` | The Buf API contract every client is generated from |
 | `infra/` | The Compose stack, the Keycloak realm, the edge, the secrets and the setup wizard |
