@@ -64,6 +64,23 @@ func (f *fakeApple) received() []push {
 func pushService(t *testing.T, id string, gone ...string) (*Service, *fakeApple, *ecdsa.PrivateKey) {
 	t.Helper()
 	s := warningService(t, id, map[string]string{"owner": id})
+	apple, fake, key := startApple(t, gone...)
+	s.Apple = apple
+	t.Cleanup(func() {
+		s.pushes.Wait()
+		for _, table := range []string{"device", "notification_preference"} {
+			if _, err := s.DB.Exec(context.Background(), `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
+				t.Logf("cleanup %s: %v", table, err)
+			}
+		}
+	})
+	return s, fake, key
+}
+
+// startApple is a fake Apple push service over TLS and HTTP/2, answering 410 for gone, and a sender to it signing
+// with a key generated here.
+func startApple(t *testing.T, gone ...string) (*Apple, *fakeApple, *ecdsa.PrivateKey) {
+	t.Helper()
 	fake := &fakeApple{gone: map[string]bool{}}
 	for _, token := range gone {
 		fake.gone[token] = true
@@ -76,16 +93,7 @@ func pushService(t *testing.T, id string, gone ...string) (*Service, *fakeApple,
 	if err != nil {
 		t.Fatal(err)
 	}
-	s.Apple = &Apple{Host: srv.URL, Topic: "com.mymoneyrecap.app", TeamID: "TEAM123456", KeyID: "KEY1234567", Key: key, Client: srv.Client()}
-	t.Cleanup(func() {
-		s.pushes.Wait()
-		for _, table := range []string{"device", "notification_preference"} {
-			if _, err := s.DB.Exec(context.Background(), `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
-				t.Logf("cleanup %s: %v", table, err)
-			}
-		}
-	})
-	return s, fake, key
+	return &Apple{Host: srv.URL, Topic: "com.mymoneyrecap.app", TeamID: "TEAM123456", KeyID: "KEY1234567", Key: key, Client: srv.Client()}, fake, key
 }
 
 func devices(t *testing.T, s *Service, id string, tokens ...string) {

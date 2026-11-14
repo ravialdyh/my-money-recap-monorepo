@@ -108,7 +108,8 @@ func (s *Service) kept(ctx context.Context, id, month string) (*moneyrecapv1.Tar
 }
 
 // owns is ARCHITECTURE §4.2 point 3: a token other than the one the replica kept, or a row lacking a zone or an
-// email, is a miss members.GetProfile answers under that token; the read fills both unless a newer event has.
+// email, is a miss members.GetProfile answers under that token; the read fills both unless a newer event has, and
+// a new zone moves the fire times.
 func (s *Service) owns(ctx context.Context, id string) error {
 	if err := (&pgtype.UUID{}).Scan(id); err != nil {
 		return connect.NewError(connect.CodeNotFound, errors.New("no such member"))
@@ -133,14 +134,22 @@ func (s *Service) owns(ctx context.Context, id string) error {
 		return connect.NewError(connect.CodeUnavailable, errors.New("members.GetProfile failed"))
 	}
 	p := res.Msg.GetProfile()
-	if _, err := s.DB.Exec(ctx, `
+	var moved bool
+	if err := s.DB.QueryRow(ctx, `
+		WITH old AS (SELECT timezone FROM member_facts WHERE member_id = $1)
 		INSERT INTO member_facts (member_id, keycloak_subject, timezone, email, facts_at) VALUES ($1, $2, nullif($3, ''), nullif($4, ''), $5)
 		ON CONFLICT (member_id) DO UPDATE SET keycloak_subject = EXCLUDED.keycloak_subject,
 			timezone = CASE WHEN member_facts.facts_at > EXCLUDED.facts_at THEN member_facts.timezone ELSE coalesce(EXCLUDED.timezone, member_facts.timezone) END,
 			email = CASE WHEN member_facts.facts_at > EXCLUDED.facts_at THEN member_facts.email ELSE coalesce(EXCLUDED.email, member_facts.email) END,
-			facts_at = greatest(member_facts.facts_at, EXCLUDED.facts_at)`,
-		id, subject, p.GetTimezone(), p.GetEmail(), asked); err != nil {
+			facts_at = greatest(member_facts.facts_at, EXCLUDED.facts_at)
+		RETURNING member_facts.timezone IS DISTINCT FROM (SELECT timezone FROM old)`,
+		id, subject, p.GetTimezone(), p.GetEmail(), asked).Scan(&moved); err != nil {
 		return storeFailed(ctx, err)
+	}
+	if moved {
+		if err := reschedule(ctx, s.DB, id, asked); err != nil {
+			return storeFailed(ctx, err)
+		}
 	}
 	return nil
 }

@@ -119,18 +119,15 @@ func (a *Apple) bearer() (string, error) {
 	return token, nil
 }
 
-// warningKind is the Target Warning's kind in sent_log, whose period is the month.
+// warningKind is the Target Warning's kind in sent_log, named as its switch's column; the period is the month.
 const warningKind = "target_warning"
 
-// pushWarning pushes a month's first stamp, once committed, in the background to every device, unless the switch is
-// off or a deletion is pending; sent_log is claimed first, so a crash loses it and a second run never resends it.
+// pushWarning pushes a month's first stamp, once committed, in the background (ARCHITECTURE §4.3).
 func (s *Service) pushWarning(ctx context.Context, id, month string) {
 	s.pushes.Go(func() {
 		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), pushTimeout)
 		defer cancel()
-		if err := s.warn(ctx, id, month); err != nil {
-			log.Printf("notify: %s push %s: %v", warningKind, month, err)
-		}
+		logFailed(warningKind, month, s.warn(ctx, id, month))
 	})
 }
 
@@ -139,16 +136,22 @@ func (s *Service) warn(ctx context.Context, id, month string) error {
 	if err != nil {
 		return err
 	}
+	return s.push(ctx, id, warningKind, month, "You've passed your saving line for "+at.Format("January")+".")
+}
+
+// push sends body to every device of the Member unless kind's switch, its column in notification_preference, is off
+// or a deletion is pending; sent_log is claimed first, so a crash loses the push and a second run never resends it.
+func (s *Service) push(ctx context.Context, id, kind, period, body string) error {
 	claimed, err := s.DB.Exec(ctx, `INSERT INTO sent_log (member_id, kind, period)
 		SELECT $1, $2, $3
-		WHERE coalesce((SELECT target_warning FROM notification_preference WHERE member_id = $1), true)
+		WHERE coalesce((SELECT `+kind+` FROM notification_preference WHERE member_id = $1), $4)
 			AND NOT coalesce((SELECT deletion_pending FROM member_facts WHERE member_id = $1), false)
-		ON CONFLICT DO NOTHING`, id, warningKind, month)
+		ON CONFLICT DO NOTHING`, id, kind, period, kind != reminderKind)
 	if err != nil || claimed.RowsAffected() == 0 {
 		return err
 	}
 	if s.Apple == nil || s.Apple.Key == nil {
-		log.Printf("notify: no Apple push key, so the %s push for %s is recorded and not sent", warningKind, month)
+		log.Printf("notify: no Apple push key, so the %s push for %s is recorded and not sent", kind, period)
 		return nil
 	}
 	rows, err := s.DB.Query(ctx, `SELECT apns_token FROM device WHERE member_id = $1`, id)
@@ -159,7 +162,6 @@ func (s *Service) warn(ctx context.Context, id, month string) error {
 	if err != nil {
 		return err
 	}
-	body := "You've passed your saving line for " + at.Format("January") + "."
 	var failed error
 	for _, device := range devices {
 		err := s.Apple.send(ctx, device, body)

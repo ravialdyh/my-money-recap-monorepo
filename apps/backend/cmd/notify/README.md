@@ -4,13 +4,13 @@ The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and ever
 It serves `EmailMagicLink`, the Target Warning state
 (`GetWarningState` and `EvaluateWarning`), its own copy of each Member ("The replica", below)
 and the `idempotency` table, `RegisterDevice`, `GetPrefs` and `SavePrefs`
-("The preferences", below), the Target Warning's push through the Apple sender ("The push", below), and
-`EmailExport`, the CSV export email.
-The other two pushes, the schedulers, the `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
+("The preferences", below), the Target Warning's push through the Apple sender ("The push", below),
+`EmailExport`, the CSV export email, and the Recap-ready and daily-reminder schedules ("The schedules", below).
+The `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
 Its `Ledger` client sends `notify`'s own service-account token, fetched with the client-credentials grant and
 cached until it expires (ARCHITECTURE §4.2), which `ledger` accepts for `GetSpentToday` and
-`ListMonthsWithData` alone; no schedule calls it yet.
+`ListMonthsWithData` alone; the schedules make exactly those two calls.
 
 `EmailMagicLink` is exempt from the bearer check by procedure name, never by service, because the
 BFF calls it for a request that carries no token (§4.2 point 3); every other procedure answers
@@ -20,8 +20,8 @@ host rolls it back. An empty key is `invalid_argument`.
 
 | Path | Holds |
 | --- | --- |
-| `main.go` | The binary: its name, its schema step, its handler and its two consumers, handed to `serve.Main`, and the Apple sender built from its variables. |
-| `../../internal/notify/` | `notify.go` (the magic-link email, its SMTP client and the idempotent write), `warning.go` (the Target Warning, its event backup and the ownership check), `replica.go` (the `notify.members` consumer), `device.go`, `prefs.go` (the preferences), `push.go` (the Apple sender and the Target Warning's push) and `migrations/*.sql` (embedded). |
+| `main.go` | The binary: its name, its schema step, its handler, its two consumers and its schedules, handed to `serve.Main`, and the Apple sender built from its variables. |
+| `../../internal/notify/` | `notify.go` (the magic-link email, its SMTP client and the idempotent write), `warning.go` (the Target Warning, its event backup and the ownership check), `replica.go` (the `notify.members` consumer), `device.go`, `prefs.go` (the preferences), `push.go` (the Apple sender, the push every kind shares and the Target Warning's), `schedule.go` (the two schedules) and `migrations/*.sql` (embedded). |
 
 ## Environment
 
@@ -94,6 +94,26 @@ The Apple sender signs an ES256 token with the push key, its Key ID as `kid` and
 type `alert`, the copy as the alert body. A device Apple answers 410 for is deleted. With no key configured the
 push is recorded and skipped with one log line.
 
+## The schedules
+
+Recap ready and the daily reminder (ARCHITECTURE §4.5, PRD §10) each tick every minute. `member_facts` holds
+`next_recap_at`, 09:00 on the next 1st in the Member's zone, and `next_reminder_at`, the chosen time's next coming,
+each NULL while its switch is off. Migration `0010`'s SQL functions `next_recap` and `next_reminder` compute them
+when the zone changes (the `notify.members` consumer, or the owner check filling a row), when the preferences are
+saved, and after each fire; both columns are indexed. A tick is one query per schedule, the due Members soonest
+first, at most 500:
+
+- Recap ready asks `ledger.ListMonthsWithData` for each, with `notify`'s own token, and pushes "Your {Month} recap is
+  ready. See how you did." when last month is on the list, a partial month included, the month in English.
+- The reminder asks `ledger.GetSpentToday` once for the batch and pushes "Log today's spends before you forget." to
+  each Member whose count of Spends dated today is 0.
+
+Each push is the Target Warning's ("The push", above): `sent_log` claimed first, with kind `recap_ready` and last
+month, or kind `daily_reminder` and the Member's local date, as its period; nothing while the switch is off or a
+deletion is pending; nothing to send with no device registered. The Member's time then moves to the next fire from
+now. A `ledger` call that fails leaves it, so the next tick tries again; a Member `ledger` does not know moves on
+unsent.
+
 ## The replica
 
 `member_facts` is notify's copy of each Member (spec #169, "The replica"): the owner's subject, the
@@ -124,7 +144,7 @@ claims its key with the send, so a failed send frees it and a retried key sends 
 `target_warning`. `GetPrefs` answers PRD §10's defaults before any save: Recap ready on, the daily reminder off at
 20:00, the Target Warning on. `SavePrefs` replaces the row with the whole message under the Member's key, refusing a
 reminder time that is not `HH:MM` on a 24-hour clock, and answers it as stored. Both check the owner as
-`GetWarningState` does. No schedule reads the row yet.
+`GetWarningState` does. A save sets both next-fire times from the new row ("The schedules", above).
 
 ## The magic-link table
 
@@ -137,7 +157,7 @@ Every send first deletes rows older than the `retention` constant in `internal/n
 in the same transaction. Nothing else would ever delete them: the row holds a raw address typed at
 sign-in with no `member_id`, so ARCHITECTURE §7.3's `members.deleted` purge cannot reach it, and the
 link it dedupes dies after fifteen minutes (PRD D32). Sweeping on the write path keeps the retention
-bound off notify's planned scheduler.
+bound off notify's schedules.
 
 ## Tests
 
@@ -145,5 +165,7 @@ bound off notify's planned scheduler.
 empty-key test needs nothing: the Target Warning, replica and idempotency tests and the tests against fake
 mail hosts need the `notify` database, the zone test also the stack's `members`, Keycloak and broker, and
 the rest also send through Mailpit. The push tests stand up a fake Apple push service over TLS and HTTP/2 inside
-the test, with a signing key generated there. The variables are in `infra/compose/README.md`, "Running the Go tests
+the test, with a signing key generated there. The schedule tests move their own clock against a fake `ledger`, in a
+schema of their own that each drops at the end, so the stack's `notify` never ticks their rows; one of them reads
+the stack's `ledger` with `notify`'s real key for a batch of two throwaway Members. The variables are in `infra/compose/README.md`, "Running the Go tests
 against this stack".

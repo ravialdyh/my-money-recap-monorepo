@@ -23,8 +23,10 @@ func main() {
 }
 
 // run is the start-up every database-backed binary shares (internal/serve), given this service's
-// name, its schema step, its handler and its two consumers.
-func run() error { return serve.Main("notify", notify.Migrate, handler, consumer, membersConsumer) }
+// name, its schema step, its handler, its two consumers and its schedules.
+func run() error {
+	return serve.Main("notify", notify.Migrate, handler, consumer, membersConsumer, schedules)
+}
 
 // service is the one Service: handler builds it before serve.Main builds the consumers, whose loops push through it.
 var service *notify.Service
@@ -65,3 +67,6 @@ func membersConsumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 		events.Consume(ctx, db, url, notify.MembersQueue, notify.MembersKeys, notify.ApplyMemberEvent)
 	}
 }
+
+// schedules is Recap ready and the daily reminder, ticking every minute (§4.5).
+func schedules(*serve.Env, *pgxpool.Pool) func(context.Context) { return service.Schedule }
