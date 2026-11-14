@@ -303,7 +303,7 @@ Reached by tapping the Home hero card (D42 makes the hero the Spent figure, so t
 
 **The streak line's cases** (owner, 2026-09-26). The dates are ledger's (§8.5), printed in the device locale's day and month order: "12 to 20 September", or "September 12 to 20" in American English. A one-day run prints its one date: "12 September. Beat it next month." With no spend-free day the dates are left out and the badge copy stands alone.
 
-With no Saving Target the headline drops its second sentence and the compare card becomes the target card: eyebrow "Saving target", "Set a target to see how you did", helper "Pick a share of your salary to keep each month, and next month's recap will score it.", which opens Saving target over the Recap (#172). In the React component that is its own no-target branch: pass `targetAmount={null}`, never `undefined`.
+With no Saving Target the headline drops its second sentence and the compare card becomes the target card: eyebrow "Saving target", "Set a target to see how you did", helper "Pick a share of your salary to keep each month, and next month's recap will score it.", which opens Saving target over the Recap. In the React component that is its own no-target branch: pass `targetAmount={null}`, never `undefined`.
 
 ### 6.13 Recap · screen 3 Target and spending
 
@@ -311,7 +311,7 @@ With no Saving Target the headline drops its second sentence and the compare car
 
 `Card` accent "The splurge": "{amount} on {note or Category}. Your biggest single buy." With no Spend the card reads "Where it went" and "Nothing spent this month", adds "You kept every penny that came in." only when Money In is above 0, and has no splurge: pass `splurge={null}`, never `undefined`.
 
-**No Saving Target set.** Reachable whenever the Member skipped onboarding step 4 (D44 forbids only the reverse: a target with no salary). The headline becomes "Where {Spent} went", even when nothing was spent ("Where IDR 0 went", as the design system's `RecapGoalScreen` prints it; owner, 2026-09-28), because there is no percentage to state. The saving-target `Card` becomes a `PromptCard` "Set a saving target", which opens Saving target over the Recap (#172). The Category breakdown and the Splurge are unaffected: neither needs a target.
+**No Saving Target set.** Reachable whenever the Member skipped onboarding step 4 (D44 forbids only the reverse: a target with no salary). The headline becomes "Where {Spent} went", even when nothing was spent ("Where IDR 0 went", as the design system's `RecapGoalScreen` prints it; owner, 2026-09-28), because there is no percentage to state. The saving-target `Card` becomes a `PromptCard` "Set a saving target", which opens Saving target over the Recap. The Category breakdown and the Splurge are unaffected: neither needs a target.
 
 ### 6.14 Recap · screen 4 Archetype
 
@@ -321,7 +321,7 @@ With no Saving Target the headline drops its second sentence and the compare car
 
 The component keys its mascot off the `archetype` prop through an internal map; there is no illustration prop. `Illustration maxHeight` is already applied, so the taller Hustler mascot no longer clips the pill row.
 
-**No Archetype (§8.6).** A month screen 4 draws always has Money In above 0 (a month without it is a Partial Recap or is not listed, §8.11), so here no Archetype means no Saving Target. Screen 4 shows a `PromptCard` "Set a saving target to get an archetype", helper "Your archetype comes from what you kept against what you meant to keep.", at the hero card's height in place of the mascot, which opens Saving target over the Recap (#172); the Saved and Spent bars stay, the four pills sit at 40% and the Share button is hidden. A "Set your monthly salary to get a recap" card can never show and is not built (owner, 2026-09-26). Home's list row shows "Partial" rather than an Archetype name.
+**No Archetype (§8.6).** A month screen 4 draws always has Money In above 0 (a month without it is a Partial Recap or is not listed, §8.11), so here no Archetype means no Saving Target. Screen 4 shows a `PromptCard` "Set a saving target to get an archetype", helper "Your archetype comes from what you kept against what you meant to keep.", at the hero card's height in place of the mascot, which opens Saving target over the Recap; the Saved and Spent bars stay, the four pills sit at 40% and the Share button is hidden. A "Set your monthly salary to get a recap" card can never show and is not built (owner, 2026-09-26). Home's list row shows "Partial" rather than an Archetype name.
 
 ### 6.15 Share
 
@@ -366,7 +366,7 @@ Shown immediately after a successful sign-in when `deletion_requested_at` is wit
 - **Home, first load.** No cache exists after a first sign-in. Skeleton: the two cards at their filled heights (191 and 136pt) with `ink.100` blocks in place of numbers. No spinner.
 - **Home, offline.** The offline `Banner`, the `Last updated` line, cached numbers, `Log a spend` disabled.
 - **Recap, loading.** A Recap opened before draws its stored copy at once (D61). Before its first answer, the cover ground with the illustration only; numbers fade in. With no signal and nothing stored that state stays, and the close control still returns to Home (owner, 2026-09-26).
-- **Settings, offline.** Rows render from cache; every row that writes is disabled at 40% with the offline `Banner` at the top.
+- **Settings, offline.** Rows render from cache; every row that writes is disabled at 40% with the offline `Banner` at the top. Log out stays live.
 - **Write failure.** `InlineError` in place, never a toast, never an overlay. Content moves down rather than being covered.
 
 ## 7. Data model
@@ -381,8 +381,9 @@ Amounts are exact decimals (`NUMERIC`, never a float or an integer count of mino
 | Spend | id, member_id, amount, **original_amount, original_currency**, category (enum of eight), date, note, created_at, updated_at | Soft-deleted rows are excluded from every computation. `original_*` hold the value as typed and are never touched by a currency change (§8.9). |
 | CurrencyConversion | member_id, from_code, to_code, rate, source (provider or manual), applied_at | Audit record of each rewrite. |
 | NotificationPreference | member_id, recap_ready, daily_reminder, daily_reminder_time, target_warning | One per Member. |
-| Device | member_id, apns_token, registered_at | One per installed device. D11 and D63 allow an iPhone and an iPad on one account, so the push token cannot live on the preference row. **Split out 2026-09-16; `apns_token` previously sat on NotificationPreference.** |
-| MonthFlag | member_id, year-month, target_warning_sent_at | Ensures the Target Warning fires once per month. |
+| Device | member_id, apns_token, registered_at | One per installed device. D11 and D63 allow an iPhone and an iPad on one account, so the push token cannot live on the preference row. Log out deletes this phone's row. |
+| MonthFlag | member_id, year-month, target_warning_sent_at, target_warning_message | Ensures the Target Warning fires once per month, and keeps the §8.8 copy as it read when stamped. |
+| SentLog | member_id, kind, period, sent_at | One row per push sent, claimed before the send, so each push goes out at most once (§10). |
 
 **On device only (D61, D63):** the encrypted session, a read-only cache of the above, and `cache_updated_at` for the "Last updated" line. The cache is never written to by the app itself: a successful server write refreshes it.
 
@@ -473,7 +474,7 @@ Copy depends on whether Payday has passed (D53):
 1. Fetch the rate. If the pair is unsupported, ask the Member for a rate. If the fetch fails, show an `InlineError` with Retry.
 2. If the Member has no Salary and no Spends, skip the confirm sheet and change the code directly.
 3. Otherwise the confirm sheet shows the rate and before/after values.
-4. In one transaction: rewrite every SalarySetting amount and every Spend amount as `round-half-up(amount × rate)` to the new Currency's decimals, leaving each row's `original_amount` and `original_currency` untouched; set `member.currency_code`; write a CurrencyConversion row.
+4. In one transaction: rewrite every SalarySetting amount and every Spend amount as `round-half-up(amount × rate)` to the new Currency's decimals, leaving each row's `original_amount` and `original_currency` untouched; set `member.currency_code`; write a CurrencyConversion row. An amount that rounds to zero is kept at the new Currency's smallest unit, as the relabel keeps every amount above zero: Rp15 into BHD is 0.00036, kept as 0.001, not 0.000 (owner, 2026-09-30).
 5. Saving Target percentages are untouched.
 6. Not reversible except by converting again at a new rate.
 
@@ -488,7 +489,7 @@ Copy depends on whether Payday has passed (D53):
 - **Payday edits (D56).** Always effective from the next month. The screen says so: "Your new payday starts in {next month}."
 - **Saving Target edits (D65).** Always effective from the next month, no sheet. The screen says so.
 
-*Worked:* Maya edits £2,400 → £2,800 on 27 September. The sheet appears. "The £2,800 I was paid on 25 September" makes September's Money In £2,800 and its target £560. "My new salary, from 25 October" leaves September at £2,400, and Salary and payday then reads "£2,800 from your next payday, 25 October." under the amount card; Home is unchanged. Editing on 20 September shows no sheet and applies to September.
+*Worked:* Maya edits £2,400 → £2,800 on 27 September. The sheet appears. "The £2,800 I was paid on 25 September" makes September's Money In £2,800 and its target £560. "My new salary, from 25 October" leaves September at £2,400, and Salary and payday (SCREEN-STATES D3) then reads "£2,800 from your next payday, 25 October." under the amount card; Home is unchanged (owner, 2026-09-29). Editing on 20 September shows no sheet and applies to September.
 
 ### 8.11 Partial months (new, D52, D64)
 
@@ -521,7 +522,7 @@ For a partial month: Money In is 0, Saved is not computed or displayed, there is
 | Daily reminder | off | Member-chosen time, only if no Spend was logged today | "Log today's spends before you forget." |
 | Target Warning | on | §8.8 | "You've passed your saving line for {Month}." |
 
-A partial month still sends "Recap ready": there is something to see (§6.17). Push permission is requested once, after the first Spend is saved. If denied, the Settings toggles are disabled and deep-link to iOS Settings, and the Settings row reads "Off in iOS Settings".
+A partial month still sends "Recap ready": there is something to see (§6.17). Each push goes out at most once, none while the Member's switch for it is off or a deletion is pending, and none to a phone that logged out (owner, 2026-09-29). Push permission is requested once, after the first Spend is saved. If denied, the Settings toggles are disabled and deep-link to iOS Settings, and the Settings row reads "Off in iOS Settings".
 
 ## 11. Non-functional requirements
 

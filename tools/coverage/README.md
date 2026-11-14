@@ -20,13 +20,13 @@ Run it and commit `baseline.json` in the same pull request that added the tests.
 ## The floors, and how each is measured
 
 The floors are `baseline.json`, which only `--update` writes. Each comes from a measured run, not a
-guess: CI, or the CI commands run locally when GitHub refuses to start the jobs. The history of the
+guess: CI, or the same commands run locally. The history of the
 measurements is in the pull requests that raised them.
 
 | Language | Measured by | Latest |
 | --- | --- | --- |
-| `go` | The `backend` job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify`, `internal/ledger` and the end-to-end tests really run. The floor sits at the target, not at the measurement, because the ratchet stops there. | 86.5% |
-| `ios` | The `ios` job's commands, `-enableCodeCoverage YES` on both halves of the build-then-test split, on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home and counts far higher. The floor sits at the target, as Go's does. | 86.5% |
+| `go` | The `backend` job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify`, `internal/ledger` and the end-to-end tests really run. The floor sits at the target, not at the measurement, because the ratchet stops there. | 84.4% |
+| `ios` | The `ios` job's commands, `-enableCodeCoverage YES` on both halves of the build-then-test split, on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home and counts far higher. The floor sits at the target, as Go's does. | 85.9% |
 | `typescript` | `npm run test:coverage` in `my-money-recap-ds`. The floor sits at the target, as Go's does. | 97.8% |
 
 ## What is not counted

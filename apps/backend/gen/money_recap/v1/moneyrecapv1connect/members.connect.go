@@ -56,9 +56,8 @@ const (
 // MembersServiceClient is a client for the money_recap.v1.MembersService service.
 type MembersServiceClient interface {
 	// Upsert on the Keycloak subject: creates on first sight (members.created),
-	// else returns the Member, refreshing the email when the token has one
-	// (members.updated when it changed). Planned: a tombstoned row (deleted_at
-	// set) counts as absent (§7.1 step 3).
+	// else refreshes the email when the token has one (members.updated). A
+	// tombstoned subject is permission_denied (§7.1 step 3).
 	GetOrCreateBySubject(context.Context, *connect.Request[v1.GetOrCreateBySubjectRequest]) (*connect.Response[v1.GetOrCreateBySubjectResponse], error)
 	GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error)
 	// Display Name, Avatar key, Currency and the onboarding step just completed
@@ -167,9 +166,8 @@ func (c *membersServiceClient) CancelDeletion(ctx context.Context, req *connect.
 // MembersServiceHandler is an implementation of the money_recap.v1.MembersService service.
 type MembersServiceHandler interface {
 	// Upsert on the Keycloak subject: creates on first sight (members.created),
-	// else returns the Member, refreshing the email when the token has one
-	// (members.updated when it changed). Planned: a tombstoned row (deleted_at
-	// set) counts as absent (§7.1 step 3).
+	// else refreshes the email when the token has one (members.updated). A
+	// tombstoned subject is permission_denied (§7.1 step 3).
 	GetOrCreateBySubject(context.Context, *connect.Request[v1.GetOrCreateBySubjectRequest]) (*connect.Response[v1.GetOrCreateBySubjectResponse], error)
 	GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error)
 	// Display Name, Avatar key, Currency and the onboarding step just completed
