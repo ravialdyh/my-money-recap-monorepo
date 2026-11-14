@@ -157,7 +157,7 @@ func TestADuplicateDeliveryChangesNothing(t *testing.T) {
 	}{
 		"facts without a Member":  {"members.updated", facts("", time.Minute, "Asia/Jakarta", "x@example.test")},
 		"a deletion without time": {"members.deletion.requested", &moneyrecapv1.MembersDeletionRequested{Envelope: &moneyrecapv1.EventEnvelope{MemberId: id}}},
-		"an unbound key":          {"members.deleted", deletion(id, time.Minute)},
+		"an unbound key":          {"ledger.spend.logged", deletion(id, time.Minute)},
 		"facts without the facts": {"members.created", &moneyrecapv1.MembersCreated{Envelope: deletion(id, time.Minute).Envelope}},
 	} {
 		if f.deliver(rand.Text(), d.key, d.msg) {

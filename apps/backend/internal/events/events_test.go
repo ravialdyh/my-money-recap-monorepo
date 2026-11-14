@@ -19,40 +19,13 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/members"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
-// scratch opens the database dsnVar names in a schema of the test's own, built by that service's migrations and
-// dropped at the end, so the stack's relay and consumer never meet a test's rows. Skips without dsnVar.
+// scratch is testdb.Scratch: the stack's relay and consumer never meet a test's rows.
 func scratch(t *testing.T, dsnVar string, migrate func(context.Context, *pgxpool.Pool) error) *pgxpool.Pool {
 	t.Helper()
-	dsn := os.Getenv(dsnVar)
-	if dsn == "" {
-		t.Skip(dsnVar + " not set")
-	}
-	ctx := context.Background()
-	schema := "events_test_" + strings.ToLower(rand.Text())
-	cfg, err := pgxpool.ParseConfig(dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	cfg.ConnConfig.RuntimeParams["search_path"] = schema
-	db, err := pgxpool.NewWithConfig(ctx, cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if _, err := db.Exec(ctx, `DROP SCHEMA `+schema+` CASCADE`); err != nil {
-			t.Logf("cleanup: %v", err)
-		}
-		db.Close()
-	})
-	if _, err := db.Exec(ctx, `CREATE SCHEMA `+schema); err != nil {
-		t.Fatal(err)
-	}
-	if err := migrate(ctx, db); err != nil {
-		t.Fatal(err)
-	}
-	return db
+	return testdb.Scratch(t, dsnVar, migrate)
 }
 
 // broker dials the Compose stack's RabbitMQ and declares the exchanges, skipping unless MMR_TEST_AMQP_URL is set.

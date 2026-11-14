@@ -6,7 +6,8 @@ It serves `EmailMagicLink`, the Target Warning state
 and the `idempotency` table, `RegisterDevice`, `ForgetDevice`, `GetPrefs` and `SavePrefs`
 ("The preferences", below), the Target Warning's push through the Apple sender ("The push", below),
 `EmailExport`, the CSV export email, and the Recap-ready and daily-reminder schedules ("The schedules", below).
-The `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
+On `members.deleted` it purges the Member ("The replica", below) and stages `notify.member.purged` in its outbox,
+which a relay publishes as every service's does. Its image, bearer check, start-up, migrations and shared variables are every service's
 (`apps/README.md`, "Every service").
 Its `Ledger` client sends `notify`'s own service-account token, fetched with the client-credentials grant and
 cached until it expires (ARCHITECTURE §4.2), which `ledger` accepts for `GetSpentToday` and
@@ -119,11 +120,13 @@ unsent.
 `member_facts` is notify's copy of each Member (spec #169, "The replica"): the owner's subject, the
 zone, the email and whether a deletion is pending, and no Display Name, since no push prints one. The
 consumer reads the quorum queue `notify.members`, bound to `members.created`, `members.updated`,
-`members.deletion.requested` and `members.deletion.cancelled`, once per message id through
+`members.deletion.requested`, `members.deletion.cancelled` and `members.deleted`, once per message id through
 `processed_events`, and a malformed event waits in `notify.members.dead` after five tries. The facts events
 write the zone and the email, an empty fact never clearing one; the deletion events set and clear the
 flag. Each of the two has its own stamp, `facts_at` and `deletion_at`, from the event's time, so an older
 event never overrides a newer one of its kind: a late request after a cancel leaves the flag clear.
+`members.deleted` deletes the Member's preferences, devices, month flags, sent log, keys, outbox rows and
+replica, and stages `notify.member.purged` in the same transaction (ARCHITECTURE §7.1 step 5).
 
 The owner check's miss also covers a row lacking the zone or the email, so a Member created before #176
 gets both on their next Home. That read is stamped with the time it was asked, and fills only where no

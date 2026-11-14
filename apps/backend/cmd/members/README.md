@@ -69,7 +69,18 @@ Member already stamped keeps the first stamp, with nothing staged.
 
 `Keycloak.DeleteAccount` deletes a Keycloak account by subject with `members`' own service account, which
 holds `manage-users` for the deletion job alone (ARCHITECTURE §7.1 step 4, §4.2); a 404 counts as done.
-No job calls it yet.
+
+## The deletion job
+
+Every 10 minutes (`Sweep`, ARCHITECTURE §7.1 steps 3 to 6), `DeleteDue` tombstones each Member whose
+`deletion_requested_at` is 24 hours old or more: one transaction per Member sets `deleted_at`, writes the
+`deletion_progress` row and stages `members.deleted`. A tombstoned row is absent to every read, and
+`GetOrCreateBySubject` answers its subject `permission_denied`. The same run deletes each tombstone's Keycloak
+account still held, with `Keycloak.DeleteAccount`, and stamps `keycloak_deleted_at`; a failed call waits for the
+next run. A second consumer reads `members.purges`, bound to `ledger.member.purged` and `notify.member.purged`,
+and stamps the progress row. Whichever stamp completes the three hard-deletes the member row, its keys, its
+outbox rows and the progress row. A deletion still incomplete an hour after its tombstone writes a log line on
+every run, until observability lands (A11). `currency` takes no part.
 
 ## Events
 
@@ -77,7 +88,8 @@ A first sight stages `members.created`, and a write that changes any of the fact
 (`MemberFacts`: the Display Name, zone, sign-up date, Currency and email) stages one `members.updated`
 carrying all of them, in the outbox, inside the write's own transaction (ARCHITECTURE §4.3, A4). A write
 that changes none of them stages nothing: an Avatar, a step, the same answer again, a replayed key.
-`CancelDeletion` stages `members.deletion.cancelled` the same way, which `notify` consumes. The
+`RequestDeletion` and `CancelDeletion` stage `members.deletion.requested` and `members.deletion.cancelled` the same
+way, which `notify` consumes, and the deletion job stages `members.deleted`. The
 relay beside the handler polls the outbox every second, publishes with publisher confirms and marks a row
 sent only once the broker has confirmed it; `FOR UPDATE SKIP LOCKED` keeps two relays off the same row
 (`internal/events`). A relay that loses the broker logs it and dials again five seconds later.
@@ -94,6 +106,7 @@ every view the BFF answers takes its Currency from `ledger`, so no screen shows 
 
 `go test ./internal/members/` runs them; each test's name and doc comment say what it proves. The
 store-failure and caller-deadline tests need nothing; the rest need the stack's Postgres, and the
-Connect-boundary test a real Keycloak token too. The account-deletion test needs Keycloak and
-`members`' own secret, and deletes only a throwaway account it creates. The variables are in `infra/compose/README.md`,
+Connect-boundary test a real Keycloak token too. The account-deletion and deletion-job tests need Keycloak and
+`members`' own secret, and delete only a throwaway account each creates; the job's tests run in a scratch
+schema (`internal/testdb`), so the stack's relay and job never meet their rows. The variables are in `infra/compose/README.md`,
 "Running the Go tests against this stack".

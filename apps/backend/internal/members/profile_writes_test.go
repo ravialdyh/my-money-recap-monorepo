@@ -10,6 +10,7 @@ import (
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
 // SaveProfile writes only the answers sent, stores the name in NFC, keeps the highest step when an earlier one
@@ -85,7 +86,7 @@ func TestSaveProfile(t *testing.T) {
 // CancelDeletion clears a stamp written straight into the row and stages members.deletion.cancelled once; a
 // replay, a Member with no stamp and a stamp past the 24 hours change nothing (D60, ARCHITECTURE §7.1 step 2).
 func TestCancelDeletionClearsAStampUnderADayOld(t *testing.T) {
-	db := testDB(t)
+	db := testdb.Scratch(t, "MMR_TEST_MEMBERS_DATABASE_URL", Migrate)
 	subject := "cancel-" + t.Name()
 	ctx := auth.NewContext(context.Background(), auth.Claims{Subject: subject})
 	t.Cleanup(func() {

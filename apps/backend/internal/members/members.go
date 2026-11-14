@@ -44,9 +44,12 @@ func scanRow(r pgx.Row) (Row, error) {
 	return m, err
 }
 
-// Upsert backs GetOrCreateBySubject: a first call creates the Member (members.created); a later one stores a
-// new email claim (members.updated), and an empty claim keeps the address. Concurrent first calls meet on the
-// unique index.
+// errTombstoned refuses a subject whose Member the deletion job has tombstoned, until its Keycloak account is gone
+// (ARCHITECTURE §7.1 step 3); the same person signing in afterwards has a new subject and a fresh Member.
+var errTombstoned = errors.New("this account is being deleted")
+
+// Upsert backs GetOrCreateBySubject: a first call creates the Member (members.created), a later one stores a new
+// email claim (members.updated), an empty claim keeps the address and a tombstone is errTombstoned.
 func Upsert(ctx context.Context, db *pgxpool.Pool, subject, email string) (Row, error) {
 	var m Row
 	err := pgx.BeginFunc(ctx, db, func(tx pgx.Tx) error {
@@ -58,7 +61,10 @@ func Upsert(ctx context.Context, db *pgxpool.Pool, subject, email string) (Row, 
 		if !errors.Is(err, pgx.ErrNoRows) {
 			return err
 		}
-		before, err := scanRow(tx.QueryRow(ctx, `SELECT `+rowColumns+` FROM member WHERE keycloak_subject = $1 FOR UPDATE`, subject))
+		before, err := scanRow(tx.QueryRow(ctx, `SELECT `+rowColumns+` FROM member WHERE keycloak_subject = $1 AND deleted_at IS NULL FOR UPDATE`, subject))
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errTombstoned
+		}
 		m = before
 		if err != nil || email == "" || email == before.Email {
 			return err
@@ -71,12 +77,12 @@ func Upsert(ctx context.Context, db *pgxpool.Pool, subject, email string) (Row, 
 	return m, err
 }
 
-// Get returns pgx.ErrNoRows for an unknown or malformed id.
+// Get returns pgx.ErrNoRows for an unknown, malformed or tombstoned id.
 func Get(ctx context.Context, db *pgxpool.Pool, id string) (Row, error) {
 	if err := (&pgtype.UUID{}).Scan(id); err != nil {
 		return Row{}, pgx.ErrNoRows
 	}
-	return scanRow(db.QueryRow(ctx, `SELECT `+rowColumns+` FROM member WHERE id = $1`, id))
+	return scanRow(db.QueryRow(ctx, `SELECT `+rowColumns+` FROM member WHERE id = $1 AND deleted_at IS NULL`, id))
 }
 
 // Service implements MembersService over a pool. Every RPC runs behind auth.Interceptor, and a
@@ -96,6 +102,9 @@ func (s *Service) GetOrCreateBySubject(ctx context.Context, req *connect.Request
 		return nil, connect.NewError(connect.CodePermissionDenied, errors.New("email does not match the token"))
 	}
 	m, err := Upsert(ctx, s.DB, claims.Subject, claims.Email)
+	if errors.Is(err, errTombstoned) {
+		return nil, connect.NewError(connect.CodePermissionDenied, err)
+	}
 	if err != nil {
 		return nil, storeFailed(ctx, err)
 	}

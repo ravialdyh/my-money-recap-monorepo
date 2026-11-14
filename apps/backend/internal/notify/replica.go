@@ -11,16 +11,20 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 )
 
 // MembersQueue is notify's queue of members' events, and MembersKeys what it binds (ARCHITECTURE §4.3, §7.3
 // "Consumes"): the facts it copies and the deletion-pending flag.
 const MembersQueue = "notify.members"
 
-var MembersKeys = []string{"members.created", "members.updated", "members.deletion.requested", "members.deletion.cancelled"}
+var MembersKeys = []string{"members.created", "members.updated", "members.deletion.requested", "members.deletion.cancelled", "members.deleted"}
 
-// ApplyMemberEvent keeps the replica from MembersKeys: the zone and the email from the facts, and the
-// deletion-pending flag. Each has its own stamp, so an older event never overrides a newer one of its kind.
+// purged is every table holding a Member's rows, which members.deleted empties (ARCHITECTURE §7.1 step 5).
+var purged = []string{"notification_preference", "device", "month_flag", "sent_log", "idempotency", "outbox", "member_facts"}
+
+// ApplyMemberEvent keeps the replica from MembersKeys: the facts and the deletion-pending flag, each stamped so an
+// older event never overrides a newer one; members.deleted purges the Member and stages notify.member.purged.
 func ApplyMemberEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 	switch d.RoutingKey {
 	case "members.created", "members.updated":
@@ -29,6 +33,10 @@ func ApplyMemberEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 		return flagDeletion(ctx, tx, d.Body, true)
 	case "members.deletion.cancelled":
 		return flagDeletion(ctx, tx, d.Body, false)
+	case "members.deleted":
+		return events.Purge(ctx, tx, d.Body, purged, "notify.member.purged", func(env *moneyrecapv1.EventEnvelope) proto.Message {
+			return &moneyrecapv1.NotifyMemberPurged{Envelope: env}
+		})
 	}
 	return fmt.Errorf("notify.members does not bind %q", d.RoutingKey)
 }

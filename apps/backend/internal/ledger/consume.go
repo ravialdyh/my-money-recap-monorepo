@@ -9,12 +9,27 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 )
 
 // Queue is ledger's queue of members' events, and Keys what it binds (ARCHITECTURE §4.3, §7.2 "Consumes").
 const Queue = "ledger.members"
 
-var Keys = []string{"members.created", "members.updated"}
+var Keys = []string{"members.created", "members.updated", "members.deleted"}
+
+// purged is every table holding a Member's rows, which members.deleted empties (ARCHITECTURE §7.1 step 5).
+var purged = []string{"spend", "salary_setting", "saving_target_setting", "currency_conversion", "idempotency", "outbox", "member_facts"}
+
+// ApplyMemberEvent routes a delivery on Queue: members.deleted purges every row of the Member and stages
+// ledger.member.purged; the facts events keep the replica.
+func ApplyMemberEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
+	if d.RoutingKey != "members.deleted" {
+		return ApplyMemberFacts(ctx, tx, d)
+	}
+	return events.Purge(ctx, tx, d.Body, purged, "ledger.member.purged", func(env *moneyrecapv1.EventEnvelope) proto.Message {
+		return &moneyrecapv1.LedgerMemberPurged{Envelope: env}
+	})
+}
 
 // ApplyMemberFacts keeps the replica from members.created and members.updated (one shape): an older event, or a
 // Currency older than RelabelCurrency's, is skipped, an empty fact never clears one, and the subject stays (§4.2).

@@ -2,12 +2,10 @@ package notify
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -18,39 +16,14 @@ import (
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
 // scheduleDB is the notify schema in a schema of its own, dropped at the end, so the stack's notify never ticks the
 // test's rows and a test's clock never ticks the stack's.
 func scheduleDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
-	dsn := os.Getenv("NOTIFY_TEST_DATABASE_URL")
-	if dsn == "" {
-		t.Skip("NOTIFY_TEST_DATABASE_URL not set")
-	}
-	config, err := pgxpool.ParseConfig(dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	schema := "schedule_" + strings.ToLower(rand.Text()[:10])
-	config.ConnConfig.RuntimeParams["search_path"] = schema
-	db, err := pgxpool.NewWithConfig(t.Context(), config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(db.Close)
-	if _, err := db.Exec(t.Context(), `CREATE SCHEMA `+schema); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		if _, err := db.Exec(context.Background(), `DROP SCHEMA `+schema+` CASCADE`); err != nil {
-			t.Logf("cleanup %s: %v", schema, err)
-		}
-	})
-	if err := Migrate(t.Context(), db); err != nil {
-		t.Fatal(err)
-	}
-	return db
+	return testdb.Scratch(t, "NOTIFY_TEST_DATABASE_URL", Migrate)
 }
 
 // fakeLedger answers the schedules' two reads: months holds each Member's month list, today each Member's count of

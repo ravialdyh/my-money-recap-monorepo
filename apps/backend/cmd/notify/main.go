@@ -23,9 +23,9 @@ func main() {
 }
 
 // run is the start-up every database-backed binary shares (internal/serve), given this service's
-// name, its schema step, its handler, its two consumers and its schedules.
+// name, its schema step, its handler, its two consumers, its schedules and its outbox relay.
 func run() error {
-	return serve.Main("notify", notify.Migrate, handler, consumer, membersConsumer, schedules)
+	return serve.Main("notify", notify.Migrate, handler, consumer, membersConsumer, schedules, relay)
 }
 
 // service is the one Service: handler builds it before serve.Main builds the consumers, whose loops push through it.
@@ -70,3 +70,9 @@ func membersConsumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 
 // schedules is Recap ready and the daily reminder, ticking every minute (§4.5).
 func schedules(*serve.Env, *pgxpool.Pool) func(context.Context) { return service.Schedule }
+
+// relay publishes the outbox, today notify.member.purged, to the broker NOTIFY_AMQP_URL names (§4.3, §7.1 step 5).
+func relay(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
+	url := env.Get("NOTIFY_AMQP_URL", "")
+	return func(ctx context.Context) { events.Relay(ctx, db, url) }
+}

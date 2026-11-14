@@ -31,6 +31,9 @@ onboarding's steps 3 and 4, a resumed step's saved answers, every Spend screen a
   whose token that read succeeded with, and a call under any other token is a miss, so `members` answers
   it: a token that does not own the Member gets `not_found`, however the row was filled (§4.2 point 3).
   A Member with no zone, sign-up date or Currency yet is `failed_precondition`.
+  `members.deleted` on the same queue deletes every row `ledger` holds for the Member, Salary, Target, Spends,
+  conversions, keys, outbox rows and the replica, and stages `ledger.member.purged` in the same transaction
+  (ARCHITECTURE §7.1 step 5).
   `notify`'s own token (ARCHITECTURE §4.2) owns no Member, so its two calls skip that check and never
   ask `members`: a replica missing a fact is `not_found` to it.
 - **The rows** (`salary_setting`, `saving_target_setting`), append-only (PRD §7). The row in force for a

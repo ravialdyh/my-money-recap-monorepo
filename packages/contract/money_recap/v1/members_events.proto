@@ -45,8 +45,9 @@ message MembersDeletionCancelled {
   EventEnvelope envelope = 1;
 }
 
-// Routing key "members.deleted" (§7.1 step 3): ledger, notify and currency
-// purge on it and answer with <service>.member.purged.
+// Routing key "members.deleted" (§7.1 step 3): ledger and notify purge on it
+// and answer with <service>.member.purged; currency stores nothing about a
+// Member.
 message MembersDeleted {
   EventEnvelope envelope = 1;
 }

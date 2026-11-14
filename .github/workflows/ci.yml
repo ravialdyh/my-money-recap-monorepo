@@ -211,7 +211,7 @@ jobs:
       - name: Coverage may not fall, see tools/coverage/README.md
         run: |
           set -o pipefail
-          grep -vE '/gen/|/internal/testauth/' cover.out > cover.filtered
+          grep -vE '/gen/|/internal/test(auth|db)/' cover.out > cover.filtered
           pct=$(go tool cover -func=cover.filtered | awk '/^total:/ {print substr($3, 1, length($3) - 1)}')
           test -n "$pct"
           python3 ../../tools/coverage/coverage_gate.py go "$pct"

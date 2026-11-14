@@ -33,11 +33,12 @@ func handler(env *serve.Env, db *pgxpool.Pool, check connect.Option) (string, ht
 	return moneyrecapv1connect.NewLedgerServiceHandler(&ledger.Service{DB: db, Members: members}, check)
 }
 
-// consumer keeps the replica fresh from members' events on the broker LEDGER_AMQP_URL names (§4.3, §7.2).
+// consumer keeps the replica fresh from members' events on the broker LEDGER_AMQP_URL names, and purges on
+// members.deleted (§4.3, §7.2).
 func consumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 	url := env.Get("LEDGER_AMQP_URL", "")
 	return func(ctx context.Context) {
-		events.Consume(ctx, db, url, ledger.Queue, ledger.Keys, ledger.ApplyMemberFacts)
+		events.Consume(ctx, db, url, ledger.Queue, ledger.Keys, ledger.ApplyMemberEvent)
 	}
 }
 
