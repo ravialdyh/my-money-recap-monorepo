@@ -2,7 +2,7 @@
 
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
 subject. It serves `GetOrCreateBySubject` and `GetProfile`, `SetTimezone`, `SaveProfile`
-`RequestDeletion` and `CancelDeletion`, and consumes `ledger.currency.converted`; the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
+`RequestDeletion` and `CancelDeletion`, every RPC of `MembersService`; it consumes `ledger.currency.converted` and the two purged events, and runs the deletion job. Its image, bearer check, start-up, migrations and variables are every service's
 (`apps/README.md`, "Every service"), plus four of its own.
 
 | Variable | Default | Meaning |

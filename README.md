@@ -3,7 +3,7 @@
 A personal money tracker for adults, styled as a playful kids' app, that turns one month of
 income, spending and saving into a Wrapped-style monthly recap.
 
-Work in progress: slices 1–6 are done, slice 7 (Settings and notifications) is under way.
+Work in progress: slices 1–7 are done; the real deploy and the rest of phase 1 are planned in #8 and #87.
 
 ## Layout
 

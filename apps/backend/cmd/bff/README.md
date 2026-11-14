@@ -1,8 +1,7 @@
 # bff
 
 The BFF (`docs/ARCHITECTURE.md` §6): the only thing the phone talks to, owning no database. It
-serves `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `GetSettings`, `SaveSalary`, `SaveTarget`, `CancelDeletion`, `LogSpend`, `EditSpend`, `DeleteSpend`, `RegisterDevice`, `SaveNotificationPrefs`, `ListSpends`, `GetRecap`, `PreviewCurrencyChange`, `ChangeCurrency` and `RequestMagicLink`; the rest of
-`BffService` is planned. Every RPC but
+serves every RPC of `BffService`: `GetHome`, `GetOnboardingState`, `SetTimezone`, `SaveProfile`, `GetSettings`, `SaveSalary`, `SaveTarget`, `RequestDeletion`, `CancelDeletion`, `LogSpend`, `EditSpend`, `DeleteSpend`, `RegisterDevice`, `ForgetDevice`, `SaveNotificationPrefs`, `RequestExport`, `ListSpends`, `GetRecap`, `PreviewCurrencyChange`, `ChangeCurrency` and `RequestMagicLink`. Every RPC but
 `RequestMagicLink` passes the bearer check every service shares (`apps/README.md`, "Every
 service") before any service is called, and the token is then forwarded unchanged (§4.2).
 

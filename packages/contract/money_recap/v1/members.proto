@@ -119,9 +119,8 @@ message CancelDeletionResponse {
 
 service MembersService {
   // Upsert on the Keycloak subject: creates on first sight (members.created),
-  // else returns the Member, refreshing the email when the token has one
-  // (members.updated when it changed). Planned: a tombstoned row (deleted_at
-  // set) counts as absent (§7.1 step 3).
+  // else refreshes the email when the token has one (members.updated). A
+  // tombstoned subject is permission_denied (§7.1 step 3).
   rpc GetOrCreateBySubject(GetOrCreateBySubjectRequest) returns (GetOrCreateBySubjectResponse) {}
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
   // Display Name, Avatar key, Currency and the onboarding step just completed
