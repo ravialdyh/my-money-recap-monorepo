@@ -78,8 +78,9 @@ Every 10 minutes (`Sweep`, ARCHITECTURE §7.1 steps 3 to 6), `DeleteDue` tombsto
 `GetOrCreateBySubject` answers its subject `permission_denied`. The same run deletes each tombstone's Keycloak
 account still held, with `Keycloak.DeleteAccount`, and stamps `keycloak_deleted_at`; a failed call waits for the
 next run. A second consumer reads `members.purges`, bound to `ledger.member.purged` and `notify.member.purged`,
-and stamps the progress row. Whichever stamp completes the three hard-deletes the member row, its keys, its
-outbox rows and the progress row. A deletion still incomplete an hour after its tombstone writes a log line on
+and stamps the progress row. Once all three stamps are present and the Keycloak account has been gone 5 minutes,
+the longest an access token lives, the next run hard-deletes the member row, its keys, its outbox rows and the
+progress row; until then the tombstone refuses any token issued before the account went. A deletion still incomplete an hour after its tombstone writes a log line on
 every run, until observability lands (A11). `currency` takes no part.
 
 ## Events

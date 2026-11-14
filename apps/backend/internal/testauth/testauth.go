@@ -63,7 +63,10 @@ func Exchange(t *testing.T, keycloak string, form url.Values) (access, refusal s
 }
 
 // Claims are the payload fields the tests read, decoded without verification.
-type Claims struct{ Iss, Sub, Email string }
+type Claims struct {
+	Iss, Sub, Email string
+	Exp, Iat        int64
+}
 
 func Decode(t *testing.T, tok string) Claims {
 	t.Helper()
