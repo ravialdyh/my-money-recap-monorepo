@@ -12,16 +12,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// probeFiles is one file that creates a table and one that fills it: enough to prove name order and
-// a rerun that changes nothing, and nothing a service would recognise.
 var probeFiles = fstest.MapFS{
 	"migrations/0001_probe.sql": {Data: []byte("CREATE TABLE probe (n int)")},
 	"migrations/0002_probe.sql": {Data: []byte("INSERT INTO probe (n) VALUES (1)")},
 }
 
-// probePool takes whichever service database the environment offers and points search_path at a
-// throwaway schema, dropped when the test ends, so the shared runner's own tests leave neither a
-// ledger row nor a probe table in a service's schema.
 func probePool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
@@ -54,7 +49,6 @@ func probePool(t *testing.T) *pgxpool.Pool {
 	return db
 }
 
-// counts is the probe table's rows and the ledger's, the two numbers a second run must not change.
 func counts(t *testing.T, db *pgxpool.Pool) (rows, applied int) {
 	t.Helper()
 	if err := db.QueryRow(t.Context(), `SELECT count(*) FROM probe`).Scan(&rows); err != nil {
@@ -66,8 +60,6 @@ func counts(t *testing.T, db *pgxpool.Pool) (rows, applied int) {
 	return rows, applied
 }
 
-// firstRuns calls Run n times at once on connections the pool has already opened, so every caller
-// reaches the ledger together; a cold pool opens them one by one and the race mostly does not happen.
 func firstRuns(t *testing.T, db *pgxpool.Pool, n int) []error {
 	t.Helper()
 	warm := make([]*pgxpool.Conn, n)
@@ -97,8 +89,6 @@ func firstRuns(t *testing.T, db *pgxpool.Pool, n int) []error {
 	return errs
 }
 
-// A second run of a migration step must change nothing, because Compose runs it before every start
-// of the service (ARCHITECTURE §10), and the files must apply in name order.
 func TestEveryFileAppliesOnceInNameOrder(t *testing.T) {
 	db := probePool(t)
 	if err := Run(t.Context(), db, probeFiles); err != nil {
@@ -114,9 +104,6 @@ func TestEveryFileAppliesOnceInNameOrder(t *testing.T) {
 	t.Logf("two runs of two files: %d row, %d recorded", rows, applied)
 }
 
-// Six first runs racing on an empty database must all succeed, because two services call this runner
-// and Compose starts both migration steps at once: CREATE TABLE IF NOT EXISTS is not race-safe, so
-// the ledger is created under the advisory lock.
 func TestConcurrentFirstRunsDoNotRace(t *testing.T) {
 	db := probePool(t)
 	for round := range 3 {
@@ -136,7 +123,6 @@ func TestConcurrentFirstRunsDoNotRace(t *testing.T) {
 	t.Log("three rounds of six concurrent first runs: no collision, one row and two recorded files each")
 }
 
-// A file that fails names itself, so a broken migration is not a bare SQL error.
 func TestAFailedFileNamesItself(t *testing.T) {
 	db := probePool(t)
 	err := Run(t.Context(), db, fstest.MapFS{"migrations/0001_broken.sql": {Data: []byte("NOT SQL")}})

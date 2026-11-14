@@ -1,4 +1,3 @@
-// Package members is the members service (ARCHITECTURE §7.1): its schema, store and Connect handler.
 package members
 
 import (
@@ -24,11 +23,8 @@ import (
 //go:embed migrations/*.sql
 var migrations embed.FS
 
-// Migrate applies this service's embedded migrations to the members database (internal/migrate).
 func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
-// Row is one member row's profile columns: a null text or date column reads as an empty string, a null
-// onboarding step as 0 and a null deletion stamp as nil, so no unset column is an error.
 type Row struct {
 	ID, Subject, Email, DisplayName, AvatarKey, CurrencyCode, Timezone, SignedUpOn string
 	OnboardingStep                                                                 int32
@@ -44,12 +40,8 @@ func scanRow(r pgx.Row) (Row, error) {
 	return m, err
 }
 
-// errTombstoned refuses a subject whose Member the deletion job has tombstoned, until its Keycloak account is gone
-// (ARCHITECTURE §7.1 step 3); the same person signing in afterwards has a new subject and a fresh Member.
 var errTombstoned = errors.New("this account is being deleted")
 
-// Upsert backs GetOrCreateBySubject: a first call creates the Member (members.created), a later one stores a new
-// email claim (members.updated), an empty claim keeps the address and a tombstone is errTombstoned.
 func Upsert(ctx context.Context, db *pgxpool.Pool, subject, email string) (Row, error) {
 	var m Row
 	err := pgx.BeginFunc(ctx, db, func(tx pgx.Tx) error {
@@ -77,7 +69,6 @@ func Upsert(ctx context.Context, db *pgxpool.Pool, subject, email string) (Row, 
 	return m, err
 }
 
-// Get returns pgx.ErrNoRows for an unknown, malformed or tombstoned id.
 func Get(ctx context.Context, db *pgxpool.Pool, id string) (Row, error) {
 	if err := (&pgtype.UUID{}).Scan(id); err != nil {
 		return Row{}, pgx.ErrNoRows
@@ -85,8 +76,6 @@ func Get(ctx context.Context, db *pgxpool.Pool, id string) (Row, error) {
 	return scanRow(db.QueryRow(ctx, `SELECT `+rowColumns+` FROM member WHERE id = $1 AND deleted_at IS NULL`, id))
 }
 
-// Service implements MembersService over a pool. Every RPC runs behind auth.Interceptor, and a
-// caller only ever reaches the Member its own token names (§4.2 point 3). Keycloak is the deletion job's.
 type Service struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
 	DB       *pgxpool.Pool
@@ -119,8 +108,6 @@ func (s *Service) GetProfile(ctx context.Context, req *connect.Request[moneyreca
 	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: profile(m)}), nil
 }
 
-// own reads the Member id names, answering not_found for an unknown or malformed id and for one another
-// token owns, so no caller learns whether someone else's Member exists.
 func (s *Service) own(ctx context.Context, id string) (Row, error) {
 	m, err := Get(ctx, s.DB, id)
 	if errors.Is(err, pgx.ErrNoRows) || (err == nil && m.Subject != auth.From(ctx).Subject) {
@@ -132,11 +119,8 @@ func (s *Service) own(ctx context.Context, id string) (Row, error) {
 	return m, nil
 }
 
-// storeFailed is serve.StoreFailed for this service.
 func storeFailed(ctx context.Context, err error) error { return serve.StoreFailed(ctx, "members", err) }
 
-// profile is a stored row as the contract carries it, with the Currency's decimals from the CLDR data ledger rounds
-// with, which step 3's amount field allows (spec #92).
 func profile(m Row) *moneyrecapv1.Profile {
 	digits, _ := cldr.Digits(m.CurrencyCode)
 	p := &moneyrecapv1.Profile{

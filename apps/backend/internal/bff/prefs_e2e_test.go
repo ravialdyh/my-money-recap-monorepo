@@ -15,8 +15,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestNotificationPrefsEndToEnd (#179): a Member of its own, signed in by magic link so the shared test Member's
-// 120-a-minute limit is untouched, reads PRD §10's defaults; a keyless save is refused, a keyed one stored once.
 func TestNotificationPrefsEndToEnd(t *testing.T) {
 	base, kc, mailpit, dsn, notifyDSN := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_MAILPIT"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL"), os.Getenv("NOTIFY_TEST_DATABASE_URL")
 	if base == "" || kc == "" || mailpit == "" || dsn == "" || notifyDSN == "" {

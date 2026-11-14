@@ -13,7 +13,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/members"
 )
 
-// Relay polls the outbox and publishes what a write staged after it started, until its context ends.
 func TestRelayPublishesWhatIsStaged(t *testing.T) {
 	db := scratch(t, "MMR_TEST_MEMBERS_DATABASE_URL", members.Migrate)
 	url, conn := broker(t)
@@ -36,7 +35,6 @@ func TestRelayPublishesWhatIsStaged(t *testing.T) {
 	}
 }
 
-// A broker that cannot be reached is dialled again until the context ends, and then both loops return.
 func TestLoopsReturnWhenTheirContextEnds(t *testing.T) {
 	db := scratch(t, "LEDGER_TEST_DATABASE_URL", ledger.Migrate)
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)

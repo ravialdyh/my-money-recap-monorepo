@@ -21,9 +21,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
-// The deletion job (§7.1 steps 3 to 6) on a throwaway Keycloak account: a 25-hour stamp is tombstoned once, its
-// account deleted, its subject refused until a run tokenLifetime after both purged events hard-deletes it; a 23-hour
-// one stays.
 func TestTheDeletionJob(t *testing.T) {
 	kc, secret := os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MEMBERS_TEST_CLIENT_SECRET")
 	if kc == "" || secret == "" {
@@ -126,8 +123,6 @@ func TestTheDeletionJob(t *testing.T) {
 	purge("notify.member.purged")
 }
 
-// Access tokens live no longer than tokenLifetime, which a tombstone must outlast (Keycloak's default is 300 s and the
-// realm sets none); the ios client mints magic-link tokens too, so this covers them.
 func TestTheTokenLifetime(t *testing.T) {
 	kc, password := os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
 	if kc == "" || password == "" {
@@ -139,7 +134,6 @@ func TestTheTokenLifetime(t *testing.T) {
 	}
 }
 
-// A deletion still incomplete an hour after its tombstone writes a log line on every run, standing in for A11's alert.
 func TestAStalledDeletionIsLogged(t *testing.T) {
 	db := testdb.Scratch(t, "MMR_TEST_MEMBERS_DATABASE_URL", Migrate)
 	ctx, now := context.Background(), time.Now()

@@ -16,8 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// fakeMembers answers GetProfile for the Members each bearer token owns, as members does (§4.2 point 3); the
-// tests' tokens are the subject itself.
 type fakeMembers struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
 	owns map[string]*moneyrecapv1.Profile
@@ -44,8 +42,6 @@ func idr(amount string) *moneyrecapv1.Money {
 	return &moneyrecapv1.Money{Amount: amount, CurrencyCode: "IDR"}
 }
 
-// After setup the first Salary and the first Target take effect this month (owner 2026-09-23); later rows follow
-// D56 and D65; two rows sharing a month resolve newest first; a key replays, and a reused key is refused.
 func TestSalaryAndTargetRows(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a001"
@@ -138,8 +134,6 @@ func TestSalaryAndTargetRows(t *testing.T) {
 	}
 }
 
-// A Member whose setup ends the month after sign-up still gets a sign-up-month Salary (spec #92). The
-// replica fills from members under the caller's token; a token not owning the Member gets not_found.
 func TestTheReplicaIsFilledUnderTheCallersToken(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a002"

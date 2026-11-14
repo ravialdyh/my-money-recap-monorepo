@@ -14,11 +14,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// errLedgerDown is how a ledger whose database is gone fails, naming the address.
 var errLedgerDown = errors.New("dial tcp 172.18.0.5:5432: connect: connection refused")
 
-// fakeLedger is ledger as the BFF sees it: a zero month in code with 15 days left and recaps, settings of salary, target,
-// code and amounts, each call recorded with its token; err fails every call. LogSpend and EditSpend answer warning and crossed.
 type fakeLedger struct {
 	moneyrecapv1connect.UnimplementedLedgerServiceHandler
 	err        error
@@ -73,7 +70,6 @@ func (f *fakeLedger) PreviewConversion(_ context.Context, req *connect.Request[m
 	return connect.NewResponse(&moneyrecapv1.PreviewConversionResponse{Preview: &moneyrecapv1.ConversionPreview{FromCurrencyCode: f.code, ToCurrencyCode: req.Msg.ToCurrencyCode, Rate: req.Msg.Rate}}), nil
 }
 
-// ApplyCurrencyConversion holds every amount in the new code from then on, as ledger does.
 func (f *fakeLedger) ApplyCurrencyConversion(_ context.Context, req *connect.Request[moneyrecapv1.ApplyCurrencyConversionRequest]) (*connect.Response[moneyrecapv1.ApplyCurrencyConversionResponse], error) {
 	f.gotConvert, f.gotToken = req.Msg, req.Header().Get("Authorization")
 	if f.err != nil {
@@ -166,7 +162,6 @@ func (f *fakeLedger) GetRecap(_ context.Context, req *connect.Request[moneyrecap
 	return connect.NewResponse(&moneyrecapv1.GetRecapResponse{Recap: &moneyrecapv1.Recap{Month: req.Msg.Month, ArchetypeTitle: "The Squirrel", Spent: &moneyrecapv1.Money{Amount: "0", CurrencyCode: f.code}}}), nil
 }
 
-// ledgerClient serves f the way the BFF reaches the real ledger: over Connect, forwarding the caller's token.
 func ledgerClient(t *testing.T, f *fakeLedger) moneyrecapv1connect.LedgerServiceClient {
 	t.Helper()
 	mux := http.NewServeMux()

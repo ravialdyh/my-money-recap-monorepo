@@ -9,8 +9,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// The export is every Spend left, oldest first, each amount exact in the current Currency, quoted by RFC 4180, and
-// any cell a spreadsheet would run as a formula made text; with no Spends it is the header alone (PRD §6.16).
 func TestTheExportCSV(t *testing.T) {
 	db := testDB(t)
 	id, empty := "00000000-0000-4000-8000-00000000a182", "00000000-0000-4000-8000-00000000a183"

@@ -29,13 +29,11 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 )
 
-// push is one request the fake Apple service received.
 type push struct {
 	path, topic, pushType, token, body string
 	proto                              int
 }
 
-// fakeApple is Apple's push service over TLS and HTTP/2, answering 410 for the device tokens in gone.
 type fakeApple struct {
 	mu     sync.Mutex
 	pushes []push
@@ -59,8 +57,6 @@ func (f *fakeApple) received() []push {
 	return append([]push(nil), f.pushes...)
 }
 
-// pushService is warningService sending to a fake Apple service with a key generated here, the Member's devices,
-// preferences and sent_log removed at the end.
 func pushService(t *testing.T, id string, gone ...string) (*Service, *fakeApple, *ecdsa.PrivateKey) {
 	t.Helper()
 	s := warningService(t, id, map[string]string{"owner": id})
@@ -77,8 +73,6 @@ func pushService(t *testing.T, id string, gone ...string) (*Service, *fakeApple,
 	return s, fake, key
 }
 
-// startApple is a fake Apple push service over TLS and HTTP/2, answering 410 for gone, and a sender to it signing
-// with a key generated here.
 func startApple(t *testing.T, gone ...string) (*Apple, *fakeApple, *ecdsa.PrivateKey) {
 	t.Helper()
 	fake := &fakeApple{gone: map[string]bool{}}
@@ -105,7 +99,6 @@ func devices(t *testing.T, s *Service, id string, tokens ...string) {
 	}
 }
 
-// cross calls EvaluateWarning over the line for month and waits for any push it started.
 func cross(t *testing.T, s *Service, id, key, month string) {
 	t.Helper()
 	_, err := s.EvaluateWarning(as("owner"), connect.NewRequest(&moneyrecapv1.EvaluateWarningRequest{
@@ -117,7 +110,6 @@ func cross(t *testing.T, s *Service, id, key, month string) {
 	s.pushes.Wait()
 }
 
-// crossByEvent hands the consumer one crossing Spend event for month, as the broker would, and waits for any push.
 func crossByEvent(t *testing.T, s *Service, id, messageID, month string) {
 	t.Helper()
 	body, err := proto.Marshal(&moneyrecapv1.LedgerSpendLogged{
@@ -140,8 +132,6 @@ func crossByEvent(t *testing.T, s *Service, id, messageID, month string) {
 	s.pushes.Wait()
 }
 
-// A month's first stamp pushes PRD §10's copy to each device over HTTP/2, signed for the team and Key ID; a 410
-// deletes the device, and no later stamp by either path or replica pushes again, while the next month's does.
 func TestTheFirstStampOfAMonthPushesOnce(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000f001"
 	phone, pad := "aa01", "aa02"
@@ -208,8 +198,6 @@ func TestTheFirstStampOfAMonthPushesOnce(t *testing.T) {
 	}
 }
 
-// No push goes out while the Target Warning switch is off or a deletion is pending, and the month is stamped all the
-// same, so Home's banner is unaffected (spec #169, "What every push obeys").
 func TestNoPushWhenTheSwitchIsOffOrADeletionIsPending(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000f002"
 	s, fake, _ := pushService(t, id)
@@ -236,7 +224,6 @@ func TestNoPushWhenTheSwitchIsOffOrADeletionIsPending(t *testing.T) {
 	}
 }
 
-// With no key configured, as on every laptop, the push is recorded in sent_log and skipped with one log line.
 func TestNoKeyRecordsThePushAndSkipsIt(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000f003"
 	s, fake, _ := pushService(t, id)
@@ -260,8 +247,6 @@ func TestNoKeyRecordsThePushAndSkipsIt(t *testing.T) {
 	}
 }
 
-// The push key arrives as the .p8 file in base64; an empty value is no key, and anything else that is not an EC
-// .p8 stops the start-up.
 func TestParseAppleKey(t *testing.T) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {

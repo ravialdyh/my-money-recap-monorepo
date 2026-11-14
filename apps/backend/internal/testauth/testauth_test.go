@@ -7,8 +7,6 @@ import (
 	"testing"
 )
 
-// Inbox must wait for the count its caller asks for: it returned on the first message it saw, so a
-// two-message assertion did no waiting at all.
 func TestInboxWaitsForTheCountItIsGiven(t *testing.T) {
 	var polls atomic.Int32
 	stub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {

@@ -13,8 +13,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// LogSpend validates in the Member's zone, replays a key and refuses it reused, crosses the line once and only in
-// the current month, and a token that does not own the Member reaches nothing (§4.2 point 3).
 func TestLogSpend(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a501"
@@ -106,7 +104,6 @@ func TestLogSpend(t *testing.T) {
 	}
 }
 
-// A past month with Spends and no Salary is partial (§8.11); one that missed its target says by how much (§8.7).
 func TestPastMonthsWithSpends(t *testing.T) {
 	c, _ := currencyOf("GBP")
 	today := time.Date(2026, 10, 5, 0, 0, 0, 0, time.UTC)
@@ -136,7 +133,6 @@ func TestPastMonthsWithSpends(t *testing.T) {
 	}
 }
 
-// A partial sign-up month waits for next month's Payday, so its warning reads the before-Payday copy (§8.8, D52).
 func TestAPartialMonthWarnsBeforePayday(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a509"

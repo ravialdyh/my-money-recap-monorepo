@@ -1,4 +1,3 @@
-// The currency binary (ARCHITECTURE §7.4): exchange rates for the BFF, cached in Redis. Owns no database.
 package main
 
 import (
@@ -23,8 +22,6 @@ func main() {
 	}
 }
 
-// run holds main's body so every defer still runs when a start-up step fails. The App ID is optional: without it
-// every quote is unavailable.
 func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

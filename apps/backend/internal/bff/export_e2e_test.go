@@ -15,8 +15,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestRequestExportEndToEnd (#182): one message in Mailpit to the Member's address with the CSV attached; the same
-// key again sends nothing. Two calls, onboarding only when needed: the suite shares 120 a minute (§4.4).
 func TestRequestExportEndToEnd(t *testing.T) {
 	base, kc, pw, mailpit := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MAILPIT")
 	if base == "" || kc == "" || pw == "" || mailpit == "" {

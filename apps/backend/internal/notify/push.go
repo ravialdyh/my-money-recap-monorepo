@@ -21,15 +21,10 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// tokenLife is how long one signed Apple token is reused: Apple refuses a token older than an hour and one replaced
-// more often than every 20 minutes.
 const tokenLife = 40 * time.Minute
 
-// pushTimeout bounds one push's whole background run, its database writes and every device's request.
 const pushTimeout = 30 * time.Second
 
-// Apple sends pushes through Apple's push service with token authentication (ARCHITECTURE §7.3): Host is its origin,
-// Topic the app's bundle id, and a nil Key means no key is configured, so every push is recorded and not sent.
 type Apple struct {
 	Host, Topic, TeamID, KeyID string
 	Key                        *ecdsa.PrivateKey
@@ -40,7 +35,6 @@ type Apple struct {
 	signed time.Time
 }
 
-// ParseAppleKey reads the push key as the .p8 file in base64, one line as a .env value needs; "" is no key.
 func ParseAppleKey(b64 string) (*ecdsa.PrivateKey, error) {
 	if b64 == "" {
 		return nil, nil
@@ -64,10 +58,8 @@ func ParseAppleKey(b64 string) (*ecdsa.PrivateKey, error) {
 	return ec, nil
 }
 
-// errGone is Apple's 410: the device token is no longer valid for the topic.
 var errGone = errors.New("apple: the device token is gone")
 
-// send is one request for one device over HTTP/2, carrying body as the alert.
 func (a *Apple) send(ctx context.Context, device, body string) error {
 	token, err := a.bearer()
 	if err != nil {
@@ -99,7 +91,6 @@ func (a *Apple) send(ctx context.Context, device, body string) error {
 	return fmt.Errorf("apple answered %d %s", res.StatusCode, reason)
 }
 
-// bearer is the ES256 token of the team and Key ID, signed again once tokenLife has passed.
 func (a *Apple) bearer() (string, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -119,10 +110,8 @@ func (a *Apple) bearer() (string, error) {
 	return token, nil
 }
 
-// warningKind is the Target Warning's kind in sent_log, named as its switch's column; the period is the month.
 const warningKind = "target_warning"
 
-// pushWarning pushes a month's first stamp, once committed, in the background (ARCHITECTURE §4.3).
 func (s *Service) pushWarning(ctx context.Context, id, month string) {
 	s.pushes.Go(func() {
 		ctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), pushTimeout)
@@ -139,8 +128,6 @@ func (s *Service) warn(ctx context.Context, id, month string) error {
 	return s.push(ctx, id, warningKind, month, "You've passed your saving line for "+at.Format("January")+".")
 }
 
-// push sends body to every device of the Member unless kind's switch, its column in notification_preference, is off
-// or a deletion is pending; sent_log is claimed first, so a crash loses the push and a second run never resends it.
 func (s *Service) push(ctx context.Context, id, kind, period, body string) error {
 	claimed, err := s.DB.Exec(ctx, `INSERT INTO sent_log (member_id, kind, period)
 		SELECT $1, $2, $3

@@ -16,9 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 )
 
-// SetTimezone stores the Member's IANA zone (A3), checked against the zone data Go links in (time/tzdata;
-// the image has none), and on the first call stamps signed_up_on, created_at's local date in that zone,
-// which no later call changes (PRD §7).
 func (s *Service) SetTimezone(ctx context.Context, req *connect.Request[moneyrecapv1.SetTimezoneRequest]) (*connect.Response[moneyrecapv1.SetTimezoneResponse], error) {
 	loc, err := zone(req.Msg.Timezone)
 	if err != nil {
@@ -58,7 +55,6 @@ func (s *Service) SetTimezone(ctx context.Context, req *connect.Request[moneyrec
 	return connect.NewResponse(answer), nil
 }
 
-// zone loads an IANA zone name. "" and "Local" load too but name no zone, so both are refused.
 func zone(name string) (*time.Location, error) {
 	loc, err := time.LoadLocation(name)
 	if err != nil || name == "" || name == "Local" {
@@ -67,8 +63,6 @@ func zone(name string) (*time.Location, error) {
 	return loc, nil
 }
 
-// SaveProfile saves step 1's and step 2's answers with the step just done, in one keyed write (A14). Only the
-// answers sent change, and onboarding_step keeps the highest step saved (spec #92).
 func (s *Service) SaveProfile(ctx context.Context, req *connect.Request[moneyrecapv1.SaveProfileRequest]) (*connect.Response[moneyrecapv1.SaveProfileResponse], error) {
 	msg := req.Msg
 	if msg.IdempotencyKey == "" {
@@ -107,8 +101,6 @@ func (s *Service) SaveProfile(ctx context.Context, req *connect.Request[moneyrec
 	return connect.NewResponse(answer), nil
 }
 
-// RequestDeletion stamps the deletion time and stages members.deletion.requested in one transaction under the
-// Member's key (ARCHITECTURE §7.1 step 1); a Member already stamped keeps the first stamp, and nothing is staged.
 func (s *Service) RequestDeletion(ctx context.Context, req *connect.Request[moneyrecapv1.RequestDeletionRequest]) (*connect.Response[moneyrecapv1.RequestDeletionResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -145,13 +137,10 @@ func (s *Service) RequestDeletion(ctx context.Context, req *connect.Request[mone
 	return connect.NewResponse(answer), nil
 }
 
-// restoreWindow is how long after asking a Member can still keep their account (D39, D60).
 const restoreWindow = 24 * time.Hour
 
 var errWindowClosed = errors.New("the deletion request is over 24 hours old")
 
-// CancelDeletion clears a deletion stamp under restoreWindow old and publishes members.deletion.cancelled
-// (ARCHITECTURE §7.1 step 2). With no stamp it answers the Profile unchanged; an older stamp is failed_precondition.
 func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[moneyrecapv1.CancelDeletionRequest]) (*connect.Response[moneyrecapv1.CancelDeletionResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))

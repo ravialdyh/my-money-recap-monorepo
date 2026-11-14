@@ -9,8 +9,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// RequestExport refuses a keyless call before ledger and notify, hands notify ledger's CSV under the key, and passes a
-// refusal on with its EmailBounced detail, which is how the phone names the address (PRD §6.16).
 func TestRequestExportHandsLedgersCSVToNotify(t *testing.T) {
 	notify := &fakeNotify{}
 	s := newService(t, &fakeMembers{profile: onboarded()}, notify)

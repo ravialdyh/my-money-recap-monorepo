@@ -16,15 +16,11 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 )
 
-// §4.4's idempotency fast path: an answer lives 24 hours, as the services' own keys do (A14), and
-// replayTimeout bounds each Redis call as memberLimitTimeout does.
 const (
 	replayTTL     = 24 * time.Hour
 	replayTimeout = 250 * time.Millisecond
 )
 
-// memberWrites are the Member writes the fast path answers, each with how its stored answer is read
-// back. A write is covered by being listed; RequestMagicLink is not, having no Member (A6, A14).
 var memberWrites = map[string]func([]byte) (connect.AnyResponse, error){
 	moneyrecapv1connect.BffServiceSetTimezoneProcedure:           stored[moneyrecapv1.BffServiceSetTimezoneResponse],
 	moneyrecapv1connect.BffServiceSaveProfileProcedure:           stored[moneyrecapv1.BffServiceSaveProfileResponse],
@@ -42,7 +38,6 @@ var memberWrites = map[string]func([]byte) (connect.AnyResponse, error){
 	moneyrecapv1connect.BffServiceRequestDeletionProcedure:       stored[moneyrecapv1.BffServiceRequestDeletionResponse],
 }
 
-// stored reads an answer's bytes back into the response type its procedure's handler returns.
 func stored[T any, P interface {
 	*T
 	proto.Message
@@ -54,9 +49,6 @@ func stored[T any, P interface {
 	return connect.NewResponse((*T)(msg)), nil
 }
 
-// Replay, placed after MemberLimit, answers a listed write from idem:{subject}:{key} when the stored
-// request hash matches, and stores each successful answer. A different hash goes on to the owning
-// service, which refuses it. Redis failing fails open (§4.4).
 func Replay(cache redis.UniversalClient) connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
@@ -89,7 +81,6 @@ func Replay(cache redis.UniversalClient) connect.UnaryInterceptorFunc {
 	}
 }
 
-// replayed is the answer stored under name for the request hashed sum; nil with no error when none is.
 func replayed(ctx context.Context, cache redis.UniversalClient, name string, sum []byte, read func([]byte) (connect.AnyResponse, error)) (connect.AnyResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, replayTimeout)
 	defer cancel()
@@ -103,7 +94,6 @@ func replayed(ctx context.Context, cache redis.UniversalClient, name string, sum
 	return read(b[len(sum):])
 }
 
-// keep stores the request hash followed by the answer's bytes under name for replayTTL.
 func keep(ctx context.Context, cache redis.UniversalClient, name string, sum []byte, res connect.AnyResponse) error {
 	msg, isMessage := res.Any().(proto.Message)
 	if !isMessage {

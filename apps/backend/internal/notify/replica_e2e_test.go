@@ -17,8 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestAZoneChangeReachesNotify changes the test Member's zone in the members container and never calls notify: the
-// outbox, the relay, the broker and notify.members carry each change into notify's copy. It leaves Asia/Jakarta.
 func TestAZoneChangeReachesNotify(t *testing.T) {
 	membersURL, kc, pw := os.Getenv("MEMBERS_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
 	if membersURL == "" || kc == "" || pw == "" {

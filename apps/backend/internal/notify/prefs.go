@@ -11,12 +11,10 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// defaults is what a Member with no preference row hears: PRD §10's three switches and §6.16's 20:00.
 func defaults() *moneyrecapv1.NotificationPrefs {
 	return &moneyrecapv1.NotificationPrefs{RecapReady: true, ReminderTime: "20:00", TargetWarning: true}
 }
 
-// GetPrefs answers the Member's one row, or the defaults before any save.
 func (s *Service) GetPrefs(ctx context.Context, req *connect.Request[moneyrecapv1.GetPrefsRequest]) (*connect.Response[moneyrecapv1.GetPrefsResponse], error) {
 	if err := s.owns(ctx, req.Msg.MemberId); err != nil {
 		return nil, err
@@ -30,8 +28,6 @@ func (s *Service) GetPrefs(ctx context.Context, req *connect.Request[moneyrecapv
 	return connect.NewResponse(&moneyrecapv1.GetPrefsResponse{Prefs: p}), nil
 }
 
-// SavePrefs replaces the Member's row with the whole message under their key (A14), answering it as stored, and sets
-// both next-fire times from it. The reminder time is "HH:MM" on a 24-hour clock.
 func (s *Service) SavePrefs(ctx context.Context, req *connect.Request[moneyrecapv1.SavePrefsRequest]) (*connect.Response[moneyrecapv1.SavePrefsResponse], error) {
 	m := req.Msg
 	if m.IdempotencyKey == "" {

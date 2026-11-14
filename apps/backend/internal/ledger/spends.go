@@ -19,8 +19,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 )
 
-// LogSpend appends a Spend and answers it with its recomputed month and crossed_line (PRD §8.8). The Member's
-// row is locked in the write's transaction and the Spends read again under it, so two logs cannot both miss the line.
 func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv1.LogSpendRequest]) (*connect.Response[moneyrecapv1.LogSpendResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -63,8 +61,6 @@ func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv
 	return connect.NewResponse(answer), nil
 }
 
-// EditSpend rewrites every field of one of the Member's Spends and answers it with the month it now sits in and
-// crossed_line as LogSpend computes it. A date outside datable may stay, but a Spend never moves to or from one.
 func (s *Service) EditSpend(ctx context.Context, req *connect.Request[moneyrecapv1.EditSpendRequest]) (*connect.Response[moneyrecapv1.EditSpendResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -110,8 +106,6 @@ func (s *Service) EditSpend(ctx context.Context, req *connect.Request[moneyrecap
 	return connect.NewResponse(answer), nil
 }
 
-// DeleteSpend stamps one of the Member's Spends deleted (PRD §7) and answers it as it was with the month it left.
-// crossed_line is always false: a delete never fires a warning (PRD §8.8).
 func (s *Service) DeleteSpend(ctx context.Context, req *connect.Request[moneyrecapv1.DeleteSpendRequest]) (*connect.Response[moneyrecapv1.DeleteSpendResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -140,8 +134,6 @@ func (s *Service) DeleteSpend(ctx context.Context, req *connect.Request[moneyrec
 	return connect.NewResponse(answer), nil
 }
 
-// announce stages the Spend write's event in its transaction, with the answer's Spend, month and crossed_line, so
-// notify stamps the warning even when the BFF's direct call never happened (ARCHITECTURE §4.3, §6.2 step 6).
 func (l member) announce(ctx context.Context, tx pgx.Tx, key string, spend *moneyrecapv1.Spend, month *moneyrecapv1.MonthSummary, crossed bool) error {
 	return events.Stage(ctx, tx, l.id, key, func(env *moneyrecapv1.EventEnvelope) proto.Message {
 		switch key {
@@ -154,14 +146,10 @@ func (l member) announce(ctx context.Context, tx pgx.Tx, key string, spend *mone
 	})
 }
 
-// crossed is PRD §8.8's crossed_line for a write in month m: only the current month, and only when the write took
-// Spent from at or under the line (no warning copy before) to above it.
 func (l member) crossed(m month, before, after *moneyrecapv1.MonthSummary) bool {
 	return m == monthOf(l.today) && before.TargetWarning == nil && after.TargetWarning != nil
 }
 
-// lockSpend is relock, then the index of the Member's Spend id that is not deleted; not_found for any other id,
-// another Member's included (ARCHITECTURE §4.2).
 func (l *member) lockSpend(ctx context.Context, tx pgx.Tx, id string) (int, error) {
 	if err := l.relock(ctx, tx); err != nil {
 		return 0, err
@@ -173,11 +161,8 @@ func (l *member) lockSpend(ctx context.Context, tx pgx.Tx, id string) (int, erro
 	return i, nil
 }
 
-// errDate is a date outside datable, or an edit moving a Spend to or from such a date (PRD §8.10, §6.10).
 var errDate = errors.New("date is not YYYY-MM-DD in the last 60 days including today, from the sign-up month on")
 
-// relock locks the Member's replica row in the write's transaction and reads the Spends again under it, so two
-// writes cannot both miss the line (PRD §8.8).
 func (l *member) relock(ctx context.Context, tx pgx.Tx) (err error) {
 	if _, err = tx.Exec(ctx, `SELECT 1 FROM member_facts WHERE member_id = $1 FOR UPDATE`, l.id); err != nil {
 		return err
@@ -186,8 +171,6 @@ func (l *member) relock(ctx context.Context, tx pgx.Tx) (err error) {
 	return err
 }
 
-// spendFields checks a Spend as sent (PRD §8.10, §6.9): the amount as a Salary's, one of the eight Categories, a
-// YYYY-MM-DD date, and a note of at most 80 NFC code points. The date's range is the caller's check (datable).
 func (l member) spendFields(m *moneyrecapv1.Money, c moneyrecapv1.Category, day, note string) (*big.Rat, time.Time, string, error) {
 	amount, err := l.amount(m)
 	if err != nil {
@@ -207,11 +190,8 @@ func (l member) spendFields(m *moneyrecapv1.Money, c moneyrecapv1.Category, day,
 	return amount, date, note, nil
 }
 
-// datable is a date a Spend may be logged on or moved to, from earliestSpend to today in the Member's zone (A3).
 func (l member) datable(d time.Time) bool { return !d.After(l.today) && !d.Before(l.earliestSpend()) }
 
-// earliestSpend is the first date a Spend may carry (PRD §8.10, D72): 59 days before today, or the 1st of the
-// sign-up month when that is later.
 func (l member) earliestSpend() time.Time {
 	first := monthOf(l.signedUp).day(1)
 	if back := l.today.AddDate(0, 0, -59); back.After(first) {

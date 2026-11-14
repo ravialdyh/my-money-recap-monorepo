@@ -19,8 +19,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestTargetWarningEndToEnd (#132, #133, #135): notify down still answers Home, bannerless, and the event stamps the
-// month; the warning fires once and keeps its first words through more Spends and deletes; another Member's is not_found.
 func TestTargetWarningEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	membersURL, ledgerURL, notifyURL := os.Getenv("MEMBERS_TEST_URL"), os.Getenv("LEDGER_TEST_URL"), os.Getenv("NOTIFY_TEST_URL")
@@ -103,13 +101,10 @@ func TestTargetWarningEndToEnd(t *testing.T) {
 	}
 }
 
-// spender is what the Spends above are logged through: the stack's BFF over HTTP, or one in this process.
 type spender interface {
 	LogSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceLogSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceLogSpendResponse], error)
 }
 
-// freshMemberOverTheLine makes the test Member anew, onboarded in UTC with a 1,000,000 Salary paid on the 1st and a
-// 50% Target, so the warning line is 500,000: after the 1st a partial sign-up month warns as before Payday (§8.8).
 func freshMemberOverTheLine(ctx context.Context, t *testing.T, db *pgxpool.Pool, client moneyrecapv1connect.BffServiceClient, base, tok, sub string) {
 	t.Helper()
 	if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, sub); err != nil {
@@ -130,8 +125,6 @@ func freshMemberOverTheLine(ctx context.Context, t *testing.T, db *pgxpool.Pool,
 	}
 }
 
-// backedUp is the event backup (#135): with the direct call failed, the crossing Spend's event stamps the month
-// within seconds; delivered again after the flag is cleared, it stamps nothing, proved by the event next stages.
 func backedUp(ctx context.Context, t *testing.T, ledgerDB, notifyDB *pgxpool.Pool, memberID, month, want string, next func()) {
 	t.Helper()
 	kept := func() string {
@@ -175,7 +168,6 @@ func backedUp(ctx context.Context, t *testing.T, ledgerDB, notifyDB *pgxpool.Poo
 	t.Logf("the event alone stamped %q; delivered again, it changed nothing", want)
 }
 
-// within polls ok every 100 ms for up to 15 s.
 func within(t *testing.T, what string, ok func() bool) {
 	t.Helper()
 	for deadline := time.Now().Add(15 * time.Second); !ok(); time.Sleep(100 * time.Millisecond) {

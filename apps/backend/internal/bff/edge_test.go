@@ -19,16 +19,10 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// burstSize is one more request than the edge's stricter magic-link zone allows at once, so the last
-// one is refused however long ago that zone last saw this address (ARCHITECTURE §5, infra/nginx).
 const burstSize = 6
 
-// fallbackCopy is the whole of the A3 web fallback page (SCREEN-STATES A3), which says to open the
-// app on the phone and carries no control.
 const fallbackCopy = "Open My Money Recap on your phone to finish signing in."
 
-// TestEdge drives the Nginx edge in front of the same Compose stack (#72, spec #61). It skips unless
-// BFF_TEST_EDGE is set beside three of TestEndToEnd's variables; infra/compose/README.md lists them.
 func TestEdge(t *testing.T) {
 	edge, base := os.Getenv("BFF_TEST_EDGE"), os.Getenv("BFF_TEST_URL")
 	kc, pw := os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
@@ -93,7 +87,6 @@ func TestEdge(t *testing.T) {
 	})
 }
 
-// home is GetHome for token against one base address, which is the BFF itself or the edge's /api.
 func home(ctx context.Context, t *testing.T, base, token string) *moneyrecapv1.HomeView {
 	t.Helper()
 	res, err := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(token)).
@@ -104,8 +97,6 @@ func home(ctx context.Context, t *testing.T, base, token string) *moneyrecapv1.H
 	return res.Msg.Home
 }
 
-// fetch is the plain HTTP get a laptop makes, on a client that reports a redirect rather than
-// following one, because the association file may not be behind one (ARCHITECTURE §5).
 func fetch(ctx context.Context, t *testing.T, address string) (body string, status int, contentType string) {
 	t.Helper()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, address, http.NoBody)
@@ -125,8 +116,6 @@ func fetch(ctx context.Context, t *testing.T, address string) (body string, stat
 	return string(read), res.StatusCode, res.Header.Get("Content-Type")
 }
 
-// burst posts the same body burstSize times as fast as one connection allows and answers the status
-// codes, so an edge zone that refuses one of them is visible as a status rather than as an RPC error.
 func burst(ctx context.Context, t *testing.T, address, token, body string) []int {
 	t.Helper()
 	statuses := make([]int, 0, burstSize)

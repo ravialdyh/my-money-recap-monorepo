@@ -14,8 +14,6 @@ import (
 	"connectrpc.com/connect"
 )
 
-// ServiceAccount is a background job's own Keycloak client (ARCHITECTURE §4.2): Realm is the realm's
-// address, parent of its token endpoint. Token caches the client-credentials token until a minute before it expires.
 type ServiceAccount struct {
 	Realm, Client, Secret string
 
@@ -25,11 +23,8 @@ type ServiceAccount struct {
 	now     func() time.Time
 }
 
-// realmClient bounds one token request.
 var realmClient = &http.Client{Timeout: 5 * time.Second}
 
-// Token is the account's access token, fetched with the client-credentials grant when none is cached or the
-// cached one is within a minute of expiring. The error names the status alone, never the realm's body.
 func (a *ServiceAccount) Token(ctx context.Context) (string, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -68,8 +63,6 @@ func (a *ServiceAccount) Token(ctx context.Context) (string, error) {
 	return a.token, nil
 }
 
-// Bearer is a client interceptor that sends the account's token on every call; a token it cannot fetch is
-// unavailable, and the call is not sent.
 func (a *ServiceAccount) Bearer() connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {

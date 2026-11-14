@@ -11,7 +11,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// ListSpends answers one month's Spend list (PRD §6.10): its Spends newest first, its Category rows and Spent.
 func (s *Service) ListSpends(ctx context.Context, req *connect.Request[moneyrecapv1.ListSpendsRequest]) (*connect.Response[moneyrecapv1.ListSpendsResponse], error) {
 	m, err := parseMonth(req.Msg.Month)
 	if err != nil {
@@ -31,7 +30,6 @@ func (s *Service) ListSpends(ctx context.Context, req *connect.Request[moneyreca
 	return connect.NewResponse(res), nil
 }
 
-// ListMonthsWithData answers the month switcher's list (PRD D59): the current month, then pastMonths.
 func (s *Service) ListMonthsWithData(ctx context.Context, req *connect.Request[moneyrecapv1.ListMonthsWithDataRequest]) (*connect.Response[moneyrecapv1.ListMonthsWithDataResponse], error) {
 	l, err := s.load(ctx, req.Msg.MemberId)
 	if err != nil {
@@ -44,8 +42,6 @@ func (s *Service) ListMonthsWithData(ctx context.Context, req *connect.Request[m
 	return connect.NewResponse(&moneyrecapv1.ListMonthsWithDataResponse{Months: months}), nil
 }
 
-// pastMonths is every month before today's with a Spend or Money In, newest first (PRD D59, §8.11): Home's
-// past-Recap list, and the Spend list's switcher after the current month.
 func (l ledgerOf) pastMonths(today time.Time) []month {
 	first := monthOf(today)
 	for _, s := range l.spends {
@@ -67,8 +63,6 @@ func (l ledgerOf) pastMonths(today time.Time) []month {
 	return list
 }
 
-// split is month m's Category rows (PRD §6.10, §6.13): each Category with a Spend, its total, its share of spent
-// and its count, largest first, then in D20's order.
 func (l ledgerOf) split(m month, spent *big.Rat) []*moneyrecapv1.CategoryShare {
 	shares := map[moneyrecapv1.Category]*moneyrecapv1.CategoryShare{}
 	sums := map[moneyrecapv1.Category]*big.Rat{}
@@ -97,14 +91,11 @@ func (l ledgerOf) split(m month, spent *big.Rat) []*moneyrecapv1.CategoryShare {
 	return rows
 }
 
-// hasData is true when month m has a Spend or Money In (PRD D59, §8.11), the test for a past month's Recap.
 func (l ledgerOf) hasData(m month, today time.Time) bool {
 	_, count := l.spent(m)
 	return count > 0 || l.summary(m, today).Saved != nil
 }
 
-// GetSpentToday answers, for each id, the Spends dated the Member's own today and their total, "0" with none. An id
-// the caller cannot read (unknown, purged, another Member's, or lacking its facts) is left out.
 func (s *Service) GetSpentToday(ctx context.Context, req *connect.Request[moneyrecapv1.GetSpentTodayRequest]) (*connect.Response[moneyrecapv1.GetSpentTodayResponse], error) {
 	res := &moneyrecapv1.GetSpentTodayResponse{}
 	for _, id := range req.Msg.MemberIds {

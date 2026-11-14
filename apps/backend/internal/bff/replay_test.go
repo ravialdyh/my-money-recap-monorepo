@@ -21,7 +21,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// stackRedis is the stack's Redis at BFF_TEST_REDIS; the test skips without it.
 func stackRedis(t *testing.T) redis.UniversalClient {
 	t.Helper()
 	addr := os.Getenv("BFF_TEST_REDIS")
@@ -33,8 +32,6 @@ func stackRedis(t *testing.T) redis.UniversalClient {
 	return cache
 }
 
-// replayClient is the BFF behind Replay alone, as a fresh subject each time, so no stored answer leaks
-// between tests.
 func replayClient(t *testing.T, members *fakeMembers, cache redis.UniversalClient) moneyrecapv1connect.BffServiceClient {
 	t.Helper()
 	subject := "sub-" + rand.Text()
@@ -50,7 +47,6 @@ func replayClient(t *testing.T, members *fakeMembers, cache redis.UniversalClien
 	return moneyrecapv1connect.NewBffServiceClient(srv.Client(), srv.URL)
 }
 
-// setZone sends SetTimezone under key and says whether members was reached at all.
 func setZone(t *testing.T, client moneyrecapv1connect.BffServiceClient, members *fakeMembers, key, zone string) (*moneyrecapv1.Profile, bool, error) {
 	t.Helper()
 	members.gotToken, members.gotZone = "", nil
@@ -98,8 +94,6 @@ func TestReplayNeverStoresAFailure(t *testing.T) {
 	}
 }
 
-// A Redis that answers nothing sends every write to its service, twice under one key, and costs each
-// Redis call at most replayTimeout (§4.4).
 func TestReplayFailsOpenWhenRedisIsUnreachable(t *testing.T) {
 	unreachable := redis.NewClient(&redis.Options{Addr: "127.0.0.1:1", MaxRetries: -1})
 	t.Cleanup(func() { _ = unreachable.Close() })
@@ -117,8 +111,6 @@ func TestReplayFailsOpenWhenRedisIsUnreachable(t *testing.T) {
 	}
 }
 
-// Each listed write reads its answer back as the type its handler returns, or Connect would refuse the
-// replay; RequestMagicLink is not listed.
 func TestEveryListedWriteReadsBackItsOwnResponseType(t *testing.T) {
 	methods := moneyrecapv1.File_money_recap_v1_bff_proto.Services().ByName("BffService").Methods()
 	for procedure, read := range memberWrites {

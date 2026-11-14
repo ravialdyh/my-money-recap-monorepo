@@ -1,5 +1,3 @@
-// Package notify is the notify service (ARCHITECTURE §7.3): the magic-link and export emails (#68, #182), the Target
-// Warning's month flag (#132, #135) and push (#180), the replica (#176), and the Recap-ready and reminder schedules (#181).
 package notify
 
 import (
@@ -29,44 +27,26 @@ import (
 //go:embed migrations/*.sql
 var migrations embed.FS
 
-// retention bounds how long a send row lives. Its link dies in 15 minutes (PRD D32), so a day-old
-// key has nothing left to dedupe, and the raw address it holds has no member_id for §7.3's purge to
-// reach. Every send sweeps, so no scheduler is owed.
 const retention = 24 * time.Hour
 
-// sendTimeout caps one SMTP conversation when the caller set no shorter deadline: a mail host that
-// accepts the connection and then says nothing must not hold a pool connection, and the transaction
-// open on it, for ever.
 const sendTimeout = 10 * time.Second
 
-// errAddressRefused is a permanent 5xx on the recipient: the address is wrong, not the mail host, so
-// the caller hears invalid_argument and a retry does not spend one of its five-per-hour slots.
 var errAddressRefused = errors.New("the mail host refused the address")
 
-// Migrate applies this service's embedded migrations to the notify database (internal/migrate).
 func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
-// Service implements NotifyService. EmailMagicLink is the one procedure outside the bearer check
-// (internal/auth); Members answers the replica's profile read under the caller's token, Ledger the
-// schedules' reads under notify's own (§4.2).
 type Service struct {
 	moneyrecapv1connect.UnimplementedNotifyServiceHandler
 	DB      *pgxpool.Pool
 	Members moneyrecapv1connect.MembersServiceClient
 	Ledger  moneyrecapv1connect.LedgerServiceClient
-	// SMTP is the mail host as host:port: Mailpit on a laptop and in CI. The machine has none until
-	// #87's provider, which also needs SMTP AUTH (§7.3).
-	SMTP string
-	// From is the envelope sender and the From header.
-	From string
-	// Apple sends the pushes; nil, or one with no key, records each push and sends none.
-	Apple *Apple
+	SMTP    string
+	From    string
+	Apple   *Apple
 
 	pushes sync.WaitGroup
 }
 
-// write is A14 in notify's idempotency table: a repeated key replays answer, a key reused for another request is
-// invalid_argument, and a connect error raised inside write reaches the caller as it is.
 func (s *Service) write(ctx context.Context, memberID, key string, req, answer proto.Message, write func(pgx.Tx) error) error {
 	err := idempotency.Write(ctx, s.DB, memberID, key, req, answer, write)
 	var ce *connect.Error
@@ -81,9 +61,6 @@ func (s *Service) write(ctx context.Context, memberID, key string, req, answer p
 	return storeFailed(ctx, err)
 }
 
-// EmailMagicLink sends the link once per address and idempotency key: the row is claimed first and a
-// failed send rolls it back, so a repeated key answers success without a second email (A14). An empty
-// key would dedupe every later send into silence.
 func (s *Service) EmailMagicLink(ctx context.Context, req *connect.Request[moneyrecapv1.EmailMagicLinkRequest]) (*connect.Response[moneyrecapv1.EmailMagicLinkResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -110,9 +87,6 @@ func (s *Service) EmailMagicLink(ctx context.Context, req *connect.Request[money
 	return connect.NewResponse(&moneyrecapv1.EmailMagicLinkResponse{}), nil
 }
 
-// send opens the connection under ctx or sendTimeout, whichever is sooner, and puts that deadline on
-// every read and write: a connection accepted and then left silent would outlive the caller, holding
-// its transaction and blocking the pool's Close.
 func (s *Service) send(ctx context.Context, to, content string) error {
 	ctx, cancel := context.WithTimeout(ctx, sendTimeout)
 	defer cancel()
@@ -137,8 +111,6 @@ func (s *Service) send(ctx context.Context, to, content string) error {
 	return s.deliver(client, host, to, content)
 }
 
-// deliver is the one exchange: From and To, then content. Client.Mail and Client.Rcpt refuse an address holding CR
-// or LF, the header-injection defence on the magic link's unauthenticated path; STARTTLS is taken when offered.
 func (s *Service) deliver(client *smtp.Client, host, to, content string) error {
 	if ok, _ := client.Extension("STARTTLS"); ok {
 		if err := client.StartTLS(&tls.Config{ServerName: host, MinVersion: tls.VersionTLS12}); err != nil {

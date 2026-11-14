@@ -20,8 +20,6 @@ func (f *fakeMembers) RequestDeletion(_ context.Context, req *connect.Request[mo
 	return connect.NewResponse(&moneyrecapv1.RequestDeletionResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId, DeletionRequestedAt: timestamppb.New(time.Unix(1_790_000_000, 0))}}), nil
 }
 
-// RequestDeletion refuses a keyless call before members, then hands members the key and the Member's id and answers
-// members' stamp; a failure keeps its code, so the phone stays signed in (D11).
 func TestRequestDeletionNeedsTheKeyAndAnswersTheStamp(t *testing.T) {
 	members := &fakeMembers{}
 	s := newService(t, members, &fakeNotify{})
@@ -40,7 +38,6 @@ func TestRequestDeletionNeedsTheKeyAndAnswersTheStamp(t *testing.T) {
 	}
 }
 
-// ForgetDevice refuses a keyless call before notify, then hands notify the key, the Member's id and the token.
 func TestForgetDeviceNeedsTheKey(t *testing.T) {
 	notify := &fakeNotify{}
 	s := newService(t, &fakeMembers{}, notify)

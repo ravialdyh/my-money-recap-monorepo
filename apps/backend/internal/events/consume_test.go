@@ -17,8 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/ledger"
 )
 
-// queue declares a consumer queue of the test's own, bound under its own name, and deletes it and its
-// dead-letter queue when the test ends.
 func queue(t *testing.T, conn *amqp.Connection) string {
 	t.Helper()
 	name := "test.consume." + strings.ToLower(rand.Text())
@@ -36,7 +34,6 @@ func queue(t *testing.T, conn *amqp.Connection) string {
 	return name
 }
 
-// calls is a handler that records each message id it is run for, failing the ones in fail.
 type calls struct {
 	mu   sync.Mutex
 	runs map[string]int
@@ -59,7 +56,6 @@ func (c *calls) count(id string) int {
 	return c.runs[id]
 }
 
-// consume runs events.Consume on queue with handle and returns a stop that waits until Consume has returned.
 func consume(t *testing.T, db *pgxpool.Pool, url, queue string, handle events.Handler) func() {
 	t.Helper()
 	ctx, cancel := context.WithCancel(context.Background())
@@ -86,7 +82,6 @@ func publish(t *testing.T, conn *amqp.Connection, key string, ids ...string) {
 	}
 }
 
-// eventually polls ok every 100 ms for up to 15 s.
 func eventually(t *testing.T, what string, ok func() bool) {
 	t.Helper()
 	for deadline := time.Now().Add(15 * time.Second); !ok(); time.Sleep(100 * time.Millisecond) {
@@ -107,8 +102,6 @@ func waiting(t *testing.T, conn *amqp.Connection, queue string) int {
 	return q.Messages
 }
 
-// settled is true once id is committed in processed_events and the pool holds no acquired connection: Process has
-// left its transaction without error, so its ack goes out before Consume returns.
 func settled(t *testing.T, db *pgxpool.Pool, id string) bool {
 	t.Helper()
 	var n int
@@ -118,8 +111,6 @@ func settled(t *testing.T, db *pgxpool.Pool, id string) bool {
 	return n == 1 && db.Stat().AcquiredConns() == 0
 }
 
-// A message delivered twice runs its handler once, and both deliveries are acked (§4.3, spec #92): the
-// message behind them, processed in order, proves the second was handled before the consumer stops.
 func TestADuplicateDeliveryIsProcessedOnce(t *testing.T) {
 	db := scratch(t, "LEDGER_TEST_DATABASE_URL", ledger.Migrate)
 	url, conn := broker(t)
@@ -141,8 +132,6 @@ func TestADuplicateDeliveryIsProcessedOnce(t *testing.T) {
 	}
 }
 
-// A message that keeps failing stops after five tries and waits in <queue>.dead, as does one with no message
-// id, while the message behind them is processed (§4.3).
 func TestAPoisonMessageWaitsForAPerson(t *testing.T) {
 	db := scratch(t, "LEDGER_TEST_DATABASE_URL", ledger.Migrate)
 	url, conn := broker(t)
@@ -160,15 +149,12 @@ func TestAPoisonMessageWaitsForAPerson(t *testing.T) {
 	}
 }
 
-// ackOnly answers the consumer's ack or reject for one delivery handed to Process directly.
 type ackOnly struct{}
 
 func (ackOnly) Ack(uint64, bool) error        { return nil }
 func (ackOnly) Nack(uint64, bool, bool) error { return errors.New("nacked") }
 func (ackOnly) Reject(uint64, bool) error     { return nil }
 
-// A function handed to AfterCommit runs once its handler's transaction commits and never after a rollback, and
-// AfterCommit outside Process does nothing (§4.3: notify pushes only a committed stamp).
 func TestAfterCommitRunsOnlyOnACommit(t *testing.T) {
 	db := scratch(t, "LEDGER_TEST_DATABASE_URL", ledger.Migrate)
 	ran := map[string]int{}

@@ -19,8 +19,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestLeavingEndToEnd (#183), on a throwaway Member: ForgetDevice deletes the phone's row; a deletion request needs
-// its key, answers the stamp and keeps it on a repeat; the event sets notify's flag and Keep my account clears it.
 func TestLeavingEndToEnd(t *testing.T) {
 	base, kc, mailpit := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_MAILPIT")
 	dsn, notifyDSN := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL"), os.Getenv("NOTIFY_TEST_DATABASE_URL")
@@ -91,9 +89,6 @@ func TestLeavingEndToEnd(t *testing.T) {
 	within(t, "members.deletion.cancelled clears notify's flag", func() bool { return !pending() })
 }
 
-// TestDeletionJobEndToEnd (#184), on a throwaway Member with a Spend and a phone, its request stamped 25 hours back:
-// members' job runs until ledger and notify hold nothing and both purges are stamped, then once more after
-// tokenLifetime to hard-delete.
 func TestDeletionJobEndToEnd(t *testing.T) {
 	base, kc, mailpit, secret := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_MAILPIT"), os.Getenv("MEMBERS_TEST_CLIENT_SECRET")
 	dsn, ledgerDSN, notifyDSN := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL"), os.Getenv("LEDGER_TEST_DATABASE_URL"), os.Getenv("NOTIFY_TEST_DATABASE_URL")

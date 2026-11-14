@@ -13,15 +13,11 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 )
 
-// amountPattern is PRD D57, a decimal string with at most 11 digits before the separator; paydayPattern is
-// D51's 1 to 31, beside which only the token "last" is a Payday.
 var (
 	amountPattern = regexp.MustCompile(`^\d{1,11}(\.\d+)?$`)
 	paydayPattern = regexp.MustCompile(`^([1-9]|[12]\d|3[01])$`)
 )
 
-// SaveSalary appends a salary_setting row. A setup save takes effect in the sign-up month (spec #92); after setup, per
-// salaryStarts, a first one this month, then per D56 and §8.10 a new Payday or next-month answer next month.
 func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyrecapv1.SaveSalaryRequest]) (*connect.Response[moneyrecapv1.SaveSalaryResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -60,9 +56,6 @@ func (s *Service) SaveSalary(ctx context.Context, req *connect.Request[moneyreca
 	return connect.NewResponse(answer), nil
 }
 
-// RelabelCurrency is onboarding's Currency change (spec #92): every Salary row takes the new code, originals
-// included, rounded half up to its decimals and kept above zero; the replica takes the code at once, stamped so no
-// older members event takes it back.
 func (s *Service) RelabelCurrency(ctx context.Context, req *connect.Request[moneyrecapv1.RelabelCurrencyRequest]) (*connect.Response[moneyrecapv1.RelabelCurrencyResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -99,8 +92,6 @@ func (s *Service) RelabelCurrency(ctx context.Context, req *connect.Request[mone
 	return connect.NewResponse(answer), nil
 }
 
-// amount is the Salary as sent: in the Member's Currency, above zero, D57's 11 digits at most before the
-// separator and no more decimals than the Currency has.
 func (l ledgerOf) amount(m *moneyrecapv1.Money) (*big.Rat, error) {
 	if m.GetCurrencyCode() != l.cash.code || !amountPattern.MatchString(m.GetAmount()) {
 		return nil, errors.New("amount is not a D57 decimal in the Member's currency")
@@ -112,8 +103,6 @@ func (l ledgerOf) amount(m *moneyrecapv1.Money) (*big.Rat, error) {
 	return r, nil
 }
 
-// salaryStarts is the month a row saved after setup takes effect from: a first one this month, which is no edit
-// (owner 2026-09-23). An unspecified answer applies now before this month's Payday, then is the D56 sheet's.
 func (l member) salaryStarts(payday string, applies moneyrecapv1.SalaryAppliesFrom) (month, error) {
 	now := monthOf(l.today)
 	current, ok := inForce(l.salaries, salaryFrom, now)
@@ -128,8 +117,6 @@ func (l member) salaryStarts(payday string, applies moneyrecapv1.SalaryAppliesFr
 	return now, nil
 }
 
-// SaveTarget appends a saving_target_setting row: a setup save in the sign-up month (spec #92), a first one after
-// setup this month (owner 2026-09-23), every later one next month (D65). No Target without a Salary (D44).
 func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyrecapv1.SaveTargetRequest]) (*connect.Response[moneyrecapv1.SaveTargetResponse], error) {
 	if req.Msg.IdempotencyKey == "" {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
@@ -160,8 +147,6 @@ func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyreca
 	return connect.NewResponse(answer), nil
 }
 
-// writeFailed is a write's error as the caller sees it: a connect error raised inside the write as it is, a reused
-// key as invalid_argument, anything else as the store failing.
 func writeFailed(ctx context.Context, err error) error {
 	var ce *connect.Error
 	if errors.As(err, &ce) {

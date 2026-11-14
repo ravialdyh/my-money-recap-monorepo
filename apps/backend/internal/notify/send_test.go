@@ -19,8 +19,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// fakeSMTP is a mail host on a free port that answers each command with the next reply and then
-// reads without answering, so no reply at all is a host that accepts the connection and says nothing.
 func fakeSMTP(t *testing.T, replies ...string) string {
 	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
@@ -40,7 +38,6 @@ func fakeSMTP(t *testing.T, replies ...string) string {
 	return listener.Addr().String()
 }
 
-// serveFakeSMTP writes a reply, reads the command it drew, and drains the rest in silence.
 func serveFakeSMTP(conn net.Conn, replies []string) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
@@ -55,9 +52,6 @@ func serveFakeSMTP(conn net.Conn, replies []string) {
 	_, _ = io.Copy(io.Discard, reader)
 }
 
-// A mail host that accepts and then goes silent must not outlive the caller's deadline: it holds a
-// pool connection idle in transaction, which starves the db.Ping behind /healthz and blocks the
-// db.Close cmd/notify defers.
 func TestASilentMailHostCannotOutliveTheCallersDeadline(t *testing.T) {
 	db := testPool(t, 2)
 	service := &Service{DB: db, SMTP: fakeSMTP(t), From: "no-reply@mymoneyrecap.test"}
@@ -98,8 +92,6 @@ func TestASilentMailHostCannotOutliveTheCallersDeadline(t *testing.T) {
 	t.Logf("two sends released the pool inside their 2s deadline; db.Close returned in %s", time.Since(closed))
 }
 
-// waitForAcquired blocks until the pool has handed out want connections, so the /healthz assertion
-// runs while the sends really hold them rather than racing their first statement.
 func waitForAcquired(t *testing.T, db *pgxpool.Pool, want int32) {
 	t.Helper()
 	for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); {
@@ -111,9 +103,6 @@ func waitForAcquired(t *testing.T, db *pgxpool.Pool, want int32) {
 	t.Fatalf("%d connections acquired, want %d", db.Stat().AcquiredConns(), want)
 }
 
-// A permanent 5xx on the recipient is a wrong address, not a mail host to retry: it answers
-// invalid_argument, so a mistyped address is told apart and a retry does not spend one of the
-// five-per-address-per-hour slots #69 adds. The key stays free.
 func TestAPermanentRecipientRefusalIsInvalidArgument(t *testing.T) {
 	db := testDB(t)
 	ctx := t.Context()
@@ -136,9 +125,6 @@ func TestAPermanentRecipientRefusalIsInvalidArgument(t *testing.T) {
 	t.Logf("550 5.1.1 → %v, key %s unspent", connect.CodeOf(err), key)
 }
 
-// Only the recipient's refusal is the caller's fault. A host that cannot be dialled, one that rejects
-// the envelope sender and one that rejects the message body are all the mail host failing, so they
-// stay unavailable and the caller may retry.
 func TestEveryOtherSMTPFailureStaysUnavailable(t *testing.T) {
 	db := testDB(t)
 	ctx := t.Context()
@@ -164,8 +150,6 @@ func TestEveryOtherSMTPFailureStaysUnavailable(t *testing.T) {
 	}
 }
 
-// An address carrying CR or LF is refused before any recipient is accepted, which is the whole of the
-// SMTP header-injection defence on this unauthenticated procedure (#61's pre-authentication path).
 func TestAnAddressCarryingCRLFIsRefused(t *testing.T) {
 	db := testDB(t)
 	ctx := t.Context()
@@ -190,8 +174,6 @@ func TestAnAddressCarryingCRLFIsRefused(t *testing.T) {
 	t.Logf("CRLF in the address → %v, nothing stored", connect.CodeOf(err))
 }
 
-// A send older than the retention window goes on the next send and a fresh one stays: the row holds a
-// raw address and no member_id, so ARCHITECTURE §7.3's members.deleted purge can never reach it.
 func TestSendsOlderThanTheRetentionWindowAreSwept(t *testing.T) {
 	host := os.Getenv("NOTIFY_TEST_SMTP")
 	if host == "" {

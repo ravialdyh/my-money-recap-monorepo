@@ -16,8 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestGetRecapEndToEnd (#152): the current month is the preview; with sign-up moved back, last month's Spend answers
-// under the new name, an earlier month is not_found, a later one invalid_argument, and ledger refuses another Member.
 func TestGetRecapEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	ledgerURL, ledgerDSN := os.Getenv("LEDGER_TEST_URL"), os.Getenv("LEDGER_TEST_DATABASE_URL")

@@ -17,8 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// A missing key would dedupe every later send into silence, so it is refused before the store is
-// touched (#68); the zero Service proves it never reaches a pool.
 func TestAnEmptyIdempotencyKeyIsRefused(t *testing.T) {
 	_, err := (&Service{}).EmailMagicLink(context.Background(), connect.NewRequest(&moneyrecapv1.EmailMagicLinkRequest{
 		Email: "someone@example.test", Link: "https://mymoneyrecap.test/magic?lt=x",
@@ -28,14 +26,11 @@ func TestAnEmptyIdempotencyKeyIsRefused(t *testing.T) {
 	}
 }
 
-// testDB is testPool at pgx's default size.
 func testDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	return testPool(t, 0)
 }
 
-// testPool opens the Compose stack's notify database and applies the schema, skipping unless
-// NOTIFY_TEST_DATABASE_URL is set. A maxConns above zero caps the pool, so a test can run it dry.
 func testPool(t *testing.T, maxConns int32) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("NOTIFY_TEST_DATABASE_URL")
@@ -60,8 +55,6 @@ func testPool(t *testing.T, maxConns int32) *pgxpool.Pool {
 	return db
 }
 
-// TestMagicLinkAtTheConnectBoundary drives the running service the way the BFF will: no bearer token
-// at all, which only the EmailMagicLink exemption lets through (ARCHITECTURE §4.2 point 3).
 func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 	base, mailpit := os.Getenv("NOTIFY_TEST_URL"), os.Getenv("MMR_TEST_MAILPIT")
 	if base == "" || mailpit == "" {
@@ -129,9 +122,6 @@ func TestMagicLinkAtTheConnectBoundary(t *testing.T) {
 	t.Logf("GetPrefs without a token: %v", err)
 }
 
-// One key claimed for one address must not answer success for another and send nothing. The claim is
-// unique on the pair, overriding the "unique index is on the key alone" of #68 and #61: A14's
-// member_id has no Member here, the address is what is deduped.
 func TestOneKeyToTwoAddressesSendsToBoth(t *testing.T) {
 	host, mailpit := os.Getenv("NOTIFY_TEST_SMTP"), os.Getenv("MMR_TEST_MAILPIT")
 	if host == "" || mailpit == "" {
@@ -167,8 +157,6 @@ func TestOneKeyToTwoAddressesSendsToBoth(t *testing.T) {
 	t.Logf("key %s → one message each to %s and %s, and the repeat to %s sent nothing", key, first, second, first)
 }
 
-// The row is claimed before the send and a refused SMTP host rolls it back, so a retry of the same
-// key answers success without a second email and a failed send never spends the key (A14).
 func TestAClaimedKeySendsOnceAndAFailedSendFreesIt(t *testing.T) {
 	host := os.Getenv("NOTIFY_TEST_SMTP")
 	if host == "" {

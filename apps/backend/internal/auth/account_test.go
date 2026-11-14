@@ -12,8 +12,6 @@ import (
 	"connectrpc.com/connect"
 )
 
-// A job's token is fetched with the client-credentials grant, reused until a minute before it expires, then fetched
-// again; a refusal names the status alone, and Bearer sends the token or, failing it, nothing at all (§4.2).
 func TestAServiceAccountCachesItsTokenUntilItExpires(t *testing.T) {
 	fetches, refuse := 0, false
 	realm := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -16,8 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestSettingsEndToEnd (#170 to #172, #179): with last month's Recap and a stamped warning, a Salary edit after Payday
-// with no answer is refused; "from next month" keeps Money In; a Target starts next month; each answers GetHome's Home.
 func TestSettingsEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	ledgerDSN := os.Getenv("LEDGER_TEST_DATABASE_URL")

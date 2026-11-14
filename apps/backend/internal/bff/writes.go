@@ -11,8 +11,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// idempotencyKey is the phone's Idempotency-Key header, which every Member write needs (A14): a key
-// minted here would make each retry a new write. RequestMagicLink mints one because it has no Member.
 func idempotencyKey(h http.Header) (string, error) {
 	key := h.Get("Idempotency-Key")
 	if key == "" {
@@ -21,8 +19,6 @@ func idempotencyKey(h http.Header) (string, error) {
 	return key, nil
 }
 
-// SetTimezone is the launch call (A3): it creates the Member on first sight, as GetHome does, then stores
-// the zone under the phone's key. Its Profile carries the deletion stamp the restore sheet reads (D60).
 func (s *Service) SetTimezone(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceSetTimezoneRequest]) (*connect.Response[moneyrecapv1.BffServiceSetTimezoneResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -41,8 +37,6 @@ func (s *Service) SetTimezone(ctx context.Context, req *connect.Request[moneyrec
 	return connect.NewResponse(&moneyrecapv1.BffServiceSetTimezoneResponse{Profile: set.Msg.Profile}), nil
 }
 
-// CancelDeletion is "Keep my account" on the restore sheet (PRD §6.18, D60): members clears the stamp under the
-// phone's key. A stamp past the 24 hours stays failed_precondition.
 func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceCancelDeletionRequest]) (*connect.Response[moneyrecapv1.BffServiceCancelDeletionResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -61,8 +55,6 @@ func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[money
 	return connect.NewResponse(&moneyrecapv1.BffServiceCancelDeletionResponse{Profile: kept.Msg.Profile}), nil
 }
 
-// RequestDeletion is D11's Delete my account (PRD §6.16, D39): members stamps the request under the phone's key and
-// answers its stamp, on which the phone signs out (ARCHITECTURE §7.1 step 1).
 func (s *Service) RequestDeletion(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceRequestDeletionRequest]) (*connect.Response[moneyrecapv1.BffServiceRequestDeletionResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -81,8 +73,6 @@ func (s *Service) RequestDeletion(ctx context.Context, req *connect.Request[mone
 	return connect.NewResponse(&moneyrecapv1.BffServiceRequestDeletionResponse{DeletionRequestedAt: asked.Msg.Profile.GetDeletionRequestedAt()}), nil
 }
 
-// ForgetDevice is Log out's first step (PRD §6.16, D12): notify deletes this phone's row under the phone's key, so the
-// phone stays quiet. The phone signs out whatever the answer, so a code here only reaches its log.
 func (s *Service) ForgetDevice(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceForgetDeviceRequest]) (*connect.Response[moneyrecapv1.BffServiceForgetDeviceResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -100,8 +90,6 @@ func (s *Service) ForgetDevice(ctx context.Context, req *connect.Request[moneyre
 	return connect.NewResponse(&moneyrecapv1.BffServiceForgetDeviceResponse{}), nil
 }
 
-// RegisterDevice hands the phone's push token to notify under the phone's key (PRD §10, I8). The phone ignores a
-// failure, so a code here only reaches its log.
 func (s *Service) RegisterDevice(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceRegisterDeviceRequest]) (*connect.Response[moneyrecapv1.BffServiceRegisterDeviceResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -119,8 +107,6 @@ func (s *Service) RegisterDevice(ctx context.Context, req *connect.Request[money
 	return connect.NewResponse(&moneyrecapv1.BffServiceRegisterDeviceResponse{}), nil
 }
 
-// RequestExport is D9's Send it (PRD §6.16, D39): ledger's CSV, then notify mails it under the phone's key, both
-// required. notify bounds its own send, so its hop has no BFF timeout; a refusal keeps notify's EmailBounced detail.
 func (s *Service) RequestExport(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceRequestExportRequest]) (*connect.Response[moneyrecapv1.BffServiceRequestExportResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -143,8 +129,6 @@ func (s *Service) RequestExport(ctx context.Context, req *connect.Request[moneyr
 	return connect.NewResponse(&moneyrecapv1.BffServiceRequestExportResponse{}), nil
 }
 
-// LogSpend is the Log a spend sheet's Save (PRD §6.9, ARCHITECTURE §6.2): ledger writes the Spend under the phone's
-// key, notify hears a current-month Spend's crossed_line, then the answer carries the current month's Home.
 func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceLogSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceLogSpendResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -169,8 +153,6 @@ func (s *Service) LogSpend(ctx context.Context, req *connect.Request[moneyrecapv
 	return connect.NewResponse(&moneyrecapv1.BffServiceLogSpendResponse{Home: home, Spend: logged.Msg.Spend}), nil
 }
 
-// EditSpend is the edit sheet's Save changes (PRD §6.10): ledger rewrites the Spend under the phone's key, notify hears
-// crossed_line when the Spend now sits in the current month, then the answer carries the current month's Home (§6.2).
 func (s *Service) EditSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceEditSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceEditSpendResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -195,8 +177,6 @@ func (s *Service) EditSpend(ctx context.Context, req *connect.Request[moneyrecap
 	return connect.NewResponse(&moneyrecapv1.BffServiceEditSpendResponse{Home: home, Spend: edited.Msg.Spend}), nil
 }
 
-// DeleteSpend is the confirmed Delete this spend (PRD §6.10, D21): ledger stamps the Spend deleted under the phone's
-// key. A delete never crosses the line, so notify is not told and Home's banner is GetWarningState's (§6.2).
 func (s *Service) DeleteSpend(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceDeleteSpendRequest]) (*connect.Response[moneyrecapv1.BffServiceDeleteSpendResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {
@@ -218,11 +198,8 @@ func (s *Service) DeleteSpend(ctx context.Context, req *connect.Request[moneyrec
 	return connect.NewResponse(&moneyrecapv1.BffServiceDeleteSpendResponse{Home: home}), nil
 }
 
-// evaluateTimeout bounds §6.2 step 4: a slow notify must not hold up a Spend already saved.
 const evaluateTimeout = 300 * time.Millisecond
 
-// evaluateWarning is §6.2 step 4: for a write in the current month, notify stamps it when ledger says the write
-// crossed the line. nil for a past month or a failed call, and home then reads GetWarningState instead.
 func (s *Service) evaluateWarning(ctx context.Context, key string, profile *moneyrecapv1.Profile, month *moneyrecapv1.MonthSummary, crossed bool) *moneyrecapv1.EvaluateWarningResponse {
 	current := s.now().In(zone(profile)).Format(monthLayout)
 	if month.GetMonth() != current {

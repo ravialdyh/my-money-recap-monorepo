@@ -20,9 +20,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestConnectBoundary calls the ledger container with the realm test Member's token: the replica fills from
-// members under it, another audience's token is refused (§4.2 point 3), and notify's key reads its two calls alone.
-// Skips without its variables.
 func TestConnectBoundary(t *testing.T) {
 	base, membersURL, kc, pw := os.Getenv("LEDGER_TEST_URL"), os.Getenv("MEMBERS_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
 	membersDSN, notifySecret := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL"), os.Getenv("NOTIFY_TEST_CLIENT_SECRET")
@@ -91,8 +88,6 @@ func TestConnectBoundary(t *testing.T) {
 	notifysKey(t, db, &auth.ServiceAccount{Realm: kc + "/realms/mmr", Client: "notify", Secret: notifySecret}, base, membersURL, id)
 }
 
-// notifysKey fetches notify's token from the realm and proves ledger answers it spent-today and the month list for
-// the test Member, with no owner check, and that every other ledger call and every other service refuses it (§4.2).
 func notifysKey(t *testing.T, db *pgxpool.Pool, account *auth.ServiceAccount, base, membersURL, id string) {
 	t.Helper()
 	ctx := context.Background()
@@ -126,8 +121,6 @@ func notifysKey(t *testing.T, db *pgxpool.Pool, account *auth.ServiceAccount, ba
 	}
 }
 
-// The ledger role owns its own database and reaches no other: Postgres grants CONNECT to PUBLIC, and the
-// init script takes it back (ARCHITECTURE A9).
 func TestTheLedgerRoleReachesNoOtherDatabase(t *testing.T) {
 	dsn := os.Getenv("LEDGER_TEST_DATABASE_URL")
 	if dsn == "" {

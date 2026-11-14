@@ -18,7 +18,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// apply runs ApplyMemberFacts on one delivery of msg in a transaction of its own, as events.Process does.
 func apply(t *testing.T, db *pgxpool.Pool, msg proto.Message) error {
 	t.Helper()
 	body, err := proto.Marshal(msg)
@@ -34,7 +33,6 @@ func envelope(member string, at time.Time) *moneyrecapv1.EventEnvelope {
 	return &moneyrecapv1.EventEnvelope{MessageId: uuid.New().String(), OccurredAt: timestamppb.New(at), MemberId: member, RoutingKey: "members.updated"}
 }
 
-// replica reads the Member's row as "subject zone date code", with "-" for each null, and "" when there is none.
 func replica(t *testing.T, db *pgxpool.Pool, member string) string {
 	t.Helper()
 	var row string
@@ -57,8 +55,6 @@ func forget(t *testing.T, db *pgxpool.Pool, member string) {
 	})
 }
 
-// The replica follows members' events (§7.2 "Consumes"): members.created shares members.updated's shape, an
-// older event arriving late is skipped, an empty fact never clears a stored one, and the subject stays.
 func TestApplyMemberFacts(t *testing.T) {
 	db := testDB(t)
 	id := uuid.New().String()
@@ -113,8 +109,6 @@ func TestApplyMemberFacts(t *testing.T) {
 	}
 }
 
-// Events own the replica's facts: a profile read on a miss stamps the caller's subject and fills only what
-// the row lacks, so a read racing a newer event cannot overwrite it (§6.2 step 3, spec #92).
 func TestTheProfileReadFillsOnlyMissingFacts(t *testing.T) {
 	db := testDB(t)
 	id := uuid.New().String()

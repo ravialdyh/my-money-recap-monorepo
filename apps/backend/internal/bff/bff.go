@@ -1,5 +1,3 @@
-// Package bff is the API the phone talks to (ARCHITECTURE §6): GetHome joins members, ledger and notify, GetRecap
-// members and ledger; RequestMagicLink (magiclink.go) calls the realm and notify.
 package bff
 
 import (
@@ -18,8 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Notify is the part of moneyrecapv1connect.NotifyServiceClient the Member paths need (§7.3): the Target Warning,
-// the phone's push token, the notification preferences and the export email.
 type Notify interface {
 	GetWarningState(ctx context.Context, req *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error)
 	EvaluateWarning(ctx context.Context, req *connect.Request[moneyrecapv1.EvaluateWarningRequest]) (*connect.Response[moneyrecapv1.EvaluateWarningResponse], error)
@@ -30,31 +26,21 @@ type Notify interface {
 	EmailExport(ctx context.Context, req *connect.Request[moneyrecapv1.EmailExportRequest]) (*connect.Response[moneyrecapv1.EmailExportResponse], error)
 }
 
-// Service implements BffService. Every RPC but RequestMagicLink runs behind auth.Interceptor;
-// Members and Ledger must carry auth.Forward so each service verifies the same token again.
 type Service struct {
 	moneyrecapv1connect.UnimplementedBffServiceHandler
-	Members moneyrecapv1connect.MembersServiceClient
-	Ledger  moneyrecapv1connect.LedgerServiceClient
-	Notify  Notify
-	// Currency quotes the day's rate; optional, so its absence is only the failed fetch (spec #169).
-	Currency moneyrecapv1connect.CurrencyServiceClient
-	// MagicLink is the realm and the notify client RequestMagicLink needs (magiclink.go, A10).
+	Members   moneyrecapv1connect.MembersServiceClient
+	Ledger    moneyrecapv1connect.LedgerServiceClient
+	Notify    Notify
+	Currency  moneyrecapv1connect.CurrencyServiceClient
 	MagicLink MagicLink
-	// Timeout bounds each call to a service; zero means the §6.1 one second.
-	Timeout time.Duration
-	// Now is the server clock; nil means time.Now. GetHome reads it in the Member's zone (A3).
-	Now func() time.Time
+	Timeout   time.Duration
+	Now       func() time.Time
 }
 
-// errNotOnboarded is GetHome's answer until steps 1 and 2 are answered: Home greets by name and prints the
-// Member's Currency (spec #92), and the phone reads it as "open onboarding".
 var errNotOnboarded = errors.New("onboarding steps 1 and 2 are unanswered")
 
-// The server's calendar strings (PRD §6.8): a Recap Month and a date.
 const monthLayout, dateLayout = "2006-01", "2006-01-02"
 
-// timeout is Timeout with its default applied.
 func (s *Service) timeout() time.Duration {
 	if s.Timeout == 0 {
 		return time.Second
@@ -62,7 +48,6 @@ func (s *Service) timeout() time.Duration {
 	return s.Timeout
 }
 
-// now is the server clock in UTC: Now, or time.Now when it is nil.
 func (s *Service) now() time.Time {
 	if s.Now == nil {
 		return time.Now().UTC()
@@ -70,8 +55,6 @@ func (s *Service) now() time.Time {
 	return s.Now().UTC()
 }
 
-// zone is the Member's IANA zone (A3), the one ledger reads "today" in, from the zone data linked in as members
-// links it; UTC before the launch call has stored one.
 func zone(p *moneyrecapv1.Profile) *time.Location {
 	loc, err := time.LoadLocation(p.GetTimezone())
 	if err != nil {
@@ -80,8 +63,6 @@ func zone(p *moneyrecapv1.Profile) *time.Location {
 	return loc
 }
 
-// member creates the Member on first sight and answers their Profile: members.GetOrCreateBySubject with
-// the token's subject and email claim (PRD §5 step 5), which forwards the caller's token unchanged.
 func (s *Service) member(ctx context.Context) (*moneyrecapv1.Profile, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.timeout())
 	defer cancel()
@@ -108,8 +89,6 @@ func (s *Service) GetHome(ctx context.Context, _ *connect.Request[moneyrecapv1.G
 	return connect.NewResponse(&moneyrecapv1.GetHomeResponse{Home: home}), nil
 }
 
-// GetRecap is one month's Recap view (PRD §6.11 to §6.14, §6.17): members for the Member, then ledger for the month,
-// each required, each code passed through; the current Display Name and ledger's Currency, never a stored copy (§7).
 func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceGetRecapRequest]) (*connect.Response[moneyrecapv1.BffServiceGetRecapResponse], error) {
 	profile, err := s.member(ctx)
 	if err != nil {
@@ -127,8 +106,6 @@ func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv
 	}}), nil
 }
 
-// home is the current month's HomeView in the Member's zone: ledger's month, required, joined with notify's banner,
-// optional, both asked at once. A write's EvaluateWarning answer, when there is one, is the banner instead (§6.2).
 func (s *Service) home(ctx context.Context, profile *moneyrecapv1.Profile, evaluated *moneyrecapv1.EvaluateWarningResponse) (*moneyrecapv1.HomeView, error) {
 	timeout := s.timeout()
 	memberID := profile.MemberId
@@ -178,8 +155,6 @@ func (s *Service) home(ctx context.Context, profile *moneyrecapv1.Profile, evalu
 	return home, nil
 }
 
-// homeView joins the Profile and ledger's month into the HomeView in the Currency ledger answered Spent in, stamping
-// money left without a code with it. The month and first_recap_on are local dates, days_remaining ledger's (A2, A3).
 func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recaps []*moneyrecapv1.RecapMonth, warning *moneyrecapv1.TargetWarning, now time.Time) *moneyrecapv1.HomeView {
 	code, digits := heldIn(summary.GetSpent().GetCurrencyCode(), p)
 	stamp := func(m *moneyrecapv1.Money) *moneyrecapv1.Money {
@@ -208,9 +183,6 @@ func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recap
 	}
 }
 
-// requiredCallFailed logs why a required call failed and answers with code and a message naming only
-// the call, so no upstream text (a host, a database) reaches the phone; the callee's typed details, such as
-// notify's EmailBounced, pass through.
 func requiredCallFailed(call string, code connect.Code, err error) error {
 	log.Printf("%s: %v", call, err)
 	failed := connect.NewError(code, fmt.Errorf("%s failed", call))
@@ -223,9 +195,6 @@ func requiredCallFailed(call string, code connect.Code, err error) error {
 	return failed
 }
 
-// logOptionalCallDegraded records that an optional call failed and the request went on without it:
-// Home without notify, a request the per-Member limit could not count. A log line stands in for the
-// §4.4 and §6.1 metrics until OpenTelemetry lands (A11).
 func logOptionalCallDegraded(call, consequence string, err error) {
 	log.Printf("%s: %v (%s)", call, err, consequence)
 }

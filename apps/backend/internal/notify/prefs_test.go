@@ -10,8 +10,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// Before any save a Member hears PRD §10's defaults; a save replaces the one row with the whole message, a repeated
-// key writes once, and a keyless, malformed or someone else's save is refused and changes nothing (A14).
 func TestPrefsAnswerTheDefaultsThenTheWholeSavedMessage(t *testing.T) {
 	ann, bob := "00000000-0000-4000-8000-00000000e001", "00000000-0000-4000-8000-00000000e002"
 	s := warningService(t, ann, map[string]string{"ann": ann, "bob": bob})

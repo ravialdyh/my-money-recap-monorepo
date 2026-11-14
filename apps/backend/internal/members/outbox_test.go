@@ -14,8 +14,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// staged is one outbox row: its id, routing key and the event it carries, which members.created and
-// members.updated share the shape of.
 type staged struct {
 	id, key string
 	event   *moneyrecapv1.MembersUpdated
@@ -42,8 +40,6 @@ func outbox(t *testing.T, db *pgxpool.Pool, member string) []staged {
 	return found
 }
 
-// Each change to a Member's facts stages exactly one event carrying all of them, in the change's own
-// transaction; a write that changes none stages nothing: an Avatar, a step, a repeated answer, a replay.
 func TestFactChangesStageOneEventEach(t *testing.T) {
 	db := testDB(t)
 	subject := "outbox-" + rand.Text()

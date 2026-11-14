@@ -18,8 +18,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// fakeMembers answers GetProfile for the one Member each bearer token owns, as members does (§4.2 point 3), in
-// Asia/Jakarta at the token's address; the tests' tokens are the subject itself, and a nil map is members down.
 type fakeMembers struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
 	owns map[string]string
@@ -36,7 +34,6 @@ func (f fakeMembers) GetProfile(_ context.Context, req *connect.Request[moneyrec
 	return connect.NewResponse(&moneyrecapv1.GetProfileResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId, Timezone: "Asia/Jakarta", Email: token + "@example.test"}}), nil
 }
 
-// warningService is a Service over the notify database whose members answers owns, with id's rows removed at the end.
 func warningService(t *testing.T, id string, owns map[string]string) *Service {
 	t.Helper()
 	s := &Service{DB: testDB(t), Members: membersClient(t, owns)}
@@ -51,7 +48,6 @@ func warningService(t *testing.T, id string, owns map[string]string) *Service {
 	return s
 }
 
-// membersClient reaches a fakeMembers answering owns, forwarding the caller's token as the service does.
 func membersClient(t *testing.T, owns map[string]string) moneyrecapv1connect.MembersServiceClient {
 	t.Helper()
 	mux := http.NewServeMux()
@@ -65,8 +61,6 @@ func as(subject string) context.Context {
 	return auth.NewContext(context.Background(), auth.Claims{Subject: subject, Raw: subject})
 }
 
-// The month is stamped once, by the first crossed_line, with the copy it carried; later calls, a repeated key
-// included, answer that copy and never fired_now, and another month stays its own (PRD §8.8, A14).
 func TestTheMonthFlagStampsOnceAndKeepsItsFirstWords(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000b001"
 	s := warningService(t, id, map[string]string{"owner": id})
@@ -129,8 +123,6 @@ func TestTheMonthFlagStampsOnceAndKeepsItsFirstWords(t *testing.T) {
 	}
 }
 
-// A token that does not own the Member is not_found on both reads and stamps nothing, even after the owner filled
-// the replica; a malformed id is not_found too, and members down is unavailable, never a pass (§4.2 point 3).
 func TestAnotherMembersWarningIsNotFound(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000b002"
 	s := warningService(t, id, map[string]string{"owner": id, "stranger": "00000000-0000-4000-8000-00000000b003"})
@@ -169,8 +161,6 @@ func TestAnotherMembersWarningIsNotFound(t *testing.T) {
 	}
 }
 
-// A Spend event stamps as EvaluateWarning does (§6.2 step 6): only with crossed_line, once, with the first copy; an
-// edit's event has the log's shape, and a crossing event without a Member, a month or a copy fails (§4.3).
 func TestAnEventStampsTheMonth(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000b004"
 	s := warningService(t, id, map[string]string{"owner": id})

@@ -9,7 +9,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// month is a Recap Month (PRD §8.1): a calendar month of the Member's local dates.
 type month struct {
 	year int
 	mon  time.Month
@@ -32,7 +31,6 @@ func (m month) next() month         { return monthOf(m.day(1).AddDate(0, 1, 0)) 
 func (m month) prev() month         { return monthOf(m.day(1).AddDate(0, -1, 0)) }
 func (m month) before(o month) bool { return m.day(1).Before(o.day(1)) }
 
-// effectivePayday is PRD §8.2: the token "last" is the month's last day, and so is a Payday past it.
 func effectivePayday(payday string, m month) int {
 	if payday == "last" {
 		return m.days()
@@ -41,7 +39,6 @@ func effectivePayday(payday string, m month) int {
 	return min(n, m.days())
 }
 
-// salaryRow and targetRow are the append-only settings rows (PRD §7), read oldest first.
 type salaryRow struct {
 	amount, original *big.Rat
 	originalCurrency string
@@ -54,8 +51,6 @@ type targetRow struct {
 	from    month
 }
 
-// inForce is the row with the latest effective month not after m (PRD §7). Rows come oldest first, so of two
-// sharing that month the newer wins, which makes a step 3 save repeated after a crash safe (spec #92).
 func inForce[T any](rows []T, from func(T) month, m month) (T, bool) {
 	var found T
 	ok := false
@@ -70,15 +65,12 @@ func inForce[T any](rows []T, from func(T) month, m month) (T, bool) {
 func salaryFrom(r salaryRow) month { return r.from }
 func targetFrom(r targetRow) month { return r.from }
 
-// spendRow is a Spend that is not deleted (PRD §7): its amount and local date as every figure reads them, and the
-// Spend as ledger answers it.
 type spendRow struct {
 	amount *big.Rat
 	date   time.Time
 	spend  *moneyrecapv1.Spend
 }
 
-// ledgerOf is one Member's rows and replica facts, what every computation reads.
 type ledgerOf struct {
 	cash     cash
 	signedUp time.Time
@@ -87,7 +79,6 @@ type ledgerOf struct {
 	spends   []spendRow
 }
 
-// spent is PRD §8.3's Spent for month m and how many Spends make it.
 func (l ledgerOf) spent(m month) (sum *big.Rat, count int) {
 	sum = new(big.Rat)
 	for _, s := range l.spends {
@@ -99,8 +90,6 @@ func (l ledgerOf) spent(m month) (sum *big.Rat, count int) {
 	return sum, count
 }
 
-// summary is GetMonthSummary for month m on the Member's local today (PRD §8): the figures, the §8.7 sentence
-// and the §8.8 warning copy, present whenever Spent is above the line and worded by whether Payday has passed (D53).
 func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 	spent, count := l.spent(m)
 	streak, _, _ := l.streak(m, today)
@@ -165,8 +154,6 @@ func (l ledgerOf) summary(m month, today time.Time) *moneyrecapv1.MonthSummary {
 	return s
 }
 
-// streak is PRD §8.5: the longest spend-free run in the window (see window), with its first and last day; of two
-// equally long runs the earlier, and zero days when days is 0.
 func (l ledgerOf) streak(m month, today time.Time) (days int32, first, last time.Time) {
 	start, end := l.window(m, today)
 	spendDays := map[time.Time]bool{}
@@ -186,7 +173,6 @@ func (l ledgerOf) streak(m month, today time.Time) (days int32, first, last time
 	return days, first, last
 }
 
-// window is the Streak window of month m on today (PRD §8.5, D43).
 func (l ledgerOf) window(m month, today time.Time) (start, end time.Time) {
 	start, end = m.day(1), m.day(m.days())
 	if l.signedUp.After(start) {
@@ -198,7 +184,6 @@ func (l ledgerOf) window(m month, today time.Time) (start, end time.Time) {
 	return start, end
 }
 
-// daysRemaining counts today and is never below 1 (PRD §8.7), so a past month answers 1.
 func daysRemaining(m month, today time.Time) int32 {
 	switch {
 	case m == monthOf(today):
@@ -209,7 +194,6 @@ func daysRemaining(m month, today time.Time) int32 {
 	return int32(m.days())
 }
 
-// ordinal is an English day of the month as the §8.7 sentence prints it: 1st, 2nd, 3rd, 11th, 22nd, 25th.
 func ordinal(d int) string {
 	suffix := "th"
 	if d%100 < 11 || d%100 > 13 {
@@ -225,8 +209,6 @@ func ordinal(d int) string {
 	return strconv.Itoa(d) + suffix
 }
 
-// settings is GetSettings on the Member's local today (PRD §6.16): the rows in force this month, any saved for a
-// later month, whether this month's Payday has come (D56), and when a Target saved now starts, in a setup save or not.
 func (l ledgerOf) settings(today time.Time, setup bool) *moneyrecapv1.LedgerSettings {
 	now := monthOf(today)
 	st := &moneyrecapv1.LedgerSettings{
@@ -249,8 +231,6 @@ func (l ledgerOf) settings(today time.Time, setup bool) *moneyrecapv1.LedgerSett
 	return st
 }
 
-// targetStarts is the month a Saving Target saved on today starts in: a setup save in the sign-up month (spec #92), a
-// first one after setup this month (owner 2026-09-23), every later one next month, a 0% row counted (D65).
 func (l ledgerOf) targetStarts(today time.Time, setup bool) month {
 	switch {
 	case setup:
@@ -261,7 +241,6 @@ func (l ledgerOf) targetStarts(today time.Time, setup bool) month {
 	return monthOf(today).next()
 }
 
-// farFuture is a month after every effective month, so the row in force then is the last one saved.
 var farFuture = month{9999, time.December}
 
 func (l ledgerOf) salarySetting(r salaryRow) *moneyrecapv1.SalarySetting {

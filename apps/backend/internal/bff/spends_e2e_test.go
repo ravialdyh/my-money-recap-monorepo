@@ -16,8 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestLogSpendEndToEnd logs, lists, edits and deletes a Spend through the BFF and ledger (#129, #131, #133); a Spend
-// before the sign-up month (D72) or with no Category is refused.
 func TestLogSpendEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
@@ -99,8 +97,6 @@ func TestLogSpendEndToEnd(t *testing.T) {
 	editAndDelete(ctx, t, client, logged.Spend.Id, first)
 }
 
-// editAndDelete edits the Spend with id to 40000 of Rides on the 1st, which D72 allows the test Member who signs up
-// this month, refuses a move to last month, then deletes it: Home and the list follow, and it is gone for good (#133).
 func editAndDelete(ctx context.Context, t *testing.T, client moneyrecapv1connect.BffServiceClient, id string, first time.Time) {
 	t.Helper()
 	edit := func(day time.Time) (*moneyrecapv1.BffServiceEditSpendResponse, error) {

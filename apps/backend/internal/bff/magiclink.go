@@ -19,19 +19,14 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// Mailer is the part of moneyrecapv1connect.NotifyServiceClient RequestMagicLink needs (§7.3).
 type Mailer interface {
 	EmailMagicLink(ctx context.Context, req *connect.Request[moneyrecapv1.EmailMagicLinkRequest]) (*connect.Response[moneyrecapv1.EmailMagicLinkResponse], error)
 }
 
-// Limiter is the slice of Redis both limits need, the magic-link one and MemberLimit: one counter per
-// key, expiring after window, as §4.4 counts with INCR and EXPIRE (A6).
 type Limiter interface {
 	Count(ctx context.Context, key string, window time.Duration) (int64, error)
 }
 
-// RedisLimiter is the BFF's Redis client, shared by both limits (§4.4, A6). TxPipeline makes the INCR and the EXPIRE
-// one round trip, so a key can never outlive its window because the second call was lost.
 type RedisLimiter struct {
 	Client redis.UniversalClient
 }
@@ -46,40 +41,24 @@ func (r RedisLimiter) Count(ctx context.Context, key string, window time.Duratio
 	return count.Val(), nil
 }
 
-// MagicLink is what RequestMagicLink needs of the realm, of Redis and of notify (A10, ARCHITECTURE §7.5).
 type MagicLink struct {
-	// Realm is Keycloak's realm from this process, parent of the token and login-token endpoints.
-	Realm string
-	// ClientSecret authenticates the bff service account, which holds manage-users.
+	Realm        string
 	ClientSecret string
-	// LinkBase is the configured address the link is built on; the login token is its lt query.
-	LinkBase string
-	// Limit counts §4.4's magic-link rate limit, five requests per address per hour (PRD §11, A6).
-	Limit Limiter
-	// Mail is notify, reached on a request carrying no token (§4.2 point 3, #68).
-	Mail Mailer
+	LinkBase     string
+	Limit        Limiter
+	Mail         Mailer
 }
 
-// linkLifetime is the 900 seconds A10 asks the extension for, which is the 15 minutes Check your
-// inbox promises (PRD D32).
 const linkLifetime = 900
 
-// PRD §11's magic-link limit, a security requirement rather than fairness: five per address per
-// fixed hour, counted in Redis because the edge cannot (§4.4, A6). limitTimeout bounds the count
-// as realmClient bounds the realm: a closed door has to close fast.
 const (
 	limitPerWindow = 5
 	limitWindow    = time.Hour
 	limitTimeout   = 2 * time.Second
 )
 
-// realmClient bounds each of the two realm calls. The notify hop that follows carries notify's own
-// ten-second cap on the SMTP conversation (internal/notify).
 var realmClient = &http.Client{Timeout: 5 * time.Second}
 
-// RequestMagicLink is the one BFF procedure outside the bearer check (internal/auth), so it reads
-// the address from the request and never from the context's claims. It asks the realm for a login
-// token and hands the address and the link to notify (A10, §7.5).
 func (s *Service) RequestMagicLink(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceRequestMagicLinkRequest]) (*connect.Response[moneyrecapv1.BffServiceRequestMagicLinkResponse], error) {
 	addr, err := mail.ParseAddress(strings.TrimSpace(req.Msg.Email))
 	if err != nil {
@@ -107,9 +86,6 @@ func (s *Service) RequestMagicLink(ctx context.Context, req *connect.Request[mon
 	return connect.NewResponse(&moneyrecapv1.BffServiceRequestMagicLinkResponse{}), nil
 }
 
-// withinLimit is PRD §11's five per address per hour, keyed by the address because the RPC carries
-// no token and so has no subject. It fails closed, unlike §4.4's fail-open per-Member row: A6 sets
-// the rule per job, and no edge limit can stand behind it.
 func (m MagicLink) withinLimit(ctx context.Context, addr string) error {
 	ctx, cancel := context.WithTimeout(ctx, limitTimeout)
 	defer cancel()
@@ -124,8 +100,6 @@ func (m MagicLink) withinLimit(ctx context.Context, addr string) error {
 	return nil
 }
 
-// loginToken is the opaque lt:<uuid> the extension issues for addr, on A10's terms: 900 seconds,
-// single use, the Member created if the address is new and the address marked verified (§7.5).
 func (m MagicLink) loginToken(ctx context.Context, addr string) (string, error) {
 	account, err := m.serviceAccountToken(ctx)
 	if err != nil {
@@ -156,9 +130,6 @@ func (m MagicLink) loginToken(ctx context.Context, addr string) (string, error) 
 	return answer.LoginHint, nil
 }
 
-// serviceAccountToken is a client_credentials access token for the bff client, which is how the
-// login-token endpoint sees the manage-users role. One per accepted request: five per address per
-// hour is too few round trips to be worth a cache and its expiry.
 func (m MagicLink) serviceAccountToken(ctx context.Context) (string, error) {
 	form := url.Values{"grant_type": {"client_credentials"}, "client_id": {"bff"}, "client_secret": {m.ClientSecret}}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, m.Realm+"/protocol/openid-connect/token", strings.NewReader(form.Encode()))
@@ -178,8 +149,6 @@ func (m MagicLink) serviceAccountToken(ctx context.Context) (string, error) {
 	return answer.AccessToken, nil
 }
 
-// callRealm sends req and decodes a 200 of JSON into answer. Any other status is the error, named by
-// path and status alone: the realm's body on this path can quote the address it was given.
 func callRealm(req *http.Request, answer any) error {
 	res, err := realmClient.Do(req)
 	if err != nil {

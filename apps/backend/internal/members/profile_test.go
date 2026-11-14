@@ -12,8 +12,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
-// The onboarding step, the sign-up date and the deletion stamp reach the caller through both reads, and a
-// Member who has none of them reads zero values rather than an error (#94).
 func TestBothReadsReturnTheOnboardingAndDeletionColumns(t *testing.T) {
 	db := testdb.Scratch(t, "MMR_TEST_MEMBERS_DATABASE_URL", Migrate)
 	subject := "columns-" + t.Name()

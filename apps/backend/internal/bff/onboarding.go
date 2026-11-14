@@ -10,8 +10,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// GetOnboardingState is where onboarding resumes (PRD §6.4): the first unanswered step, the answers saved so far,
-// steps 3 and 4's from ledger once the Currency is set, for a resume or Home's prompts, and the token's given_name.
 func (s *Service) GetOnboardingState(ctx context.Context, _ *connect.Request[moneyrecapv1.BffServiceGetOnboardingStateRequest]) (*connect.Response[moneyrecapv1.BffServiceGetOnboardingStateResponse], error) {
 	p, err := s.member(ctx)
 	if err != nil {
@@ -30,8 +28,6 @@ func (s *Service) GetOnboardingState(ctx context.Context, _ *connect.Request[mon
 	return connect.NewResponse(&moneyrecapv1.BffServiceGetOnboardingStateResponse{State: state}), nil
 }
 
-// nextStep is the first unanswered step, 0 when none is: steps 1 and 2 by their answers, steps 3 and 4, which
-// can be skipped, by the highest step saved, never by the progress number alone (spec #92).
 func nextStep(p *moneyrecapv1.Profile) int32 {
 	switch {
 	case p.DisplayName == "" || p.AvatarKey == "":
@@ -46,8 +42,6 @@ func nextStep(p *moneyrecapv1.Profile) int32 {
 	return 0
 }
 
-// SaveProfile checks the answers (internal/answers), then saves them in members under the phone's key (A14). A
-// Currency saved during setup relabels step 3's Salary in ledger; after setup a change is refused (spec #92).
 func (s *Service) SaveProfile(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceSaveProfileRequest]) (*connect.Response[moneyrecapv1.BffServiceSaveProfileResponse], error) {
 	key, err := idempotencyKey(req.Header())
 	if err != nil {

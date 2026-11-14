@@ -15,8 +15,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/ledger"
 )
 
-// Write runs once per Member and key and replays the stored answer; the key on another request is
-// ErrReused; a failed write keeps no key; day-old keys are swept (A14). It uses ledger's table.
 func TestWriteRunsOncePerKey(t *testing.T) {
 	dsn := os.Getenv("LEDGER_TEST_DATABASE_URL")
 	if dsn == "" {

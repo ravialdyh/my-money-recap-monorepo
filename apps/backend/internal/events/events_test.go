@@ -22,13 +22,11 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
-// scratch is testdb.Scratch: the stack's relay and consumer never meet a test's rows.
 func scratch(t *testing.T, dsnVar string, migrate func(context.Context, *pgxpool.Pool) error) *pgxpool.Pool {
 	t.Helper()
 	return testdb.Scratch(t, dsnVar, migrate)
 }
 
-// broker dials the Compose stack's RabbitMQ and declares the exchanges, skipping unless MMR_TEST_AMQP_URL is set.
 func broker(t *testing.T) (string, *amqp.Connection) {
 	t.Helper()
 	url := os.Getenv("MMR_TEST_AMQP_URL")
@@ -62,7 +60,6 @@ func updated(env *moneyrecapv1.EventEnvelope) proto.Message {
 	return &moneyrecapv1.MembersUpdated{Envelope: env, Facts: &moneyrecapv1.MemberFacts{Timezone: "Asia/Jakarta"}}
 }
 
-// stage commits n outbox rows for one Member under key, one transaction each, and returns their ids.
 func stage(t *testing.T, db *pgxpool.Pool, key string, n int) []string {
 	t.Helper()
 	ctx, member := context.Background(), uuid.New().String()
@@ -91,8 +88,6 @@ func unsent(t *testing.T, db *pgxpool.Pool) int {
 	return n
 }
 
-// listen binds a queue of the test's own to key and returns a wait for n messages that then counts, per
-// message id, everything that arrived, including any duplicate within the following second.
 func listen(t *testing.T, conn *amqp.Connection, key string) func(n int) map[string]int {
 	t.Helper()
 	ch := channel(t, conn, false)
@@ -124,8 +119,6 @@ func listen(t *testing.T, conn *amqp.Connection, key string) func(n int) map[str
 	}
 }
 
-// A change and its event commit together: a rolled-back write leaves no row, and a committed one leaves one
-// whose payload names its own row as the message id (A4, §4.3).
 func TestStageCommitsWithItsChange(t *testing.T) {
 	db := scratch(t, "MMR_TEST_MEMBERS_DATABASE_URL", members.Migrate)
 	ctx, member := context.Background(), uuid.New().String()
@@ -154,8 +147,6 @@ func TestStageCommitsWithItsChange(t *testing.T) {
 	}
 }
 
-// Two relays on one table never publish a row twice (§4.3): a relay mid-batch holds its rows, which another
-// skips rather than waits for or sends too, and two draining together deliver every row exactly once.
 func TestRelaysPublishEachRowOnce(t *testing.T) {
 	db := scratch(t, "MMR_TEST_MEMBERS_DATABASE_URL", members.Migrate)
 	_, conn := broker(t)
@@ -210,8 +201,6 @@ func TestRelaysPublishEachRowOnce(t *testing.T) {
 	}
 }
 
-// A publish the broker refuses leaves its row unsent for the next poll, and the rows behind it still go:
-// only a confirmed row is marked (§4.3). The refusal comes from a full queue that rejects new messages.
 func TestARefusedPublishStaysUnsent(t *testing.T) {
 	db := scratch(t, "MMR_TEST_MEMBERS_DATABASE_URL", members.Migrate)
 	_, conn := broker(t)

@@ -17,8 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// fakeMembers is a MembersService serving GetOrCreateBySubject alone, so a second members call fails
-// GetHome. It answers profile, or a new Member with no answers; createDelay slows it, createErr fails it.
 type fakeMembers struct {
 	moneyrecapv1connect.UnimplementedMembersServiceHandler
 	createDelay time.Duration
@@ -40,7 +38,6 @@ func (f *fakeMembers) CancelDeletion(_ context.Context, req *connect.Request[mon
 	return connect.NewResponse(&moneyrecapv1.CancelDeletionResponse{Profile: &moneyrecapv1.Profile{MemberId: req.Msg.MemberId}}), nil
 }
 
-// SaveProfile writes the answers sent over the stored profile and keeps the highest step, as members does.
 func (f *fakeMembers) SaveProfile(_ context.Context, req *connect.Request[moneyrecapv1.SaveProfileRequest]) (*connect.Response[moneyrecapv1.SaveProfileResponse], error) {
 	f.gotProfile = req.Msg
 	p := &moneyrecapv1.Profile{MemberId: req.Msg.MemberId}
@@ -99,13 +96,10 @@ func newService(t *testing.T, members *fakeMembers, notify Notify) *Service {
 
 var ctx = auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com", Raw: "tok"})
 
-// onboarded is a Member who has answered steps 1 and 2, so GetHome answers them (spec #92).
 func onboarded() *moneyrecapv1.Profile {
 	return &moneyrecapv1.Profile{MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox", CurrencyCode: "IDR"}
 }
 
-// assertZeroHome is the HomeView of zeros the unit and end-to-end tests expect once steps 1 and 2 are answered:
-// nothing spent or in, no Saved, Salary, target, warning or recaps, streak day 1, the name, every amount in Currency.
 func assertZeroHome(t *testing.T, h *moneyrecapv1.HomeView, name, currency string) {
 	t.Helper()
 	if h.Spent.Amount != "0" || h.Spent.CurrencyCode != currency || h.MoneyIn.Amount != "0" || h.MoneyIn.CurrencyCode != currency ||
@@ -131,8 +125,6 @@ func TestGetHomeZeros(t *testing.T) {
 	}
 }
 
-// GetHome refuses failed_precondition until steps 1 and 2 are answered, before it calls ledger or notify: Home
-// greets by name and prints the Member's Currency, so neither has a fallback (spec #92).
 func TestGetHomeRefusesBeforeStepsOneAndTwo(t *testing.T) {
 	for name, p := range map[string]*moneyrecapv1.Profile{
 		"a new Member": {MemberId: "m-1"},
@@ -147,7 +139,6 @@ func TestGetHomeRefusesBeforeStepsOneAndTwo(t *testing.T) {
 	}
 }
 
-// GetHome builds the HomeView from the Profile GetOrCreateBySubject answers, with no second members read.
 func TestGetHomeReadsTheProfileGetOrCreateReturned(t *testing.T) {
 	members := &fakeMembers{profile: &moneyrecapv1.Profile{MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox", CurrencyCode: "IDR"}}
 	res, err := newService(t, members, &fakeNotify{}).GetHome(ctx, connect.NewRequest(&moneyrecapv1.GetHomeRequest{}))
@@ -215,8 +206,6 @@ func TestGetHomeKeepsTheCodeAndDropsTheUpstreamText(t *testing.T) {
 	}
 }
 
-// Home's month is the Member's (A3): just past midnight on 1 October in Jakarta it is still 30 September in UTC,
-// and ledger is asked for October, whose days left are ledger's figure, never the BFF's own clock.
 func TestGetHomeReadsTheMonthInTheMembersZone(t *testing.T) {
 	for zone, want := range map[string][2]string{"Asia/Jakarta": {"2026-10", "2026-11-01"}, "": {"2026-09", "2026-10-01"}} {
 		profile := onboarded()
@@ -237,8 +226,6 @@ func TestGetHomeReadsTheMonthInTheMembersZone(t *testing.T) {
 	}
 }
 
-// SetTimezone refuses a call without an Idempotency-Key before reaching members, and otherwise creates the
-// Member first and hands members the phone's key, that Member's id and the zone (A14, #96).
 func TestSetTimezoneNeedsTheKeyAndCreatesTheMemberFirst(t *testing.T) {
 	members := &fakeMembers{}
 	s := newService(t, members, &fakeNotify{})
@@ -256,8 +243,6 @@ func TestSetTimezoneNeedsTheKeyAndCreatesTheMemberFirst(t *testing.T) {
 	}
 }
 
-// CancelDeletion refuses a keyless call before members, hands members the key and the Member's id, and keeps
-// members' failed_precondition for a stamp past the 24 hours (D60, #105).
 func TestCancelDeletionNeedsTheKeyAndKeepsTheCode(t *testing.T) {
 	members := &fakeMembers{}
 	s := newService(t, members, &fakeNotify{})
@@ -275,7 +260,6 @@ func TestCancelDeletionNeedsTheKeyAndKeepsTheCode(t *testing.T) {
 	}
 }
 
-// RegisterDevice refuses a keyless call before notify, then hands notify the key, the Member's id and the token.
 func TestRegisterDeviceNeedsTheKey(t *testing.T) {
 	notify := &fakeNotify{}
 	s := newService(t, &fakeMembers{}, notify)

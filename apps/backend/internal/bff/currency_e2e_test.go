@@ -17,8 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestCurrencyChangeEndToEnd (#173): nothing to convert changes both services' code at once; past D57 nothing is
-// written; a typed rate answers Home in the new Currency, members following by event; no token converts another's.
 func TestCurrencyChangeEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	ledgerURL, ledgerDSN := os.Getenv("LEDGER_TEST_URL"), os.Getenv("LEDGER_TEST_DATABASE_URL")
@@ -155,7 +153,6 @@ func TestCurrencyChangeEndToEnd(t *testing.T) {
 	conversions(ctx, t, ledgerDB, other, 0)
 }
 
-// conversions checks how many CurrencyConversion rows ledger holds for the Member.
 func conversions(ctx context.Context, t *testing.T, ledgerDB *pgxpool.Pool, id string, want int) {
 	t.Helper()
 	var n int

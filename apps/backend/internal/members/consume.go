@@ -12,13 +12,10 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/answers"
 )
 
-// Queue is members' queue of ledger's events, and Keys what it binds (ARCHITECTURE §4.3, §7.1 "Consumes").
 const Queue = "members.ledger"
 
 var Keys = []string{"ledger.currency.converted"}
 
-// ApplyConversion sets the Currency ledger converted the Member's amounts to and stages members.updated, unless a
-// newer conversion already set one (currency_at), so a late delivery never takes the code back (PRD §8.9).
 func ApplyConversion(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 	var e moneyrecapv1.LedgerCurrencyConverted
 	if err := proto.Unmarshal(d.Body, &e); err != nil {

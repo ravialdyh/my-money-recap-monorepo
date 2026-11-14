@@ -16,8 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 )
 
-// acks counts what the consumer answered the broker for one delivery; a nack fails, since only a reject counts
-// toward the five tries.
 type acks struct{ acked, rejected int }
 
 func (a *acks) Ack(uint64, bool) error { a.acked++; return nil }
@@ -26,8 +24,6 @@ func (a *acks) Nack(uint64, bool, bool) error { return errors.New("the consumer 
 
 func (a *acks) Reject(uint64, bool) error { a.rejected++; return nil }
 
-// ledger.currency.converted sets the Currency once per message id and stages one members.updated; a conversion
-// older than the one applied, or a malformed event, changes nothing, the first acked and the second rejected.
 func TestTheConsumerTakesTheConvertedCurrency(t *testing.T) {
 	db := testDB(t)
 	subject := "consumer-" + rand.Text()

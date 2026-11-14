@@ -19,7 +19,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// recordingSMTP is a mail host on a free port that accepts every message and keeps each one's DATA.
 func recordingSMTP(t *testing.T) (addr string, sent func() []string) {
 	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
@@ -76,8 +75,6 @@ func recordingSMTP(t *testing.T) (addr string, sent func() []string) {
 	}
 }
 
-// The export goes to the replica's address with spec #169's subject, body and attachment, once per key: a retry sends
-// nothing; a refused address is failed_precondition naming it, any other failure unavailable; neither spends the key.
 func TestTheExportIsMailedOncePerKey(t *testing.T) {
 	ann := "00000000-0000-4000-8000-00000000e182"
 	s := warningService(t, ann, map[string]string{"ann": ann})

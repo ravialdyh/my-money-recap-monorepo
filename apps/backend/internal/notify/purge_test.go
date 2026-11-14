@@ -11,8 +11,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// members.deleted purges every row notify holds for the Member and stages notify.member.purged in its outbox, safely
-// twice, the second replacing the first event, while another Member's rows stay (ARCHITECTURE §7.1 step 5).
 func TestMembersDeletedPurgesEveryRow(t *testing.T) {
 	db := scheduleDB(t)
 	ctx := context.Background()
