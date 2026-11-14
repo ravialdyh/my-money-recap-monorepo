@@ -6,6 +6,8 @@ import SwiftUI
 struct Card<Content: View>: View {
     /// Card.tsx's `accent`: violet with white type, the second card on the yellow ground.
     var accent = false
+    /// The coral well, D10's This is permanent.
+    var coral = false
     var underIllustration = false
     var minHeight: CGFloat?
     /// Card.tsx's `split`: children in a row with no trailing inset, for an illustration at the edge, grown into the
@@ -26,7 +28,7 @@ struct Card<Content: View>: View {
                 alignment: .topLeading
             )
             .background(
-                accent ? Tokens.Surface.cardAccent : Tokens.Surface.card,
+                accent ? Tokens.Surface.cardAccent : coral ? Tokens.Surface.wellCoral : Tokens.Surface.card,
                 in: RoundedRectangle(cornerRadius: Tokens.Radius.card, style: .continuous)
             )
             .foregroundStyle(accent ? Tokens.Text.onInverse : Tokens.Text.primary)

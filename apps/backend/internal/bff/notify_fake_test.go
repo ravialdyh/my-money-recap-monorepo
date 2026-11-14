@@ -15,6 +15,7 @@ type fakeNotify struct {
 	kept      *moneyrecapv1.TargetWarning
 	evaluated *moneyrecapv1.EvaluateWarningRequest
 	device    *moneyrecapv1.RegisterDeviceRequest
+	forgot    *moneyrecapv1.ForgetDeviceRequest
 	exported  *moneyrecapv1.EmailExportRequest
 	exportErr error
 	reads     int
@@ -43,6 +44,11 @@ func (f *fakeNotify) EvaluateWarning(ctx context.Context, req *connect.Request[m
 		f.kept = req.Msg.Warning
 	}
 	return connect.NewResponse(&moneyrecapv1.EvaluateWarningResponse{Fired: f.kept != nil, FiredNow: now, Warning: f.kept}), nil
+}
+
+func (f *fakeNotify) ForgetDevice(_ context.Context, req *connect.Request[moneyrecapv1.ForgetDeviceRequest]) (*connect.Response[moneyrecapv1.ForgetDeviceResponse], error) {
+	f.forgot = req.Msg
+	return connect.NewResponse(&moneyrecapv1.ForgetDeviceResponse{}), nil
 }
 
 func (f *fakeNotify) RegisterDevice(_ context.Context, req *connect.Request[moneyrecapv1.RegisterDeviceRequest]) (*connect.Response[moneyrecapv1.RegisterDeviceResponse], error) {

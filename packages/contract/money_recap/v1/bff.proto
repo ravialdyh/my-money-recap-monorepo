@@ -68,6 +68,8 @@ service BffService {
   rpc ChangeCurrency(BffServiceChangeCurrencyRequest) returns (BffServiceChangeCurrencyResponse) {}
   rpc SaveNotificationPrefs(BffServiceSaveNotificationPrefsRequest) returns (BffServiceSaveNotificationPrefsResponse) {}
   rpc RegisterDevice(BffServiceRegisterDeviceRequest) returns (BffServiceRegisterDeviceResponse) {}
+  // notify.ForgetDevice (§7.3), required: forgetting the phone is its whole job.
+  rpc ForgetDevice(BffServiceForgetDeviceRequest) returns (BffServiceForgetDeviceResponse) {}
   // ledger.ExportCSV then notify.EmailExport (§7.3), both required.
   // failed_precondition with EmailBounced is the §6.16 line naming the refused
   // address, with no link; any other failure is the retry line.

@@ -120,6 +120,14 @@ final class AuthSession {
         _ = try? await freshAccessToken()
     }
 
+    /// Log out (D12) and a granted deletion (D11): `forget` first, while the token works, then the realm's 30-day
+    /// session ended with the refresh token, then the erase. Both server steps are best effort (PRD §9).
+    func logOut(forget: () async -> Void) async {
+        await forget()
+        await endRealmSession()
+        signOut()
+    }
+
     /// Erases the session; the cache goes with it in `RootView` (PRD §7 "on device only", I4).
     func signOut(message: String? = nil) {
         signInMessage = message
@@ -134,6 +142,24 @@ final class AuthSession {
             requiringSecureCoding: true
         ) else { return }
         Keychain.write(data)
+    }
+
+    /// Posts the refresh token to the realm's discovered logout endpoint, through AppAuth's session as every realm call
+    /// goes; any failure is ignored.
+    private func endRealmSession() async {
+        guard let authState, let refresh = authState.refreshToken,
+              let endpoint = authState.lastAuthorizationResponse.request.configuration.endSessionEndpoint
+        else { return }
+        var form = URLComponents()
+        form.queryItems = [
+            URLQueryItem(name: "client_id", value: AuthConfig.clientID),
+            URLQueryItem(name: "refresh_token", value: refresh),
+        ]
+        var request = URLRequest(url: endpoint, timeoutInterval: 10)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = form.percentEncodedQuery.map { Data($0.utf8) }
+        _ = try? await OIDURLSessionProvider.session().data(for: request)
     }
 
     private func redeem(_ request: OIDTokenRequest) async throws -> OIDTokenResponse {

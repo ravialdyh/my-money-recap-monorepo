@@ -6,6 +6,7 @@ import XCTest
 @MainActor
 final class AuthSessionTests: XCTestCase {
     override func tearDown() {
+        StubRealm.loggedOut = []
         OIDURLSessionProvider.setSession(.shared)
         Keychain.delete()
         super.tearDown()
@@ -98,6 +99,32 @@ final class AuthSessionTests: XCTestCase {
         XCTAssertEqual(reloaded?.lastTokenResponse?.accessToken, "refreshed")
     }
 
+    func testLogOutForgetsThenEndsTheRealmSessionThenErases() async throws {
+        let session = signedIn(realm: "ending.invalid")
+        try Keychain.write(NSKeyedArchiver.archivedData(
+            withRootObject: XCTUnwrap(session.authState), requiringSecureCoding: true
+        ))
+        var forgotSignedIn = false
+        await session.logOut { forgotSignedIn = session.isSignedIn && StubRealm.loggedOut.isEmpty }
+        XCTAssertTrue(forgotSignedIn, "the phone is forgotten first, while the token still works")
+        XCTAssertEqual(StubRealm.loggedOut, ["client_id=\(AuthConfig.clientID)&refresh_token=refresh"])
+        XCTAssertFalse(session.isSignedIn)
+        XCTAssertNil(session.signInMessage, "Sign in shows with no message")
+        XCTAssertNil(Keychain.read())
+    }
+
+    func testLogOutErasesEvenWhenBothServerStepsFail() async throws {
+        let session = signedIn(realm: "unreachable.invalid")
+        try Keychain.write(NSKeyedArchiver.archivedData(
+            withRootObject: XCTUnwrap(session.authState), requiringSecureCoding: true
+        ))
+        var forgot = 0
+        await session.logOut { forgot += 1 }
+        XCTAssertEqual(forgot, 1, "the forget step ran and failed, as with no signal")
+        XCTAssertFalse(session.isSignedIn, "the realm out of reach never blocks the sign-out")
+        XCTAssertNil(Keychain.read())
+    }
+
     /// Runs `BearerInterceptor`'s request step alone, where no response interceptor follows a failure.
     private func intercept(
         _ session: AuthSession,
@@ -131,7 +158,10 @@ final class AuthSessionTests: XCTestCase {
         StubRealm.install()
         let endpoint = URL(string: "https://\(realm)/token")!
         let request = OIDAuthorizationRequest(
-            configuration: OIDServiceConfiguration(authorizationEndpoint: endpoint, tokenEndpoint: endpoint),
+            configuration: OIDServiceConfiguration(
+                authorizationEndpoint: endpoint, tokenEndpoint: endpoint, issuer: nil, registrationEndpoint: nil,
+                endSessionEndpoint: URL(string: "https://\(realm)/logout")!
+            ),
             clientId: AuthConfig.clientID, clientSecret: nil, scopes: AuthConfig.scopes,
             redirectURL: AuthConfig.redirectURL, responseType: OIDResponseTypeCode, additionalParameters: nil
         )
@@ -146,11 +176,17 @@ final class AuthSessionTests: XCTestCase {
     }
 }
 
-/// The realm's token endpoint: `refusing.invalid` refuses the refresh token (RFC 6749 §5.2), `refreshing.invalid`
-/// answers it with the access token `refreshed`, and any other host fails in transit, as with no signal.
+/// The realm: `refusing.invalid` refuses the refresh token (RFC 6749 §5.2), `refreshing.invalid` answers it with the
+/// access token `refreshed`, `ending.invalid` keeps each logout form it is posted, and any other host fails in transit,
+/// as with no signal.
 final class StubRealm: StubURLProtocol {
+    nonisolated(unsafe) static var loggedOut: [String] = []
+
     override func startLoading() {
         switch request.url?.host {
+        case "ending.invalid":
+            Self.loggedOut.append(String(bytes: body, encoding: .utf8) ?? "")
+            respond(204, "")
         case "refusing.invalid": respond(400, #"{"error":"invalid_grant"}"#)
         case "refreshing.invalid": respond(200, #"{"access_token":"refreshed","expires_in":300,"token_type":"Bearer"}"#)
         default: client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
@@ -174,6 +210,18 @@ class StubURLProtocol: URLProtocol {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [self]
         OIDURLSessionProvider.setSession(URLSession(configuration: configuration))
+    }
+
+    /// The request's body, which URLSession hands a protocol as a stream.
+    var body: Data {
+        guard let stream = request.httpBodyStream else { return request.httpBody ?? Data() }
+        stream.open()
+        defer { stream.close() }
+        var data = Data(), buffer = [UInt8](repeating: 0, count: 1024)
+        while stream.hasBytesAvailable, case let read = stream.read(&buffer, maxLength: buffer.count), read > 0 {
+            data.append(buffer, count: read)
+        }
+        return data
     }
 
     func respond(_ status: Int, _ json: String) {

@@ -248,6 +248,31 @@ public nonisolated struct MoneyRecap_V1_BffServiceRegisterDeviceResponse: Sendab
   public init() {}
 }
 
+/// Log out (PRD §6.16, SCREEN-STATES D12): this phone stops getting the
+/// Member's pushes. Best effort; the phone signs out whatever the answer.
+public nonisolated struct MoneyRecap_V1_BffServiceForgetDeviceRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// The APNs device token as hex, as RegisterDevice last sent it.
+  public var apnsToken: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public nonisolated struct MoneyRecap_V1_BffServiceForgetDeviceResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public nonisolated struct MoneyRecap_V1_BffServiceRequestExportRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -691,6 +716,55 @@ nonisolated extension MoneyRecap_V1_BffServiceRegisterDeviceResponse: SwiftProto
   }
 
   public static func ==(lhs: MoneyRecap_V1_BffServiceRegisterDeviceResponse, rhs: MoneyRecap_V1_BffServiceRegisterDeviceResponse) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension MoneyRecap_V1_BffServiceForgetDeviceRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".BffServiceForgetDeviceRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}apns_token\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.apnsToken) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.apnsToken.isEmpty {
+      try visitor.visitSingularStringField(value: self.apnsToken, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: MoneyRecap_V1_BffServiceForgetDeviceRequest, rhs: MoneyRecap_V1_BffServiceForgetDeviceRequest) -> Bool {
+    if lhs.apnsToken != rhs.apnsToken {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+nonisolated extension MoneyRecap_V1_BffServiceForgetDeviceResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".BffServiceForgetDeviceResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: MoneyRecap_V1_BffServiceForgetDeviceResponse, rhs: MoneyRecap_V1_BffServiceForgetDeviceResponse) -> Bool {
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

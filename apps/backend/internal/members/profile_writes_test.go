@@ -148,3 +148,50 @@ func TestCancelDeletionClearsAStampUnderADayOld(t *testing.T) {
 		t.Errorf("%d members.deletion.cancelled staged after the refusals, want 1", n)
 	}
 }
+
+// RequestDeletion stamps the request and stages members.deletion.requested once; a replay and a second request keep
+// the first stamp and stage nothing more, and a keyless request is refused (ARCHITECTURE §7.1 step 1).
+func TestRequestDeletionKeepsTheFirstStamp(t *testing.T) {
+	db := testDB(t)
+	subject := "delete-" + t.Name()
+	ctx := auth.NewContext(context.Background(), auth.Claims{Subject: subject})
+	t.Cleanup(func() {
+		if _, err := db.Exec(context.Background(), `DELETE FROM member WHERE keycloak_subject = $1`, subject); err != nil {
+			t.Logf("cleanup: %v", err)
+		}
+	})
+	m, err := Upsert(ctx, db, subject, "delete@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := &Service{DB: db}
+	ask := func(key string) (*moneyrecapv1.Profile, error) {
+		res, err := s.RequestDeletion(ctx, connect.NewRequest(&moneyrecapv1.RequestDeletionRequest{IdempotencyKey: key, MemberId: m.ID}))
+		if err != nil {
+			return nil, err
+		}
+		return res.Msg.Profile, nil
+	}
+	if _, err := ask(""); connect.CodeOf(err) != connect.CodeInvalidArgument {
+		t.Fatalf("no key: %v, want invalid_argument", err)
+	}
+	first, err := ask("k1")
+	if err != nil || first.DeletionRequestedAt == nil || first.MemberId != m.ID {
+		t.Fatalf("the first request: %v, %v; want the Profile stamped", first, err)
+	}
+	for _, key := range []string{"k1", "k2"} {
+		again, err := ask(key)
+		if err != nil || !again.DeletionRequestedAt.AsTime().Equal(first.DeletionRequestedAt.AsTime()) {
+			t.Fatalf("%s again: %v, %v; want the first stamp", key, again, err)
+		}
+	}
+	staged := 0
+	for _, e := range outbox(t, db, m.ID) {
+		if e.key == "members.deletion.requested" {
+			staged++
+		}
+	}
+	if staged != 1 {
+		t.Errorf("%d members.deletion.requested staged, want 1", staged)
+	}
+}

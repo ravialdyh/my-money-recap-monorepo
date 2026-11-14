@@ -61,6 +61,45 @@ func (s *Service) CancelDeletion(ctx context.Context, req *connect.Request[money
 	return connect.NewResponse(&moneyrecapv1.BffServiceCancelDeletionResponse{Profile: kept.Msg.Profile}), nil
 }
 
+// RequestDeletion is D11's Delete my account (PRD §6.16, D39): members stamps the request under the phone's key and
+// answers its stamp, on which the phone signs out (ARCHITECTURE §7.1 step 1).
+func (s *Service) RequestDeletion(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceRequestDeletionRequest]) (*connect.Response[moneyrecapv1.BffServiceRequestDeletionResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	asked, err := s.Members.RequestDeletion(ctx, connect.NewRequest(&moneyrecapv1.RequestDeletionRequest{IdempotencyKey: key, MemberId: profile.MemberId}))
+	if err != nil {
+		return nil, requiredCallFailed("members.RequestDeletion", connect.CodeOf(err), err)
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceRequestDeletionResponse{DeletionRequestedAt: asked.Msg.Profile.GetDeletionRequestedAt()}), nil
+}
+
+// ForgetDevice is Log out's first step (PRD §6.16, D12): notify deletes this phone's row under the phone's key, so the
+// phone stays quiet. The phone signs out whatever the answer, so a code here only reaches its log.
+func (s *Service) ForgetDevice(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceForgetDeviceRequest]) (*connect.Response[moneyrecapv1.BffServiceForgetDeviceResponse], error) {
+	key, err := idempotencyKey(req.Header())
+	if err != nil {
+		return nil, err
+	}
+	profile, err := s.member(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithTimeout(ctx, s.timeout())
+	defer cancel()
+	if _, err := s.Notify.ForgetDevice(ctx, connect.NewRequest(&moneyrecapv1.ForgetDeviceRequest{IdempotencyKey: key, MemberId: profile.MemberId, ApnsToken: req.Msg.ApnsToken})); err != nil {
+		return nil, requiredCallFailed("notify.ForgetDevice", connect.CodeOf(err), err)
+	}
+	return connect.NewResponse(&moneyrecapv1.BffServiceForgetDeviceResponse{}), nil
+}
+
 // RegisterDevice hands the phone's push token to notify under the phone's key (PRD §10, I8). The phone ignores a
 // failure, so a code here only reaches its log.
 func (s *Service) RegisterDevice(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceRegisterDeviceRequest]) (*connect.Response[moneyrecapv1.BffServiceRegisterDeviceResponse], error) {

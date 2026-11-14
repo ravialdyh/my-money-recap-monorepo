@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// 52pt full-width pill. Ink by default; `secondary` is the white pill with the ink ring.
+/// 52pt full-width pill. Ink by default; `secondary` is the white pill with the ink ring; `coral` is D10 and D11's
+/// Delete my account.
 /// `loading` swaps in a spinner (SCREEN-STATES A1 loading); the environment's `isEnabled` gives the 40% disabled look.
 struct MMRButton: View {
-    enum Variant { case primary, secondary }
+    enum Variant { case primary, secondary, coral }
     let title: String
     var variant: Variant = .primary
     /// SF Symbol name for the 20pt leading glyph ("plus" on Log a spend) until the design-system glyphs are drawn in
@@ -31,11 +32,15 @@ struct MMRButton: View {
     }
 
     private var foreground: Color {
-        variant == .primary ? Tokens.Text.onInverse : Tokens.Text.primary
+        variant == .secondary ? Tokens.Text.primary : Tokens.Text.onInverse
     }
 
     private var background: Color {
-        variant == .primary ? Tokens.Surface.buttonPrimary : Tokens.Surface.buttonSecondary
+        switch variant {
+        case .primary: Tokens.Surface.buttonPrimary
+        case .secondary: Tokens.Surface.buttonSecondary
+        case .coral: Tokens.Palette.coral500
+        }
     }
 }
 

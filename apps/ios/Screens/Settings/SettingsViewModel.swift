@@ -29,6 +29,8 @@ final class SettingsViewModel: Identifiable {
     private(set) var pushDenied = false
     /// D9 Export spends, while it is open.
     var export: ExportViewModel?
+    /// D10 Delete account, while it is open.
+    var deleteAccount: DeleteAccountViewModel?
     private let fetch: Fetch
     private let saveProfile: NameAvatarViewModel.Save
     private let saveSalary: SalaryEditViewModel.Save
@@ -38,6 +40,8 @@ final class SettingsViewModel: Identifiable {
     private let saveNotifications: NotificationsViewModel.Save
     private let push: PushRegistration?
     private let requestExport: ExportViewModel.Send
+    private let requestDeletion: DeleteAccountViewModel.Request
+    private let logOut: () async -> Void
     private let context: ModelContext
     private let locale: Locale
     private let connection: Connection
@@ -45,18 +49,15 @@ final class SettingsViewModel: Identifiable {
     init(
         fetch: @escaping Fetch,
         saveProfile: @escaping NameAvatarViewModel.Save,
-        saveSalary: @escaping SalaryEditViewModel
-            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        saveTarget: @escaping TargetEditViewModel
-            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        previewCurrency: @escaping CurrencyEditViewModel
-            .Preview = { _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        changeCurrency: @escaping CurrencyEditViewModel
-            .Change = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        saveSalary: @escaping SalaryEditViewModel.Save = unavailable,
+        saveTarget: @escaping TargetEditViewModel.Save = unavailable,
+        previewCurrency: @escaping CurrencyEditViewModel.Preview = unavailable,
+        changeCurrency: @escaping CurrencyEditViewModel.Change = unavailable,
         saveNotifications: @escaping NotificationsViewModel.Save = { _, _ in nil },
         push: PushRegistration? = nil,
-        requestExport: @escaping ExportViewModel
-            .Send = { _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        requestExport: @escaping ExportViewModel.Send = unavailable,
+        requestDeletion: @escaping DeleteAccountViewModel.Request = unavailable,
+        logOut: @escaping () async -> Void = {},
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
         connection: Connection? = nil
@@ -70,6 +71,8 @@ final class SettingsViewModel: Identifiable {
         self.saveNotifications = saveNotifications
         self.push = push
         self.requestExport = requestExport
+        self.requestDeletion = requestDeletion
+        self.logOut = logOut
         self.context = context
         self.locale = locale
         self.connection = connection ?? .shared
@@ -197,6 +200,16 @@ final class SettingsViewModel: Identifiable {
     func openExport() {
         guard let saved = settings?.profile else { return }
         export = ExportViewModel(email: saved.email, send: requestExport)
+    }
+
+    /// D10, whose granted request signs out as Log out does.
+    func openDeleteAccount() {
+        deleteAccount = DeleteAccountViewModel(request: requestDeletion, signOut: logOut)
+    }
+
+    /// D12's `Log out`: this phone forgotten, the realm's session ended and the phone's copy erased (PRD §6.16).
+    func logOutNow() async {
+        await logOut()
     }
 
     /// D4's `Set a salary first`: D3 in its place (D44).

@@ -2,7 +2,7 @@
 
 The `members` service (`docs/ARCHITECTURE.md` §7.1): who the Member is, keyed by the Keycloak
 subject. It serves `GetOrCreateBySubject` and `GetProfile`, `SetTimezone`, `SaveProfile`
-and `CancelDeletion`, and consumes `ledger.currency.converted`; the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
+`RequestDeletion` and `CancelDeletion`, and consumes `ledger.currency.converted`; the rest of `MembersService` is planned. Its image, bearer check, start-up, migrations and variables are every service's
 (`apps/README.md`, "Every service"), plus four of its own.
 
 | Variable | Default | Meaning |
@@ -63,8 +63,9 @@ from `internal/cldr`, the data `ledger` rounds with, which step 3's amount field
 `CancelDeletion` is "Keep my account" on the restore sheet (PRD §6.18, D60), keyed like `SetTimezone`: it
 clears a `deletion_requested_at` under 24 hours old and stages `members.deletion.cancelled` in the same
 transaction. With no stamp it answers the Profile and changes nothing; a stamp 24 hours old or more is
-`failed_precondition`, since the deletion is then due. Nothing sets the stamp yet: `RequestDeletion`
-arrives with the Settings slice, so the tests write it straight into the row.
+`failed_precondition`, since the deletion is then due. `RequestDeletion` is D11's Delete my account, keyed the
+same way: it stamps `deletion_requested_at` and stages `members.deletion.requested` in one transaction, and a
+Member already stamped keeps the first stamp, with nothing staged.
 
 `Keycloak.DeleteAccount` deletes a Keycloak account by subject with `members`' own service account, which
 holds `manage-users` for the deletion job alone (ARCHITECTURE §7.1 step 4, §4.2); a 404 counts as done.

@@ -28,6 +28,7 @@ type fakeMembers struct {
 	gotZone     *moneyrecapv1.SetTimezoneRequest
 	gotProfile  *moneyrecapv1.SaveProfileRequest
 	gotCancel   *moneyrecapv1.CancelDeletionRequest
+	gotDeletion *moneyrecapv1.RequestDeletionRequest
 	cancelErr   error
 }
 

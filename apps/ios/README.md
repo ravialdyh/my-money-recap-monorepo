@@ -100,9 +100,11 @@ rupiah to pounds: the stack has no rates App ID, so the fetch fails, Try again f
 myself, types a rate, sees the Salary previewed, converts and finds D1 and Home in pounds, then opens the month so far
 again so it is stored in pounds, then opens Notifications from a row reading `2 on`, turns the Daily reminder on,
 sees `Remind me at`, turns D8 reaching Target warning, and finds the row reading `3 on`, then opens Export spends,
-sends it and sees `Sent ✓`, dimmed, turned too (`UITests/SettingsSteps.swift`; each later Settings step joins it, the sign-out steps
-last), relaunches to prove Home renders from the snapshot, and relaunches with the closed port again to prove a Member who finished setup keeps that Home with no
-signal, in pounds, and that the dashed card opens the stored P1. The first-load skeleton is a picture test (`HomeViewTests`). `UITests/AuthorizationCodeUITests.swift` keeps the flow every Apple and Google Member will
+sends it and sees `Sent ✓`, dimmed, turned too (`UITests/SettingsSteps.swift`), relaunches to prove Home renders from the snapshot, and relaunches with the closed port again to prove a Member who finished setup keeps that Home with no
+signal, in pounds, and that the dashed card opens the stored P1. Its last steps sign out (`UITests/AccountSteps.swift`): Log out
+asks in D12, Cancel keeps the Member in, Log out lands on Sign in and a new link from Mailpit reaches Home; then
+Delete account, D11 taking exactly `DELETE`, signs out, and the next link shows `Welcome back`, whose Keep my
+account reaches Home. The first-load skeleton is a picture test (`HomeViewTests`). `UITests/AuthorizationCodeUITests.swift` keeps the flow every Apple and Google Member will
 use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test Member
 through Keycloak's login page, which covers the PKCE request, the sheet and the state built from its
 authorization response, answers step 1 with the name the token's `given_name` filled in, and at step 2
@@ -122,8 +124,8 @@ oldest that can be installed, and nothing here is proved on iOS 17 or 18.
 `infra/compose/.env` describes: its `COMPOSE_PROJECT_NAME` and its Keycloak, BFF and Mailpit host ports,
 each falling back to the default, and each overridden by `MMR_ISSUER`, `MMR_BFF_URL` or
 `MMR_MAILPIT_URL` when set. Before each runtime it deletes the realm test Member's `members` row, so the
-Keycloak test always meets step 1, and uninstalls the app, so the magic-link test meets the notification
-permission alert after its first Spend (B5) and taps Allow, which springboard draws. It takes the password from `MMR_TEST_USER_PASSWORD` or, failing that, from
+Keycloak test always meets step 1, and uninstalls the app and resets its privacy answers on that simulator, so the
+magic-link test meets the notification permission alert after its first Spend (B5) and taps Allow, which springboard draws. It takes the password from `MMR_TEST_USER_PASSWORD` or, failing that, from
 the `<project>-realm-apply-1` container, which carries it as `TF_VAR_test_user_password`. That container
 re-applies the realm on every `up`, so a changed `.env` value is live after the next `up`
 (`infra/compose/README.md`, "The `mmr` realm"):

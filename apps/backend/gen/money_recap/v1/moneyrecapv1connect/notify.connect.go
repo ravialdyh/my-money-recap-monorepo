@@ -46,6 +46,9 @@ const (
 	// NotifyServiceRegisterDeviceProcedure is the fully-qualified name of the NotifyService's
 	// RegisterDevice RPC.
 	NotifyServiceRegisterDeviceProcedure = "/money_recap.v1.NotifyService/RegisterDevice"
+	// NotifyServiceForgetDeviceProcedure is the fully-qualified name of the NotifyService's
+	// ForgetDevice RPC.
+	NotifyServiceForgetDeviceProcedure = "/money_recap.v1.NotifyService/ForgetDevice"
 	// NotifyServiceEmailMagicLinkProcedure is the fully-qualified name of the NotifyService's
 	// EmailMagicLink RPC.
 	NotifyServiceEmailMagicLinkProcedure = "/money_recap.v1.NotifyService/EmailMagicLink"
@@ -65,6 +68,9 @@ type NotifyServiceClient interface {
 	SavePrefs(context.Context, *connect.Request[v1.SavePrefsRequest]) (*connect.Response[v1.SavePrefsResponse], error)
 	// Upserts the device row on the token (A14).
 	RegisterDevice(context.Context, *connect.Request[v1.RegisterDeviceRequest]) (*connect.Response[v1.RegisterDeviceResponse], error)
+	// Deletes this Member's device row for the token; another Member's row and
+	// an unknown token are left as they are (A14).
+	ForgetDevice(context.Context, *connect.Request[v1.ForgetDeviceRequest]) (*connect.Response[v1.ForgetDeviceResponse], error)
 	// Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
 	// address the mail host permanently refuses; unavailable for any other
 	// send failure.
@@ -116,6 +122,12 @@ func NewNotifyServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(notifyServiceMethods.ByName("RegisterDevice")),
 			connect.WithClientOptions(opts...),
 		),
+		forgetDevice: connect.NewClient[v1.ForgetDeviceRequest, v1.ForgetDeviceResponse](
+			httpClient,
+			baseURL+NotifyServiceForgetDeviceProcedure,
+			connect.WithSchema(notifyServiceMethods.ByName("ForgetDevice")),
+			connect.WithClientOptions(opts...),
+		),
 		emailMagicLink: connect.NewClient[v1.EmailMagicLinkRequest, v1.EmailMagicLinkResponse](
 			httpClient,
 			baseURL+NotifyServiceEmailMagicLinkProcedure,
@@ -138,6 +150,7 @@ type notifyServiceClient struct {
 	getPrefs        *connect.Client[v1.GetPrefsRequest, v1.GetPrefsResponse]
 	savePrefs       *connect.Client[v1.SavePrefsRequest, v1.SavePrefsResponse]
 	registerDevice  *connect.Client[v1.RegisterDeviceRequest, v1.RegisterDeviceResponse]
+	forgetDevice    *connect.Client[v1.ForgetDeviceRequest, v1.ForgetDeviceResponse]
 	emailMagicLink  *connect.Client[v1.EmailMagicLinkRequest, v1.EmailMagicLinkResponse]
 	emailExport     *connect.Client[v1.EmailExportRequest, v1.EmailExportResponse]
 }
@@ -167,6 +180,11 @@ func (c *notifyServiceClient) RegisterDevice(ctx context.Context, req *connect.R
 	return c.registerDevice.CallUnary(ctx, req)
 }
 
+// ForgetDevice calls money_recap.v1.NotifyService.ForgetDevice.
+func (c *notifyServiceClient) ForgetDevice(ctx context.Context, req *connect.Request[v1.ForgetDeviceRequest]) (*connect.Response[v1.ForgetDeviceResponse], error) {
+	return c.forgetDevice.CallUnary(ctx, req)
+}
+
 // EmailMagicLink calls money_recap.v1.NotifyService.EmailMagicLink.
 func (c *notifyServiceClient) EmailMagicLink(ctx context.Context, req *connect.Request[v1.EmailMagicLinkRequest]) (*connect.Response[v1.EmailMagicLinkResponse], error) {
 	return c.emailMagicLink.CallUnary(ctx, req)
@@ -188,6 +206,9 @@ type NotifyServiceHandler interface {
 	SavePrefs(context.Context, *connect.Request[v1.SavePrefsRequest]) (*connect.Response[v1.SavePrefsResponse], error)
 	// Upserts the device row on the token (A14).
 	RegisterDevice(context.Context, *connect.Request[v1.RegisterDeviceRequest]) (*connect.Response[v1.RegisterDeviceResponse], error)
+	// Deletes this Member's device row for the token; another Member's row and
+	// an unknown token are left as they are (A14).
+	ForgetDevice(context.Context, *connect.Request[v1.ForgetDeviceRequest]) (*connect.Response[v1.ForgetDeviceResponse], error)
 	// Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
 	// address the mail host permanently refuses; unavailable for any other
 	// send failure.
@@ -235,6 +256,12 @@ func NewNotifyServiceHandler(svc NotifyServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(notifyServiceMethods.ByName("RegisterDevice")),
 		connect.WithHandlerOptions(opts...),
 	)
+	notifyServiceForgetDeviceHandler := connect.NewUnaryHandler(
+		NotifyServiceForgetDeviceProcedure,
+		svc.ForgetDevice,
+		connect.WithSchema(notifyServiceMethods.ByName("ForgetDevice")),
+		connect.WithHandlerOptions(opts...),
+	)
 	notifyServiceEmailMagicLinkHandler := connect.NewUnaryHandler(
 		NotifyServiceEmailMagicLinkProcedure,
 		svc.EmailMagicLink,
@@ -259,6 +286,8 @@ func NewNotifyServiceHandler(svc NotifyServiceHandler, opts ...connect.HandlerOp
 			notifyServiceSavePrefsHandler.ServeHTTP(w, r)
 		case NotifyServiceRegisterDeviceProcedure:
 			notifyServiceRegisterDeviceHandler.ServeHTTP(w, r)
+		case NotifyServiceForgetDeviceProcedure:
+			notifyServiceForgetDeviceHandler.ServeHTTP(w, r)
 		case NotifyServiceEmailMagicLinkProcedure:
 			notifyServiceEmailMagicLinkHandler.ServeHTTP(w, r)
 		case NotifyServiceEmailExportProcedure:
@@ -290,6 +319,10 @@ func (UnimplementedNotifyServiceHandler) SavePrefs(context.Context, *connect.Req
 
 func (UnimplementedNotifyServiceHandler) RegisterDevice(context.Context, *connect.Request[v1.RegisterDeviceRequest]) (*connect.Response[v1.RegisterDeviceResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.NotifyService.RegisterDevice is not implemented"))
+}
+
+func (UnimplementedNotifyServiceHandler) ForgetDevice(context.Context, *connect.Request[v1.ForgetDeviceRequest]) (*connect.Response[v1.ForgetDeviceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.NotifyService.ForgetDevice is not implemented"))
 }
 
 func (UnimplementedNotifyServiceHandler) EmailMagicLink(context.Context, *connect.Request[v1.EmailMagicLinkRequest]) (*connect.Response[v1.EmailMagicLinkResponse], error) {

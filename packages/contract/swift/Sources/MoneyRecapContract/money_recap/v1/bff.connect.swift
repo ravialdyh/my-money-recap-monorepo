@@ -97,6 +97,10 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `registerDevice`(request: MoneyRecap_V1_BffServiceRegisterDeviceRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRegisterDeviceResponse>
 
+    /// notify.ForgetDevice (§7.3), required: forgetting the phone is its whole job.
+    @available(iOS 13, *)
+    func `forgetDevice`(request: MoneyRecap_V1_BffServiceForgetDeviceRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceForgetDeviceResponse>
+
     /// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
     /// failed_precondition with EmailBounced is the §6.16 line naming the refused
     /// address, with no link; any other failure is the retry line.
@@ -206,6 +210,11 @@ public final class MoneyRecap_V1_BffServiceClient: MoneyRecap_V1_BffServiceClien
     }
 
     @available(iOS 13, *)
+    public func `forgetDevice`(request: MoneyRecap_V1_BffServiceForgetDeviceRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceForgetDeviceResponse> {
+        return await self.client.unary(path: "/money_recap.v1.BffService/ForgetDevice", idempotencyLevel: .unknown, request: request, headers: headers)
+    }
+
+    @available(iOS 13, *)
     public func `requestExport`(request: MoneyRecap_V1_BffServiceRequestExportRequest, headers: Connect.Headers = [:]) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestExportResponse> {
         return await self.client.unary(path: "/money_recap.v1.BffService/RequestExport", idempotencyLevel: .unknown, request: request, headers: headers)
     }
@@ -239,6 +248,7 @@ public final class MoneyRecap_V1_BffServiceClient: MoneyRecap_V1_BffServiceClien
             public static let changeCurrency = Connect.MethodSpec(name: "ChangeCurrency", service: "money_recap.v1.BffService", type: .unary)
             public static let saveNotificationPrefs = Connect.MethodSpec(name: "SaveNotificationPrefs", service: "money_recap.v1.BffService", type: .unary)
             public static let registerDevice = Connect.MethodSpec(name: "RegisterDevice", service: "money_recap.v1.BffService", type: .unary)
+            public static let forgetDevice = Connect.MethodSpec(name: "ForgetDevice", service: "money_recap.v1.BffService", type: .unary)
             public static let requestExport = Connect.MethodSpec(name: "RequestExport", service: "money_recap.v1.BffService", type: .unary)
             public static let requestDeletion = Connect.MethodSpec(name: "RequestDeletion", service: "money_recap.v1.BffService", type: .unary)
             public static let cancelDeletion = Connect.MethodSpec(name: "CancelDeletion", service: "money_recap.v1.BffService", type: .unary)

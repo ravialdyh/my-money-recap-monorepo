@@ -506,6 +506,89 @@ func (*BffServiceRegisterDeviceResponse) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{9}
 }
 
+// Log out (PRD §6.16, SCREEN-STATES D12): this phone stops getting the
+// Member's pushes. Best effort; the phone signs out whatever the answer.
+type BffServiceForgetDeviceRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The APNs device token as hex, as RegisterDevice last sent it.
+	ApnsToken     string `protobuf:"bytes,1,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BffServiceForgetDeviceRequest) Reset() {
+	*x = BffServiceForgetDeviceRequest{}
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BffServiceForgetDeviceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BffServiceForgetDeviceRequest) ProtoMessage() {}
+
+func (x *BffServiceForgetDeviceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BffServiceForgetDeviceRequest.ProtoReflect.Descriptor instead.
+func (*BffServiceForgetDeviceRequest) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *BffServiceForgetDeviceRequest) GetApnsToken() string {
+	if x != nil {
+		return x.ApnsToken
+	}
+	return ""
+}
+
+type BffServiceForgetDeviceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BffServiceForgetDeviceResponse) Reset() {
+	*x = BffServiceForgetDeviceResponse{}
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BffServiceForgetDeviceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BffServiceForgetDeviceResponse) ProtoMessage() {}
+
+func (x *BffServiceForgetDeviceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BffServiceForgetDeviceResponse.ProtoReflect.Descriptor instead.
+func (*BffServiceForgetDeviceResponse) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{11}
+}
+
 type BffServiceRequestExportRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -514,7 +597,7 @@ type BffServiceRequestExportRequest struct {
 
 func (x *BffServiceRequestExportRequest) Reset() {
 	*x = BffServiceRequestExportRequest{}
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[10]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -526,7 +609,7 @@ func (x *BffServiceRequestExportRequest) String() string {
 func (*BffServiceRequestExportRequest) ProtoMessage() {}
 
 func (x *BffServiceRequestExportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[10]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -539,7 +622,7 @@ func (x *BffServiceRequestExportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceRequestExportRequest.ProtoReflect.Descriptor instead.
 func (*BffServiceRequestExportRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{10}
+	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{12}
 }
 
 // Success means the CSV was handed to email: the button reads "Sent" for 60
@@ -552,7 +635,7 @@ type BffServiceRequestExportResponse struct {
 
 func (x *BffServiceRequestExportResponse) Reset() {
 	*x = BffServiceRequestExportResponse{}
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[11]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -564,7 +647,7 @@ func (x *BffServiceRequestExportResponse) String() string {
 func (*BffServiceRequestExportResponse) ProtoMessage() {}
 
 func (x *BffServiceRequestExportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[11]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -577,7 +660,7 @@ func (x *BffServiceRequestExportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceRequestExportResponse.ProtoReflect.Descriptor instead.
 func (*BffServiceRequestExportResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{11}
+	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{13}
 }
 
 type BffServiceRequestDeletionRequest struct {
@@ -588,7 +671,7 @@ type BffServiceRequestDeletionRequest struct {
 
 func (x *BffServiceRequestDeletionRequest) Reset() {
 	*x = BffServiceRequestDeletionRequest{}
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[12]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -600,7 +683,7 @@ func (x *BffServiceRequestDeletionRequest) String() string {
 func (*BffServiceRequestDeletionRequest) ProtoMessage() {}
 
 func (x *BffServiceRequestDeletionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[12]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -613,7 +696,7 @@ func (x *BffServiceRequestDeletionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceRequestDeletionRequest.ProtoReflect.Descriptor instead.
 func (*BffServiceRequestDeletionRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{12}
+	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{14}
 }
 
 // On this response the phone signs out and erases its cache (PRD §9,
@@ -627,7 +710,7 @@ type BffServiceRequestDeletionResponse struct {
 
 func (x *BffServiceRequestDeletionResponse) Reset() {
 	*x = BffServiceRequestDeletionResponse{}
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[13]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -639,7 +722,7 @@ func (x *BffServiceRequestDeletionResponse) String() string {
 func (*BffServiceRequestDeletionResponse) ProtoMessage() {}
 
 func (x *BffServiceRequestDeletionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[13]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -652,7 +735,7 @@ func (x *BffServiceRequestDeletionResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use BffServiceRequestDeletionResponse.ProtoReflect.Descriptor instead.
 func (*BffServiceRequestDeletionResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{13}
+	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BffServiceRequestDeletionResponse) GetDeletionRequestedAt() *timestamppb.Timestamp {
@@ -671,7 +754,7 @@ type BffServiceCancelDeletionRequest struct {
 
 func (x *BffServiceCancelDeletionRequest) Reset() {
 	*x = BffServiceCancelDeletionRequest{}
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[14]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -683,7 +766,7 @@ func (x *BffServiceCancelDeletionRequest) String() string {
 func (*BffServiceCancelDeletionRequest) ProtoMessage() {}
 
 func (x *BffServiceCancelDeletionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[14]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -696,7 +779,7 @@ func (x *BffServiceCancelDeletionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceCancelDeletionRequest.ProtoReflect.Descriptor instead.
 func (*BffServiceCancelDeletionRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{14}
+	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{16}
 }
 
 // The Profile with the stamp cleared; the app continues to Home.
@@ -709,7 +792,7 @@ type BffServiceCancelDeletionResponse struct {
 
 func (x *BffServiceCancelDeletionResponse) Reset() {
 	*x = BffServiceCancelDeletionResponse{}
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[15]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -721,7 +804,7 @@ func (x *BffServiceCancelDeletionResponse) String() string {
 func (*BffServiceCancelDeletionResponse) ProtoMessage() {}
 
 func (x *BffServiceCancelDeletionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_bff_account_proto_msgTypes[15]
+	mi := &file_money_recap_v1_bff_account_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -734,7 +817,7 @@ func (x *BffServiceCancelDeletionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BffServiceCancelDeletionResponse.ProtoReflect.Descriptor instead.
 func (*BffServiceCancelDeletionResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{15}
+	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *BffServiceCancelDeletionResponse) GetProfile() *Profile {
@@ -777,7 +860,11 @@ const file_money_recap_v1_bff_account_proto_rawDesc = "" +
 	"\x1fBffServiceRegisterDeviceRequest\x12\x1d\n" +
 	"\n" +
 	"apns_token\x18\x01 \x01(\tR\tapnsToken\"\"\n" +
-	" BffServiceRegisterDeviceResponse\" \n" +
+	" BffServiceRegisterDeviceResponse\">\n" +
+	"\x1dBffServiceForgetDeviceRequest\x12\x1d\n" +
+	"\n" +
+	"apns_token\x18\x01 \x01(\tR\tapnsToken\" \n" +
+	"\x1eBffServiceForgetDeviceResponse\" \n" +
 	"\x1eBffServiceRequestExportRequest\"!\n" +
 	"\x1fBffServiceRequestExportResponse\"\"\n" +
 	" BffServiceRequestDeletionRequest\"s\n" +
@@ -799,7 +886,7 @@ func file_money_recap_v1_bff_account_proto_rawDescGZIP() []byte {
 	return file_money_recap_v1_bff_account_proto_rawDescData
 }
 
-var file_money_recap_v1_bff_account_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_money_recap_v1_bff_account_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_money_recap_v1_bff_account_proto_goTypes = []any{
 	(*BffServiceRequestMagicLinkRequest)(nil),       // 0: money_recap.v1.BffServiceRequestMagicLinkRequest
 	(*BffServiceRequestMagicLinkResponse)(nil),      // 1: money_recap.v1.BffServiceRequestMagicLinkResponse
@@ -811,25 +898,27 @@ var file_money_recap_v1_bff_account_proto_goTypes = []any{
 	(*BffServiceSaveNotificationPrefsResponse)(nil), // 7: money_recap.v1.BffServiceSaveNotificationPrefsResponse
 	(*BffServiceRegisterDeviceRequest)(nil),         // 8: money_recap.v1.BffServiceRegisterDeviceRequest
 	(*BffServiceRegisterDeviceResponse)(nil),        // 9: money_recap.v1.BffServiceRegisterDeviceResponse
-	(*BffServiceRequestExportRequest)(nil),          // 10: money_recap.v1.BffServiceRequestExportRequest
-	(*BffServiceRequestExportResponse)(nil),         // 11: money_recap.v1.BffServiceRequestExportResponse
-	(*BffServiceRequestDeletionRequest)(nil),        // 12: money_recap.v1.BffServiceRequestDeletionRequest
-	(*BffServiceRequestDeletionResponse)(nil),       // 13: money_recap.v1.BffServiceRequestDeletionResponse
-	(*BffServiceCancelDeletionRequest)(nil),         // 14: money_recap.v1.BffServiceCancelDeletionRequest
-	(*BffServiceCancelDeletionResponse)(nil),        // 15: money_recap.v1.BffServiceCancelDeletionResponse
-	(*Profile)(nil),                                 // 16: money_recap.v1.Profile
-	(*SalarySetting)(nil),                           // 17: money_recap.v1.SalarySetting
-	(*NotificationPrefs)(nil),                       // 18: money_recap.v1.NotificationPrefs
-	(*timestamppb.Timestamp)(nil),                   // 19: google.protobuf.Timestamp
+	(*BffServiceForgetDeviceRequest)(nil),           // 10: money_recap.v1.BffServiceForgetDeviceRequest
+	(*BffServiceForgetDeviceResponse)(nil),          // 11: money_recap.v1.BffServiceForgetDeviceResponse
+	(*BffServiceRequestExportRequest)(nil),          // 12: money_recap.v1.BffServiceRequestExportRequest
+	(*BffServiceRequestExportResponse)(nil),         // 13: money_recap.v1.BffServiceRequestExportResponse
+	(*BffServiceRequestDeletionRequest)(nil),        // 14: money_recap.v1.BffServiceRequestDeletionRequest
+	(*BffServiceRequestDeletionResponse)(nil),       // 15: money_recap.v1.BffServiceRequestDeletionResponse
+	(*BffServiceCancelDeletionRequest)(nil),         // 16: money_recap.v1.BffServiceCancelDeletionRequest
+	(*BffServiceCancelDeletionResponse)(nil),        // 17: money_recap.v1.BffServiceCancelDeletionResponse
+	(*Profile)(nil),                                 // 18: money_recap.v1.Profile
+	(*SalarySetting)(nil),                           // 19: money_recap.v1.SalarySetting
+	(*NotificationPrefs)(nil),                       // 20: money_recap.v1.NotificationPrefs
+	(*timestamppb.Timestamp)(nil),                   // 21: google.protobuf.Timestamp
 }
 var file_money_recap_v1_bff_account_proto_depIdxs = []int32{
-	16, // 0: money_recap.v1.BffServiceSaveProfileResponse.profile:type_name -> money_recap.v1.Profile
-	17, // 1: money_recap.v1.BffServiceSaveProfileResponse.salary:type_name -> money_recap.v1.SalarySetting
-	16, // 2: money_recap.v1.BffServiceSetTimezoneResponse.profile:type_name -> money_recap.v1.Profile
-	18, // 3: money_recap.v1.BffServiceSaveNotificationPrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
-	18, // 4: money_recap.v1.BffServiceSaveNotificationPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
-	19, // 5: money_recap.v1.BffServiceRequestDeletionResponse.deletion_requested_at:type_name -> google.protobuf.Timestamp
-	16, // 6: money_recap.v1.BffServiceCancelDeletionResponse.profile:type_name -> money_recap.v1.Profile
+	18, // 0: money_recap.v1.BffServiceSaveProfileResponse.profile:type_name -> money_recap.v1.Profile
+	19, // 1: money_recap.v1.BffServiceSaveProfileResponse.salary:type_name -> money_recap.v1.SalarySetting
+	18, // 2: money_recap.v1.BffServiceSetTimezoneResponse.profile:type_name -> money_recap.v1.Profile
+	20, // 3: money_recap.v1.BffServiceSaveNotificationPrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
+	20, // 4: money_recap.v1.BffServiceSaveNotificationPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
+	21, // 5: money_recap.v1.BffServiceRequestDeletionResponse.deletion_requested_at:type_name -> google.protobuf.Timestamp
+	18, // 6: money_recap.v1.BffServiceCancelDeletionResponse.profile:type_name -> money_recap.v1.Profile
 	7,  // [7:7] is the sub-list for method output_type
 	7,  // [7:7] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
@@ -853,7 +942,7 @@ func file_money_recap_v1_bff_account_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_money_recap_v1_bff_account_proto_rawDesc), len(file_money_recap_v1_bff_account_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
