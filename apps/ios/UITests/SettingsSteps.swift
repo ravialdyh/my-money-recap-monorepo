@@ -131,6 +131,32 @@ extension SignInUITests {
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10))
     }
 
+    /// #182: Export spends opens D9 naming the address signed in with; Send it becomes Sent ✓, dimmed, and D9 sideways
+    /// still reaches it; back returns to D1 and then Home.
+    func exportInSettings(_ app: XCUIApplication) {
+        app.buttons["Settings"].tap()
+        let row = app.buttons["Export spends"]
+        XCTAssert(row.waitForExistence(timeout: 30), "D1 lists Export spends")
+        row.tap()
+        XCTAssert(app.staticTexts["Email me a CSV of every spend"].waitForExistence(timeout: 10), "the row opens D9")
+        let helper =
+            NSPredicate(
+                format: "label BEGINSWITH 'It goes to ' AND label ENDSWITH 'with its date, category, amount and note.'"
+            )
+        XCTAssert(app.staticTexts.matching(helper).firstMatch.exists, "the card names the address")
+        snapshot("37-export")
+        app.buttons["Send it"].tap()
+        let sent = app.buttons["Sent ✓"]
+        XCTAssert(sent.waitForExistence(timeout: 30), "the email is sent: the button itself says so (D67)")
+        XCTAssertFalse(sent.isEnabled, "dimmed for 60 seconds, so a double tap cannot send twice")
+        snapshot("38-export-sent")
+        sideways(app, reaching: sent, "export-sent")
+        app.buttons["Back"].tap()
+        XCTAssert(row.waitForExistence(timeout: 10), "back to D1")
+        app.buttons["Back"].tap()
+        XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "back to Home")
+    }
+
     /// An amount in pounds as the app prints it (`Money`): no fraction when whole, else two decimals.
     static func pounds(_ amount: Decimal) -> String {
         var source = amount, rounded = Decimal()

@@ -58,6 +58,8 @@ struct HomeView: View {
             try? await BffClient.retried(session) {
                 await client.saveNotificationPrefs(request: .with { $0.prefs = prefs }, headers: headers)
             }.result.get().prefs
+        }, requestExport: { headers in
+            await BffClient.retried(session) { await client.requestExport(request: .init(), headers: headers) }.result
         }))
         self.open = open
     }

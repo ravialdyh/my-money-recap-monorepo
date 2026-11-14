@@ -135,8 +135,9 @@ type BffServiceClient interface {
 	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
 	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
 	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
-	// ledger.ExportCSV then notify.EmailExport (§7.3). failed_precondition with
-	// EmailBounced is the §6.16 InlineError offering Profile.
+	// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
+	// failed_precondition with EmailBounced is the §6.16 line naming the refused
+	// address, with no link; any other failure is the retry line.
 	RequestExport(context.Context, *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error)
 	// Stamps the request; the phone signs out on the answer (§7.1 step 1).
 	RequestDeletion(context.Context, *connect.Request[v1.BffServiceRequestDeletionRequest]) (*connect.Response[v1.BffServiceRequestDeletionResponse], error)
@@ -453,8 +454,9 @@ type BffServiceHandler interface {
 	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
 	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
 	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
-	// ledger.ExportCSV then notify.EmailExport (§7.3). failed_precondition with
-	// EmailBounced is the §6.16 InlineError offering Profile.
+	// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
+	// failed_precondition with EmailBounced is the §6.16 line naming the refused
+	// address, with no link; any other failure is the retry line.
 	RequestExport(context.Context, *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error)
 	// Stamps the request; the phone signs out on the answer (§7.1 step 1).
 	RequestDeletion(context.Context, *connect.Request[v1.BffServiceRequestDeletionRequest]) (*connect.Response[v1.BffServiceRequestDeletionResponse], error)

@@ -175,3 +175,10 @@ func ledgerClient(t *testing.T, f *fakeLedger) moneyrecapv1connect.LedgerService
 	t.Cleanup(srv.Close)
 	return moneyrecapv1connect.NewLedgerServiceClient(srv.Client(), srv.URL, connect.WithInterceptors(auth.Forward()))
 }
+
+func (f *fakeLedger) ExportCSV(context.Context, *connect.Request[moneyrecapv1.ExportCSVRequest]) (*connect.Response[moneyrecapv1.ExportCSVResponse], error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	return connect.NewResponse(&moneyrecapv1.ExportCSVResponse{Csv: []byte("date,category,amount,currency,note\r\n")}), nil
+}

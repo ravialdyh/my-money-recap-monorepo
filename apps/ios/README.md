@@ -99,7 +99,8 @@ too, and goes back to Home greeting the new name, raises the Saving Target from 
 rupiah to pounds: the stack has no rates App ID, so the fetch fails, Try again fails too, and it takes Enter it
 myself, types a rate, sees the Salary previewed, converts and finds D1 and Home in pounds, then opens the month so far
 again so it is stored in pounds, then opens Notifications from a row reading `2 on`, turns the Daily reminder on,
-sees `Remind me at`, turns D8 reaching Target warning, and finds the row reading `3 on` (`UITests/SettingsSteps.swift`; each later Settings step joins it, the sign-out steps
+sees `Remind me at`, turns D8 reaching Target warning, and finds the row reading `3 on`, then opens Export spends,
+sends it and sees `Sent ✓`, dimmed, turned too (`UITests/SettingsSteps.swift`; each later Settings step joins it, the sign-out steps
 last), relaunches to prove Home renders from the snapshot, and relaunches with the closed port again to prove a Member who finished setup keeps that Home with no
 signal, in pounds, and that the dashed card opens the stored P1. The first-load skeleton is a picture test (`HomeViewTests`). `UITests/AuthorizationCodeUITests.swift` keeps the flow every Apple and Google Member will
 use under test: with `--authorization-code-flow` it cancels the web sheet, then signs in as the test Member

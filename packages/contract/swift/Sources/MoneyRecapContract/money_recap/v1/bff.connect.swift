@@ -97,8 +97,9 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `registerDevice`(request: MoneyRecap_V1_BffServiceRegisterDeviceRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRegisterDeviceResponse>
 
-    /// ledger.ExportCSV then notify.EmailExport (§7.3). failed_precondition with
-    /// EmailBounced is the §6.16 InlineError offering Profile.
+    /// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
+    /// failed_precondition with EmailBounced is the §6.16 line naming the refused
+    /// address, with no link; any other failure is the retry line.
     @available(iOS 13, *)
     func `requestExport`(request: MoneyRecap_V1_BffServiceRequestExportRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestExportResponse>
 

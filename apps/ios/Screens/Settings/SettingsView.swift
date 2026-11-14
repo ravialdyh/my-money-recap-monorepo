@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// D1 Settings (PRD §6.16), the Settings chip's full sheet: four groups of rows with their values. Profile opens D2,
-/// Currency D5, Salary and payday D3, Saving target D4, Notifications D8; the rest nothing yet. Offline, Log out only.
+/// Currency D5, Salary and payday D3, Saving target D4, Notifications D8, Export spends D9; the rest nothing yet.
+/// Offline, Log out only.
 struct SettingsView: View {
     @State private var model: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
@@ -32,7 +33,7 @@ struct SettingsView: View {
                 .disabled(model.offline)
                 group("Your data") {
                     Group {
-                        ListRow(label: "Export spends")
+                        ListRow(label: "Export spends") { model.openExport() }
                         ListRow(label: "Delete account", trailing: .none, destructive: true)
                     }
                     .disabled(model.offline)
@@ -58,6 +59,11 @@ struct SettingsView: View {
             .navigationDestination(isPresented: notificationsOpen) {
                 if let notifications = model.notifications {
                     NotificationsView(model: notifications)
+                }
+            }
+            .navigationDestination(isPresented: exportOpen) {
+                if let export = model.export {
+                    ExportView(model: export)
                 }
             }
             .navigationDestination(isPresented: profileOpen) {
@@ -86,6 +92,14 @@ struct SettingsView: View {
         Binding(get: { model.profile != nil }, set: {
             if !$0 {
                 model.profile = nil
+            }
+        })
+    }
+
+    private var exportOpen: Binding<Bool> {
+        Binding(get: { model.export != nil }, set: {
+            if !$0 {
+                model.export = nil
             }
         })
     }

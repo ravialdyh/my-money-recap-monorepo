@@ -19,13 +19,14 @@ import (
 )
 
 // Notify is the part of moneyrecapv1connect.NotifyServiceClient the Member paths need (§7.3): the Target Warning,
-// the phone's push token and the notification preferences.
+// the phone's push token, the notification preferences and the export email.
 type Notify interface {
 	GetWarningState(ctx context.Context, req *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error)
 	EvaluateWarning(ctx context.Context, req *connect.Request[moneyrecapv1.EvaluateWarningRequest]) (*connect.Response[moneyrecapv1.EvaluateWarningResponse], error)
 	RegisterDevice(ctx context.Context, req *connect.Request[moneyrecapv1.RegisterDeviceRequest]) (*connect.Response[moneyrecapv1.RegisterDeviceResponse], error)
 	GetPrefs(ctx context.Context, req *connect.Request[moneyrecapv1.GetPrefsRequest]) (*connect.Response[moneyrecapv1.GetPrefsResponse], error)
 	SavePrefs(ctx context.Context, req *connect.Request[moneyrecapv1.SavePrefsRequest]) (*connect.Response[moneyrecapv1.SavePrefsResponse], error)
+	EmailExport(ctx context.Context, req *connect.Request[moneyrecapv1.EmailExportRequest]) (*connect.Response[moneyrecapv1.EmailExportResponse], error)
 }
 
 // Service implements BffService. Every RPC but RequestMagicLink runs behind auth.Interceptor;
@@ -207,10 +208,18 @@ func homeView(p *moneyrecapv1.Profile, summary *moneyrecapv1.MonthSummary, recap
 }
 
 // requiredCallFailed logs why a required call failed and answers with code and a message naming only
-// the call, so no upstream text (a host, a database) reaches the phone.
+// the call, so no upstream text (a host, a database) reaches the phone; the callee's typed details, such as
+// notify's EmailBounced, pass through.
 func requiredCallFailed(call string, code connect.Code, err error) error {
 	log.Printf("%s: %v", call, err)
-	return connect.NewError(code, fmt.Errorf("%s failed", call))
+	failed := connect.NewError(code, fmt.Errorf("%s failed", call))
+	var ce *connect.Error
+	if errors.As(err, &ce) {
+		for _, d := range ce.Details() {
+			failed.AddDetail(d)
+		}
+	}
+	return failed
 }
 
 // logOptionalCallDegraded records that an optional call failed and the request went on without it:

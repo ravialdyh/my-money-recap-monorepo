@@ -1,5 +1,5 @@
-// Package notify is the notify service (ARCHITECTURE §7.3): the magic-link email (#68), the Target Warning's month
-// flag (#132) stamped from ledger's events too (#135) and pushed (#180), and each Member's replica (#176).
+// Package notify is the notify service (ARCHITECTURE §7.3): the magic-link and export emails (#68, #182), the Target
+// Warning's month flag (#132) stamped from ledger's events too (#135) and pushed (#180), and the replica (#176).
 package notify
 
 import (
@@ -96,7 +96,9 @@ func (s *Service) EmailMagicLink(ctx context.Context, req *connect.Request[money
 		if err != nil || claimed.RowsAffected() == 0 {
 			return err
 		}
-		return s.send(ctx, req.Msg.Email, req.Msg.Link)
+		return s.send(ctx, req.Msg.Email, "Subject: Your My Money Recap sign-in link\r\n"+
+			"Content-Type: text/plain; charset=utf-8\r\n\r\n"+
+			"Tap this link to sign in. It works for 15 minutes, once.\r\n\r\n"+req.Msg.Link+"\r\n")
 	})
 	if err != nil {
 		log.Printf("notify magic link: %v", err)
@@ -111,7 +113,7 @@ func (s *Service) EmailMagicLink(ctx context.Context, req *connect.Request[money
 // send opens the connection under ctx or sendTimeout, whichever is sooner, and puts that deadline on
 // every read and write: a connection accepted and then left silent would outlive the caller, holding
 // its transaction and blocking the pool's Close.
-func (s *Service) send(ctx context.Context, to, link string) error {
+func (s *Service) send(ctx context.Context, to, content string) error {
 	ctx, cancel := context.WithTimeout(ctx, sendTimeout)
 	defer cancel()
 	host, _, err := net.SplitHostPort(s.SMTP)
@@ -132,13 +134,12 @@ func (s *Service) send(ctx context.Context, to, link string) error {
 	if err != nil {
 		return err
 	}
-	return s.deliver(client, host, to, link)
+	return s.deliver(client, host, to, content)
 }
 
-// deliver is the one exchange, its body the single-use link of PRD D32. Client.Mail and Client.Rcpt
-// refuse an address holding CR or LF, the whole header-injection defence on this unauthenticated
-// path; STARTTLS is taken whenever the host offers it.
-func (s *Service) deliver(client *smtp.Client, host, to, link string) error {
+// deliver is the one exchange: From and To, then content. Client.Mail and Client.Rcpt refuse an address holding CR
+// or LF, the header-injection defence on the magic link's unauthenticated path; STARTTLS is taken when offered.
+func (s *Service) deliver(client *smtp.Client, host, to, content string) error {
 	if ok, _ := client.Extension("STARTTLS"); ok {
 		if err := client.StartTLS(&tls.Config{ServerName: host, MinVersion: tls.VersionTLS12}); err != nil {
 			return err
@@ -158,11 +159,7 @@ func (s *Service) deliver(client *smtp.Client, host, to, link string) error {
 	if err != nil {
 		return err
 	}
-	msg := "From: " + s.From + "\r\nTo: " + to +
-		"\r\nSubject: Your My Money Recap sign-in link\r\n" +
-		"Content-Type: text/plain; charset=utf-8\r\n\r\n" +
-		"Tap this link to sign in. It works for 15 minutes, once.\r\n\r\n" + link + "\r\n"
-	if _, err := body.Write([]byte(msg)); err != nil {
+	if _, err := body.Write([]byte("From: " + s.From + "\r\nTo: " + to + "\r\n" + content)); err != nil {
 		return err
 	}
 	if err := body.Close(); err != nil {

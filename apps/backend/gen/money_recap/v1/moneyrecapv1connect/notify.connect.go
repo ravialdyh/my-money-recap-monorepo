@@ -70,8 +70,8 @@ type NotifyServiceClient interface {
 	// send failure.
 	EmailMagicLink(context.Context, *connect.Request[v1.EmailMagicLinkRequest]) (*connect.Response[v1.EmailMagicLinkResponse], error)
 	// Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
-	// failed_precondition with EmailBounced, which the BFF turns into the PRD
-	// §6.16 InlineError offering Profile; unavailable when SMTP refuses.
+	// failed_precondition with EmailBounced when the mail host permanently
+	// refuses the address; unavailable for any other send failure.
 	EmailExport(context.Context, *connect.Request[v1.EmailExportRequest]) (*connect.Response[v1.EmailExportResponse], error)
 }
 
@@ -193,8 +193,8 @@ type NotifyServiceHandler interface {
 	// send failure.
 	EmailMagicLink(context.Context, *connect.Request[v1.EmailMagicLinkRequest]) (*connect.Response[v1.EmailMagicLinkResponse], error)
 	// Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
-	// failed_precondition with EmailBounced, which the BFF turns into the PRD
-	// §6.16 InlineError offering Profile; unavailable when SMTP refuses.
+	// failed_precondition with EmailBounced when the mail host permanently
+	// refuses the address; unavailable for any other send failure.
 	EmailExport(context.Context, *connect.Request[v1.EmailExportRequest]) (*connect.Response[v1.EmailExportResponse], error)
 }
 

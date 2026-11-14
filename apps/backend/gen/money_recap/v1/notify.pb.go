@@ -97,9 +97,9 @@ func (x *NotificationPrefs) GetTargetWarning() bool {
 	return false
 }
 
-// Typed error detail on EmailExport (ARCHITECTURE §7.3): the address has a
-// hard bounce newer than its last change, so the BFF answers with the §6.16
-// InlineError that offers Profile.
+// Typed error detail on EmailExport (ARCHITECTURE §7.3): the mail host
+// permanently refused the address at bounced_at, so the phone shows the §6.16
+// line naming it, with no link.
 type EmailBounced struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
@@ -803,7 +803,7 @@ func (*EmailMagicLinkResponse) Descriptor() ([]byte, []int) {
 
 type EmailExportRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto. Dedupes the sent_log write.
+	// A14; see the package doc in shared.proto. Claimed with the send.
 	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	// Every non-deleted Spend as CSV, straight from ledger.ExportCSV; never

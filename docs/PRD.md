@@ -336,7 +336,7 @@ The component keys its mascot off the `archetype` prop through an internal map; 
 - Saving Target: same card as 6.7. Forward-only, no sheet (D65). Row reads "Not set" when skipped.
 - Currency: list as 6.5, then a confirm sheet showing the rate and before/after values. If the pair is unsupported, a field asks for the rate manually. If the rate fetch fails, an `InlineError` with a Retry. If the Member has no Salary and no Spends, there is nothing to convert: the currency changes directly with no confirm sheet.
 - Notifications: three `Toggle`s (Recap ready, Daily reminder with a time picker default 20:00, Target Warning), each writing immediately. When push permission is denied, all three sit disabled at 40%, a `Banner` explains, and tapping deep-links to iOS Settings. The Settings row then reads "Off in iOS Settings" rather than a count.
-- Export: "Email me a CSV of every spend." One tap; the button becomes `Sent ✓` and dims for 60 seconds (D67). If the account has no deliverable address (an Apple private-relay address that has bounced), an `InlineError` says so and offers Profile.
+- Export: "Email me a CSV of every spend." One tap; the button becomes `Sent ✓` and dims for 60 seconds (D67). If the mail host refuses the address outright, an `InlineError` says "We can't reach {email}." with no link, since Profile cannot change the address; any other failure says "We couldn't send it. Try again." (owner, 2026-09-29). Bounces the mail host reports later wait for the real mail provider (#87).
 - Delete account: two-step confirm (button, then typed "DELETE"). Signs out immediately; deletion completes within 24 hours; signing in inside that window offers to restore (D60).
 - Log out: iOS action sheet confirm, then Sign in.
 
