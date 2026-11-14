@@ -76,24 +76,17 @@ func TestSetTimezoneEndToEnd(t *testing.T) {
 	}
 }
 
-// TestCancelDeletionEndToEnd writes a deletion stamp straight into the row: the launch call answers it,
-// "Keep my account" clears it through members, and a stamp past the 24 hours stays (D60, #105).
+// TestCancelDeletionEndToEnd stamps a throwaway Member's row, never the realm's test Member, whom the deletion job
+// would delete: the launch call answers the stamp, "Keep my account" clears it, and one past 24 hours stays (D60).
 func TestCancelDeletionEndToEnd(t *testing.T) {
-	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
-	if base == "" || kc == "" || pw == "" || dsn == "" {
-		t.Skip("BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_USER_PASSWORD and MMR_TEST_MEMBERS_DATABASE_URL not all set")
+	base, kc, mailpit, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_MAILPIT"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
+	if base == "" || kc == "" || mailpit == "" || dsn == "" {
+		t.Skip("BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_MAILPIT and MMR_TEST_MEMBERS_DATABASE_URL not all set")
 	}
 	ctx := context.Background()
-	db, err := pgxpool.New(ctx, dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(db.Close)
-	tok := testauth.UserToken(t, kc, pw)
+	db := pool(ctx, t, dsn)
+	tok := throwaway(t, db, base, kc, mailpit)
 	sub := testauth.Decode(t, tok).Sub
-	if _, err := db.Exec(ctx, `DELETE FROM member WHERE keycloak_subject = $1`, sub); err != nil {
-		t.Fatal(err)
-	}
 	client := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(tok))
 	keyed := func(req interface{ Header() http.Header }) {
 		req.Header().Set("Idempotency-Key", rand.Text())
@@ -125,11 +118,6 @@ func TestCancelDeletionEndToEnd(t *testing.T) {
 	}
 
 	launch()
-	t.Cleanup(func() {
-		if _, err := db.Exec(context.Background(), `UPDATE member SET deletion_requested_at = NULL WHERE keycloak_subject = $1`, sub); err != nil {
-			t.Logf("cleanup: %v", err)
-		}
-	})
 	stamp("1 hour")
 	if p := launch(); p.DeletionRequestedAt == nil || time.Since(p.DeletionRequestedAt.AsTime()) > 2*time.Hour {
 		t.Fatalf("the launch call after asking an hour ago: %v, want the stamp", p.DeletionRequestedAt)

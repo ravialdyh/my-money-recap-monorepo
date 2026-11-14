@@ -302,8 +302,9 @@ func (x *MembersDeletionCancelled) GetEnvelope() *EventEnvelope {
 	return nil
 }
 
-// Routing key "members.deleted" (§7.1 step 3): ledger, notify and currency
-// purge on it and answer with <service>.member.purged.
+// Routing key "members.deleted" (§7.1 step 3): ledger and notify purge on it
+// and answer with <service>.member.purged; currency stores nothing about a
+// Member.
 type MembersDeleted struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`

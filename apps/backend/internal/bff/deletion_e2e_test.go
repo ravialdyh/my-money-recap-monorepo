@@ -10,9 +10,12 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/members"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
@@ -86,4 +89,67 @@ func TestLeavingEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 	within(t, "members.deletion.cancelled clears notify's flag", func() bool { return !pending() })
+}
+
+// TestDeletionJobEndToEnd (#184), on a throwaway Member with a Spend and a phone, its request stamped 25 hours back:
+// one run of members' job, called directly, until no row about it is left in members, ledger or notify, the purged
+// events' outbox rows aside.
+func TestDeletionJobEndToEnd(t *testing.T) {
+	base, kc, mailpit, secret := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_MAILPIT"), os.Getenv("MEMBERS_TEST_CLIENT_SECRET")
+	dsn, ledgerDSN, notifyDSN := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL"), os.Getenv("LEDGER_TEST_DATABASE_URL"), os.Getenv("NOTIFY_TEST_DATABASE_URL")
+	if base == "" || kc == "" || mailpit == "" || secret == "" || dsn == "" || ledgerDSN == "" || notifyDSN == "" {
+		t.Skip("BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_MAILPIT, MEMBERS_TEST_CLIENT_SECRET and the three database URLs not all set")
+	}
+	ctx := context.Background()
+	db, ledgerDB, notifyDB := pool(ctx, t, dsn), pool(ctx, t, ledgerDSN), pool(ctx, t, notifyDSN)
+	access := throwaway(t, db, base, kc, mailpit)
+	onboard(ctx, t, base, access)
+	client := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(access))
+	id := memberOf(ctx, t, db, testauth.Decode(t, access).Sub)
+	spend := connect.NewRequest(&moneyrecapv1.BffServiceLogSpendRequest{
+		Amount: &moneyrecapv1.Money{Amount: "25000", CurrencyCode: "IDR"}, Category: moneyrecapv1.Category_CATEGORY_SNACKS, Date: time.Now().UTC().Format(dateLayout),
+	})
+	device := connect.NewRequest(&moneyrecapv1.BffServiceRegisterDeviceRequest{ApnsToken: hex.EncodeToString([]byte(rand.Text()))})
+	ask := connect.NewRequest(&moneyrecapv1.BffServiceRequestDeletionRequest{})
+	for _, req := range []interface{ Header() http.Header }{spend, device, ask} {
+		req.Header().Set("Idempotency-Key", rand.Text())
+	}
+	if _, err := client.LogSpend(ctx, spend); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.RegisterDevice(ctx, device); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.RequestDeletion(ctx, ask); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(ctx, `UPDATE member SET deletion_requested_at = now() - interval '25 hours' WHERE id = $1`, id); err != nil {
+		t.Fatal(err)
+	}
+	job := &members.Service{DB: db, Keycloak: members.Keycloak{
+		Admin: kc + "/admin/realms/mmr", Account: &auth.ServiceAccount{Realm: kc + "/realms/mmr", Client: "members", Secret: secret},
+	}}
+	if err := job.DeleteDue(ctx, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	left := func(db *pgxpool.Pool, tables ...string) int {
+		total := 0
+		for _, table := range tables {
+			var n int
+			if err := db.QueryRow(ctx, `SELECT count(*) FROM `+table+` WHERE member_id = $1`, id).Scan(&n); err != nil {
+				t.Fatal(err)
+			}
+			total += n
+		}
+		return total
+	}
+	within(t, "no row about the Member in members, ledger or notify", func() bool {
+		var member int
+		if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE id = $1`, id).Scan(&member); err != nil {
+			t.Fatal(err)
+		}
+		return member+left(db, "deletion_progress", "outbox", "idempotency") == 0 &&
+			left(ledgerDB, "spend", "salary_setting", "saving_target_setting", "currency_conversion", "idempotency", "member_facts") == 0 &&
+			left(notifyDB, "notification_preference", "device", "month_flag", "sent_log", "idempotency", "member_facts") == 0
+	})
 }

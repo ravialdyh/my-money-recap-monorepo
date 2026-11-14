@@ -31,7 +31,7 @@ measurements is in the pull requests that raised them.
 
 ## What is not counted
 
-Go drops `apps/backend/gen/**` (buf's output) and `internal/testauth` (a test helper) from the profile
+Go drops `apps/backend/gen/**` (buf's output) and `internal/testauth` and `internal/testdb` (test helpers) from the profile
 before measuring. TypeScript drops `src/assets/illustrations.ts` and `src/styles/css.generated.ts`;
 those exclusions live in `my-money-recap-ds/vitest.config.ts`. Generated code is not code anyone
 writes tests for, and leaving it in the denominator makes the number say nothing.

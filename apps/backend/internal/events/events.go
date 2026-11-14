@@ -43,6 +43,25 @@ func Stage(ctx context.Context, tx pgx.Tx, memberID, routingKey string, build fu
 	return err
 }
 
+// Purge applies members.deleted inside the consumer's transaction (ARCHITECTURE §7.1 step 5): every row of tables
+// holding the Member's member_id goes, then routingKey, the service's purged event built by build, is staged.
+func Purge(ctx context.Context, tx pgx.Tx, body []byte, tables []string, routingKey string, build func(*moneyrecapv1.EventEnvelope) proto.Message) error {
+	var e moneyrecapv1.MembersDeleted
+	if err := proto.Unmarshal(body, &e); err != nil {
+		return err
+	}
+	id := e.GetEnvelope().GetMemberId()
+	if id == "" {
+		return errors.New("the event names no Member")
+	}
+	for _, table := range tables {
+		if _, err := tx.Exec(ctx, `DELETE FROM `+table+` WHERE member_id = $1`, id); err != nil {
+			return err
+		}
+	}
+	return Stage(ctx, tx, id, routingKey, build)
+}
+
 // Declare makes the two exchanges, idempotently; every service declares what it leans on.
 func Declare(ch *amqp.Channel) error {
 	if err := ch.ExchangeDeclare(Exchange, "topic", true, false, false, false, nil); err != nil {
