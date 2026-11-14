@@ -17,11 +17,13 @@ import (
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
+	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
 // The deletion job (§7.1 steps 3 to 6) on a throwaway Keycloak account: a 25-hour stamp is tombstoned once, its
-// account deleted, its subject refused, and both purged events, repeated, hard-delete it; a 23-hour one stays.
+// account deleted, its subject refused until a run tokenLifetime after both purged events hard-deletes it; a 23-hour
+// one stays.
 func TestTheDeletionJob(t *testing.T) {
 	kc, secret := os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MEMBERS_TEST_CLIENT_SECRET")
 	if kc == "" || secret == "" {
@@ -103,10 +105,38 @@ func TestTheDeletionJob(t *testing.T) {
 		t.Fatal("hard-deleted before notify's purge")
 	}
 	purge("notify.member.purged")
+	if rows() == 0 {
+		t.Fatal("hard-deleted before the Keycloak account had been gone tokenLifetime")
+	}
+	if _, err := Upsert(ctx, db, subject, ""); !errors.Is(err, errTombstoned) {
+		t.Errorf("an old token after all three stamps: %v, want refused", err)
+	}
+	if err := s.DeleteDue(ctx, now); err != nil {
+		t.Fatal(err)
+	}
+	if rows() == 0 {
+		t.Fatal("hard-deleted a run too early")
+	}
+	if err := s.DeleteDue(ctx, time.Now().Add(tokenLifetime+time.Minute)); err != nil {
+		t.Fatal(err)
+	}
 	if n := rows(); n != 0 {
-		t.Errorf("%d rows left about the Member once all three stamps are present, want none", n)
+		t.Errorf("%d rows left about the Member once the tokens have expired, want none", n)
 	}
 	purge("notify.member.purged")
+}
+
+// Access tokens live no longer than tokenLifetime, which a tombstone must outlast (Keycloak's default is 300 s and the
+// realm sets none); the ios client mints magic-link tokens too, so this covers them.
+func TestTheTokenLifetime(t *testing.T) {
+	kc, password := os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
+	if kc == "" || password == "" {
+		t.Skip("MMR_TEST_KEYCLOAK and MMR_TEST_USER_PASSWORD not both set")
+	}
+	c := testauth.Decode(t, testauth.UserToken(t, kc, password))
+	if lived := time.Duration(c.Exp-c.Iat) * time.Second; lived > tokenLifetime {
+		t.Errorf("an access token lives %v, longer than tokenLifetime %v", lived, tokenLifetime)
+	}
 }
 
 // A deletion still incomplete an hour after its tombstone writes a log line on every run, standing in for A11's alert.

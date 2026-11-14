@@ -92,8 +92,8 @@ func TestLeavingEndToEnd(t *testing.T) {
 }
 
 // TestDeletionJobEndToEnd (#184), on a throwaway Member with a Spend and a phone, its request stamped 25 hours back:
-// one run of members' job, called directly, until no row about it is left in members, ledger or notify, the purged
-// events' outbox rows aside.
+// members' job runs until ledger and notify hold nothing and both purges are stamped, then once more after
+// tokenLifetime to hard-delete.
 func TestDeletionJobEndToEnd(t *testing.T) {
 	base, kc, mailpit, secret := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_MAILPIT"), os.Getenv("MEMBERS_TEST_CLIENT_SECRET")
 	dsn, ledgerDSN, notifyDSN := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL"), os.Getenv("LEDGER_TEST_DATABASE_URL"), os.Getenv("NOTIFY_TEST_DATABASE_URL")
@@ -143,13 +143,24 @@ func TestDeletionJobEndToEnd(t *testing.T) {
 		}
 		return total
 	}
-	within(t, "no row about the Member in members, ledger or notify", func() bool {
-		var member int
-		if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE id = $1`, id).Scan(&member); err != nil {
+	within(t, "ledger and notify hold nothing and the progress row has both purge stamps", func() bool {
+		var stamped int
+		if err := db.QueryRow(ctx, `SELECT count(*) FROM deletion_progress WHERE member_id = $1
+			AND ledger_purged_at IS NOT NULL AND notify_purged_at IS NOT NULL`, id).Scan(&stamped); err != nil {
 			t.Fatal(err)
 		}
-		return member+left(db, "deletion_progress", "outbox", "idempotency") == 0 &&
+		return stamped == 1 &&
 			left(ledgerDB, "spend", "salary_setting", "saving_target_setting", "currency_conversion", "idempotency", "member_facts") == 0 &&
 			left(notifyDB, "notification_preference", "device", "month_flag", "sent_log", "idempotency", "member_facts") == 0
 	})
+	if err := job.DeleteDue(ctx, time.Now().Add(10*time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	var member int
+	if err := db.QueryRow(ctx, `SELECT count(*) FROM member WHERE id = $1`, id).Scan(&member); err != nil {
+		t.Fatal(err)
+	}
+	if rows := member + left(db, "deletion_progress", "outbox", "idempotency"); rows != 0 {
+		t.Errorf("%d rows about the Member in members once the tokens have expired, want none", rows)
+	}
 }

@@ -27,6 +27,10 @@ const (
 	stallAfter = time.Hour
 )
 
+// tokenLifetime is the longest an access token lives (Keycloak's default 300 s, guarded by TestTheTokenLifetime); a
+// tombstone outlives its Keycloak account by it, so no token in flight can create a fresh Member.
+const tokenLifetime = 5 * time.Minute
+
 // purgedColumn is the progress row's stamp each purged event sets.
 var purgedColumn = map[string]string{"ledger.member.purged": "ledger_purged_at", "notify.member.purged": "notify_purged_at"}
 
@@ -47,7 +51,8 @@ func (s *Service) Sweep(ctx context.Context) {
 }
 
 // DeleteDue is one run at now: each stamp restoreWindow old is tombstoned in a transaction of its own, each held
-// Keycloak account deleted (a failure waits for the next run), and a deletion stalled past stallAfter logged.
+// Keycloak account deleted (a failure waits for the next run), each finished deletion hard-deleted, and a deletion
+// stalled past stallAfter logged.
 func (s *Service) DeleteDue(ctx context.Context, now time.Time) error {
 	rows, err := s.DB.Query(ctx, `SELECT id::text FROM member WHERE deletion_requested_at <= $1 AND deleted_at IS NULL`, now.Add(-restoreWindow))
 	if err != nil {
@@ -78,6 +83,9 @@ func (s *Service) DeleteDue(ctx context.Context, now time.Time) error {
 		if err := pgx.BeginFunc(ctx, s.DB, func(tx pgx.Tx) error { return stamp(ctx, tx, m.ID, "keycloak_deleted_at") }); err != nil {
 			return err
 		}
+	}
+	if err := s.finish(ctx, now); err != nil {
+		return err
 	}
 	rows, err = s.DB.Query(ctx, `SELECT member_id::text FROM deletion_progress WHERE deleted_at <= $1`, now.Add(-stallAfter))
 	if err != nil {
@@ -117,18 +125,21 @@ func ApplyPurged(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 	return stamp(ctx, tx, id, column)
 }
 
-// stamp sets one of the progress row's three stamps, keeping a first one, then hard-deletes the Member's row, keys
-// and outbox rows, and the progress row with them, once all three are present (§7.1 step 6).
+// stamp sets one of the progress row's three stamps, keeping a first one (§7.1 steps 4 and 5).
 func stamp(ctx context.Context, tx pgx.Tx, id, column string) error {
-	if _, err := tx.Exec(ctx, `UPDATE deletion_progress SET `+column+` = coalesce(`+column+`, now()) WHERE member_id = $1`, id); err != nil {
-		return err
-	}
-	_, err := tx.Exec(ctx, `WITH done AS (
-			DELETE FROM deletion_progress WHERE member_id = $1
-				AND keycloak_deleted_at IS NOT NULL AND ledger_purged_at IS NOT NULL AND notify_purged_at IS NOT NULL
+	_, err := tx.Exec(ctx, `UPDATE deletion_progress SET `+column+` = coalesce(`+column+`, now()) WHERE member_id = $1`, id)
+	return err
+}
+
+// finish hard-deletes every Member whose three stamps are present and whose Keycloak account has been gone
+// tokenLifetime, with its keys, outbox rows and progress row, in one statement (§7.1 step 6).
+func (s *Service) finish(ctx context.Context, now time.Time) error {
+	_, err := s.DB.Exec(ctx, `WITH done AS (
+			DELETE FROM deletion_progress WHERE keycloak_deleted_at <= $1
+				AND ledger_purged_at IS NOT NULL AND notify_purged_at IS NOT NULL
 			RETURNING member_id),
 		keys AS (DELETE FROM idempotency WHERE member_id IN (SELECT member_id FROM done)),
 		staged AS (DELETE FROM outbox WHERE member_id IN (SELECT member_id FROM done))
-		DELETE FROM member WHERE id IN (SELECT member_id FROM done)`, id)
+		DELETE FROM member WHERE id IN (SELECT member_id FROM done)`, now.Add(-tokenLifetime))
 	return err
 }
