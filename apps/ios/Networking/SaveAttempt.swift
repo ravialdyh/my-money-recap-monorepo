@@ -41,3 +41,14 @@ enum SaveResult: Equatable {
         }
     }
 }
+
+/// The answer of a call nobody wired, as with no signal: the default the view models give every call, so a test or a
+/// picture names only the calls it drives.
+func unavailable<Answer>(_: some Any) async -> Result<Answer, ConnectError> {
+    .failure(ConnectError(code: .unavailable, message: nil))
+}
+
+/// The same for a call taking its request and its headers.
+func unavailable<Answer>(_: some Any, _: Headers) async -> Result<Answer, ConnectError> {
+    .failure(ConnectError(code: .unavailable, message: nil))
+}

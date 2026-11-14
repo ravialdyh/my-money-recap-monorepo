@@ -151,3 +151,20 @@ func loginTokenFromMail(t *testing.T, mailpit, address string) string {
 	t.Fatalf("no magic link in %q", text)
 	return ""
 }
+
+// throwaway signs a fresh address in by its magic link, as the app does, and answers its access token: a Member of the
+// test's own whose row is dropped at the end, so a test that stamps or deletes never touches the realm's test Member.
+func throwaway(t *testing.T, db *pgxpool.Pool, base, kc, mailpit string) string {
+	t.Helper()
+	address := freshAddress(t)
+	forgetMember(t, db, address)
+	anonymous := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(""))
+	if _, err := anonymous.RequestMagicLink(t.Context(), request(address, "")); err != nil {
+		t.Fatal(err)
+	}
+	access, refused := redeem(t, kc, loginTokenFromMail(t, mailpit, address))
+	if access == "" {
+		t.Fatalf("redeeming a fresh address's link: %s", refused)
+	}
+	return access
+}

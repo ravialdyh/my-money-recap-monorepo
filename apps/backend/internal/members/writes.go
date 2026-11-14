@@ -107,6 +107,44 @@ func (s *Service) SaveProfile(ctx context.Context, req *connect.Request[moneyrec
 	return connect.NewResponse(answer), nil
 }
 
+// RequestDeletion stamps the deletion time and stages members.deletion.requested in one transaction under the
+// Member's key (ARCHITECTURE §7.1 step 1); a Member already stamped keeps the first stamp, and nothing is staged.
+func (s *Service) RequestDeletion(ctx context.Context, req *connect.Request[moneyrecapv1.RequestDeletionRequest]) (*connect.Response[moneyrecapv1.RequestDeletionResponse], error) {
+	if req.Msg.IdempotencyKey == "" {
+		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("idempotency_key is required"))
+	}
+	m, err := s.own(ctx, req.Msg.MemberId)
+	if err != nil {
+		return nil, err
+	}
+	answer := &moneyrecapv1.RequestDeletionResponse{}
+	err = idempotency.Write(ctx, s.DB, m.ID, req.Msg.IdempotencyKey, req.Msg, answer, func(tx pgx.Tx) error {
+		before, err := locked(ctx, tx, m.ID)
+		if err != nil {
+			return err
+		}
+		answer.Profile = profile(before)
+		if before.DeletionRequestedAt != nil {
+			return nil
+		}
+		after, err := scanRow(tx.QueryRow(ctx, `UPDATE member SET deletion_requested_at = now() WHERE id = $1 RETURNING `+rowColumns, m.ID))
+		if err != nil {
+			return err
+		}
+		answer.Profile = profile(after)
+		return events.Stage(ctx, tx, m.ID, "members.deletion.requested", func(env *moneyrecapv1.EventEnvelope) proto.Message {
+			return &moneyrecapv1.MembersDeletionRequested{Envelope: env}
+		})
+	})
+	if errors.Is(err, idempotency.ErrReused) {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+	if err != nil {
+		return nil, storeFailed(ctx, err)
+	}
+	return connect.NewResponse(answer), nil
+}
+
 // restoreWindow is how long after asking a Member can still keep their account (D39, D60).
 const restoreWindow = 24 * time.Hour
 

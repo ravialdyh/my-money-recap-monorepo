@@ -77,6 +77,15 @@ message BffServiceRegisterDeviceRequest {
 
 message BffServiceRegisterDeviceResponse {}
 
+// Log out (PRD §6.16, SCREEN-STATES D12): this phone stops getting the
+// Member's pushes. Best effort; the phone signs out whatever the answer.
+message BffServiceForgetDeviceRequest {
+  // The APNs device token as hex, as RegisterDevice last sent it.
+  string apns_token = 1;
+}
+
+message BffServiceForgetDeviceResponse {}
+
 message BffServiceRequestExportRequest {}
 
 // Success means the CSV was handed to email: the button reads "Sent" for 60

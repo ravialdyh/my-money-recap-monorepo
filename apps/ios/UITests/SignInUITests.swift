@@ -140,6 +140,13 @@ final class SignInUITests: XCTestCase {
         )
         XCTAssert(app.staticTexts["No spends"].exists, "the stored answer's figures")
         snapshot("26-recap-stored-no-signal")
+
+        app.launchEnvironment = Self.appEnvironment
+        app.terminate()
+        app.launch()
+        XCTAssert(spentSoFar(app).waitForExistence(timeout: 30))
+        let again = try await logOutAndBackIn(app, address: address, mailpit: stack.mailpit, after: link)
+        try await deleteThenKeep(app, address: address, mailpit: stack.mailpit, after: again)
     }
 }
 
@@ -226,53 +233,4 @@ extension SignInUITests {
         app.buttons["Back"].tap()
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10))
     }
-}
-
-/// The Compose stack the runner points at (`scripts/ui-test.sh` reads it from `infra/compose/.env`). The
-/// app gets the BFF and the issuer; Mailpit is read from this process, never from the app.
-struct Stack {
-    let mailpit: Mailpit
-
-    init() throws {
-        guard let mailpit = ProcessInfo.processInfo.environment["MMR_MAILPIT_URL"].flatMap(URL.init(string:)) else {
-            throw XCTSkip("set MMR_MAILPIT_URL (the stack's Mailpit, infra/compose/README.md) to run against Compose")
-        }
-        self.mailpit = Mailpit(base: mailpit)
-    }
-}
-
-/// Mailpit's HTTP API: the newest message to an address, and the magic link inside it.
-struct Mailpit {
-    let base: URL
-
-    func link(to address: String) async throws -> String {
-        for _ in 0 ..< 20 {
-            if let id = try await newestMessage(to: address) {
-                let message = try await json(base.appending(path: "api/v1/message/\(id)"))
-                let text = message["Text"] as? String ?? ""
-                if let link = text.range(of: #"\S+\?lt=\S+"#, options: .regularExpression) {
-                    return String(text[link])
-                }
-            }
-            try await Task.sleep(for: .milliseconds(500))
-        }
-        throw MailpitError.noLink(address)
-    }
-
-    private func newestMessage(to address: String) async throws -> String? {
-        let search = base.appending(path: "api/v1/search").appending(queryItems: [
-            URLQueryItem(name: "query", value: "to:\(address)"),
-        ])
-        let messages = try await json(search)["messages"] as? [[String: Any]]
-        return messages?.first?["ID"] as? String
-    }
-
-    private func json(_ url: URL) async throws -> [String: Any] {
-        let (data, _) = try await URLSession.shared.data(from: url)
-        return try JSONSerialization.jsonObject(with: data) as? [String: Any] ?? [:]
-    }
-}
-
-enum MailpitError: Error {
-    case noLink(String)
 }

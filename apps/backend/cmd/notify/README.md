@@ -3,7 +3,7 @@
 The `notify` service (`docs/ARCHITECTURE.md` §7.3): every notification and every outbound email.
 It serves `EmailMagicLink`, the Target Warning state
 (`GetWarningState` and `EvaluateWarning`), its own copy of each Member ("The replica", below)
-and the `idempotency` table, `RegisterDevice`, `GetPrefs` and `SavePrefs`
+and the `idempotency` table, `RegisterDevice`, `ForgetDevice`, `GetPrefs` and `SavePrefs`
 ("The preferences", below), the Target Warning's push through the Apple sender ("The push", below),
 `EmailExport`, the CSV export email, and the Recap-ready and daily-reminder schedules ("The schedules", below).
 The `members.deleted` purge and the outbox are planned. Its image, bearer check, start-up, migrations and shared variables are every service's
@@ -135,7 +135,8 @@ newer event has written.
 key inside its own transaction (`internal/idempotency`), a repeated key replays the stored answer, a key
 reused for another request is `invalid_argument`, and keys older than 24 hours are swept. `RegisterDevice`
 is its first write: it upserts the `device` row on the phone's token, lowercase hex, so a phone another
-Member signs in on moves to them and a Member may hold several. `SavePrefs` is its second, and `EmailExport`
+Member signs in on moves to them and a Member may hold several. `ForgetDevice`, Log out's, deletes this Member's
+row for a token and leaves another Member's alone. `SavePrefs` is another, and `EmailExport`
 claims its key with the send, so a failed send frees it and a retried key sends once.
 
 ## The preferences

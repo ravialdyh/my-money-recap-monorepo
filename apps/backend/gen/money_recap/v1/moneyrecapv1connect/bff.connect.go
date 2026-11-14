@@ -73,6 +73,8 @@ const (
 	// BffServiceRegisterDeviceProcedure is the fully-qualified name of the BffService's RegisterDevice
 	// RPC.
 	BffServiceRegisterDeviceProcedure = "/money_recap.v1.BffService/RegisterDevice"
+	// BffServiceForgetDeviceProcedure is the fully-qualified name of the BffService's ForgetDevice RPC.
+	BffServiceForgetDeviceProcedure = "/money_recap.v1.BffService/ForgetDevice"
 	// BffServiceRequestExportProcedure is the fully-qualified name of the BffService's RequestExport
 	// RPC.
 	BffServiceRequestExportProcedure = "/money_recap.v1.BffService/RequestExport"
@@ -135,6 +137,8 @@ type BffServiceClient interface {
 	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
 	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
 	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
+	// notify.ForgetDevice (§7.3), required: forgetting the phone is its whole job.
+	ForgetDevice(context.Context, *connect.Request[v1.BffServiceForgetDeviceRequest]) (*connect.Response[v1.BffServiceForgetDeviceResponse], error)
 	// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
 	// failed_precondition with EmailBounced is the §6.16 line naming the refused
 	// address, with no link; any other failure is the retry line.
@@ -258,6 +262,12 @@ func NewBffServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(bffServiceMethods.ByName("RegisterDevice")),
 			connect.WithClientOptions(opts...),
 		),
+		forgetDevice: connect.NewClient[v1.BffServiceForgetDeviceRequest, v1.BffServiceForgetDeviceResponse](
+			httpClient,
+			baseURL+BffServiceForgetDeviceProcedure,
+			connect.WithSchema(bffServiceMethods.ByName("ForgetDevice")),
+			connect.WithClientOptions(opts...),
+		),
 		requestExport: connect.NewClient[v1.BffServiceRequestExportRequest, v1.BffServiceRequestExportResponse](
 			httpClient,
 			baseURL+BffServiceRequestExportProcedure,
@@ -298,6 +308,7 @@ type bffServiceClient struct {
 	changeCurrency        *connect.Client[v1.BffServiceChangeCurrencyRequest, v1.BffServiceChangeCurrencyResponse]
 	saveNotificationPrefs *connect.Client[v1.BffServiceSaveNotificationPrefsRequest, v1.BffServiceSaveNotificationPrefsResponse]
 	registerDevice        *connect.Client[v1.BffServiceRegisterDeviceRequest, v1.BffServiceRegisterDeviceResponse]
+	forgetDevice          *connect.Client[v1.BffServiceForgetDeviceRequest, v1.BffServiceForgetDeviceResponse]
 	requestExport         *connect.Client[v1.BffServiceRequestExportRequest, v1.BffServiceRequestExportResponse]
 	requestDeletion       *connect.Client[v1.BffServiceRequestDeletionRequest, v1.BffServiceRequestDeletionResponse]
 	cancelDeletion        *connect.Client[v1.BffServiceCancelDeletionRequest, v1.BffServiceCancelDeletionResponse]
@@ -388,6 +399,11 @@ func (c *bffServiceClient) RegisterDevice(ctx context.Context, req *connect.Requ
 	return c.registerDevice.CallUnary(ctx, req)
 }
 
+// ForgetDevice calls money_recap.v1.BffService.ForgetDevice.
+func (c *bffServiceClient) ForgetDevice(ctx context.Context, req *connect.Request[v1.BffServiceForgetDeviceRequest]) (*connect.Response[v1.BffServiceForgetDeviceResponse], error) {
+	return c.forgetDevice.CallUnary(ctx, req)
+}
+
 // RequestExport calls money_recap.v1.BffService.RequestExport.
 func (c *bffServiceClient) RequestExport(ctx context.Context, req *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error) {
 	return c.requestExport.CallUnary(ctx, req)
@@ -454,6 +470,8 @@ type BffServiceHandler interface {
 	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
 	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
 	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
+	// notify.ForgetDevice (§7.3), required: forgetting the phone is its whole job.
+	ForgetDevice(context.Context, *connect.Request[v1.BffServiceForgetDeviceRequest]) (*connect.Response[v1.BffServiceForgetDeviceResponse], error)
 	// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
 	// failed_precondition with EmailBounced is the §6.16 line naming the refused
 	// address, with no link; any other failure is the retry line.
@@ -573,6 +591,12 @@ func NewBffServiceHandler(svc BffServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(bffServiceMethods.ByName("RegisterDevice")),
 		connect.WithHandlerOptions(opts...),
 	)
+	bffServiceForgetDeviceHandler := connect.NewUnaryHandler(
+		BffServiceForgetDeviceProcedure,
+		svc.ForgetDevice,
+		connect.WithSchema(bffServiceMethods.ByName("ForgetDevice")),
+		connect.WithHandlerOptions(opts...),
+	)
 	bffServiceRequestExportHandler := connect.NewUnaryHandler(
 		BffServiceRequestExportProcedure,
 		svc.RequestExport,
@@ -627,6 +651,8 @@ func NewBffServiceHandler(svc BffServiceHandler, opts ...connect.HandlerOption) 
 			bffServiceSaveNotificationPrefsHandler.ServeHTTP(w, r)
 		case BffServiceRegisterDeviceProcedure:
 			bffServiceRegisterDeviceHandler.ServeHTTP(w, r)
+		case BffServiceForgetDeviceProcedure:
+			bffServiceForgetDeviceHandler.ServeHTTP(w, r)
 		case BffServiceRequestExportProcedure:
 			bffServiceRequestExportHandler.ServeHTTP(w, r)
 		case BffServiceRequestDeletionProcedure:
@@ -708,6 +734,10 @@ func (UnimplementedBffServiceHandler) SaveNotificationPrefs(context.Context, *co
 
 func (UnimplementedBffServiceHandler) RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.RegisterDevice is not implemented"))
+}
+
+func (UnimplementedBffServiceHandler) ForgetDevice(context.Context, *connect.Request[v1.BffServiceForgetDeviceRequest]) (*connect.Response[v1.BffServiceForgetDeviceResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("money_recap.v1.BffService.ForgetDevice is not implemented"))
 }
 
 func (UnimplementedBffServiceHandler) RequestExport(context.Context, *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error) {

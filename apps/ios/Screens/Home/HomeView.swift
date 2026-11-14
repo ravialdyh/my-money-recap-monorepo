@@ -60,6 +60,18 @@ struct HomeView: View {
             }.result.get().prefs
         }, requestExport: { headers in
             await BffClient.retried(session) { await client.requestExport(request: .init(), headers: headers) }.result
+        }, requestDeletion: { headers in
+            await BffClient.retried(session) { await client.requestDeletion(request: .init(), headers: headers) }.result
+        }, logOut: {
+            await session.logOut {
+                guard let token = push.token else { return }
+                _ = await BffClient.retried(session) {
+                    await client.forgetDevice(
+                        request: .with { $0.apnsToken = token },
+                        headers: SaveAttempt(token).headers
+                    )
+                }
+            }
         }))
         self.open = open
     }

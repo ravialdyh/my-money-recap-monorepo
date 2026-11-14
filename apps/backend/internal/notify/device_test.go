@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
+	"github.com/jackc/pgx/v5"
 
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
@@ -71,5 +72,50 @@ func TestADeviceIsUpsertedOnItsToken(t *testing.T) {
 	}
 	if got := owner("abc1"); got != "" {
 		t.Errorf("a refused registration stored a row for %q", got)
+	}
+}
+
+// Log out forgets the phone: this Member's row for the token goes, once for a repeated key, while another Member's
+// row for a token is left as it is; a keyless or someone else's call is refused (spec #169, "Devices").
+func TestForgetDeviceDeletesOnlyTheMembersRow(t *testing.T) {
+	ann, bob := "00000000-0000-4000-8000-00000000d011", "00000000-0000-4000-8000-00000000d012"
+	s := warningService(t, ann, map[string]string{"ann": ann, "bob": bob})
+	t.Cleanup(func() {
+		for _, table := range []string{"device", "idempotency", "member_facts"} {
+			if _, err := s.DB.Exec(context.Background(), `DELETE FROM `+table+` WHERE member_id = ANY($1)`, []string{ann, bob}); err != nil {
+				t.Logf("cleanup %s: %v", table, err)
+			}
+		}
+	})
+	if _, err := s.DB.Exec(t.Context(), `INSERT INTO device (apns_token, member_id) VALUES ('f0f0', $1), ('b0b0', $2)`, ann, bob); err != nil {
+		t.Fatal(err)
+	}
+	forget := func(ctx context.Context, key, id, token string) error {
+		_, err := s.ForgetDevice(ctx, connect.NewRequest(&moneyrecapv1.ForgetDeviceRequest{IdempotencyKey: key, MemberId: id, ApnsToken: token}))
+		return err
+	}
+	for name, call := range map[string]func() error{
+		"no key":         func() error { return forget(as("ann"), "", ann, "f0f0") },
+		"another Member": func() error { return forget(as("bob"), "k9", ann, "f0f0") },
+	} {
+		if err := call(); err == nil {
+			t.Errorf("%s: forgotten, want refused", name)
+		}
+	}
+	for _, key := range []string{"k1", "k1"} {
+		if err := forget(as("ann"), key, ann, "F0F0"); err != nil {
+			t.Fatalf("ann forgetting her phone under %s: %v", key, err)
+		}
+	}
+	if err := forget(as("ann"), "k2", ann, "b0b0"); err != nil {
+		t.Fatalf("ann forgetting bob's token: %v", err)
+	}
+	rows, err := s.DB.Query(t.Context(), `SELECT apns_token FROM device WHERE member_id = ANY($1)`, []string{ann, bob})
+	if err != nil {
+		t.Fatal(err)
+	}
+	left, err := pgx.CollectRows(rows, pgx.RowTo[string])
+	if err != nil || len(left) != 1 || left[0] != "b0b0" {
+		t.Errorf("devices left %v (%v), want bob's alone", left, err)
 	}
 }

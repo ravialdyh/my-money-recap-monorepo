@@ -100,6 +100,16 @@ message RegisterDeviceRequest {
 
 message RegisterDeviceResponse {}
 
+message ForgetDeviceRequest {
+  // A14; see the package doc in shared.proto.
+  string idempotency_key = 1;
+  string member_id = 2;
+  // The APNs device token as hex.
+  string apns_token = 3;
+}
+
+message ForgetDeviceResponse {}
+
 message EmailMagicLinkRequest {
   // A14; see the package doc in shared.proto. Dedupes a retried send.
   string idempotency_key = 1;
@@ -136,6 +146,9 @@ service NotifyService {
   rpc SavePrefs(SavePrefsRequest) returns (SavePrefsResponse) {}
   // Upserts the device row on the token (A14).
   rpc RegisterDevice(RegisterDeviceRequest) returns (RegisterDeviceResponse) {}
+  // Deletes this Member's device row for the token; another Member's row and
+  // an unknown token are left as they are (A14).
+  rpc ForgetDevice(ForgetDeviceRequest) returns (ForgetDeviceResponse) {}
   // Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
   // address the mail host permanently refuses; unavailable for any other
   // send failure.

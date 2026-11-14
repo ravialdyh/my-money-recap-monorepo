@@ -38,6 +38,8 @@ var memberWrites = map[string]func([]byte) (connect.AnyResponse, error){
 	moneyrecapv1connect.BffServiceChangeCurrencyProcedure:        stored[moneyrecapv1.BffServiceChangeCurrencyResponse],
 	moneyrecapv1connect.BffServiceSaveNotificationPrefsProcedure: stored[moneyrecapv1.BffServiceSaveNotificationPrefsResponse],
 	moneyrecapv1connect.BffServiceRequestExportProcedure:         stored[moneyrecapv1.BffServiceRequestExportResponse],
+	moneyrecapv1connect.BffServiceForgetDeviceProcedure:          stored[moneyrecapv1.BffServiceForgetDeviceResponse],
+	moneyrecapv1connect.BffServiceRequestDeletionProcedure:       stored[moneyrecapv1.BffServiceRequestDeletionResponse],
 }
 
 // stored reads an answer's bytes back into the response type its procedure's handler returns.

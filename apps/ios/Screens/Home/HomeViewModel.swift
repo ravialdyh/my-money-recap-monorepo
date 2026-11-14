@@ -24,6 +24,8 @@ final class HomeViewModel {
     private let changeCurrency: CurrencyEditViewModel.Change
     private let saveNotifications: NotificationsViewModel.Save
     private let requestExport: ExportViewModel.Send
+    private let requestDeletion: DeleteAccountViewModel.Request
+    private let logOut: () async -> Void
     private let context: ModelContext
     private let onboardingNeeded: () -> Void
     /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
@@ -44,27 +46,21 @@ final class HomeViewModel {
         connection: Connection? = nil,
         push: PushRegistration? = nil,
         onboardingNeeded: @escaping () -> Void = {},
-        logSpend: @escaping LogSpendViewModel
-            .Send = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        logSpend: @escaping LogSpendViewModel.Send = unavailable,
         listSpends: @escaping SpendListViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) },
-        editSpend: @escaping LogSpendViewModel
-            .Edit = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        deleteSpend: @escaping LogSpendViewModel
-            .Delete = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        editSpend: @escaping LogSpendViewModel.Edit = unavailable,
+        deleteSpend: @escaping LogSpendViewModel.Delete = unavailable,
         getRecap: @escaping RecapViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) },
         getSettings: @escaping SettingsViewModel.Fetch = { throw ConnectError(code: .unavailable, message: nil) },
         saveProfile: @escaping NameAvatarViewModel.Save = { _, _ in .offline },
-        saveSalary: @escaping SalaryEditViewModel
-            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        saveTarget: @escaping TargetEditViewModel
-            .Save = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        previewCurrency: @escaping CurrencyEditViewModel
-            .Preview = { _ in .failure(ConnectError(code: .unavailable, message: nil)) },
-        changeCurrency: @escaping CurrencyEditViewModel
-            .Change = { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) },
+        saveSalary: @escaping SalaryEditViewModel.Save = unavailable,
+        saveTarget: @escaping TargetEditViewModel.Save = unavailable,
+        previewCurrency: @escaping CurrencyEditViewModel.Preview = unavailable,
+        changeCurrency: @escaping CurrencyEditViewModel.Change = unavailable,
         saveNotifications: @escaping NotificationsViewModel.Save = { _, _ in nil },
-        requestExport: @escaping ExportViewModel
-            .Send = { _ in .failure(ConnectError(code: .unavailable, message: nil)) }
+        requestExport: @escaping ExportViewModel.Send = unavailable,
+        requestDeletion: @escaping DeleteAccountViewModel.Request = unavailable,
+        logOut: @escaping () async -> Void = {}
     ) {
         self.fetch = fetch
         self.logSpend = logSpend
@@ -80,6 +76,8 @@ final class HomeViewModel {
         self.changeCurrency = changeCurrency
         self.saveNotifications = saveNotifications
         self.requestExport = requestExport
+        self.requestDeletion = requestDeletion
+        self.logOut = logOut
         self.context = context
         self.onboardingNeeded = onboardingNeeded
         dates = ISODate.style(locale: locale)
@@ -152,8 +150,8 @@ final class HomeViewModel {
             }, previewCurrency: previewCurrency, changeCurrency: { [weak self] in
                 let result = await change($0, $1)
                 return self?.keep(result, \.home) ?? result
-            }, saveNotifications: saveNotifications, push: push, requestExport: requestExport, context: context,
-            locale: locale, connection: connection
+            }, saveNotifications: saveNotifications, push: push, requestExport: requestExport,
+            requestDeletion: requestDeletion, logOut: logOut, context: context, locale: locale, connection: connection
         )
     }
 

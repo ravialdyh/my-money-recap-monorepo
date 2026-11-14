@@ -701,6 +701,104 @@ func (*RegisterDeviceResponse) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{11}
 }
 
+type ForgetDeviceRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A14; see the package doc in shared.proto.
+	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	// The APNs device token as hex.
+	ApnsToken     string `protobuf:"bytes,3,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForgetDeviceRequest) Reset() {
+	*x = ForgetDeviceRequest{}
+	mi := &file_money_recap_v1_notify_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForgetDeviceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForgetDeviceRequest) ProtoMessage() {}
+
+func (x *ForgetDeviceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_notify_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForgetDeviceRequest.ProtoReflect.Descriptor instead.
+func (*ForgetDeviceRequest) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ForgetDeviceRequest) GetIdempotencyKey() string {
+	if x != nil {
+		return x.IdempotencyKey
+	}
+	return ""
+}
+
+func (x *ForgetDeviceRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+func (x *ForgetDeviceRequest) GetApnsToken() string {
+	if x != nil {
+		return x.ApnsToken
+	}
+	return ""
+}
+
+type ForgetDeviceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForgetDeviceResponse) Reset() {
+	*x = ForgetDeviceResponse{}
+	mi := &file_money_recap_v1_notify_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForgetDeviceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForgetDeviceResponse) ProtoMessage() {}
+
+func (x *ForgetDeviceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_money_recap_v1_notify_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForgetDeviceResponse.ProtoReflect.Descriptor instead.
+func (*ForgetDeviceResponse) Descriptor() ([]byte, []int) {
+	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{13}
+}
+
 type EmailMagicLinkRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// A14; see the package doc in shared.proto. Dedupes a retried send.
@@ -716,7 +814,7 @@ type EmailMagicLinkRequest struct {
 
 func (x *EmailMagicLinkRequest) Reset() {
 	*x = EmailMagicLinkRequest{}
-	mi := &file_money_recap_v1_notify_proto_msgTypes[12]
+	mi := &file_money_recap_v1_notify_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -728,7 +826,7 @@ func (x *EmailMagicLinkRequest) String() string {
 func (*EmailMagicLinkRequest) ProtoMessage() {}
 
 func (x *EmailMagicLinkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_notify_proto_msgTypes[12]
+	mi := &file_money_recap_v1_notify_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -741,7 +839,7 @@ func (x *EmailMagicLinkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailMagicLinkRequest.ProtoReflect.Descriptor instead.
 func (*EmailMagicLinkRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{12}
+	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *EmailMagicLinkRequest) GetIdempotencyKey() string {
@@ -773,7 +871,7 @@ type EmailMagicLinkResponse struct {
 
 func (x *EmailMagicLinkResponse) Reset() {
 	*x = EmailMagicLinkResponse{}
-	mi := &file_money_recap_v1_notify_proto_msgTypes[13]
+	mi := &file_money_recap_v1_notify_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -785,7 +883,7 @@ func (x *EmailMagicLinkResponse) String() string {
 func (*EmailMagicLinkResponse) ProtoMessage() {}
 
 func (x *EmailMagicLinkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_notify_proto_msgTypes[13]
+	mi := &file_money_recap_v1_notify_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -798,7 +896,7 @@ func (x *EmailMagicLinkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailMagicLinkResponse.ProtoReflect.Descriptor instead.
 func (*EmailMagicLinkResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{13}
+	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{15}
 }
 
 type EmailExportRequest struct {
@@ -815,7 +913,7 @@ type EmailExportRequest struct {
 
 func (x *EmailExportRequest) Reset() {
 	*x = EmailExportRequest{}
-	mi := &file_money_recap_v1_notify_proto_msgTypes[14]
+	mi := &file_money_recap_v1_notify_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -827,7 +925,7 @@ func (x *EmailExportRequest) String() string {
 func (*EmailExportRequest) ProtoMessage() {}
 
 func (x *EmailExportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_notify_proto_msgTypes[14]
+	mi := &file_money_recap_v1_notify_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -840,7 +938,7 @@ func (x *EmailExportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailExportRequest.ProtoReflect.Descriptor instead.
 func (*EmailExportRequest) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{14}
+	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *EmailExportRequest) GetIdempotencyKey() string {
@@ -872,7 +970,7 @@ type EmailExportResponse struct {
 
 func (x *EmailExportResponse) Reset() {
 	*x = EmailExportResponse{}
-	mi := &file_money_recap_v1_notify_proto_msgTypes[15]
+	mi := &file_money_recap_v1_notify_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -884,7 +982,7 @@ func (x *EmailExportResponse) String() string {
 func (*EmailExportResponse) ProtoMessage() {}
 
 func (x *EmailExportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_money_recap_v1_notify_proto_msgTypes[15]
+	mi := &file_money_recap_v1_notify_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -897,7 +995,7 @@ func (x *EmailExportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmailExportResponse.ProtoReflect.Descriptor instead.
 func (*EmailExportResponse) Descriptor() ([]byte, []int) {
-	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{15}
+	return file_money_recap_v1_notify_proto_rawDescGZIP(), []int{17}
 }
 
 var File_money_recap_v1_notify_proto protoreflect.FileDescriptor
@@ -952,7 +1050,13 @@ const file_money_recap_v1_notify_proto_rawDesc = "" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x1d\n" +
 	"\n" +
 	"apns_token\x18\x03 \x01(\tR\tapnsToken\"\x18\n" +
-	"\x16RegisterDeviceResponse\"j\n" +
+	"\x16RegisterDeviceResponse\"z\n" +
+	"\x13ForgetDeviceRequest\x12'\n" +
+	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x1d\n" +
+	"\n" +
+	"apns_token\x18\x03 \x01(\tR\tapnsToken\"\x16\n" +
+	"\x14ForgetDeviceResponse\"j\n" +
 	"\x15EmailMagicLinkRequest\x12'\n" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x12\n" +
@@ -962,13 +1066,14 @@ const file_money_recap_v1_notify_proto_rawDesc = "" +
 	"\x0fidempotency_key\x18\x01 \x01(\tR\x0eidempotencyKey\x12\x1b\n" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x10\n" +
 	"\x03csv\x18\x03 \x01(\fR\x03csv\"\x15\n" +
-	"\x13EmailExportResponse2\xa0\x05\n" +
+	"\x13EmailExportResponse2\xfd\x05\n" +
 	"\rNotifyService\x12d\n" +
 	"\x0fGetWarningState\x12&.money_recap.v1.GetWarningStateRequest\x1a'.money_recap.v1.GetWarningStateResponse\"\x00\x12d\n" +
 	"\x0fEvaluateWarning\x12&.money_recap.v1.EvaluateWarningRequest\x1a'.money_recap.v1.EvaluateWarningResponse\"\x00\x12O\n" +
 	"\bGetPrefs\x12\x1f.money_recap.v1.GetPrefsRequest\x1a .money_recap.v1.GetPrefsResponse\"\x00\x12R\n" +
 	"\tSavePrefs\x12 .money_recap.v1.SavePrefsRequest\x1a!.money_recap.v1.SavePrefsResponse\"\x00\x12a\n" +
-	"\x0eRegisterDevice\x12%.money_recap.v1.RegisterDeviceRequest\x1a&.money_recap.v1.RegisterDeviceResponse\"\x00\x12a\n" +
+	"\x0eRegisterDevice\x12%.money_recap.v1.RegisterDeviceRequest\x1a&.money_recap.v1.RegisterDeviceResponse\"\x00\x12[\n" +
+	"\fForgetDevice\x12#.money_recap.v1.ForgetDeviceRequest\x1a$.money_recap.v1.ForgetDeviceResponse\"\x00\x12a\n" +
 	"\x0eEmailMagicLink\x12%.money_recap.v1.EmailMagicLinkRequest\x1a&.money_recap.v1.EmailMagicLinkResponse\"\x00\x12X\n" +
 	"\vEmailExport\x12\".money_recap.v1.EmailExportRequest\x1a#.money_recap.v1.EmailExportResponse\"\x00B[ZYgithub.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1;moneyrecapv1b\x06proto3"
 
@@ -984,7 +1089,7 @@ func file_money_recap_v1_notify_proto_rawDescGZIP() []byte {
 	return file_money_recap_v1_notify_proto_rawDescData
 }
 
-var file_money_recap_v1_notify_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_money_recap_v1_notify_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_money_recap_v1_notify_proto_goTypes = []any{
 	(*NotificationPrefs)(nil),       // 0: money_recap.v1.NotificationPrefs
 	(*EmailBounced)(nil),            // 1: money_recap.v1.EmailBounced
@@ -998,18 +1103,20 @@ var file_money_recap_v1_notify_proto_goTypes = []any{
 	(*SavePrefsResponse)(nil),       // 9: money_recap.v1.SavePrefsResponse
 	(*RegisterDeviceRequest)(nil),   // 10: money_recap.v1.RegisterDeviceRequest
 	(*RegisterDeviceResponse)(nil),  // 11: money_recap.v1.RegisterDeviceResponse
-	(*EmailMagicLinkRequest)(nil),   // 12: money_recap.v1.EmailMagicLinkRequest
-	(*EmailMagicLinkResponse)(nil),  // 13: money_recap.v1.EmailMagicLinkResponse
-	(*EmailExportRequest)(nil),      // 14: money_recap.v1.EmailExportRequest
-	(*EmailExportResponse)(nil),     // 15: money_recap.v1.EmailExportResponse
-	(*timestamppb.Timestamp)(nil),   // 16: google.protobuf.Timestamp
-	(*TargetWarning)(nil),           // 17: money_recap.v1.TargetWarning
+	(*ForgetDeviceRequest)(nil),     // 12: money_recap.v1.ForgetDeviceRequest
+	(*ForgetDeviceResponse)(nil),    // 13: money_recap.v1.ForgetDeviceResponse
+	(*EmailMagicLinkRequest)(nil),   // 14: money_recap.v1.EmailMagicLinkRequest
+	(*EmailMagicLinkResponse)(nil),  // 15: money_recap.v1.EmailMagicLinkResponse
+	(*EmailExportRequest)(nil),      // 16: money_recap.v1.EmailExportRequest
+	(*EmailExportResponse)(nil),     // 17: money_recap.v1.EmailExportResponse
+	(*timestamppb.Timestamp)(nil),   // 18: google.protobuf.Timestamp
+	(*TargetWarning)(nil),           // 19: money_recap.v1.TargetWarning
 }
 var file_money_recap_v1_notify_proto_depIdxs = []int32{
-	16, // 0: money_recap.v1.EmailBounced.bounced_at:type_name -> google.protobuf.Timestamp
-	17, // 1: money_recap.v1.GetWarningStateResponse.warning:type_name -> money_recap.v1.TargetWarning
-	17, // 2: money_recap.v1.EvaluateWarningRequest.warning:type_name -> money_recap.v1.TargetWarning
-	17, // 3: money_recap.v1.EvaluateWarningResponse.warning:type_name -> money_recap.v1.TargetWarning
+	18, // 0: money_recap.v1.EmailBounced.bounced_at:type_name -> google.protobuf.Timestamp
+	19, // 1: money_recap.v1.GetWarningStateResponse.warning:type_name -> money_recap.v1.TargetWarning
+	19, // 2: money_recap.v1.EvaluateWarningRequest.warning:type_name -> money_recap.v1.TargetWarning
+	19, // 3: money_recap.v1.EvaluateWarningResponse.warning:type_name -> money_recap.v1.TargetWarning
 	0,  // 4: money_recap.v1.GetPrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
 	0,  // 5: money_recap.v1.SavePrefsRequest.prefs:type_name -> money_recap.v1.NotificationPrefs
 	0,  // 6: money_recap.v1.SavePrefsResponse.prefs:type_name -> money_recap.v1.NotificationPrefs
@@ -1018,17 +1125,19 @@ var file_money_recap_v1_notify_proto_depIdxs = []int32{
 	6,  // 9: money_recap.v1.NotifyService.GetPrefs:input_type -> money_recap.v1.GetPrefsRequest
 	8,  // 10: money_recap.v1.NotifyService.SavePrefs:input_type -> money_recap.v1.SavePrefsRequest
 	10, // 11: money_recap.v1.NotifyService.RegisterDevice:input_type -> money_recap.v1.RegisterDeviceRequest
-	12, // 12: money_recap.v1.NotifyService.EmailMagicLink:input_type -> money_recap.v1.EmailMagicLinkRequest
-	14, // 13: money_recap.v1.NotifyService.EmailExport:input_type -> money_recap.v1.EmailExportRequest
-	3,  // 14: money_recap.v1.NotifyService.GetWarningState:output_type -> money_recap.v1.GetWarningStateResponse
-	5,  // 15: money_recap.v1.NotifyService.EvaluateWarning:output_type -> money_recap.v1.EvaluateWarningResponse
-	7,  // 16: money_recap.v1.NotifyService.GetPrefs:output_type -> money_recap.v1.GetPrefsResponse
-	9,  // 17: money_recap.v1.NotifyService.SavePrefs:output_type -> money_recap.v1.SavePrefsResponse
-	11, // 18: money_recap.v1.NotifyService.RegisterDevice:output_type -> money_recap.v1.RegisterDeviceResponse
-	13, // 19: money_recap.v1.NotifyService.EmailMagicLink:output_type -> money_recap.v1.EmailMagicLinkResponse
-	15, // 20: money_recap.v1.NotifyService.EmailExport:output_type -> money_recap.v1.EmailExportResponse
-	14, // [14:21] is the sub-list for method output_type
-	7,  // [7:14] is the sub-list for method input_type
+	12, // 12: money_recap.v1.NotifyService.ForgetDevice:input_type -> money_recap.v1.ForgetDeviceRequest
+	14, // 13: money_recap.v1.NotifyService.EmailMagicLink:input_type -> money_recap.v1.EmailMagicLinkRequest
+	16, // 14: money_recap.v1.NotifyService.EmailExport:input_type -> money_recap.v1.EmailExportRequest
+	3,  // 15: money_recap.v1.NotifyService.GetWarningState:output_type -> money_recap.v1.GetWarningStateResponse
+	5,  // 16: money_recap.v1.NotifyService.EvaluateWarning:output_type -> money_recap.v1.EvaluateWarningResponse
+	7,  // 17: money_recap.v1.NotifyService.GetPrefs:output_type -> money_recap.v1.GetPrefsResponse
+	9,  // 18: money_recap.v1.NotifyService.SavePrefs:output_type -> money_recap.v1.SavePrefsResponse
+	11, // 19: money_recap.v1.NotifyService.RegisterDevice:output_type -> money_recap.v1.RegisterDeviceResponse
+	13, // 20: money_recap.v1.NotifyService.ForgetDevice:output_type -> money_recap.v1.ForgetDeviceResponse
+	15, // 21: money_recap.v1.NotifyService.EmailMagicLink:output_type -> money_recap.v1.EmailMagicLinkResponse
+	17, // 22: money_recap.v1.NotifyService.EmailExport:output_type -> money_recap.v1.EmailExportResponse
+	15, // [15:23] is the sub-list for method output_type
+	7,  // [7:15] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
 	7,  // [7:7] is the sub-list for extension extendee
 	0,  // [0:7] is the sub-list for field type_name
@@ -1049,7 +1158,7 @@ func file_money_recap_v1_notify_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_money_recap_v1_notify_proto_rawDesc), len(file_money_recap_v1_notify_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   16,
+			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
