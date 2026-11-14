@@ -215,11 +215,13 @@ final class CurrencyEditViewModelTests: XCTestCase {
         try RecapSnapshot.replace(with: .with { $0.recap.month = "2026-09" }, in: context)
         let converted: ChangeAnswer = try Self.recorded("currency-converted")
         let fetched = try Self.fetched()
-        let home = HomeViewModel(
-            fetch: { zero.home }, context: context, locale: Locale(identifier: "id_ID"),
-            getSettings: { try SettingsViewModelTests.recorded("settings-filled") },
-            previewCurrency: { _ in .success(fetched) }, changeCurrency: { _, _ in .success(converted) }
-        )
+        let home = HomeViewModel(fetch: { zero.home }, screens: HomeScreens(
+            context: context, locale: Locale(identifier: "id_ID"),
+            settingsCalls: SettingsCalls(
+                fetch: { try SettingsViewModelTests.recorded("settings-filled") },
+                previewCurrency: { _ in .success(fetched) }, changeCurrency: { _, _ in .success(converted) }
+            )
+        ))
         let settings = home.settings()
         settings.openCurrency()
         XCTAssertNil(settings.currencyEdit, "nothing stored and no answer yet")

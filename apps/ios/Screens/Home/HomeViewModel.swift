@@ -11,81 +11,25 @@ import SwiftData
 final class HomeViewModel {
     private(set) var home: MoneyRecap_V1_HomeView?
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
-    private let logSpend: LogSpendViewModel.Send
-    private let editSpend: LogSpendViewModel.Edit
-    private let deleteSpend: LogSpendViewModel.Delete
-    private let listSpends: SpendListViewModel.Fetch
-    private let getRecap: RecapViewModel.Fetch
-    private let getSettings: SettingsViewModel.Fetch
-    private let saveProfile: NameAvatarViewModel.Save
-    private let saveSalary: SalaryEditViewModel.Save
-    private let saveTarget: TargetEditViewModel.Save
-    private let previewCurrency: CurrencyEditViewModel.Preview
-    private let changeCurrency: CurrencyEditViewModel.Change
-    private let saveNotifications: NotificationsViewModel.Save
-    private let requestExport: ExportViewModel.Send
-    private let requestDeletion: DeleteAccountViewModel.Request
-    private let logOut: () async -> Void
-    private let context: ModelContext
+    private let screens: HomeScreens
     private let onboardingNeeded: () -> Void
-    /// Dates and money print in the device locale (PRD §11); the tests pass a fixed one so the runner's locale cannot
-    /// change the copy.
     private let dates: Date.FormatStyle
-    private let locale: Locale
     private let dismissals: WarningDismissals
-    private let connection: Connection
-    private let push: PushRegistration?
     /// A Spend was logged through the sheet still closing, so B5 may ask once it has closed.
     private var loggedInSheet = false
 
     init(
         fetch: @escaping () async throws -> MoneyRecap_V1_HomeView,
-        context: ModelContext,
-        locale: Locale = .autoupdatingCurrent,
+        screens: HomeScreens,
         dismissals: WarningDismissals? = nil,
-        connection: Connection? = nil,
-        push: PushRegistration? = nil,
-        onboardingNeeded: @escaping () -> Void = {},
-        logSpend: @escaping LogSpendViewModel.Send = unavailable,
-        listSpends: @escaping SpendListViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) },
-        editSpend: @escaping LogSpendViewModel.Edit = unavailable,
-        deleteSpend: @escaping LogSpendViewModel.Delete = unavailable,
-        getRecap: @escaping RecapViewModel.Fetch = { _ in throw ConnectError(code: .unavailable, message: nil) },
-        getSettings: @escaping SettingsViewModel.Fetch = { throw ConnectError(code: .unavailable, message: nil) },
-        saveProfile: @escaping NameAvatarViewModel.Save = { _, _ in .offline },
-        saveSalary: @escaping SalaryEditViewModel.Save = unavailable,
-        saveTarget: @escaping TargetEditViewModel.Save = unavailable,
-        previewCurrency: @escaping CurrencyEditViewModel.Preview = unavailable,
-        changeCurrency: @escaping CurrencyEditViewModel.Change = unavailable,
-        saveNotifications: @escaping NotificationsViewModel.Save = { _, _ in nil },
-        requestExport: @escaping ExportViewModel.Send = unavailable,
-        requestDeletion: @escaping DeleteAccountViewModel.Request = unavailable,
-        logOut: @escaping () async -> Void = {}
+        onboardingNeeded: @escaping () -> Void = {}
     ) {
         self.fetch = fetch
-        self.logSpend = logSpend
-        self.editSpend = editSpend
-        self.deleteSpend = deleteSpend
-        self.listSpends = listSpends
-        self.getRecap = getRecap
-        self.getSettings = getSettings
-        self.saveProfile = saveProfile
-        self.saveSalary = saveSalary
-        self.saveTarget = saveTarget
-        self.previewCurrency = previewCurrency
-        self.changeCurrency = changeCurrency
-        self.saveNotifications = saveNotifications
-        self.requestExport = requestExport
-        self.requestDeletion = requestDeletion
-        self.logOut = logOut
-        self.context = context
+        self.screens = screens
         self.onboardingNeeded = onboardingNeeded
-        dates = ISODate.style(locale: locale)
-        self.locale = locale
+        dates = ISODate.style(locale: screens.locale)
         self.dismissals = dismissals ?? .session
-        self.connection = connection ?? .shared
-        self.push = push
-        if let snapshot = HomeSnapshot.load(from: context) {
+        if let snapshot = HomeSnapshot.load(from: screens.context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
         }
     }
@@ -96,87 +40,36 @@ final class HomeViewModel {
         do {
             try await replace(with: fetch())
         } catch let error as ConnectError where error.code == .failedPrecondition {
-            HomeSnapshot.erase(from: context)
+            HomeSnapshot.erase(from: screens.context)
             onboardingNeeded()
         } catch {
             return
         }
     }
 
-    /// The Log a spend sheet in the Member's Currency, its decimals and ledger's date range, or nil before Home has an
-    /// answer.
+    /// The Log a spend sheet over Home's Currency, or nil before Home has an answer.
     func logSheet() -> LogSpendViewModel? {
-        home.map {
-            LogSpendViewModel(
-                currency: $0.currencyCode, digits: Int($0.currencyDigits), earliest: $0.earliestSpendDate,
-                send: logSpend
-            )
-        }
+        home.map { screens.logSpend(for: $0) }
     }
 
-    /// B7 Edit spend for one of the list's Spends, in the Member's Currency, its decimals and ledger's date range; nil
-    /// before Home has an answer.
+    /// B7 Edit spend for one of the list's Spends; nil before Home has an answer.
     func editSheet(_ spend: MoneyRecap_V1_Spend) -> LogSpendViewModel? {
-        home.map {
-            LogSpendViewModel(
-                editing: spend, currency: $0.currencyCode, digits: Int($0.currencyDigits),
-                earliest: $0.earliestSpendDate, locale: locale, connection: connection, edit: editSpend,
-                delete: deleteSpend
-            )
-        }
+        home.map { screens.editSpend(spend, for: $0) }
     }
 
-    /// The Spend list of Home's month (PRD §6.10), its switcher open when the month chip opened it (D59); nil before
-    /// Home has an answer.
+    /// The Spend list of Home's month, its switcher open when the month chip opened it; nil before Home has an answer.
     func spendList(switching: Bool) -> SpendListViewModel? {
-        home.map { SpendListViewModel(
-            month: $0.month,
-            switching: switching,
-            fetch: listSpends,
-            context: context,
-            locale: locale,
-            connection: connection
-        ) }
+        home.map { screens.spendList(for: $0, switching: switching) }
     }
 
-    /// D1 Settings over its stored copy (IOS I4), in the locale Home was given. A saved Target's Home, and a changed
-    /// Currency's, replaces this one.
+    /// D1 Settings; a saved Target's Home, and a changed Currency's, replaces this one.
     func settings() -> SettingsViewModel {
-        let save = saveTarget, change = changeCurrency
-        return SettingsViewModel(
-            fetch: getSettings, saveProfile: saveProfile, saveSalary: saveSalary, saveTarget: { [weak self] in
-                let result = await save($0, $1)
-                return self?.keep(result, \.home) ?? result
-            }, previewCurrency: previewCurrency, changeCurrency: { [weak self] in
-                let result = await change($0, $1)
-                return self?.keep(result, \.home) ?? result
-            }, saveNotifications: saveNotifications, push: push, requestExport: requestExport,
-            requestDeletion: requestDeletion, logOut: logOut, context: context, locale: locale, connection: connection
-        )
-    }
-
-    /// A write's result, its Home replacing this one when it succeeded.
-    private func keep<Answer>(
-        _ result: Result<Answer, ConnectError>,
-        _ home: (Answer) -> MoneyRecap_V1_HomeView
-    ) -> Result<Answer, ConnectError> {
-        if case let .success(answer) = result {
-            replace(with: home(answer))
-        }
-        return result
-    }
-
-    /// D4 over a Recap: Settings read afresh, or its stored copy when that fails; nil with neither.
-    func targetEdit() async -> TargetEditViewModel? {
-        let settings = settings()
-        await settings.refresh()
-        settings.openTarget()
-        return settings.targetEdit
+        screens.settings(onHome: { [weak self] in self?.replace(with: $0) })
     }
 
     /// A write's answer replaces the stored Home whole, as a refresh does (IOS I4).
     func replace(with fresh: MoneyRecap_V1_HomeView) {
-        try? HomeSnapshot.replace(with: fresh, in: context)
+        try? HomeSnapshot.replace(with: fresh, in: screens.context)
         home = fresh
     }
 
@@ -190,17 +83,17 @@ final class HomeViewModel {
     func logSheetClosed() async {
         guard loggedInSheet else { return }
         loggedInSheet = false
-        await push?.askOnce()
+        await screens.push?.askOnce()
     }
 
     /// Each launch registers an allowed phone for pushes again (IOS I8).
     func launched() async {
-        await push?.launched()
+        await screens.push?.launched()
     }
 
     /// No network path: the grey Banner at the top and Log a spend at 40% (D58), over the stored numbers.
     var offline: Bool {
-        !connection.online
+        !screens.connection.online
     }
 
     /// "Hi, {Display Name}": Home is only served once step 1 has the name (spec #92).
@@ -217,7 +110,7 @@ final class HomeViewModel {
 
     /// An amount in the Member's Currency, printed in the locale Home was given (`Money`).
     func money(_ amount: MoneyRecap_V1_Money) -> String {
-        Money.format(amount.amount, currency: home?.currencyCode ?? amount.currencyCode, locale: locale)
+        Money.format(amount.amount, currency: home?.currencyCode ?? amount.currencyCode, locale: screens.locale)
     }
 
     /// The Saved chip exists only while Money In > 0 (PRD D41): the server omits `saved` then, and the phone checks the
@@ -231,7 +124,11 @@ final class HomeViewModel {
     /// (D41).
     var targetProgress: String? {
         guard let home, home.hasSavingTarget else { return nil }
-        let saved = Money.format(home.hasSaved ? home.saved.amount : "0", currency: home.currencyCode, locale: locale)
+        let saved = Money.format(
+            home.hasSaved ? home.saved.amount : "0",
+            currency: home.currencyCode,
+            locale: screens.locale
+        )
         return "\(saved) of \(money(home.savingTarget.amount))"
     }
 
@@ -268,7 +165,7 @@ final class HomeViewModel {
 
     /// One month's Recap pager: a past-Recap row's month, last month, or Home's own month for the preview (D47).
     func recap(_ month: String) -> RecapViewModel {
-        RecapViewModel(month: month, fetch: getRecap, context: context, locale: locale, openTarget: targetEdit)
+        screens.recap(month, onHome: { [weak self] in self?.replace(with: $0) })
     }
 
     /// The month before Home's when it is in the past-Recap list, what "See last month" opens; nil disables it

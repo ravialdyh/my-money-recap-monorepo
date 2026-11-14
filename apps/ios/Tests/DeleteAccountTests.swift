@@ -55,9 +55,10 @@ final class DeleteAccountTests: XCTestCase {
     func testSettingsSignsOutThroughOneLogOut() async throws {
         var loggedOut = 0
         let settings = try SettingsViewModel(
-            fetch: { try SettingsViewModelTests.recorded("settings-filled") }, saveProfile: { _, _ in .saved },
-            requestDeletion: { _ in .success(.init()) }, logOut: { loggedOut += 1 },
-            context: SettingsViewModelTests.context()
+            calls: SettingsCalls(
+                fetch: { try SettingsViewModelTests.recorded("settings-filled") }, saveProfile: { _, _ in .saved },
+                requestDeletion: { _ in .success(.init()) }, logOut: { loggedOut += 1 }
+            ), context: SettingsViewModelTests.context()
         )
         settings.openDeleteAccount()
         let delete = try XCTUnwrap(settings.deleteAccount, "the row opens D10")

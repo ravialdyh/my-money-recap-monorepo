@@ -160,7 +160,7 @@ final class NotificationsViewModelTests: XCTestCase {
         var answer = try SettingsViewModelTests.recorded("settings-filled")
         let ios = FakeIOS(.authorized)
         let settings = SettingsViewModel(
-            fetch: { answer }, saveProfile: { _, _ in .saved }, push: ios.push, context: context,
+            calls: SettingsCalls(fetch: { answer }, saveProfile: { _, _ in .saved }), push: ios.push, context: context,
             connection: Connection(online: true)
         )
         XCTAssertNil(settings.notificationsValue, "nothing stored and no answer yet")
@@ -182,11 +182,11 @@ final class NotificationsViewModelTests: XCTestCase {
         XCTAssertEqual(settings.notificationsValue, "Off in iOS Settings")
 
         let bare = try SettingsViewModel(
-            fetch: {
+            calls: SettingsCalls(fetch: {
                 var none = try SettingsViewModelTests.recorded("settings-not-set")
                 none.clearNotificationPrefs()
                 return none
-            }, saveProfile: { _, _ in .saved }, push: ios.push, context: SettingsViewModelTests.context()
+            }, saveProfile: { _, _ in .saved }), push: ios.push, context: SettingsViewModelTests.context()
         )
         ios.status = .authorized
         await bare.refresh()

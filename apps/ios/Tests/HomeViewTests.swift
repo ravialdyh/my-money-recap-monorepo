@@ -16,7 +16,7 @@ final class HomeViewTests: XCTestCase {
         let waiting = HomeViewModel(fetch: {
             try await Task.sleep(for: .seconds(3600))
             return MoneyRecap_V1_HomeView()
-        }, context: context)
+        }, screens: HomeScreens(context: context))
         XCTAssertNil(waiting.home)
         let skeleton = picture(HomeView(model: waiting))
         let zero = MoneyRecap_V1_HomeView.with {
@@ -26,7 +26,7 @@ final class HomeViewTests: XCTestCase {
             $0.moneyIn.amount = "0"
         }
         try HomeSnapshot.replace(with: zero, in: context)
-        let loaded = picture(HomeView(model: HomeViewModel(fetch: { zero }, context: context)))
+        let loaded = picture(HomeView(model: HomeViewModel(fetch: { zero }, screens: HomeScreens(context: context))))
         XCTAssertNotNil(skeleton)
         XCTAssertNotEqual(skeleton, loaded, "the skeleton is not the zero Home")
         XCTAssertNotEqual(skeleton, picture(Screen {}), "the skeleton draws its two cards")
@@ -54,9 +54,9 @@ final class HomeViewTests: XCTestCase {
             return home
         }()
         try HomeSnapshot.replace(with: unset, in: context)
-        let prompt = picture(HomeView(model: HomeViewModel(fetch: { unset }, context: context)))
+        let prompt = picture(HomeView(model: HomeViewModel(fetch: { unset }, screens: HomeScreens(context: context))))
         try HomeSnapshot.replace(with: set, in: context)
-        let filled = picture(HomeView(model: HomeViewModel(fetch: { set }, context: context)))
+        let filled = picture(HomeView(model: HomeViewModel(fetch: { set }, screens: HomeScreens(context: context))))
         XCTAssertNotEqual(prompt, filled)
     }
 
@@ -85,7 +85,10 @@ final class HomeViewTests: XCTestCase {
             $0.firstRecapOn = "2026-10-01"
         }
         try HomeSnapshot.replace(with: budi, in: context)
-        let model = HomeViewModel(fetch: { budi }, context: context, locale: Locale(identifier: "id_ID"))
+        let model = HomeViewModel(
+            fetch: { budi },
+            screens: HomeScreens(context: context, locale: Locale(identifier: "id_ID"))
+        )
         XCTAssertEqual(model.money(budi.spent), "Rp94.000.000")
 
         let card = 393 - 2 * 24 - 2 * Tokens.Space._7
@@ -136,7 +139,8 @@ final class HomeViewTests: XCTestCase {
         let draw = { (home: MoneyRecap_V1_HomeView, dismissed: Bool) -> Data? in
             try? HomeSnapshot.replace(with: home, in: context)
             let model = HomeViewModel(
-                fetch: { home }, context: context, locale: Locale(identifier: "en_GB"), dismissals: WarningDismissals()
+                fetch: { home }, screens: HomeScreens(context: context, locale: Locale(identifier: "en_GB")),
+                dismissals: WarningDismissals()
             )
             if dismissed {
                 model.dismissWarning()
@@ -191,8 +195,9 @@ final class HomeViewTests: XCTestCase {
         let draw = { (home: MoneyRecap_V1_HomeView) -> Data? in
             try? HomeSnapshot.replace(with: home, in: context)
             let model = HomeViewModel(
-                fetch: { throw URLError(.notConnectedToInternet) }, context: context,
-                locale: Locale(identifier: "en_GB"), dismissals: WarningDismissals(), connection: path
+                fetch: { throw URLError(.notConnectedToInternet) },
+                screens: HomeScreens(context: context, locale: Locale(identifier: "en_GB"), connection: path),
+                dismissals: WarningDismissals()
             )
             return self.picture(HomeView(model: model))
         }
@@ -226,7 +231,10 @@ final class HomeViewTests: XCTestCase {
             let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: name, withExtension: "json"))
             let home = try MoneyRecap_V1_GetHomeResponse(jsonString: String(contentsOf: url, encoding: .utf8)).home
             try HomeSnapshot.replace(with: home, in: context)
-            let model = HomeViewModel(fetch: { home }, context: context, locale: Locale(identifier: "en_GB"))
+            let model = HomeViewModel(
+                fetch: { home },
+                screens: HomeScreens(context: context, locale: Locale(identifier: "en_GB"))
+            )
             let drawn = picture(HomeView(model: model).defaultScrollAnchor(.bottom))
             let attachment = try XCTAttachment(data: XCTUnwrap(drawn), uniformTypeIdentifier: "public.png")
             attachment.name = "\(name)-past-recaps"

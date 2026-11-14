@@ -121,7 +121,9 @@ final class LogSpendViewModelTests: XCTestCase {
         gbp.currencyCode = "GBP"
         gbp.currencyDigits = 2
         gbp.earliestSpendDate = "2026-09-01"
-        let home = HomeViewModel(fetch: { gbp }, context: context, logSpend: { _, _ in .success(recorded) })
+        let home = HomeViewModel(fetch: { gbp }, screens: HomeScreens(
+            context: context, spendCalls: SpendCalls(log: { _, _ in .success(recorded) })
+        ))
         XCTAssertNil(home.logSheet(), "no sheet before Home has an answer")
         await home.refresh()
         let sheet = try XCTUnwrap(home.logSheet())

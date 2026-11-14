@@ -22,45 +22,9 @@ struct HomeView: View {
         onboardingNeeded: @escaping () -> Void
     ) {
         let client = BffClient.make(session: session)
-        let push = PushRegistration.live(session: session, client: client)
         self.init(model: HomeViewModel(fetch: {
             try await BffClient.retried(session) { await client.getHome(request: .init()) }.result.get().home
-        }, context: context, push: push, onboardingNeeded: onboardingNeeded, logSpend: { request, headers in
-            await BffClient.retried(session) { await client.logSpend(request: request, headers: headers) }.result
-        }, listSpends: { month in
-            try await BffClient.retried(session) { await client.listSpends(request: .with { $0.month = month }) }
-                .result.get().spends
-        }, editSpend: { request, headers in
-            await BffClient.retried(session) { await client.editSpend(request: request, headers: headers) }.result
-        }, deleteSpend: { request, headers in
-            await BffClient.retried(session) { await client.deleteSpend(request: request, headers: headers) }.result
-        }, getRecap: { month in
-            try await BffClient.retried(session) { await client.getRecap(request: .with { $0.month = month }) }
-                .result.get().recap
-        }, getSettings: {
-            try await BffClient.retried(session) { await client.getSettings(request: .init()) }.result.get().settings
-        }, saveProfile: { request, headers in
-            await SaveResult(BffClient.retried(session) { await client.saveProfile(request: request, headers: headers) }
-                .result)
-        }, saveSalary: { request, headers in
-            await BffClient.retried(session) { await client.saveSalary(request: request, headers: headers) }.result
-        }, saveTarget: { request, headers in
-            await BffClient.retried(session) { await client.saveTarget(request: request, headers: headers) }.result
-        }, previewCurrency: { request in
-            await BffClient.retried(session) { await client.previewCurrencyChange(request: request) }.result
-        }, changeCurrency: { request, headers in
-            await BffClient.retried(session) { await client.changeCurrency(request: request, headers: headers) }.result
-        }, saveNotifications: { prefs, headers in
-            try? await BffClient.retried(session) {
-                await client.saveNotificationPrefs(request: .with { $0.prefs = prefs }, headers: headers)
-            }.result.get().prefs
-        }, requestExport: { headers in
-            await BffClient.retried(session) { await client.requestExport(request: .init(), headers: headers) }.result
-        }, requestDeletion: { headers in
-            await BffClient.retried(session) { await client.requestDeletion(request: .init(), headers: headers) }.result
-        }, logOut: {
-            await session.logOut(forget: push.forget)
-        }))
+        }, screens: .live(session: session, client: client, context: context), onboardingNeeded: onboardingNeeded))
         self.open = open
     }
 

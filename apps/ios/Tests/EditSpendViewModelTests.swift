@@ -155,13 +155,16 @@ final class EditSpendViewModelTests: XCTestCase {
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
         var asked: [String] = []
-        let home = HomeViewModel(fetch: { recorded.home }, context: context, listSpends: { month in
-            asked.append(month)
-            return .with {
-                $0.month = month
-                $0.months = ["2026-09", "2026-08"]
-            }
-        })
+        let home = HomeViewModel(
+            fetch: { recorded.home },
+            screens: HomeScreens(context: context, spendCalls: SpendCalls(list: { month in
+                asked.append(month)
+                return .with {
+                    $0.month = month
+                    $0.months = ["2026-09", "2026-08"]
+                }
+            }))
+        )
         XCTAssertNil(home.editSheet(recorded.spend), "no sheet before Home has an answer")
         await home.refresh()
         let sheet = try XCTUnwrap(home.editSheet(recorded.spend))
