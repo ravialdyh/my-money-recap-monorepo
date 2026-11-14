@@ -34,7 +34,10 @@ final class HomeViewModelTests: XCTestCase {
 
     func testZeroHomeGreetsTheMemberWithoutASavedChip() async throws {
         let home = try recordedHome()
-        let model = try HomeViewModel(fetch: { home }, context: freshContext(), locale: Locale(identifier: "en_GB"))
+        let model = try HomeViewModel(
+            fetch: { home },
+            screens: HomeScreens(context: freshContext(), locale: Locale(identifier: "en_GB"))
+        )
         XCTAssertNil(model.home, "no snapshot yet: the skeleton")
         await model.refresh()
         XCTAssertNotNil(model.home)
@@ -51,7 +54,10 @@ final class HomeViewModelTests: XCTestCase {
     /// §8.11), from the BFF's answer recorded with a Hustler August and a July of Spends with no Salary.
     func testPastRecapRowsShowLedgersLabels() async throws {
         let home = try recordedHome("home-recaps")
-        let model = try HomeViewModel(fetch: { home }, context: freshContext(), locale: Locale(identifier: "en_GB"))
+        let model = try HomeViewModel(
+            fetch: { home },
+            screens: HomeScreens(context: freshContext(), locale: Locale(identifier: "en_GB"))
+        )
         await model.refresh()
         let rows = model.home?.recapMonths.map { "\(model.recapLabel($0)): \($0.label)" }
         XCTAssertEqual(rows, ["August 2026: Hustler", "July 2026: Partial"], "newest first, as ledger lists them")
@@ -61,7 +67,7 @@ final class HomeViewModelTests: XCTestCase {
     /// (PRD §6.8); a row opens its own month and the preview card Home's month (spec #151).
     func testEachEntryPointOpensItsMonthsRecap() async throws {
         var home = try recordedHome("home-recaps")
-        let model = try HomeViewModel(fetch: { home }, context: freshContext())
+        let model = try HomeViewModel(fetch: { home }, screens: HomeScreens(context: freshContext()))
         await model.refresh()
         XCTAssertEqual(model.lastMonth, "2026-08")
         XCTAssertEqual(model.lastMonth.map(model.recap)?.month, "2026-08")
@@ -87,7 +93,7 @@ final class HomeViewModelTests: XCTestCase {
     func testTheEyebrowCountsTheDaysToTheSalary() async throws {
         var home = try recordedHome()
         home.salary.daysUntilPayday = 15
-        let model = try HomeViewModel(fetch: { home }, context: freshContext())
+        let model = try HomeViewModel(fetch: { home }, screens: HomeScreens(context: freshContext()))
         await model.refresh()
         XCTAssertEqual(model.heroEyebrow, "Spent so far · salary lands in 15 days")
         home.salary.daysUntilPayday = 1
@@ -100,7 +106,7 @@ final class HomeViewModelTests: XCTestCase {
         home.displayName = "Maya"
         home.moneyIn.amount = "3000000"
         home.saved = .with { $0.amount = "600000"; $0.currencyCode = "IDR" }
-        let model = try HomeViewModel(fetch: { home }, context: freshContext())
+        let model = try HomeViewModel(fetch: { home }, screens: HomeScreens(context: freshContext()))
         await model.refresh()
         XCTAssertEqual(model.greeting, "Hi, Maya")
         XCTAssertTrue(model.showsSavedChip)
@@ -112,7 +118,7 @@ final class HomeViewModelTests: XCTestCase {
         var sent = 0
         let model = HomeViewModel(
             fetch: { throw URLError(.cannotConnectToHost) },
-            context: context,
+            screens: HomeScreens(context: context),
             onboardingNeeded: { sent += 1 }
         )
         XCTAssertEqual(model.home?.month, "2026-09", "the snapshot is on screen before any call completes (I4)")
@@ -129,7 +135,11 @@ final class HomeViewModelTests: XCTestCase {
         try RecapSnapshot.replace(with: RecapViewModelTests.recorded("recap-preview"), in: context)
         var sent = 0
         let refused = ConnectError(code: .failedPrecondition, message: "onboarding steps 1 and 2 are unanswered")
-        await HomeViewModel(fetch: { throw refused }, context: context, onboardingNeeded: { sent += 1 }).refresh()
+        await HomeViewModel(
+            fetch: { throw refused },
+            screens: HomeScreens(context: context),
+            onboardingNeeded: { sent += 1 }
+        ).refresh()
         XCTAssertEqual(sent, 1)
         XCTAssertNil(HomeSnapshot.load(from: context), "no stored Home to open on at the next launch")
         XCTAssertNil(RecapSnapshot.load("2026-09", from: context), "nor a stored Recap")
@@ -140,7 +150,7 @@ final class HomeViewModelTests: XCTestCase {
         try HomeSnapshot.replace(with: recordedHome(), in: context)
         var updated = try recordedHome()
         updated.month = "2026-10"
-        await HomeViewModel(fetch: { updated }, context: context).refresh()
+        await HomeViewModel(fetch: { updated }, screens: HomeScreens(context: context)).refresh()
         let rows = try context.fetch(FetchDescriptor<HomeSnapshot>())
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(try MoneyRecap_V1_HomeView(serializedBytes: rows[0].bytes).month, "2026-10")
@@ -152,7 +162,11 @@ final class HomeViewModelTests: XCTestCase {
         var home = try recordedHome()
         home.month = "2026-09"
         let session = WarningDismissals()
-        let model = try HomeViewModel(fetch: { home }, context: freshContext(), dismissals: session)
+        let model = try HomeViewModel(
+            fetch: { home },
+            screens: HomeScreens(context: freshContext()),
+            dismissals: session
+        )
         await model.refresh()
         XCTAssertNil(model.warning, "no stamp, no banner")
         let before = "You've spent Rp2.500.000 of the Rp2.400.000 you meant to spend this month."
@@ -167,10 +181,18 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertNil(model.warning)
         await model.refresh()
         XCTAssertNil(model.warning, "a refresh does not bring it back")
-        let rebuilt = try HomeViewModel(fetch: { home }, context: freshContext(), dismissals: session)
+        let rebuilt = try HomeViewModel(
+            fetch: { home },
+            screens: HomeScreens(context: freshContext()),
+            dismissals: session
+        )
         await rebuilt.refresh()
         XCTAssertNil(rebuilt.warning, "Home built again in the same run")
-        let relaunched = try HomeViewModel(fetch: { home }, context: freshContext(), dismissals: WarningDismissals())
+        let relaunched = try HomeViewModel(
+            fetch: { home },
+            screens: HomeScreens(context: freshContext()),
+            dismissals: WarningDismissals()
+        )
         await relaunched.refresh()
         XCTAssertNotNil(relaunched.warning, "the next launch shows it while the month is stamped")
         home.month = "2026-10"
@@ -187,8 +209,11 @@ final class HomeViewModelTests: XCTestCase {
         try HomeSnapshot.replace(with: home, in: context)
         let path = Connection(online: true)
         let model = HomeViewModel(
-            fetch: { throw URLError(.notConnectedToInternet) }, context: context, dismissals: WarningDismissals(),
-            connection: path
+            fetch: { throw URLError(.notConnectedToInternet) }, screens: HomeScreens(
+                context: context,
+                connection: path
+            ),
+            dismissals: WarningDismissals()
         )
         XCTAssertFalse(model.offline)
         let lost = expectation(description: "the drawn Home hears the path go")

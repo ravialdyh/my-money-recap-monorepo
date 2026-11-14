@@ -94,8 +94,10 @@ final class TargetEditViewModelTests: XCTestCase {
             $0.settings = try SettingsViewModelTests.recorded("settings-waiting")
         }
         let settings = SettingsViewModel(
-            fetch: { try SettingsViewModelTests.recorded("settings-filled") }, saveProfile: { _, _ in .saved },
-            saveTarget: { _, _ in .success(answer) }, context: context, locale: Locale(identifier: "id_ID")
+            calls: SettingsCalls(
+                fetch: { try SettingsViewModelTests.recorded("settings-filled") }, saveProfile: { _, _ in .saved },
+                saveTarget: { _, _ in .success(answer) }
+            ), context: context, locale: Locale(identifier: "id_ID")
         )
         settings.openTarget()
         XCTAssertNil(settings.targetEdit, "no answer yet: nothing to fill D4 with")
@@ -119,11 +121,13 @@ final class TargetEditViewModelTests: XCTestCase {
         let recap = try RecapViewModelTests.recorded("recap-no-target")
         var saved = MoneyRecap_V1_BffServiceSaveTargetResponse()
         saved.home.month = "2026-10"
-        let home = HomeViewModel(
-            fetch: { MoneyRecap_V1_HomeView() }, context: context, getRecap: { _ in recap },
-            getSettings: { try SettingsViewModelTests.recorded("settings-filled") },
-            saveTarget: { _, _ in .success(saved) }
-        )
+        let home = HomeViewModel(fetch: { MoneyRecap_V1_HomeView() }, screens: HomeScreens(
+            context: context, recapCalls: RecapCalls(fetch: { _ in recap }),
+            settingsCalls: SettingsCalls(
+                fetch: { try SettingsViewModelTests.recorded("settings-filled") },
+                saveTarget: { _, _ in .success(saved) }
+            )
+        ))
         for page in 1 ... 3 {
             let model = home.recap(recap.recap.month)
             await model.load()
@@ -139,7 +143,10 @@ final class TargetEditViewModelTests: XCTestCase {
     }
 
     func testWithNothingStoredAndNoAnswerTheCardOpensNothing() async throws {
-        let home = try HomeViewModel(fetch: { MoneyRecap_V1_HomeView() }, context: SettingsViewModelTests.context())
+        let home = try HomeViewModel(
+            fetch: { MoneyRecap_V1_HomeView() },
+            screens: HomeScreens(context: SettingsViewModelTests.context())
+        )
         let model = home.recap("2026-08")
         await model.editTarget()
         XCTAssertNil(model.targetEdit)

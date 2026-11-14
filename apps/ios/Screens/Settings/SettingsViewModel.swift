@@ -31,48 +31,21 @@ final class SettingsViewModel: Identifiable {
     var export: ExportViewModel?
     /// D10 Delete account, while it is open.
     var deleteAccount: DeleteAccountViewModel?
-    private let fetch: Fetch
-    private let saveProfile: NameAvatarViewModel.Save
-    private let saveSalary: SalaryEditViewModel.Save
-    private let saveTarget: TargetEditViewModel.Save
-    private let previewCurrency: CurrencyEditViewModel.Preview
-    private let changeCurrency: CurrencyEditViewModel.Change
-    private let saveNotifications: NotificationsViewModel.Save
+    private let calls: SettingsCalls
     private let push: PushRegistration?
-    private let requestExport: ExportViewModel.Send
-    private let requestDeletion: DeleteAccountViewModel.Request
-    private let logOut: () async -> Void
     private let context: ModelContext
     private let locale: Locale
     private let connection: Connection
 
     init(
-        fetch: @escaping Fetch,
-        saveProfile: @escaping NameAvatarViewModel.Save,
-        saveSalary: @escaping SalaryEditViewModel.Save = unavailable,
-        saveTarget: @escaping TargetEditViewModel.Save = unavailable,
-        previewCurrency: @escaping CurrencyEditViewModel.Preview = unavailable,
-        changeCurrency: @escaping CurrencyEditViewModel.Change = unavailable,
-        saveNotifications: @escaping NotificationsViewModel.Save = { _, _ in nil },
+        calls: SettingsCalls,
         push: PushRegistration? = nil,
-        requestExport: @escaping ExportViewModel.Send = unavailable,
-        requestDeletion: @escaping DeleteAccountViewModel.Request = unavailable,
-        logOut: @escaping () async -> Void = {},
         context: ModelContext,
         locale: Locale = .autoupdatingCurrent,
         connection: Connection? = nil
     ) {
-        self.fetch = fetch
-        self.saveProfile = saveProfile
-        self.saveSalary = saveSalary
-        self.saveTarget = saveTarget
-        self.previewCurrency = previewCurrency
-        self.changeCurrency = changeCurrency
-        self.saveNotifications = saveNotifications
+        self.calls = calls
         self.push = push
-        self.requestExport = requestExport
-        self.requestDeletion = requestDeletion
-        self.logOut = logOut
         self.context = context
         self.locale = locale
         self.connection = connection ?? .shared
@@ -83,7 +56,7 @@ final class SettingsViewModel: Identifiable {
     /// without notify's preferences keeps the stored ones (spec #169). iOS's permission is asked again each time.
     func refresh() async {
         pushDenied = await push?.status() == .denied
-        guard let fresh = try? await fetch() else { return }
+        guard let fresh = try? await calls.fetch() else { return }
         replace(with: fresh)
     }
 
@@ -141,20 +114,20 @@ final class SettingsViewModel: Identifiable {
     func openNotifications() {
         guard let push, let saved = settings, saved.hasNotificationPrefs else { return }
         notifications = NotificationsViewModel(
-            prefs: saved.notificationPrefs, push: push, connection: connection, save: saveNotifications
+            prefs: saved.notificationPrefs, push: push, connection: connection, save: calls.saveNotifications
         )
     }
 
     /// D2 over the saved answers; nil before Settings has any.
     func openProfile() {
         guard let saved = settings?.profile else { return }
-        profile = ProfileViewModel(name: saved.displayName, avatar: saved.avatarKey, save: saveProfile)
+        profile = ProfileViewModel(name: saved.displayName, avatar: saved.avatarKey, save: calls.saveProfile)
     }
 
     /// D3 over the saved answers; nil before Settings has any. A save's Settings replace the stored copy.
     func openSalary() {
         guard let saved = settings else { return }
-        let save = saveSalary
+        let save = calls.saveSalary
         salaryEdit = SalaryEditViewModel(settings: saved, locale: locale) { [weak self] request, headers in
             let result = await save(request, headers)
             if case let .success(answer) = result {
@@ -167,7 +140,7 @@ final class SettingsViewModel: Identifiable {
     /// D4 over the saved answers; nil before Settings has any. A save's Settings replace the stored copy.
     func openTarget() {
         guard let saved = settings else { return }
-        let save = saveTarget
+        let save = calls.saveTarget
         targetEdit = TargetEditViewModel(settings: saved, locale: locale) { [weak self] request, headers in
             let result = await save(request, headers)
             if case let .success(answer) = result {
@@ -181,9 +154,9 @@ final class SettingsViewModel: Identifiable {
     /// stored Spend list and Recap is erased, since they hold the old Currency (spec #169).
     func openCurrency() {
         guard let saved = settings else { return }
-        let change = changeCurrency
+        let change = calls.changeCurrency
         currencyEdit = CurrencyEditViewModel(
-            current: saved.profile.currencyCode, locale: locale, preview: previewCurrency
+            current: saved.profile.currencyCode, locale: locale, preview: calls.previewCurrency
         ) { [weak self] request, headers in
             let result = await change(request, headers)
             if case let .success(answer) = result, let self {
@@ -199,17 +172,17 @@ final class SettingsViewModel: Identifiable {
     /// D9 naming the address the Member signed in with; nil before Settings has any.
     func openExport() {
         guard let saved = settings?.profile else { return }
-        export = ExportViewModel(email: saved.email, send: requestExport)
+        export = ExportViewModel(email: saved.email, send: calls.requestExport)
     }
 
     /// D10, whose granted request signs out as Log out does.
     func openDeleteAccount() {
-        deleteAccount = DeleteAccountViewModel(request: requestDeletion, signOut: logOut)
+        deleteAccount = DeleteAccountViewModel(request: calls.requestDeletion, signOut: calls.logOut)
     }
 
     /// D12's `Log out`: this phone forgotten, the realm's session ended and the phone's copy erased (PRD §6.16).
     func logOutNow() async {
-        await logOut()
+        await calls.logOut()
     }
 
     /// D4's `Set a salary first`: D3 in its place (D44).

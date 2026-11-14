@@ -164,7 +164,7 @@ final class PushRegistrationTests: XCTestCase {
             for: HomeSnapshot.self, SpendListSnapshot.self, RecapSnapshot.self, SettingsSnapshot.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         ))
-        let home = try HomeViewModel(fetch: { .init() }, context: context, push: push(fake, api))
+        let home = try HomeViewModel(fetch: { .init() }, screens: HomeScreens(context: context, push: push(fake, api)))
         await home.logSheetClosed()
         XCTAssertEqual(fake.asked, 0, "closed with no save")
         home.logged(.with { $0.displayName = "Test" })

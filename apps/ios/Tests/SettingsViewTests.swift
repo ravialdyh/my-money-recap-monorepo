@@ -115,8 +115,9 @@ final class SettingsViewTests: XCTestCase {
         let context = try SettingsViewModelTests.context()
         try SettingsSnapshot.replace(with: SettingsViewModelTests.recorded("settings-filled"), in: context)
         let model = SettingsViewModel(
-            fetch: { try SettingsViewModelTests.recorded("settings-filled") }, saveProfile: { _, _ in .saved },
-            push: ios.push, context: context
+            calls: SettingsCalls(
+                fetch: { try SettingsViewModelTests.recorded("settings-filled") }, saveProfile: { _, _ in .saved }
+            ), push: ios.push, context: context
         )
         await model.refresh()
         let counted = picture(SettingsView(model: model))
