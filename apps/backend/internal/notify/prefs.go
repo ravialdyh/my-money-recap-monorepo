@@ -30,8 +30,8 @@ func (s *Service) GetPrefs(ctx context.Context, req *connect.Request[moneyrecapv
 	return connect.NewResponse(&moneyrecapv1.GetPrefsResponse{Prefs: p}), nil
 }
 
-// SavePrefs replaces the Member's row with the whole message under their key (A14), answering it as stored. The
-// reminder time is "HH:MM" on a 24-hour clock.
+// SavePrefs replaces the Member's row with the whole message under their key (A14), answering it as stored, and sets
+// both next-fire times from it. The reminder time is "HH:MM" on a 24-hour clock.
 func (s *Service) SavePrefs(ctx context.Context, req *connect.Request[moneyrecapv1.SavePrefsRequest]) (*connect.Response[moneyrecapv1.SavePrefsResponse], error) {
 	m := req.Msg
 	if m.IdempotencyKey == "" {
@@ -55,7 +55,10 @@ func (s *Service) SavePrefs(ctx context.Context, req *connect.Request[moneyrecap
 			ON CONFLICT (member_id) DO UPDATE SET recap_ready = EXCLUDED.recap_ready, daily_reminder = EXCLUDED.daily_reminder,
 				daily_reminder_time = EXCLUDED.daily_reminder_time, target_warning = EXCLUDED.target_warning`,
 			m.MemberId, p.RecapReady, p.DailyReminder, p.ReminderTime, p.TargetWarning)
-		return err
+		if err != nil {
+			return err
+		}
+		return reschedule(ctx, tx, m.MemberId, time.Now())
 	})
 	if err != nil {
 		return nil, err

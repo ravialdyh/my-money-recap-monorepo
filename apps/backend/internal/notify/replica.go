@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -33,7 +34,7 @@ func ApplyMemberEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 }
 
 // applyFacts copies the zone and the email of members.created and members.updated (one shape); an empty fact
-// never clears one, and the Display Name is not kept, since no push prints it.
+// never clears one, the Display Name is not kept, since no push prints it, and a new zone moves both next-fire times.
 func applyFacts(ctx context.Context, tx pgx.Tx, body []byte) error {
 	var e moneyrecapv1.MembersUpdated
 	if err := proto.Unmarshal(body, &e); err != nil {
@@ -43,15 +44,24 @@ func applyFacts(ctx context.Context, tx pgx.Tx, body []byte) error {
 	if env.GetMemberId() == "" || env.GetOccurredAt() == nil || f == nil {
 		return errors.New("the event names no Member, no time or no facts")
 	}
-	_, err := tx.Exec(ctx, `
+	var moved bool
+	err := tx.QueryRow(ctx, `
+		WITH old AS (SELECT timezone FROM member_facts WHERE member_id = $1)
 		INSERT INTO member_facts (member_id, timezone, email, facts_at) VALUES ($1, nullif($2, ''), nullif($3, ''), $4)
 		ON CONFLICT (member_id) DO UPDATE SET
 			timezone = coalesce(EXCLUDED.timezone, member_facts.timezone),
 			email = coalesce(EXCLUDED.email, member_facts.email),
 			facts_at = EXCLUDED.facts_at
-		WHERE member_facts.facts_at IS NULL OR member_facts.facts_at <= EXCLUDED.facts_at`,
-		env.MemberId, f.Timezone, f.Email, env.OccurredAt.AsTime())
-	return err
+		WHERE member_facts.facts_at IS NULL OR member_facts.facts_at <= EXCLUDED.facts_at
+		RETURNING member_facts.timezone IS DISTINCT FROM (SELECT timezone FROM old)`,
+		env.MemberId, f.Timezone, f.Email, env.OccurredAt.AsTime()).Scan(&moved)
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && !moved) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return reschedule(ctx, tx, env.MemberId, time.Now())
 }
 
 // flagDeletion sets or clears the deletion-pending flag from members.deletion.requested or

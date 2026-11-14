@@ -248,3 +248,42 @@ func TestTheIdempotencyTableClaimsAKeyOnce(t *testing.T) {
 		t.Errorf("%d day-old keys after a write (%v), want the sweep to take it", old, err)
 	}
 }
+
+// A new zone from members' events, and a preferences save, each move the next-fire times to 09:00 on the next 1st and
+// the chosen time in the zone now held.
+func TestAZoneChangeMovesTheNextTimes(t *testing.T) {
+	id := "00000000-0000-4000-8000-00000000d301"
+	s := &Service{DB: scheduleDB(t), Members: membersClient(t, map[string]string{"owner": id})}
+	_, err := s.SavePrefs(as("owner"), connect.NewRequest(&moneyrecapv1.SavePrefsRequest{
+		IdempotencyKey: "k1", MemberId: id, Prefs: &moneyrecapv1.NotificationPrefs{RecapReady: true, DailyReminder: true, ReminderTime: "07:30"},
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	fires(t, s, id, "Asia/Jakarta", 7, 30)
+	f := newFeed(t, s)
+	if !f.deliver("zone-d301", "members.updated", &moneyrecapv1.MembersUpdated{
+		Envelope: &moneyrecapv1.EventEnvelope{MemberId: id, OccurredAt: timestamppb.New(time.Now().Add(time.Minute))},
+		Facts:    &moneyrecapv1.MemberFacts{Timezone: "Europe/London"},
+	}) {
+		t.Fatal("the zone change was not acked")
+	}
+	fires(t, s, id, "Europe/London", 7, 30)
+}
+
+// fires checks the Member's next Recap ready is 09:00 on the next 1st in zone and the next reminder hour:minute there.
+func fires(t *testing.T, s *Service, id, zone string, hour, minute int) {
+	t.Helper()
+	loc, err := time.LoadLocation(zone)
+	if err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	recap, reminder := next(t, s, id, "next_recap_at").In(loc), next(t, s, id, "next_reminder_at").In(loc)
+	if recap.Day() != 1 || recap.Hour() != 9 || recap.Minute() != 0 || !recap.After(now) || recap.After(now.AddDate(0, 1, 1)) {
+		t.Errorf("in %s the next Recap ready is %v, want 09:00 on the next 1st", zone, recap)
+	}
+	if reminder.Hour() != hour || reminder.Minute() != minute || !reminder.After(now) || reminder.After(now.Add(24*time.Hour)) {
+		t.Errorf("in %s the next reminder is %v, want %02d:%02d within a day", zone, reminder, hour, minute)
+	}
+}

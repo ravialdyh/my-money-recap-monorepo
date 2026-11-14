@@ -1,5 +1,5 @@
 // Package notify is the notify service (ARCHITECTURE §7.3): the magic-link and export emails (#68, #182), the Target
-// Warning's month flag (#132) stamped from ledger's events too (#135) and pushed (#180), and the replica (#176).
+// Warning's month flag (#132, #135) and push (#180), the replica (#176), and the Recap-ready and reminder schedules (#181).
 package notify
 
 import (
