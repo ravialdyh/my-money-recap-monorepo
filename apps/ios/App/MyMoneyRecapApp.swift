@@ -14,7 +14,8 @@ struct MyMoneyRecapApp: App {
     }
 }
 
-/// A saved session skips Sign in (PRD §9); the Face ID gate is a later slice.
+/// A saved session skips Sign in (PRD §9); the Face ID gate is a later slice. Every sign-out erases the cache and
+/// unregisters push.
 struct RootView: View {
     @Environment(AuthSession.self) private var session
     @Environment(\.modelContext) private var context
@@ -30,6 +31,7 @@ struct RootView: View {
         .onChange(of: session.isSignedIn) { _, signedIn in
             if !signedIn {
                 HomeSnapshot.erase(from: context)
+                PushRegistration.signedOut()
             }
         }
         .task {

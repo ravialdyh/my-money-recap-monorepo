@@ -29,10 +29,13 @@ final class NotificationsViewModelTests: XCTestCase {
                         self.status = self.allows ? .authorized : .denied
                         return self.allows
                     },
-                    register: { nil }
+                    register: { nil },
+                    unregister: {}
                 ),
-                defaults: UserDefaults(suiteName: "NotificationsViewModelTests") ?? .standard
-            ) { _, _ in .saved }
+                defaults: UserDefaults(suiteName: "NotificationsViewModelTests") ?? .standard,
+                send: { _, _ in .saved },
+                forget: { _, _ in .saved }
+            )
         }
     }
 

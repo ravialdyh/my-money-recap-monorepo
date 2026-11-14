@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// D11b: the full coral sheet on the violet ground, with no back control, so the Member has to answer it (D60).
-/// "Continue with deletion" is only the phone's own sign-out; ending the realm's session comes with Log out.
+/// "Continue with deletion" signs out as Log out does (D12).
 struct RestoreAccountView: View {
     @State var model: RestoreAccountViewModel
     let onKept: () -> Void
