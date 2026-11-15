@@ -6,42 +6,21 @@ option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/g
 
 import "google/protobuf/timestamp.proto";
 
-// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the walking
-// skeleton's (#10); 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
-// (PRD §6.18, D60).
 message Profile {
   string member_id = 1;
-  // The token's email claim, refreshed by every GetOrCreateBySubject whose
-  // token carries one; an empty claim keeps the stored address.
   string email = 2;
-  // Empty until onboarding sets it.
   string display_name = 3;
-  // Empty until onboarding sets it; otherwise one of the six Avatar keys, the
-  // authoritative list: fox, otter, panda, frog, owl, rabbit (PRD D36, §6.4).
   string avatar_key = 4;
-  // ISO 4217; empty until onboarding sets it.
   string currency_code = 5;
-  // IANA zone name (A3); empty until SetTimezone runs.
   string timezone = 6;
-  // Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1,
-  // 4 once onboarding is done. A skipped step counts as saved (PRD §6.6).
   int32 onboarding_step = 7;
-  // "YYYY-MM-DD", the local date at the moment of sign-up, fixed forever (A3,
-  // PRD §7, D43); empty until the first SetTimezone converts the create time.
   string signed_up_on = 8;
-  // Present only while a deletion request is pending (PRD D60).
   optional google.protobuf.Timestamp deletion_requested_at = 9;
-  // How many decimals the Currency has, from the CLDR data ledger rounds with
-  // (ARCHITECTURE §7.2); 0 while currency_code is empty. Step 3's amount field
-  // allows exactly this many (spec #92).
   int32 currency_digits = 10;
 }
 
 message GetOrCreateBySubjectRequest {
-  // The Keycloak subject claim.
   string subject = 1;
-  // Must equal the token's email claim, or the call is permission_denied;
-  // members stores the claim itself (ARCHITECTURE §7.1).
   string email = 2;
 }
 
@@ -57,27 +36,12 @@ message GetProfileResponse {
   Profile profile = 1;
 }
 
-// Each present field replaces the stored value; an absent field is untouched,
-// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16,
-// Display Name and Avatar) each send only their answers.
 message SaveProfileRequest {
-  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
-  // 1 to 30 characters after NFC and trimming, counted in code points:
-  // letters in any script with their marks, spaces, hyphens and apostrophes
-  // (PRD §6.4); anything else is invalid_argument.
   optional string display_name = 3;
-  // One of the six keys Profile.avatar_key lists; any other is
-  // invalid_argument.
   optional string avatar_key = 4;
-  // ISO 4217. During onboarding, where ledger relabels a saved Salary rather
-  // than converting it (spec #92), or the PRD §8.9 step 2 shortcut; otherwise
-  // the code changes only by consuming ledger.currency.converted (§7.1).
   optional string currency_code = 5;
-  // The step just completed or skipped, 1 to 4 (PRD §5 step 6), saved in the
-  // same write as the answers so one Idempotency-Key covers both (A14); a
-  // skip sends only this field. A force-quit resumes at the next step (§6.4).
   optional int32 onboarding_step = 6;
 }
 
@@ -86,10 +50,8 @@ message SaveProfileResponse {
 }
 
 message SetTimezoneRequest {
-  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
-  // IANA zone name (A3).
   string timezone = 3;
 }
 
@@ -98,7 +60,6 @@ message SetTimezoneResponse {
 }
 
 message RequestDeletionRequest {
-  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
 }
@@ -108,7 +69,6 @@ message RequestDeletionResponse {
 }
 
 message CancelDeletionRequest {
-  // A14; see the package doc in shared.proto.
   string idempotency_key = 1;
   string member_id = 2;
 }
@@ -118,20 +78,10 @@ message CancelDeletionResponse {
 }
 
 service MembersService {
-  // Upsert on the Keycloak subject: creates on first sight (members.created),
-  // else refreshes the email when the token has one (members.updated). A
-  // tombstoned subject is permission_denied (§7.1 step 3).
   rpc GetOrCreateBySubject(GetOrCreateBySubjectRequest) returns (GetOrCreateBySubjectResponse) {}
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {}
-  // Display Name, Avatar key, Currency and the onboarding step just completed
-  // or skipped, in one write (PRD §6.4, §6.5); publishes members.updated only
-  // when a MemberFacts field changed, so an Avatar-only save publishes nothing.
   rpc SaveProfile(SaveProfileRequest) returns (SaveProfileResponse) {}
-  // Called on every launch (A3); publishes members.updated on change.
   rpc SetTimezone(SetTimezoneRequest) returns (SetTimezoneResponse) {}
-  // Stamps deletion_requested_at and publishes members.deletion.requested
-  // (§7.1 step 1).
   rpc RequestDeletion(RequestDeletionRequest) returns (RequestDeletionResponse) {}
-  // Clears the stamp and publishes members.deletion.cancelled (§7.1 step 2, D60).
   rpc CancelDeletion(CancelDeletionRequest) returns (CancelDeletionResponse) {}
 }

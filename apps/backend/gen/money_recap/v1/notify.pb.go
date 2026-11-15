@@ -22,19 +22,12 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The three toggles and the reminder time from PRD §6.16 and §10. notify
-// fills every field on read: a Member with no row gets the PRD §10 defaults,
-// never proto3 zeros. The push-permission state lives on the phone, not here.
 type NotificationPrefs struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "Recap ready", default on (PRD §10).
-	RecapReady bool `protobuf:"varint,1,opt,name=recap_ready,json=recapReady,proto3" json:"recap_ready,omitempty"`
-	// "Daily reminder", default off (PRD §10).
-	DailyReminder bool `protobuf:"varint,2,opt,name=daily_reminder,json=dailyReminder,proto3" json:"daily_reminder,omitempty"`
-	// "HH:MM" in the Member's local zone (A3), default "20:00" (PRD §6.16).
-	ReminderTime string `protobuf:"bytes,3,opt,name=reminder_time,json=reminderTime,proto3" json:"reminder_time,omitempty"`
-	// "Target Warning", default on (PRD §10).
-	TargetWarning bool `protobuf:"varint,4,opt,name=target_warning,json=targetWarning,proto3" json:"target_warning,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RecapReady    bool                   `protobuf:"varint,1,opt,name=recap_ready,json=recapReady,proto3" json:"recap_ready,omitempty"`
+	DailyReminder bool                   `protobuf:"varint,2,opt,name=daily_reminder,json=dailyReminder,proto3" json:"daily_reminder,omitempty"`
+	ReminderTime  string                 `protobuf:"bytes,3,opt,name=reminder_time,json=reminderTime,proto3" json:"reminder_time,omitempty"`
+	TargetWarning bool                   `protobuf:"varint,4,opt,name=target_warning,json=targetWarning,proto3" json:"target_warning,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -97,9 +90,6 @@ func (x *NotificationPrefs) GetTargetWarning() bool {
 	return false
 }
 
-// Typed error detail on EmailExport (ARCHITECTURE §7.3): the mail host
-// permanently refused the address at bounced_at, so the phone shows the §6.16
-// line naming it, with no link.
 type EmailBounced struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Address       string                 `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
@@ -153,10 +143,9 @@ func (x *EmailBounced) GetBouncedAt() *timestamppb.Timestamp {
 }
 
 type GetWarningStateRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// "YYYY-MM".
-	Month         string `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Month         string                 `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,14 +194,10 @@ func (x *GetWarningStateRequest) GetMonth() string {
 	return ""
 }
 
-// Whether the Target Warning has fired this month and the copy kept when it
-// did (PRD §8.8, ARCHITECTURE §7.3).
 type GetWarningStateResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Fired bool                   `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
-	// The copy kept when the month was stamped; present whenever fired. Deleting
-	// or editing Spends never clears it (PRD §8.8): Home's banner is this.
-	Warning       *TargetWarning `protobuf:"bytes,2,opt,name=warning,proto3,oneof" json:"warning,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Fired         bool                   `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
+	Warning       *TargetWarning         `protobuf:"bytes,2,opt,name=warning,proto3,oneof" json:"warning,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -262,19 +247,14 @@ func (x *GetWarningStateResponse) GetWarning() *TargetWarning {
 }
 
 type EvaluateWarningRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// "YYYY-MM".
-	Month string `protobuf:"bytes,3,opt,name=month,proto3" json:"month,omitempty"`
-	// Computed by ledger (ARCHITECTURE §7.2); notify holds no PRD §8 rule.
-	CrossedLine bool `protobuf:"varint,4,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
-	// Ledger's MonthSummary.target_warning as this Spend left it; kept with the
-	// stamp, so the banner reads the same until the 1st (PRD §6.8, §8.8).
-	Warning       *TargetWarning `protobuf:"bytes,5,opt,name=warning,proto3,oneof" json:"warning,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Month          string                 `protobuf:"bytes,3,opt,name=month,proto3" json:"month,omitempty"`
+	CrossedLine    bool                   `protobuf:"varint,4,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
+	Warning        *TargetWarning         `protobuf:"bytes,5,opt,name=warning,proto3,oneof" json:"warning,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *EvaluateWarningRequest) Reset() {
@@ -342,18 +322,11 @@ func (x *EvaluateWarningRequest) GetWarning() *TargetWarning {
 	return nil
 }
 
-// The warning state after the call (ARCHITECTURE §6.2 step 4), so the BFF
-// builds a current-month write's HomeView banner without a second round trip.
 type EvaluateWarningResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// True when the month is stamped, by this call or an earlier one.
-	Fired bool `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
-	// True when this call stamped the month, so exactly one call per month
-	// sees it (PRD §8.8).
-	FiredNow bool `protobuf:"varint,2,opt,name=fired_now,json=firedNow,proto3" json:"fired_now,omitempty"`
-	// The copy kept when the month was stamped, by this call or an earlier one;
-	// present whenever fired. It reads the same until the 1st (PRD §8.8).
-	Warning       *TargetWarning `protobuf:"bytes,3,opt,name=warning,proto3,oneof" json:"warning,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Fired         bool                   `protobuf:"varint,1,opt,name=fired,proto3" json:"fired,omitempty"`
+	FiredNow      bool                   `protobuf:"varint,2,opt,name=fired_now,json=firedNow,proto3" json:"fired_now,omitempty"`
+	Warning       *TargetWarning         `protobuf:"bytes,3,opt,name=warning,proto3,oneof" json:"warning,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -498,11 +471,10 @@ func (x *GetPrefsResponse) GetPrefs() *NotificationPrefs {
 }
 
 type SavePrefsRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string             `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string             `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	Prefs          *NotificationPrefs `protobuf:"bytes,3,opt,name=prefs,proto3" json:"prefs,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Prefs          *NotificationPrefs     `protobuf:"bytes,3,opt,name=prefs,proto3" json:"prefs,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -603,15 +575,12 @@ func (x *SavePrefsResponse) GetPrefs() *NotificationPrefs {
 }
 
 type RegisterDeviceRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// The APNs device token as hex; a 410 from Apple deletes the row
-	// (ARCHITECTURE §7.3).
-	ApnsToken     string `protobuf:"bytes,3,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	ApnsToken      string                 `protobuf:"bytes,3,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *RegisterDeviceRequest) Reset() {
@@ -702,14 +671,12 @@ func (*RegisterDeviceResponse) Descriptor() ([]byte, []int) {
 }
 
 type ForgetDeviceRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// The APNs device token as hex.
-	ApnsToken     string `protobuf:"bytes,3,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	ApnsToken      string                 `protobuf:"bytes,3,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *ForgetDeviceRequest) Reset() {
@@ -800,16 +767,12 @@ func (*ForgetDeviceResponse) Descriptor() ([]byte, []int) {
 }
 
 type EmailMagicLinkRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto. Dedupes a retried send.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	// The address the BFF parsed from the request, because no Member row may
-	// exist yet (ARCHITECTURE §7.3).
-	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	// The full https://…/magic?lt=… link the BFF built (ARCHITECTURE §7.5).
-	Link          string `protobuf:"bytes,3,opt,name=link,proto3" json:"link,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	Email          string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Link           string                 `protobuf:"bytes,3,opt,name=link,proto3" json:"link,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *EmailMagicLinkRequest) Reset() {
@@ -900,15 +863,12 @@ func (*EmailMagicLinkResponse) Descriptor() ([]byte, []int) {
 }
 
 type EmailExportRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto. Claimed with the send.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// Every non-deleted Spend as CSV, straight from ledger.ExportCSV; never
-	// stored (ARCHITECTURE §7.3, PRD D39). The address comes from member_facts.
-	Csv           []byte `protobuf:"bytes,3,opt,name=csv,proto3" json:"csv,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Csv            []byte                 `protobuf:"bytes,3,opt,name=csv,proto3" json:"csv,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *EmailExportRequest) Reset() {

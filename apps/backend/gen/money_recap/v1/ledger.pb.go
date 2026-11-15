@@ -22,10 +22,9 @@ const (
 )
 
 type GetMonthSummaryRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// "YYYY-MM".
-	Month         string `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Month         string                 `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -74,16 +73,11 @@ func (x *GetMonthSummaryRequest) GetMonth() string {
 	return ""
 }
 
-// Everything the BFF's GetHome join takes from ledger (ARCHITECTURE §6.1).
 type GetMonthSummaryResponse struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Summary *MonthSummary          `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`
-	// Past months with a Recap, newest first, labelled by Archetype or
-	// "Partial" (PRD §6.8, §8.11).
-	RecapMonths []*RecapMonth `protobuf:"bytes,2,rep,name=recap_months,json=recapMonths,proto3" json:"recap_months,omitempty"`
-	// "YYYY-MM-DD", the earliest date LogSpend takes today in the Member's zone:
-	// 59 days back, or the 1st of the sign-up month when later (PRD D72).
-	EarliestSpendDate string `protobuf:"bytes,3,opt,name=earliest_spend_date,json=earliestSpendDate,proto3" json:"earliest_spend_date,omitempty"`
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Summary           *MonthSummary          `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`
+	RecapMonths       []*RecapMonth          `protobuf:"bytes,2,rep,name=recap_months,json=recapMonths,proto3" json:"recap_months,omitempty"`
+	EarliestSpendDate string                 `protobuf:"bytes,3,opt,name=earliest_spend_date,json=earliestSpendDate,proto3" json:"earliest_spend_date,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -140,10 +134,9 @@ func (x *GetMonthSummaryResponse) GetEarliestSpendDate() string {
 }
 
 type GetRecapRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// "YYYY-MM".
-	Month         string `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Month         string                 `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -281,10 +274,8 @@ func (x *ListMonthsWithDataRequest) GetMemberId() string {
 }
 
 type ListMonthsWithDataResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "YYYY-MM" for every month with a Spend or Money In, newest first, the
-	// current month included (PRD D59): the Spend list's month switcher (§6.10).
-	Months        []string `protobuf:"bytes,1,rep,name=months,proto3" json:"months,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Months        []string               `protobuf:"bytes,1,rep,name=months,proto3" json:"months,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -327,10 +318,9 @@ func (x *ListMonthsWithDataResponse) GetMonths() []string {
 }
 
 type ListSpendsRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// "YYYY-MM".
-	Month         string `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Month         string                 `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -379,14 +369,11 @@ func (x *ListSpendsRequest) GetMonth() string {
 	return ""
 }
 
-// One month's Spends and the Category rows the Spend list draws (PRD §6.10).
 type ListSpendsResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Newest first, deleted rows excluded.
-	Spends []*Spend `protobuf:"bytes,1,rep,name=spends,proto3" json:"spends,omitempty"`
-	// One row per Category with a Spend, largest first.
-	Categories    []*CategoryShare `protobuf:"bytes,2,rep,name=categories,proto3" json:"categories,omitempty"`
-	Spent         *Money           `protobuf:"bytes,3,opt,name=spent,proto3" json:"spent,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Spends        []*Spend               `protobuf:"bytes,1,rep,name=spends,proto3" json:"spends,omitempty"`
+	Categories    []*CategoryShare       `protobuf:"bytes,2,rep,name=categories,proto3" json:"categories,omitempty"`
+	Spent         *Money                 `protobuf:"bytes,3,opt,name=spent,proto3" json:"spent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -531,13 +518,10 @@ func (x *GetSettingsResponse) GetSettings() *LedgerSettings {
 }
 
 type PreviewConversionRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// Decimal string, from currency.Quote or typed by the Member (PRD §8.9):
-	// above zero, at most 11 digits before the separator and 12 after.
-	Rate string `protobuf:"bytes,2,opt,name=rate,proto3" json:"rate,omitempty"`
-	// ISO 4217 code to convert into.
-	ToCurrencyCode string `protobuf:"bytes,3,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	MemberId       string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Rate           string                 `protobuf:"bytes,2,opt,name=rate,proto3" json:"rate,omitempty"`
+	ToCurrencyCode string                 `protobuf:"bytes,3,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -637,7 +621,6 @@ func (x *PreviewConversionResponse) GetPreview() *ConversionPreview {
 	return nil
 }
 
-// One batch of the notify daily-reminder loop (ARCHITECTURE §7.3).
 type GetSpentTodayRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	MemberIds     []string               `protobuf:"bytes,1,rep,name=member_ids,json=memberIds,proto3" json:"member_ids,omitempty"`
@@ -682,13 +665,11 @@ func (x *GetSpentTodayRequest) GetMemberIds() []string {
 	return nil
 }
 
-// What one Member spent today, today being in that Member's zone (A3).
 type SpentToday struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// Always present; "0" with no Spend today.
-	Spent         *Money `protobuf:"bytes,2,opt,name=spent,proto3" json:"spent,omitempty"`
-	SpendCount    int32  `protobuf:"varint,3,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Spent         *Money                 `protobuf:"bytes,2,opt,name=spent,proto3" json:"spent,omitempty"`
+	SpendCount    int32                  `protobuf:"varint,3,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -745,10 +726,8 @@ func (x *SpentToday) GetSpendCount() int32 {
 }
 
 type GetSpentTodayResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// One entry per requested Member ledger knows, in any order; an unknown or
-	// purged id has no entry, so the caller matches on member_id.
-	Entries       []*SpentToday `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*SpentToday          `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -834,9 +813,6 @@ func (x *ExportCSVRequest) GetMemberId() string {
 	return ""
 }
 
-// Every non-deleted Spend of the Member as one CSV document (PRD §6.16, D39):
-// a Member's Spends fit in one message, and the BFF hands the bytes straight
-// to notify.EmailExport. Nothing is stored.
 type ExportCSVResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Csv           []byte                 `protobuf:"bytes,1,opt,name=csv,proto3" json:"csv,omitempty"`

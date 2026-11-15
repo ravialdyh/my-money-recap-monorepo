@@ -21,15 +21,10 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// An exact amount in one Currency (PRD §7, D71). The amount is a decimal
-// string such as "2400.00" or "150000000", never a float and never an integer
-// count of minor units, so the phone prints exactly what is stored.
 type Money struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Decimal string, at most 11 digits before the separator (PRD D57).
-	Amount string `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
-	// ISO 4217 code, for example "GBP" or "IDR".
-	CurrencyCode  string `protobuf:"bytes,2,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Amount        string                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	CurrencyCode  string                 `protobuf:"bytes,2,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

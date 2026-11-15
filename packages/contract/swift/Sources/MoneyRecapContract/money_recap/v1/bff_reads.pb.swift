@@ -25,7 +25,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceGetRecapRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// "YYYY-MM"; the current month answers the month-so-far preview (PRD D47).
   public var month: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -59,7 +58,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceListSpendsRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// "YYYY-MM"; empty means the current month in the Member's zone (D59).
   public var month: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -150,19 +148,13 @@ public nonisolated struct MoneyRecap_V1_BffServiceGetSettingsResponse: Sendable 
   fileprivate var _settings: MoneyRecap_V1_SettingsView? = nil
 }
 
-/// Nothing is written: the rate is quoted and ledger previews the rewrite
-/// (PRD §8.9 steps 1 to 3).
 public nonisolated struct MoneyRecap_V1_BffServicePreviewCurrencyChangeRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// ISO 4217 code the Member picked.
   public var toCurrencyCode: String = String()
 
-  /// Decimal string the Member typed after an unsupported pair or a failed
-  /// fetch (D7), at most 11 digits before the separator and 12 after; empty
-  /// asks currency.Quote.
   public var manualRate: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

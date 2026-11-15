@@ -21,9 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Routing key "notify.member.purged": published after members.deleted is
-// consumed and every row of the Member is gone, so members can complete its
-// deletion tracking (ARCHITECTURE §4.3, §7.1, §7.3, A4).
 type NotifyMemberPurged struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`

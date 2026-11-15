@@ -78,51 +78,19 @@ const (
 
 // LedgerServiceClient is a client for the money_recap.v1.LedgerService service.
 type LedgerServiceClient interface {
-	// Every Home figure for one month (PRD §6.8).
 	GetMonthSummary(context.Context, *connect.Request[v1.GetMonthSummaryRequest]) (*connect.Response[v1.GetMonthSummaryResponse], error)
-	// One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17); the
-	// current month always answers. not_found for an earlier month with no Spend
-	// and no Money In; invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.GetRecapRequest]) (*connect.Response[v1.GetRecapResponse], error)
-	// The month switcher's list and the Recap-ready check (PRD D59, §10). One of
-	// the two calls notify's own service-account token may make, with no owner
-	// check (ARCHITECTURE §4.2); a Member's token reads only its own Member.
 	ListMonthsWithData(context.Context, *connect.Request[v1.ListMonthsWithDataRequest]) (*connect.Response[v1.ListMonthsWithDataResponse], error)
 	ListSpends(context.Context, *connect.Request[v1.ListSpendsRequest]) (*connect.Response[v1.ListSpendsResponse], error)
-	// Validates D57 and §8.10 in the Member's zone, then writes the Spend, the
-	// outbox row and the recomputed month in one transaction (§6.2 step 3).
 	LogSpend(context.Context, *connect.Request[v1.LogSpendRequest]) (*connect.Response[v1.LogSpendResponse], error)
-	// Editing a Spend in a past month changes that month's Recap at once (D22).
 	EditSpend(context.Context, *connect.Request[v1.EditSpendRequest]) (*connect.Response[v1.EditSpendResponse], error)
-	// Soft-deletes; the row leaves every computation (PRD §7).
 	DeleteSpend(context.Context, *connect.Request[v1.DeleteSpendRequest]) (*connect.Response[v1.DeleteSpendResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
-	// Appends a salary_setting row. A setup save takes effect in the sign-up
-	// month, a first save after setup this month, as neither is an edit (PRD
-	// §8.10); later ones from the month applies_from names (D56), a new Payday
-	// next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
-	// Onboarding's Currency change (spec #92), and later the change with
-	// nothing to convert (PRD §8.9 step 2): every Salary row takes the code,
-	// originals included, re-rounded half up to its decimals; no rate, no
-	// conversion row. The replica takes it at once.
 	RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error)
-	// Appends a saving_target_setting row: a setup save takes effect in the
-	// sign-up month and a first save after setup this month (spec #92, owner
-	// 2026-09-23), later ones next month (PRD D65); failed_precondition without
-	// a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error)
-	// The before-and-after values for the confirm sheet; nothing is written.
-	// out_of_range when any rewritten amount would pass 11 digits (D57).
 	PreviewConversion(context.Context, *connect.Request[v1.PreviewConversionRequest]) (*connect.Response[v1.PreviewConversionResponse], error)
-	// Rewrites every Salary and Spend amount in one transaction, keeping the
-	// originals, records it, stages ledger.currency.converted and stamps the
-	// replica's Currency (PRD §8.9 step 4); out_of_range past D57, nothing
-	// written.
 	ApplyCurrencyConversion(context.Context, *connect.Request[v1.ApplyCurrencyConversionRequest]) (*connect.Response[v1.ApplyCurrencyConversionResponse], error)
-	// Batched for the daily reminder: one call per 500 Members (§7.3). The other
-	// call notify's own token may make, with no owner check (ARCHITECTURE §4.2);
-	// a Member's token reads only its own Member. Every other call refuses it.
 	GetSpentToday(context.Context, *connect.Request[v1.GetSpentTodayRequest]) (*connect.Response[v1.GetSpentTodayResponse], error)
 	ExportCSV(context.Context, *connect.Request[v1.ExportCSVRequest]) (*connect.Response[v1.ExportCSVResponse], error)
 }
@@ -327,51 +295,19 @@ func (c *ledgerServiceClient) ExportCSV(ctx context.Context, req *connect.Reques
 
 // LedgerServiceHandler is an implementation of the money_recap.v1.LedgerService service.
 type LedgerServiceHandler interface {
-	// Every Home figure for one month (PRD §6.8).
 	GetMonthSummary(context.Context, *connect.Request[v1.GetMonthSummaryRequest]) (*connect.Response[v1.GetMonthSummaryResponse], error)
-	// One month's full or Partial Recap (PRD §6.11 to §6.14, §6.17); the
-	// current month always answers. not_found for an earlier month with no Spend
-	// and no Money In; invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.GetRecapRequest]) (*connect.Response[v1.GetRecapResponse], error)
-	// The month switcher's list and the Recap-ready check (PRD D59, §10). One of
-	// the two calls notify's own service-account token may make, with no owner
-	// check (ARCHITECTURE §4.2); a Member's token reads only its own Member.
 	ListMonthsWithData(context.Context, *connect.Request[v1.ListMonthsWithDataRequest]) (*connect.Response[v1.ListMonthsWithDataResponse], error)
 	ListSpends(context.Context, *connect.Request[v1.ListSpendsRequest]) (*connect.Response[v1.ListSpendsResponse], error)
-	// Validates D57 and §8.10 in the Member's zone, then writes the Spend, the
-	// outbox row and the recomputed month in one transaction (§6.2 step 3).
 	LogSpend(context.Context, *connect.Request[v1.LogSpendRequest]) (*connect.Response[v1.LogSpendResponse], error)
-	// Editing a Spend in a past month changes that month's Recap at once (D22).
 	EditSpend(context.Context, *connect.Request[v1.EditSpendRequest]) (*connect.Response[v1.EditSpendResponse], error)
-	// Soft-deletes; the row leaves every computation (PRD §7).
 	DeleteSpend(context.Context, *connect.Request[v1.DeleteSpendRequest]) (*connect.Response[v1.DeleteSpendResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.GetSettingsRequest]) (*connect.Response[v1.GetSettingsResponse], error)
-	// Appends a salary_setting row. A setup save takes effect in the sign-up
-	// month, a first save after setup this month, as neither is an edit (PRD
-	// §8.10); later ones from the month applies_from names (D56), a new Payday
-	// next month.
 	SaveSalary(context.Context, *connect.Request[v1.SaveSalaryRequest]) (*connect.Response[v1.SaveSalaryResponse], error)
-	// Onboarding's Currency change (spec #92), and later the change with
-	// nothing to convert (PRD §8.9 step 2): every Salary row takes the code,
-	// originals included, re-rounded half up to its decimals; no rate, no
-	// conversion row. The replica takes it at once.
 	RelabelCurrency(context.Context, *connect.Request[v1.RelabelCurrencyRequest]) (*connect.Response[v1.RelabelCurrencyResponse], error)
-	// Appends a saving_target_setting row: a setup save takes effect in the
-	// sign-up month and a first save after setup this month (spec #92, owner
-	// 2026-09-23), later ones next month (PRD D65); failed_precondition without
-	// a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.SaveTargetRequest]) (*connect.Response[v1.SaveTargetResponse], error)
-	// The before-and-after values for the confirm sheet; nothing is written.
-	// out_of_range when any rewritten amount would pass 11 digits (D57).
 	PreviewConversion(context.Context, *connect.Request[v1.PreviewConversionRequest]) (*connect.Response[v1.PreviewConversionResponse], error)
-	// Rewrites every Salary and Spend amount in one transaction, keeping the
-	// originals, records it, stages ledger.currency.converted and stamps the
-	// replica's Currency (PRD §8.9 step 4); out_of_range past D57, nothing
-	// written.
 	ApplyCurrencyConversion(context.Context, *connect.Request[v1.ApplyCurrencyConversionRequest]) (*connect.Response[v1.ApplyCurrencyConversionResponse], error)
-	// Batched for the daily reminder: one call per 500 Members (§7.3). The other
-	// call notify's own token may make, with no owner check (ARCHITECTURE §4.2);
-	// a Member's token reads only its own Member. Every other call refuses it.
 	GetSpentToday(context.Context, *connect.Request[v1.GetSpentTodayRequest]) (*connect.Response[v1.GetSpentTodayResponse], error)
 	ExportCSV(context.Context, *connect.Request[v1.ExportCSVRequest]) (*connect.Response[v1.ExportCSVResponse], error)
 }

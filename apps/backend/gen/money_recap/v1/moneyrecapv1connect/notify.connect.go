@@ -60,24 +60,12 @@ const (
 // NotifyServiceClient is a client for the money_recap.v1.NotifyService service.
 type NotifyServiceClient interface {
 	GetWarningState(context.Context, *connect.Request[v1.GetWarningStateRequest]) (*connect.Response[v1.GetWarningStateResponse], error)
-	// Stamps month_flag when crossed_line and unstamped, then pushes if the
-	// stamp is fresh (PRD §8.8).
 	EvaluateWarning(context.Context, *connect.Request[v1.EvaluateWarningRequest]) (*connect.Response[v1.EvaluateWarningResponse], error)
 	GetPrefs(context.Context, *connect.Request[v1.GetPrefsRequest]) (*connect.Response[v1.GetPrefsResponse], error)
-	// Each toggle writes immediately (PRD §6.16); the key dedupes a retry (A14).
 	SavePrefs(context.Context, *connect.Request[v1.SavePrefsRequest]) (*connect.Response[v1.SavePrefsResponse], error)
-	// Upserts the device row on the token (A14).
 	RegisterDevice(context.Context, *connect.Request[v1.RegisterDeviceRequest]) (*connect.Response[v1.RegisterDeviceResponse], error)
-	// Deletes this Member's device row for the token; another Member's row and
-	// an unknown token are left as they are (A14).
 	ForgetDevice(context.Context, *connect.Request[v1.ForgetDeviceRequest]) (*connect.Response[v1.ForgetDeviceResponse], error)
-	// Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
-	// address the mail host permanently refuses; unavailable for any other
-	// send failure.
 	EmailMagicLink(context.Context, *connect.Request[v1.EmailMagicLinkRequest]) (*connect.Response[v1.EmailMagicLinkResponse], error)
-	// Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
-	// failed_precondition with EmailBounced when the mail host permanently
-	// refuses the address; unavailable for any other send failure.
 	EmailExport(context.Context, *connect.Request[v1.EmailExportRequest]) (*connect.Response[v1.EmailExportResponse], error)
 }
 
@@ -198,24 +186,12 @@ func (c *notifyServiceClient) EmailExport(ctx context.Context, req *connect.Requ
 // NotifyServiceHandler is an implementation of the money_recap.v1.NotifyService service.
 type NotifyServiceHandler interface {
 	GetWarningState(context.Context, *connect.Request[v1.GetWarningStateRequest]) (*connect.Response[v1.GetWarningStateResponse], error)
-	// Stamps month_flag when crossed_line and unstamped, then pushes if the
-	// stamp is fresh (PRD §8.8).
 	EvaluateWarning(context.Context, *connect.Request[v1.EvaluateWarningRequest]) (*connect.Response[v1.EvaluateWarningResponse], error)
 	GetPrefs(context.Context, *connect.Request[v1.GetPrefsRequest]) (*connect.Response[v1.GetPrefsResponse], error)
-	// Each toggle writes immediately (PRD §6.16); the key dedupes a retry (A14).
 	SavePrefs(context.Context, *connect.Request[v1.SavePrefsRequest]) (*connect.Response[v1.SavePrefsResponse], error)
-	// Upserts the device row on the token (A14).
 	RegisterDevice(context.Context, *connect.Request[v1.RegisterDeviceRequest]) (*connect.Response[v1.RegisterDeviceResponse], error)
-	// Deletes this Member's device row for the token; another Member's row and
-	// an unknown token are left as they are (A14).
 	ForgetDevice(context.Context, *connect.Request[v1.ForgetDeviceRequest]) (*connect.Response[v1.ForgetDeviceResponse], error)
-	// Errors (ARCHITECTURE §7.3, §7.5): invalid_argument for an empty key or an
-	// address the mail host permanently refuses; unavailable for any other
-	// send failure.
 	EmailMagicLink(context.Context, *connect.Request[v1.EmailMagicLinkRequest]) (*connect.Response[v1.EmailMagicLinkResponse], error)
-	// Reads the address from member_facts. Errors (ARCHITECTURE §7.3):
-	// failed_precondition with EmailBounced when the mail host permanently
-	// refuses the address; unavailable for any other send failure.
 	EmailExport(context.Context, *connect.Request[v1.EmailExportRequest]) (*connect.Response[v1.EmailExportResponse], error)
 }
 

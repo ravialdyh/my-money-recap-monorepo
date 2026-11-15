@@ -6,14 +6,11 @@ import sys
 BASELINE = pathlib.Path(__file__).parent / "baseline.json"
 TOLERANCE = 0.5
 
-
 def _load():
     return json.loads(BASELINE.read_text())
 
-
 def _save(data):
     BASELINE.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n")
-
 
 def gate(language, measured, update):
     """Returns (exit_code, message) for one language's measured percentage."""
@@ -54,7 +51,6 @@ def gate(language, measured, update):
         )
     return 0, f"{language}: {measured:.1f}%, holding the {floor:.1f}% floor (target {target:.0f}%)."
 
-
 def main():
     parser = argparse.ArgumentParser(description="Coverage ratchet: a language's coverage may never fall.")
     parser.add_argument("language")
@@ -64,7 +60,6 @@ def main():
     code, message = gate(args.language, args.measured, args.update)
     print(message, file=sys.stderr if code else sys.stdout)
     return code
-
 
 if __name__ == "__main__":
     sys.exit(main())

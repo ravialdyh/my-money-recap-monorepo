@@ -20,18 +20,13 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// An exact amount in one Currency (PRD §7, D71). The amount is a decimal
-/// string such as "2400.00" or "150000000", never a float and never an integer
-/// count of minor units, so the phone prints exactly what is stored.
 public nonisolated struct MoneyRecap_V1_Money: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Decimal string, at most 11 digits before the separator (PRD D57).
   public var amount: String = String()
 
-  /// ISO 4217 code, for example "GBP" or "IDR".
   public var currencyCode: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

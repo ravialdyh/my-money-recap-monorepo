@@ -6,9 +6,6 @@ option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/g
 
 import "money_recap/v1/shared.proto";
 
-// Routing key "notify.member.purged": published after members.deleted is
-// consumed and every row of the Member is gone, so members can complete its
-// deletion tracking (ARCHITECTURE §4.3, §7.1, §7.3, A4).
 message NotifyMemberPurged {
   EventEnvelope envelope = 1;
 }

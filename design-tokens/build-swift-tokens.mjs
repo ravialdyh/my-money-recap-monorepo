@@ -1,5 +1,3 @@
-// Generates apps/ios/DesignSystem/Tokens.swift from design-tokens/tokens.json (docs/IOS.md I5).
-// Colours, radii, spacing, sizes, the type ramp and motion. Aliases like "{palette.violet.500}" become Palette.violet500.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,7 +7,6 @@ const tokens = JSON.parse(readFileSync(resolve(here, 'tokens.json'), 'utf8'));
 const out = resolve(here, '../apps/ios/DesignSystem/Tokens.swift');
 const isToken = (o) => o && typeof o === 'object' && '$value' in o;
 
-/** Calls visit(path, token) for every leaf under node; keys starting with $ are metadata, not tokens. */
 function walk(node, visit, path = []) {
   for (const [k, v] of Object.entries(node)) {
     if (k.startsWith('$')) continue;
@@ -21,9 +18,7 @@ function walk(node, visit, path = []) {
 
 const camel = (s) => s.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 const pascal = (s) => camel(s).replace(/^[a-z]/, (c) => c.toUpperCase());
-// ["violet", "500"] -> violet500; ["card-accent"] -> cardAccent
 const ident = (segs) => camel(segs.map((s, i) => (i === 0 ? s : pascal(s))).join('')).replace(/^(\d)/, '_$1');
-// "{palette.violet.500}" -> Palette.violet500; "{font.family.display}" -> FontFamily.display
 const alias = (v) => {
   const segs = v.slice(1, -1).split('.');
   if (segs[0] === 'font') return `${pascal(segs[0])}${pascal(segs[1])}.${ident(segs.slice(2))}`;
@@ -42,7 +37,6 @@ function color(v) {
   return null;
 }
 
-// One `enum` of `static let`s per group: every colour and number under it.
 function colorEnum(node) {
   const lines = [];
   walk(node, (p, { $value: raw }) => {
@@ -86,9 +80,7 @@ public struct TextStyle {
     public let family: String
     public let weight: Font.Weight
     public let size: CGFloat
-    /// Multiple of size.
     public let lineHeight: CGFloat
-    /// In em.
     public let letterSpacing: CGFloat
     public let uppercase: Bool
 }

@@ -21,9 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Routing key "ledger.spend.logged" (ARCHITECTURE §7.2, A4): the Spend, the
-// recomputed month and crossed_line, so notify stamps and pushes without
-// recalculating anything (§6.2 step 6).
 type LedgerSpendLogged struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -92,8 +89,6 @@ func (x *LedgerSpendLogged) GetCrossedLine() bool {
 	return false
 }
 
-// Routing key "ledger.spend.edited": the Spend after the edit and the
-// recomputed month it now sits in.
 type LedgerSpendEdited struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -162,9 +157,6 @@ func (x *LedgerSpendEdited) GetCrossedLine() bool {
 	return false
 }
 
-// Routing key "ledger.spend.deleted": the Spend as it was and the recomputed
-// month it left; crossed_line is always false (PRD §8.8) and carried because
-// every spend event answers it (ARCHITECTURE §7.2).
 type LedgerSpendDeleted struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -233,8 +225,6 @@ func (x *LedgerSpendDeleted) GetCrossedLine() bool {
 	return false
 }
 
-// Routing key "ledger.salary.changed": the salary_setting row appended
-// (PRD D56).
 type LedgerSalaryChanged struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -287,8 +277,6 @@ func (x *LedgerSalaryChanged) GetSalary() *SalarySetting {
 	return nil
 }
 
-// Routing key "ledger.target.changed": the saving_target_setting row appended
-// (PRD D65).
 type LedgerTargetChanged struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -341,19 +329,15 @@ func (x *LedgerTargetChanged) GetSavingTarget() *SavingTargetSetting {
 	return nil
 }
 
-// Routing key "ledger.currency.converted": what members consumes to set
-// currency_code (ARCHITECTURE §7.1, §7.2 currency flow).
 type LedgerCurrencyConverted struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	Envelope *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
-	// ISO 4217 codes.
-	FromCurrencyCode string `protobuf:"bytes,2,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
-	ToCurrencyCode   string `protobuf:"bytes,3,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
-	// Decimal string: units of to_currency_code per unit of from_currency_code.
-	Rate          string     `protobuf:"bytes,4,opt,name=rate,proto3" json:"rate,omitempty"`
-	Source        RateSource `protobuf:"varint,5,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Envelope         *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
+	FromCurrencyCode string                 `protobuf:"bytes,2,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
+	ToCurrencyCode   string                 `protobuf:"bytes,3,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
+	Rate             string                 `protobuf:"bytes,4,opt,name=rate,proto3" json:"rate,omitempty"`
+	Source           RateSource             `protobuf:"varint,5,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *LedgerCurrencyConverted) Reset() {
@@ -421,8 +405,6 @@ func (x *LedgerCurrencyConverted) GetSource() RateSource {
 	return RateSource_RATE_SOURCE_UNSPECIFIED
 }
 
-// Routing key "ledger.member.purged": every row of the Member is gone, so
-// members stamps deletion_progress (ARCHITECTURE §7.1 step 5).
 type LedgerMemberPurged struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`

@@ -4,11 +4,6 @@
 // 	protoc        (unknown)
 // source: money_recap/v1/shared.proto
 
-// Idempotency (A14, ARCHITECTURE §6.2, I3): a write's service request carries
-// idempotency_key, always field 1, which the owning service enforces. The BFF
-// copies the Idempotency-Key header into it; RequestMagicLink mints one, as
-// the phone sends none yet.
-
 package moneyrecapv1
 
 import (
@@ -27,7 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The eight fixed labels a Spend belongs to (PRD D20).
 type Category int32
 
 const (
@@ -95,7 +89,6 @@ func (Category) EnumDescriptor() ([]byte, []int) {
 	return file_money_recap_v1_shared_proto_rawDescGZIP(), []int{0}
 }
 
-// The four money personalities a month's numbers assign (PRD §8.6).
 type Archetype int32
 
 const (
@@ -151,7 +144,6 @@ func (Archetype) EnumDescriptor() ([]byte, []int) {
 	return file_money_recap_v1_shared_proto_rawDescGZIP(), []int{1}
 }
 
-// Which month a Salary saved after Payday applies from (PRD D56).
 type SalaryAppliesFrom int32
 
 const (
@@ -201,7 +193,6 @@ func (SalaryAppliesFrom) EnumDescriptor() ([]byte, []int) {
 	return file_money_recap_v1_shared_proto_rawDescGZIP(), []int{2}
 }
 
-// Where a currency-change rate came from (PRD §7 CurrencyConversion, §8.9).
 type RateSource int32
 
 const (
@@ -251,30 +242,18 @@ func (RateSource) EnumDescriptor() ([]byte, []int) {
 	return file_money_recap_v1_shared_proto_rawDescGZIP(), []int{3}
 }
 
-// One Spend the Member logs by hand (PRD §6.9, §7): a Money amount (D57), a
-// Category and the device's local calendar date at logging, stored plain (D34).
-// The Member is the caller's, or the event envelope's, so it is not repeated.
 type Spend struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Assigned by ledger, which owns the row (ARCHITECTURE §7.2); EditSpend and
-	// DeleteSpend name it.
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// Always present, above zero (PRD §6.9), in the account's Currency;
-	// rewritten by a currency change (PRD §8.9).
-	Amount *Money `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	// Always present: the amount as typed, with its Currency, never touched by a
-	// currency change.
-	OriginalAmount *Money   `protobuf:"bytes,3,opt,name=original_amount,json=originalAmount,proto3" json:"original_amount,omitempty"`
-	Category       Category `protobuf:"varint,4,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	// "YYYY-MM-DD" (PRD D34).
-	Date string `protobuf:"bytes,5,opt,name=date,proto3" json:"date,omitempty"`
-	// Optional, at most 80 characters (PRD §6.9).
-	Note string `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
-	// Both always present, stamped by ledger; equal until the first edit.
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Amount         *Money                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	OriginalAmount *Money                 `protobuf:"bytes,3,opt,name=original_amount,json=originalAmount,proto3" json:"original_amount,omitempty"`
+	Category       Category               `protobuf:"varint,4,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
+	Date           string                 `protobuf:"bytes,5,opt,name=date,proto3" json:"date,omitempty"`
+	Note           string                 `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
+	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *Spend) Reset() {
@@ -363,16 +342,12 @@ func (x *Spend) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-// What every event carries (ARCHITECTURE §4.3, A4): the outbox row id as the
-// message id, which processed_events dedupes on; when it occurred; the Member
-// it concerns; and the routing key, so a consumer can log it.
 type EventEnvelope struct {
-	state      protoimpl.MessageState `protogen:"open.v1"`
-	MessageId  string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
-	OccurredAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=occurred_at,json=occurredAt,proto3" json:"occurred_at,omitempty"`
-	MemberId   string                 `protobuf:"bytes,3,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// For example "ledger.spend.logged".
-	RoutingKey    string `protobuf:"bytes,4,opt,name=routing_key,json=routingKey,proto3" json:"routing_key,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MessageId     string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	OccurredAt    *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=occurred_at,json=occurredAt,proto3" json:"occurred_at,omitempty"`
+	MemberId      string                 `protobuf:"bytes,3,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	RoutingKey    string                 `protobuf:"bytes,4,opt,name=routing_key,json=routingKey,proto3" json:"routing_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -435,15 +410,11 @@ func (x *EventEnvelope) GetRoutingKey() string {
 	return ""
 }
 
-// The Salary as Home needs it: the hero eyebrow's countdown (PRD §6.8).
 type SalaryFacts struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	Amount *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
-	// 1 to 31, or "last" for the Last day token (PRD D51).
-	Payday string `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
-	// Days until the effective Payday; in a partial sign-up month (D52), until
-	// next month's; 0 otherwise once it has passed or is today.
-	DaysUntilPayday int32 `protobuf:"varint,3,opt,name=days_until_payday,json=daysUntilPayday,proto3" json:"days_until_payday,omitempty"`
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Amount          *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Payday          string                 `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
+	DaysUntilPayday int32                  `protobuf:"varint,3,opt,name=days_until_payday,json=daysUntilPayday,proto3" json:"days_until_payday,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -499,14 +470,11 @@ func (x *SalaryFacts) GetDaysUntilPayday() int32 {
 	return 0
 }
 
-// The Saving Target as Home's target card needs it (PRD §8.4, §8.7).
 type SavingTargetFacts struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Percent int32                  `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
-	// round-half-up(Salary × percent ÷ 100), computed by ledger.
-	Amount *Money `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	// The §8.7 sentence, chosen by ledger.
-	ProgressSentence string `protobuf:"bytes,3,opt,name=progress_sentence,json=progressSentence,proto3" json:"progress_sentence,omitempty"`
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Percent          int32                  `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
+	Amount           *Money                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	ProgressSentence string                 `protobuf:"bytes,3,opt,name=progress_sentence,json=progressSentence,proto3" json:"progress_sentence,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -562,7 +530,6 @@ func (x *SavingTargetFacts) GetProgressSentence() string {
 	return ""
 }
 
-// The coral Banner (PRD D38, D53); copy chosen by ledger per §8.8.
 type TargetWarning struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
@@ -608,11 +575,9 @@ func (x *TargetWarning) GetMessage() string {
 }
 
 type RecapMonth struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "YYYY-MM".
-	Month string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
-	// Archetype name, or "Partial" for a Partial Recap (PRD §8.11).
-	Label         string `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Month         string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
+	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

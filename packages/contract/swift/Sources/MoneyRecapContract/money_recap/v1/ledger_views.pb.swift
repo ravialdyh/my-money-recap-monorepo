@@ -20,9 +20,6 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// Which of the three PRD §6.17 situations a Partial Recap is in: the current
-/// month still running, the sign-up month whose Payday preceded sign-up, or a
-/// past month with Spends but no Money In. Unspecified on a full Recap.
 public nonisolated enum MoneyRecap_V1_PartialSituation: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -65,30 +62,21 @@ public nonisolated enum MoneyRecap_V1_PartialSituation: SwiftProtobuf.Enum, Swif
 
 }
 
-/// The Streak and its window as Recap screen 2 draws them (PRD §6.12, §8.5):
-/// StreakDots draws one dot per day of the window with the run's days lit.
 public nonisolated struct MoneyRecap_V1_StreakFacts: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The longest run of consecutive spend-free days inside the window.
   public var days: Int32 = 0
 
-  /// First day of the window, "YYYY-MM-DD": the 1st or the sign-up date (D43).
   public var windowStart: String = String()
 
-  /// Last day of the window, "YYYY-MM-DD": month end, or today this month.
   public var windowEnd: String = String()
 
-  /// True when days is at least 7, the badge rule of PRD §6.12.
   public var badgeUnlocked: Bool = false
 
-  /// First day of the run, "YYYY-MM-DD"; of two runs of the longest length,
-  /// the earlier. Empty when days is 0.
   public var runStart: String = String()
 
-  /// Last day of the run, "YYYY-MM-DD"; empty when days is 0.
   public var runEnd: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -96,8 +84,6 @@ public nonisolated struct MoneyRecap_V1_StreakFacts: Sendable {
   public init() {}
 }
 
-/// One Category's share of a month: the CategoryBar of Recap screen 3 and the
-/// Category row of the Spend list (PRD §6.13, §6.10).
 public nonisolated struct MoneyRecap_V1_CategoryShare: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -114,7 +100,6 @@ public nonisolated struct MoneyRecap_V1_CategoryShare: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// round(amount ÷ Spent × 100).
   public var percent: Int32 = 0
 
   public var spendCount: Int32 = 0
@@ -126,22 +111,16 @@ public nonisolated struct MoneyRecap_V1_CategoryShare: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// One month's Recap as ledger computes it (PRD §6.11 to §6.14, §6.17, §8): the
-/// four full screens or the four Partial Recap screens. Fields a screen has a
-/// "none" branch for are optional, so the phone passes null, never a zero.
 public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// "YYYY-MM".
   public var month: String {
     get {_storage._month}
     set {_uniqueStorage()._month = newValue}
   }
 
-  /// Unspecified on a full Recap; any other value means the §6.17 screens
-  /// (PRD §8.11). This is the one partial flag.
   public var situation: MoneyRecap_V1_PartialSituation {
     get {_storage._situation}
     set {_uniqueStorage()._situation = newValue}
@@ -165,7 +144,6 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   /// Clears the value of `spent`. Subsequent reads from it will return its default value.
   public mutating func clearSpent() {_uniqueStorage()._spent = nil}
 
-  /// Absent while Money In is 0 (PRD D41).
   public var saved: MoneyRecap_V1_Money {
     get {_storage._saved ?? MoneyRecap_V1_Money()}
     set {_uniqueStorage()._saved = newValue}
@@ -175,13 +153,11 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   /// Clears the value of `saved`. Subsequent reads from it will return its default value.
   public mutating func clearSaved() {_uniqueStorage()._saved = nil}
 
-  /// Number of Spends in the month; the "{n} spends" chip of §6.17.
   public var spendCount: Int32 {
     get {_storage._spendCount}
     set {_uniqueStorage()._spendCount = newValue}
   }
 
-  /// Absent without a Salary; screen 3 of a Partial Recap names the Payday (D55).
   public var salary: MoneyRecap_V1_SalaryFacts {
     get {_storage._salary ?? MoneyRecap_V1_SalaryFacts()}
     set {_uniqueStorage()._salary = newValue}
@@ -191,8 +167,6 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// Absent without a Saving Target in force (no row, or a 0 percent row): the
-  /// §6.12 and §6.13 no-target branches.
   public var savingTarget: MoneyRecap_V1_SavingTargetFacts {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetFacts()}
     set {_uniqueStorage()._savingTarget = newValue}
@@ -202,8 +176,6 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   /// Clears the value of `savingTarget`. Subsequent reads from it will return its default value.
   public mutating func clearSavingTarget() {_uniqueStorage()._savingTarget = nil}
 
-  /// round(Saved ÷ Target amount × 100), clamped 0 to 999 (PRD §8.4). Absent
-  /// without a Saving Target or without Saved.
   public var keptPercent: Int32 {
     get {_storage._keptPercent ?? 0}
     set {_uniqueStorage()._keptPercent = newValue}
@@ -222,15 +194,11 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   /// Clears the value of `streak`. Subsequent reads from it will return its default value.
   public mutating func clearStreak() {_uniqueStorage()._streak = nil}
 
-  /// One entry per Category with a Spend, sorted by amount descending; the
-  /// phone applies the three-bar cap (PRD D71).
   public var categories: [MoneyRecap_V1_CategoryShare] {
     get {_storage._categories}
     set {_uniqueStorage()._categories = newValue}
   }
 
-  /// The largest single Spend, ties to the earliest date (PRD §8.3). Absent
-  /// with no Spends.
   public var splurge: MoneyRecap_V1_Spend {
     get {_storage._splurge ?? MoneyRecap_V1_Spend()}
     set {_uniqueStorage()._splurge = newValue}
@@ -240,7 +208,6 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   /// Clears the value of `splurge`. Subsequent reads from it will return its default value.
   public mutating func clearSplurge() {_uniqueStorage()._splurge = nil}
 
-  /// Absent when Money In is 0 or no Saving Target is set (PRD §8.6).
   public var archetype: MoneyRecap_V1_Archetype {
     get {_storage._archetype ?? .unspecified}
     set {_uniqueStorage()._archetype = newValue}
@@ -250,28 +217,21 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   /// Clears the value of `archetype`. Subsequent reads from it will return its default value.
   public mutating func clearArchetype() {_uniqueStorage()._archetype = nil}
 
-  /// The Archetype's name as the phone shows it, the same string as
-  /// RecapMonth.label (A2: the phone never names one); empty without one.
   public var archetypeName: String {
     get {_storage._archetypeName}
     set {_uniqueStorage()._archetypeName = newValue}
   }
 
-  /// The Archetype's one-line description from PRD §8.6; empty without one.
   public var archetypeDescription: String {
     get {_storage._archetypeDescription}
     set {_uniqueStorage()._archetypeDescription = newValue}
   }
 
-  /// Screen 4 line of a Partial Recap, chosen per situation (PRD §6.17); empty
-  /// on a full Recap.
   public var closingLine: String {
     get {_storage._closingLine}
     set {_uniqueStorage()._closingLine = newValue}
   }
 
-  /// The Archetype's title, screen 4's and the share image's big title ("The
-  /// Squirrel"; PRD §6.14, §6.15); empty without one.
   public var archetypeTitle: String {
     get {_storage._archetypeTitle}
     set {_uniqueStorage()._archetypeTitle = newValue}
@@ -284,8 +244,6 @@ public nonisolated struct MoneyRecap_V1_Recap: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-/// One append-only salary_setting row (PRD §7): the amount and Payday in force
-/// from effective_from.
 public nonisolated struct MoneyRecap_V1_SalarySetting: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -300,15 +258,10 @@ public nonisolated struct MoneyRecap_V1_SalarySetting: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// 1 to 31, or "last" for the Last day token (PRD D51).
   public var payday: String = String()
 
-  /// "YYYY-MM" the row takes effect from (PRD D56).
   public var effectiveFrom: String = String()
 
-  /// Always present: the amount as typed, with its Currency, never touched by a
-  /// conversion (PRD §8.9); onboarding's relabel moves it to the new code with
-  /// the amount (spec #92).
   public var originalAmount: MoneyRecap_V1_Money {
     get {_originalAmount ?? MoneyRecap_V1_Money()}
     set {_originalAmount = newValue}
@@ -326,16 +279,13 @@ public nonisolated struct MoneyRecap_V1_SalarySetting: Sendable {
   fileprivate var _originalAmount: MoneyRecap_V1_Money? = nil
 }
 
-/// One append-only saving_target_setting row (PRD §7, D65).
 public nonisolated struct MoneyRecap_V1_SavingTargetSetting: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// 0 to 100; 0 means no Saving Target (PRD §8.4).
   public var percent: Int32 = 0
 
-  /// "YYYY-MM" the row takes effect from.
   public var effectiveFrom: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -343,15 +293,11 @@ public nonisolated struct MoneyRecap_V1_SavingTargetSetting: Sendable {
   public init() {}
 }
 
-/// What Settings draws from ledger (PRD §6.16): the rows in force this month,
-/// any row already saved for a later month, and the facts the D56 sheet and
-/// the §8.9 confirm sheet decide on.
 public nonisolated struct MoneyRecap_V1_LedgerSettings: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The Salary in force this month; absent when the row reads "Not set".
   public var salary: MoneyRecap_V1_SalarySetting {
     get {_storage._salary ?? MoneyRecap_V1_SalarySetting()}
     set {_uniqueStorage()._salary = newValue}
@@ -361,7 +307,6 @@ public nonisolated struct MoneyRecap_V1_LedgerSettings: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// A Salary effective from a later month (D56 "from your next payday").
   public var nextSalary: MoneyRecap_V1_SalarySetting {
     get {_storage._nextSalary ?? MoneyRecap_V1_SalarySetting()}
     set {_uniqueStorage()._nextSalary = newValue}
@@ -371,8 +316,6 @@ public nonisolated struct MoneyRecap_V1_LedgerSettings: @unchecked Sendable {
   /// Clears the value of `nextSalary`. Subsequent reads from it will return its default value.
   public mutating func clearNextSalary() {_uniqueStorage()._nextSalary = nil}
 
-  /// The Saving Target in force this month; absent when "Not set", which is
-  /// no row or a 0 percent row (PRD §8.4).
   public var savingTarget: MoneyRecap_V1_SavingTargetSetting {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
     set {_uniqueStorage()._savingTarget = newValue}
@@ -382,7 +325,6 @@ public nonisolated struct MoneyRecap_V1_LedgerSettings: @unchecked Sendable {
   /// Clears the value of `savingTarget`. Subsequent reads from it will return its default value.
   public mutating func clearSavingTarget() {_uniqueStorage()._savingTarget = nil}
 
-  /// A Saving Target effective from next month (D65).
   public var nextSavingTarget: MoneyRecap_V1_SavingTargetSetting {
     get {_storage._nextSavingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
     set {_uniqueStorage()._nextSavingTarget = newValue}
@@ -392,28 +334,21 @@ public nonisolated struct MoneyRecap_V1_LedgerSettings: @unchecked Sendable {
   /// Clears the value of `nextSavingTarget`. Subsequent reads from it will return its default value.
   public mutating func clearNextSavingTarget() {_uniqueStorage()._nextSavingTarget = nil}
 
-  /// Computed by ledger in the Member's zone; true opens the D56 sheet.
   public var paydayPassedThisMonth: Bool {
     get {_storage._paydayPassedThisMonth}
     set {_uniqueStorage()._paydayPassedThisMonth = newValue}
   }
 
-  /// ISO 4217 code every amount is held in.
   public var currencyCode: String {
     get {_storage._currencyCode}
     set {_uniqueStorage()._currencyCode = newValue}
   }
 
-  /// False with no Salary and no Spends: a currency change then skips the
-  /// confirm sheet (PRD §8.9 step 2).
   public var hasAmountsToConvert_p: Bool {
     get {_storage._hasAmountsToConvert_p}
     set {_uniqueStorage()._hasAmountsToConvert_p = newValue}
   }
 
-  /// "YYYY-MM" a Saving Target saved now starts in: this month while none was
-  /// saved after setup, next month once one was, a 0 percent row included
-  /// (D65); the sign-up month in a setup save's answer (spec #92).
   public var newSavingTargetFrom: String {
     get {_storage._newSavingTargetFrom}
     set {_uniqueStorage()._newSavingTargetFrom = newValue}
@@ -426,23 +361,17 @@ public nonisolated struct MoneyRecap_V1_LedgerSettings: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-/// The before-and-after values for the currency confirm sheet (PRD §8.9 step
-/// 3), rounded by ledger; the Saving Target percent is untouched.
 public nonisolated struct MoneyRecap_V1_ConversionPreview: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// ISO 4217 code of every amount today.
   public var fromCurrencyCode: String = String()
 
-  /// ISO 4217 code the amounts are rewritten into.
   public var toCurrencyCode: String = String()
 
-  /// Decimal string: units of to_currency_code per unit of from_currency_code.
   public var rate: String = String()
 
-  /// The Salary in force; absent with no Salary.
   public var salaryBefore: MoneyRecap_V1_Money {
     get {_salaryBefore ?? MoneyRecap_V1_Money()}
     set {_salaryBefore = newValue}
@@ -461,8 +390,6 @@ public nonisolated struct MoneyRecap_V1_ConversionPreview: Sendable {
   /// Clears the value of `salaryAfter`. Subsequent reads from it will return its default value.
   public mutating func clearSalaryAfter() {self._salaryAfter = nil}
 
-  /// Every Spend of every month, not one month's (the D6 row "Spends"): the
-  /// sum before, and the sum of each Spend rewritten after.
   public var spendsBefore: MoneyRecap_V1_Money {
     get {_spendsBefore ?? MoneyRecap_V1_Money()}
     set {_spendsBefore = newValue}

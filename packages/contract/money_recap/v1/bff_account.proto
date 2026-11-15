@@ -9,58 +9,32 @@ import "money_recap/v1/ledger_views.proto";
 import "money_recap/v1/members.proto";
 import "money_recap/v1/notify.proto";
 
-// The only RPC sent without a bearer token (PRD §6.2, ARCHITECTURE §7.5).
 message BffServiceRequestMagicLinkRequest {
-  // The address as typed; RFC 5322 syntax is checked on the phone and again
-  // by the BFF.
   string email = 1;
 }
 
-// Success says only that a link was sent; the phone moves to Check your
-// inbox (PRD §6.3).
 message BffServiceRequestMagicLinkResponse {}
 
-// Onboarding steps 1 and 2, a skipped step, and Settings > Profile (PRD
-// §6.4, §6.5, §6.16). A present field replaces the stored value; an absent
-// one is untouched.
 message BffServiceSaveProfileRequest {
-  // 1 to 30 characters, trimmed: letters, spaces, hyphens and apostrophes
-  // (PRD §6.4); anything else is invalid_argument, checked here, not only on
-  // the phone.
   optional string display_name = 1;
-  // One of the six keys Profile.avatar_key lists (PRD §6.4); any other is
-  // invalid_argument.
   optional string avatar_key = 2;
-  // ISO 4217. Accepted during onboarding, where a saved Salary is relabelled,
-  // never converted (spec #92); after it, failed_precondition, since
-  // ChangeCurrency is the path (PRD §8.9).
   optional string currency_code = 3;
-  // The onboarding step just completed or skipped, 1 to 4 (PRD §5 step 6);
-  // a skip sends only this field. Absent from Settings > Profile.
   optional int32 onboarding_step = 4;
 }
 
 message BffServiceSaveProfileResponse {
   Profile profile = 1;
-  // Step 3's answer as ledger relabelled it, when this save changed the
-  // Currency during onboarding and a Salary was saved (spec #92).
   optional SalarySetting salary = 2;
 }
 
-// Called on every launch (ARCHITECTURE §6, A3).
 message BffServiceSetTimezoneRequest {
-  // IANA zone name.
   string timezone = 1;
 }
 
-// The Profile after the call; deletion_requested_at present and under 24
-// hours old opens the restore sheet (PRD §6.18, D60).
 message BffServiceSetTimezoneResponse {
   Profile profile = 1;
 }
 
-// One toggle or the reminder time changed: the whole prefs message is sent,
-// since each writes immediately (PRD §6.16).
 message BffServiceSaveNotificationPrefsRequest {
   NotificationPrefs prefs = 1;
 }
@@ -69,18 +43,13 @@ message BffServiceSaveNotificationPrefsResponse {
   NotificationPrefs prefs = 1;
 }
 
-// Sent once push permission is granted, after the first Spend (PRD §10, I8).
 message BffServiceRegisterDeviceRequest {
-  // The APNs device token as hex.
   string apns_token = 1;
 }
 
 message BffServiceRegisterDeviceResponse {}
 
-// Log out (PRD §6.16, SCREEN-STATES D12): this phone stops getting the
-// Member's pushes. Best effort; the phone signs out whatever the answer.
 message BffServiceForgetDeviceRequest {
-  // The APNs device token as hex, as RegisterDevice last sent it.
   string apns_token = 1;
 }
 
@@ -88,22 +57,16 @@ message BffServiceForgetDeviceResponse {}
 
 message BffServiceRequestExportRequest {}
 
-// Success means the CSV was handed to email: the button reads "Sent" for 60
-// seconds (PRD §6.16, D67). Nothing is stored (D39).
 message BffServiceRequestExportResponse {}
 
 message BffServiceRequestDeletionRequest {}
 
-// On this response the phone signs out and erases its cache (PRD §9,
-// ARCHITECTURE §7.1 step 1); the purge runs 24 hours after the stamp (D60).
 message BffServiceRequestDeletionResponse {
   google.protobuf.Timestamp deletion_requested_at = 1;
 }
 
-// "Keep my account" on the restore sheet (PRD §6.18).
 message BffServiceCancelDeletionRequest {}
 
-// The Profile with the stamp cleared; the app continues to Home.
 message BffServiceCancelDeletionResponse {
   Profile profile = 1;
 }

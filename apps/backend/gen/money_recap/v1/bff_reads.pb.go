@@ -22,9 +22,8 @@ const (
 )
 
 type BffServiceGetRecapRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "YYYY-MM"; the current month answers the month-so-far preview (PRD D47).
-	Month         string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Month         string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -111,9 +110,8 @@ func (x *BffServiceGetRecapResponse) GetRecap() *RecapView {
 }
 
 type BffServiceListSpendsRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "YYYY-MM"; empty means the current month in the Member's zone (D59).
-	Month         string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Month         string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -359,18 +357,12 @@ func (x *BffServiceGetSettingsResponse) GetSettings() *SettingsView {
 	return nil
 }
 
-// Nothing is written: the rate is quoted and ledger previews the rewrite
-// (PRD §8.9 steps 1 to 3).
 type BffServicePreviewCurrencyChangeRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// ISO 4217 code the Member picked.
-	ToCurrencyCode string `protobuf:"bytes,1,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
-	// Decimal string the Member typed after an unsupported pair or a failed
-	// fetch (D7), at most 11 digits before the separator and 12 after; empty
-	// asks currency.Quote.
-	ManualRate    string `protobuf:"bytes,2,opt,name=manual_rate,json=manualRate,proto3" json:"manual_rate,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ToCurrencyCode string                 `protobuf:"bytes,1,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
+	ManualRate     string                 `protobuf:"bytes,2,opt,name=manual_rate,json=manualRate,proto3" json:"manual_rate,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *BffServicePreviewCurrencyChangeRequest) Reset() {

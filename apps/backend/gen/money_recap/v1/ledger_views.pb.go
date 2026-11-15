@@ -21,9 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Which of the three PRD §6.17 situations a Partial Recap is in: the current
-// month still running, the sign-up month whose Payday preceded sign-up, or a
-// past month with Spends but no Money In. Unspecified on a full Recap.
 type PartialSituation int32
 
 const (
@@ -76,36 +73,18 @@ func (PartialSituation) EnumDescriptor() ([]byte, []int) {
 	return file_money_recap_v1_ledger_views_proto_rawDescGZIP(), []int{0}
 }
 
-// Every Home figure for one month (PRD §8), computed by ledger and never
-// recomputed elsewhere (A2). Also the "recomputed month" every write answers
-// and every spend event carries (ARCHITECTURE §7.2).
 type MonthSummary struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "YYYY-MM" in the Member's local dates (PRD D33).
-	Month string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
-	// Spent so far in the month (PRD §8.3).
-	Spent *Money `protobuf:"bytes,2,opt,name=spent,proto3" json:"spent,omitempty"`
-	// Money In for the month (PRD §8.2); 0 before Payday or with no Salary.
-	MoneyIn *Money `protobuf:"bytes,3,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
-	// Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
-	Saved *Money `protobuf:"bytes,4,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
-	// Absent until a Salary is in force for the month (PRD D54).
-	Salary *SalaryFacts `protobuf:"bytes,5,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Absent without a Saving Target in force: no row, or a 0 percent row
-	// (PRD §8.4), so a present target always has percent above 0.
-	SavingTarget *SavingTargetFacts `protobuf:"bytes,6,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
-	// The month's Streak so far (PRD §8.5, D43): the longest spend-free run in
-	// the window to today. With no Spends it is the elapsed days, which the
-	// empty Spend list prints as "Streak day {n}"; 1 on the sign-up day.
-	StreakDay int32 `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
-	// Days left in the month counting today, never below 1 (PRD §8.7).
-	DaysRemaining int32 `protobuf:"varint,8,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
-	// True for a partial month (PRD §8.11): the Recap is the §6.17 screens.
-	Partial bool `protobuf:"varint,9,opt,name=partial,proto3" json:"partial,omitempty"`
-	// The §8.8 banner copy (PRD D53), chosen here because only ledger holds
-	// Spent, the line and Payday (§7.3). Absent until Spent exceeds the line;
-	// notify keeps it from the moment it fires and Home shows notify's copy.
-	TargetWarning *TargetWarning `protobuf:"bytes,10,opt,name=target_warning,json=targetWarning,proto3,oneof" json:"target_warning,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Month         string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
+	Spent         *Money                 `protobuf:"bytes,2,opt,name=spent,proto3" json:"spent,omitempty"`
+	MoneyIn       *Money                 `protobuf:"bytes,3,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
+	Saved         *Money                 `protobuf:"bytes,4,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
+	Salary        *SalaryFacts           `protobuf:"bytes,5,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
+	SavingTarget  *SavingTargetFacts     `protobuf:"bytes,6,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	StreakDay     int32                  `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
+	DaysRemaining int32                  `protobuf:"varint,8,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
+	Partial       bool                   `protobuf:"varint,9,opt,name=partial,proto3" json:"partial,omitempty"`
+	TargetWarning *TargetWarning         `protobuf:"bytes,10,opt,name=target_warning,json=targetWarning,proto3,oneof" json:"target_warning,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -210,23 +189,14 @@ func (x *MonthSummary) GetTargetWarning() *TargetWarning {
 	return nil
 }
 
-// The Streak and its window as Recap screen 2 draws them (PRD §6.12, §8.5):
-// StreakDots draws one dot per day of the window with the run's days lit.
 type StreakFacts struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The longest run of consecutive spend-free days inside the window.
-	Days int32 `protobuf:"varint,1,opt,name=days,proto3" json:"days,omitempty"`
-	// First day of the window, "YYYY-MM-DD": the 1st or the sign-up date (D43).
-	WindowStart string `protobuf:"bytes,2,opt,name=window_start,json=windowStart,proto3" json:"window_start,omitempty"`
-	// Last day of the window, "YYYY-MM-DD": month end, or today this month.
-	WindowEnd string `protobuf:"bytes,3,opt,name=window_end,json=windowEnd,proto3" json:"window_end,omitempty"`
-	// True when days is at least 7, the badge rule of PRD §6.12.
-	BadgeUnlocked bool `protobuf:"varint,5,opt,name=badge_unlocked,json=badgeUnlocked,proto3" json:"badge_unlocked,omitempty"`
-	// First day of the run, "YYYY-MM-DD"; of two runs of the longest length,
-	// the earlier. Empty when days is 0.
-	RunStart string `protobuf:"bytes,6,opt,name=run_start,json=runStart,proto3" json:"run_start,omitempty"`
-	// Last day of the run, "YYYY-MM-DD"; empty when days is 0.
-	RunEnd        string `protobuf:"bytes,7,opt,name=run_end,json=runEnd,proto3" json:"run_end,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Days          int32                  `protobuf:"varint,1,opt,name=days,proto3" json:"days,omitempty"`
+	WindowStart   string                 `protobuf:"bytes,2,opt,name=window_start,json=windowStart,proto3" json:"window_start,omitempty"`
+	WindowEnd     string                 `protobuf:"bytes,3,opt,name=window_end,json=windowEnd,proto3" json:"window_end,omitempty"`
+	BadgeUnlocked bool                   `protobuf:"varint,5,opt,name=badge_unlocked,json=badgeUnlocked,proto3" json:"badge_unlocked,omitempty"`
+	RunStart      string                 `protobuf:"bytes,6,opt,name=run_start,json=runStart,proto3" json:"run_start,omitempty"`
+	RunEnd        string                 `protobuf:"bytes,7,opt,name=run_end,json=runEnd,proto3" json:"run_end,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -303,15 +273,12 @@ func (x *StreakFacts) GetRunEnd() string {
 	return ""
 }
 
-// One Category's share of a month: the CategoryBar of Recap screen 3 and the
-// Category row of the Spend list (PRD §6.13, §6.10).
 type CategoryShare struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	Category Category               `protobuf:"varint,1,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	Amount   *Money                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	// round(amount ÷ Spent × 100).
-	Percent       int32 `protobuf:"varint,3,opt,name=percent,proto3" json:"percent,omitempty"`
-	SpendCount    int32 `protobuf:"varint,4,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Category      Category               `protobuf:"varint,1,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
+	Amount        *Money                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	Percent       int32                  `protobuf:"varint,3,opt,name=percent,proto3" json:"percent,omitempty"`
+	SpendCount    int32                  `protobuf:"varint,4,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -374,52 +341,27 @@ func (x *CategoryShare) GetSpendCount() int32 {
 	return 0
 }
 
-// One month's Recap as ledger computes it (PRD §6.11 to §6.14, §6.17, §8): the
-// four full screens or the four Partial Recap screens. Fields a screen has a
-// "none" branch for are optional, so the phone passes null, never a zero.
 type Recap struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "YYYY-MM".
-	Month string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
-	// Unspecified on a full Recap; any other value means the §6.17 screens
-	// (PRD §8.11). This is the one partial flag.
-	Situation PartialSituation `protobuf:"varint,2,opt,name=situation,proto3,enum=money_recap.v1.PartialSituation" json:"situation,omitempty"`
-	MoneyIn   *Money           `protobuf:"bytes,3,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
-	Spent     *Money           `protobuf:"bytes,4,opt,name=spent,proto3" json:"spent,omitempty"`
-	// Absent while Money In is 0 (PRD D41).
-	Saved *Money `protobuf:"bytes,5,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
-	// Number of Spends in the month; the "{n} spends" chip of §6.17.
-	SpendCount int32 `protobuf:"varint,6,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
-	// Absent without a Salary; screen 3 of a Partial Recap names the Payday (D55).
-	Salary *SalaryFacts `protobuf:"bytes,7,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Absent without a Saving Target in force (no row, or a 0 percent row): the
-	// §6.12 and §6.13 no-target branches.
-	SavingTarget *SavingTargetFacts `protobuf:"bytes,8,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
-	// round(Saved ÷ Target amount × 100), clamped 0 to 999 (PRD §8.4). Absent
-	// without a Saving Target or without Saved.
-	KeptPercent *int32       `protobuf:"varint,9,opt,name=kept_percent,json=keptPercent,proto3,oneof" json:"kept_percent,omitempty"`
-	Streak      *StreakFacts `protobuf:"bytes,10,opt,name=streak,proto3" json:"streak,omitempty"`
-	// One entry per Category with a Spend, sorted by amount descending; the
-	// phone applies the three-bar cap (PRD D71).
-	Categories []*CategoryShare `protobuf:"bytes,11,rep,name=categories,proto3" json:"categories,omitempty"`
-	// The largest single Spend, ties to the earliest date (PRD §8.3). Absent
-	// with no Spends.
-	Splurge *Spend `protobuf:"bytes,12,opt,name=splurge,proto3,oneof" json:"splurge,omitempty"`
-	// Absent when Money In is 0 or no Saving Target is set (PRD §8.6).
-	Archetype *Archetype `protobuf:"varint,13,opt,name=archetype,proto3,enum=money_recap.v1.Archetype,oneof" json:"archetype,omitempty"`
-	// The Archetype's name as the phone shows it, the same string as
-	// RecapMonth.label (A2: the phone never names one); empty without one.
-	ArchetypeName string `protobuf:"bytes,14,opt,name=archetype_name,json=archetypeName,proto3" json:"archetype_name,omitempty"`
-	// The Archetype's one-line description from PRD §8.6; empty without one.
-	ArchetypeDescription string `protobuf:"bytes,15,opt,name=archetype_description,json=archetypeDescription,proto3" json:"archetype_description,omitempty"`
-	// Screen 4 line of a Partial Recap, chosen per situation (PRD §6.17); empty
-	// on a full Recap.
-	ClosingLine string `protobuf:"bytes,16,opt,name=closing_line,json=closingLine,proto3" json:"closing_line,omitempty"`
-	// The Archetype's title, screen 4's and the share image's big title ("The
-	// Squirrel"; PRD §6.14, §6.15); empty without one.
-	ArchetypeTitle string `protobuf:"bytes,17,opt,name=archetype_title,json=archetypeTitle,proto3" json:"archetype_title,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Month                string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
+	Situation            PartialSituation       `protobuf:"varint,2,opt,name=situation,proto3,enum=money_recap.v1.PartialSituation" json:"situation,omitempty"`
+	MoneyIn              *Money                 `protobuf:"bytes,3,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
+	Spent                *Money                 `protobuf:"bytes,4,opt,name=spent,proto3" json:"spent,omitempty"`
+	Saved                *Money                 `protobuf:"bytes,5,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
+	SpendCount           int32                  `protobuf:"varint,6,opt,name=spend_count,json=spendCount,proto3" json:"spend_count,omitempty"`
+	Salary               *SalaryFacts           `protobuf:"bytes,7,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
+	SavingTarget         *SavingTargetFacts     `protobuf:"bytes,8,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	KeptPercent          *int32                 `protobuf:"varint,9,opt,name=kept_percent,json=keptPercent,proto3,oneof" json:"kept_percent,omitempty"`
+	Streak               *StreakFacts           `protobuf:"bytes,10,opt,name=streak,proto3" json:"streak,omitempty"`
+	Categories           []*CategoryShare       `protobuf:"bytes,11,rep,name=categories,proto3" json:"categories,omitempty"`
+	Splurge              *Spend                 `protobuf:"bytes,12,opt,name=splurge,proto3,oneof" json:"splurge,omitempty"`
+	Archetype            *Archetype             `protobuf:"varint,13,opt,name=archetype,proto3,enum=money_recap.v1.Archetype,oneof" json:"archetype,omitempty"`
+	ArchetypeName        string                 `protobuf:"bytes,14,opt,name=archetype_name,json=archetypeName,proto3" json:"archetype_name,omitempty"`
+	ArchetypeDescription string                 `protobuf:"bytes,15,opt,name=archetype_description,json=archetypeDescription,proto3" json:"archetype_description,omitempty"`
+	ClosingLine          string                 `protobuf:"bytes,16,opt,name=closing_line,json=closingLine,proto3" json:"closing_line,omitempty"`
+	ArchetypeTitle       string                 `protobuf:"bytes,17,opt,name=archetype_title,json=archetypeTitle,proto3" json:"archetype_title,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *Recap) Reset() {
@@ -571,19 +513,12 @@ func (x *Recap) GetArchetypeTitle() string {
 	return ""
 }
 
-// One append-only salary_setting row (PRD §7): the amount and Payday in force
-// from effective_from.
 type SalarySetting struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	Amount *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
-	// 1 to 31, or "last" for the Last day token (PRD D51).
-	Payday string `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
-	// "YYYY-MM" the row takes effect from (PRD D56).
-	EffectiveFrom string `protobuf:"bytes,3,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
-	// Always present: the amount as typed, with its Currency, never touched by a
-	// conversion (PRD §8.9); onboarding's relabel moves it to the new code with
-	// the amount (spec #92).
-	OriginalAmount *Money `protobuf:"bytes,4,opt,name=original_amount,json=originalAmount,proto3" json:"original_amount,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Amount         *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Payday         string                 `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
+	EffectiveFrom  string                 `protobuf:"bytes,3,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	OriginalAmount *Money                 `protobuf:"bytes,4,opt,name=original_amount,json=originalAmount,proto3" json:"original_amount,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -646,13 +581,10 @@ func (x *SalarySetting) GetOriginalAmount() *Money {
 	return nil
 }
 
-// One append-only saving_target_setting row (PRD §7, D65).
 type SavingTargetSetting struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 0 to 100; 0 means no Saving Target (PRD §8.4).
-	Percent int32 `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
-	// "YYYY-MM" the row takes effect from.
-	EffectiveFrom string `protobuf:"bytes,2,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Percent       int32                  `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
+	EffectiveFrom string                 `protobuf:"bytes,2,opt,name=effective_from,json=effectiveFrom,proto3" json:"effective_from,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -701,33 +633,18 @@ func (x *SavingTargetSetting) GetEffectiveFrom() string {
 	return ""
 }
 
-// What Settings draws from ledger (PRD §6.16): the rows in force this month,
-// any row already saved for a later month, and the facts the D56 sheet and
-// the §8.9 confirm sheet decide on.
 type LedgerSettings struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The Salary in force this month; absent when the row reads "Not set".
-	Salary *SalarySetting `protobuf:"bytes,1,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// A Salary effective from a later month (D56 "from your next payday").
-	NextSalary *SalarySetting `protobuf:"bytes,2,opt,name=next_salary,json=nextSalary,proto3,oneof" json:"next_salary,omitempty"`
-	// The Saving Target in force this month; absent when "Not set", which is
-	// no row or a 0 percent row (PRD §8.4).
-	SavingTarget *SavingTargetSetting `protobuf:"bytes,3,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
-	// A Saving Target effective from next month (D65).
-	NextSavingTarget *SavingTargetSetting `protobuf:"bytes,4,opt,name=next_saving_target,json=nextSavingTarget,proto3,oneof" json:"next_saving_target,omitempty"`
-	// Computed by ledger in the Member's zone; true opens the D56 sheet.
-	PaydayPassedThisMonth bool `protobuf:"varint,5,opt,name=payday_passed_this_month,json=paydayPassedThisMonth,proto3" json:"payday_passed_this_month,omitempty"`
-	// ISO 4217 code every amount is held in.
-	CurrencyCode string `protobuf:"bytes,6,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	// False with no Salary and no Spends: a currency change then skips the
-	// confirm sheet (PRD §8.9 step 2).
-	HasAmountsToConvert bool `protobuf:"varint,7,opt,name=has_amounts_to_convert,json=hasAmountsToConvert,proto3" json:"has_amounts_to_convert,omitempty"`
-	// "YYYY-MM" a Saving Target saved now starts in: this month while none was
-	// saved after setup, next month once one was, a 0 percent row included
-	// (D65); the sign-up month in a setup save's answer (spec #92).
-	NewSavingTargetFrom string `protobuf:"bytes,8,opt,name=new_saving_target_from,json=newSavingTargetFrom,proto3" json:"new_saving_target_from,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Salary                *SalarySetting         `protobuf:"bytes,1,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
+	NextSalary            *SalarySetting         `protobuf:"bytes,2,opt,name=next_salary,json=nextSalary,proto3,oneof" json:"next_salary,omitempty"`
+	SavingTarget          *SavingTargetSetting   `protobuf:"bytes,3,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	NextSavingTarget      *SavingTargetSetting   `protobuf:"bytes,4,opt,name=next_saving_target,json=nextSavingTarget,proto3,oneof" json:"next_saving_target,omitempty"`
+	PaydayPassedThisMonth bool                   `protobuf:"varint,5,opt,name=payday_passed_this_month,json=paydayPassedThisMonth,proto3" json:"payday_passed_this_month,omitempty"`
+	CurrencyCode          string                 `protobuf:"bytes,6,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	HasAmountsToConvert   bool                   `protobuf:"varint,7,opt,name=has_amounts_to_convert,json=hasAmountsToConvert,proto3" json:"has_amounts_to_convert,omitempty"`
+	NewSavingTargetFrom   string                 `protobuf:"bytes,8,opt,name=new_saving_target_from,json=newSavingTargetFrom,proto3" json:"new_saving_target_from,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *LedgerSettings) Reset() {
@@ -816,25 +733,17 @@ func (x *LedgerSettings) GetNewSavingTargetFrom() string {
 	return ""
 }
 
-// The before-and-after values for the currency confirm sheet (PRD §8.9 step
-// 3), rounded by ledger; the Saving Target percent is untouched.
 type ConversionPreview struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// ISO 4217 code of every amount today.
-	FromCurrencyCode string `protobuf:"bytes,1,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
-	// ISO 4217 code the amounts are rewritten into.
-	ToCurrencyCode string `protobuf:"bytes,2,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
-	// Decimal string: units of to_currency_code per unit of from_currency_code.
-	Rate string `protobuf:"bytes,3,opt,name=rate,proto3" json:"rate,omitempty"`
-	// The Salary in force; absent with no Salary.
-	SalaryBefore *Money `protobuf:"bytes,4,opt,name=salary_before,json=salaryBefore,proto3,oneof" json:"salary_before,omitempty"`
-	SalaryAfter  *Money `protobuf:"bytes,5,opt,name=salary_after,json=salaryAfter,proto3,oneof" json:"salary_after,omitempty"`
-	// Every Spend of every month, not one month's (the D6 row "Spends"): the
-	// sum before, and the sum of each Spend rewritten after.
-	SpendsBefore  *Money `protobuf:"bytes,6,opt,name=spends_before,json=spendsBefore,proto3" json:"spends_before,omitempty"`
-	SpendsAfter   *Money `protobuf:"bytes,7,opt,name=spends_after,json=spendsAfter,proto3" json:"spends_after,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	FromCurrencyCode string                 `protobuf:"bytes,1,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
+	ToCurrencyCode   string                 `protobuf:"bytes,2,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
+	Rate             string                 `protobuf:"bytes,3,opt,name=rate,proto3" json:"rate,omitempty"`
+	SalaryBefore     *Money                 `protobuf:"bytes,4,opt,name=salary_before,json=salaryBefore,proto3,oneof" json:"salary_before,omitempty"`
+	SalaryAfter      *Money                 `protobuf:"bytes,5,opt,name=salary_after,json=salaryAfter,proto3,oneof" json:"salary_after,omitempty"`
+	SpendsBefore     *Money                 `protobuf:"bytes,6,opt,name=spends_before,json=spendsBefore,proto3" json:"spends_before,omitempty"`
+	SpendsAfter      *Money                 `protobuf:"bytes,7,opt,name=spends_after,json=spendsAfter,proto3" json:"spends_after,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ConversionPreview) Reset() {

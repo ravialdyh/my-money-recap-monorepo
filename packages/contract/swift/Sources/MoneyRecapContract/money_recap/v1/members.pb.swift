@@ -20,9 +20,6 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the walking
-/// skeleton's (#10); 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
-/// (PRD §6.18, D60).
 public nonisolated struct MoneyRecap_V1_Profile: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -30,32 +27,20 @@ public nonisolated struct MoneyRecap_V1_Profile: Sendable {
 
   public var memberID: String = String()
 
-  /// The token's email claim, refreshed by every GetOrCreateBySubject whose
-  /// token carries one; an empty claim keeps the stored address.
   public var email: String = String()
 
-  /// Empty until onboarding sets it.
   public var displayName: String = String()
 
-  /// Empty until onboarding sets it; otherwise one of the six Avatar keys, the
-  /// authoritative list: fox, otter, panda, frog, owl, rabbit (PRD D36, §6.4).
   public var avatarKey: String = String()
 
-  /// ISO 4217; empty until onboarding sets it.
   public var currencyCode: String = String()
 
-  /// IANA zone name (A3); empty until SetTimezone runs.
   public var timezone: String = String()
 
-  /// Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1,
-  /// 4 once onboarding is done. A skipped step counts as saved (PRD §6.6).
   public var onboardingStep: Int32 = 0
 
-  /// "YYYY-MM-DD", the local date at the moment of sign-up, fixed forever (A3,
-  /// PRD §7, D43); empty until the first SetTimezone converts the create time.
   public var signedUpOn: String = String()
 
-  /// Present only while a deletion request is pending (PRD D60).
   public var deletionRequestedAt: SwiftProtobuf.Google_Protobuf_Timestamp {
     get {_deletionRequestedAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
     set {_deletionRequestedAt = newValue}
@@ -65,9 +50,6 @@ public nonisolated struct MoneyRecap_V1_Profile: Sendable {
   /// Clears the value of `deletionRequestedAt`. Subsequent reads from it will return its default value.
   public mutating func clearDeletionRequestedAt() {self._deletionRequestedAt = nil}
 
-  /// How many decimals the Currency has, from the CLDR data ledger rounds with
-  /// (ARCHITECTURE §7.2); 0 while currency_code is empty. Step 3's amount field
-  /// allows exactly this many (spec #92).
   public var currencyDigits: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

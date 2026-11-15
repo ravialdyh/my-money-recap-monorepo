@@ -20,7 +20,6 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// The eight fixed labels a Spend belongs to (PRD D20).
 public nonisolated enum MoneyRecap_V1_Category: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -83,7 +82,6 @@ public nonisolated enum MoneyRecap_V1_Category: SwiftProtobuf.Enum, Swift.CaseIt
 
 }
 
-/// The four money personalities a month's numbers assign (PRD §8.6).
 public nonisolated enum MoneyRecap_V1_Archetype: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -130,7 +128,6 @@ public nonisolated enum MoneyRecap_V1_Archetype: SwiftProtobuf.Enum, Swift.CaseI
 
 }
 
-/// Which month a Salary saved after Payday applies from (PRD D56).
 public nonisolated enum MoneyRecap_V1_SalaryAppliesFrom: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -169,7 +166,6 @@ public nonisolated enum MoneyRecap_V1_SalaryAppliesFrom: SwiftProtobuf.Enum, Swi
 
 }
 
-/// Where a currency-change rate came from (PRD §7 CurrencyConversion, §8.9).
 public nonisolated enum MoneyRecap_V1_RateSource: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -208,20 +204,13 @@ public nonisolated enum MoneyRecap_V1_RateSource: SwiftProtobuf.Enum, Swift.Case
 
 }
 
-/// One Spend the Member logs by hand (PRD §6.9, §7): a Money amount (D57), a
-/// Category and the device's local calendar date at logging, stored plain (D34).
-/// The Member is the caller's, or the event envelope's, so it is not repeated.
 public nonisolated struct MoneyRecap_V1_Spend: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Assigned by ledger, which owns the row (ARCHITECTURE §7.2); EditSpend and
-  /// DeleteSpend name it.
   public var id: String = String()
 
-  /// Always present, above zero (PRD §6.9), in the account's Currency;
-  /// rewritten by a currency change (PRD §8.9).
   public var amount: MoneyRecap_V1_Money {
     get {_amount ?? MoneyRecap_V1_Money()}
     set {_amount = newValue}
@@ -231,8 +220,6 @@ public nonisolated struct MoneyRecap_V1_Spend: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// Always present: the amount as typed, with its Currency, never touched by a
-  /// currency change.
   public var originalAmount: MoneyRecap_V1_Money {
     get {_originalAmount ?? MoneyRecap_V1_Money()}
     set {_originalAmount = newValue}
@@ -244,13 +231,10 @@ public nonisolated struct MoneyRecap_V1_Spend: Sendable {
 
   public var category: MoneyRecap_V1_Category = .unspecified
 
-  /// "YYYY-MM-DD" (PRD D34).
   public var date: String = String()
 
-  /// Optional, at most 80 characters (PRD §6.9).
   public var note: String = String()
 
-  /// Both always present, stamped by ledger; equal until the first edit.
   public var createdAt: SwiftProtobuf.Google_Protobuf_Timestamp {
     get {_createdAt ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
     set {_createdAt = newValue}
@@ -279,7 +263,6 @@ public nonisolated struct MoneyRecap_V1_Spend: Sendable {
   fileprivate var _updatedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
 }
 
-/// The Salary as Home needs it: the hero eyebrow's countdown (PRD §6.8).
 public nonisolated struct MoneyRecap_V1_SalaryFacts: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -294,11 +277,8 @@ public nonisolated struct MoneyRecap_V1_SalaryFacts: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// 1 to 31, or "last" for the Last day token (PRD D51).
   public var payday: String = String()
 
-  /// Days until the effective Payday; in a partial sign-up month (D52), until
-  /// next month's; 0 otherwise once it has passed or is today.
   public var daysUntilPayday: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -308,7 +288,6 @@ public nonisolated struct MoneyRecap_V1_SalaryFacts: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The Saving Target as Home's target card needs it (PRD §8.4, §8.7).
 public nonisolated struct MoneyRecap_V1_SavingTargetFacts: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -316,7 +295,6 @@ public nonisolated struct MoneyRecap_V1_SavingTargetFacts: Sendable {
 
   public var percent: Int32 = 0
 
-  /// round-half-up(Salary × percent ÷ 100), computed by ledger.
   public var amount: MoneyRecap_V1_Money {
     get {_amount ?? MoneyRecap_V1_Money()}
     set {_amount = newValue}
@@ -326,7 +304,6 @@ public nonisolated struct MoneyRecap_V1_SavingTargetFacts: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// The §8.7 sentence, chosen by ledger.
   public var progressSentence: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -336,7 +313,6 @@ public nonisolated struct MoneyRecap_V1_SavingTargetFacts: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The coral Banner (PRD D38, D53); copy chosen by ledger per §8.8.
 public nonisolated struct MoneyRecap_V1_TargetWarning: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -354,10 +330,8 @@ public nonisolated struct MoneyRecap_V1_RecapMonth: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// "YYYY-MM".
   public var month: String = String()
 
-  /// Archetype name, or "Partial" for a Partial Recap (PRD §8.11).
   public var label: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()

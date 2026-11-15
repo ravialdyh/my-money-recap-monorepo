@@ -20,24 +20,17 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// The three toggles and the reminder time from PRD §6.16 and §10. notify
-/// fills every field on read: a Member with no row gets the PRD §10 defaults,
-/// never proto3 zeros. The push-permission state lives on the phone, not here.
 public nonisolated struct MoneyRecap_V1_NotificationPrefs: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// "Recap ready", default on (PRD §10).
   public var recapReady: Bool = false
 
-  /// "Daily reminder", default off (PRD §10).
   public var dailyReminder: Bool = false
 
-  /// "HH:MM" in the Member's local zone (A3), default "20:00" (PRD §6.16).
   public var reminderTime: String = String()
 
-  /// "Target Warning", default on (PRD §10).
   public var targetWarning: Bool = false
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -45,9 +38,6 @@ public nonisolated struct MoneyRecap_V1_NotificationPrefs: Sendable {
   public init() {}
 }
 
-/// Typed error detail on EmailExport (ARCHITECTURE §7.3): the mail host
-/// permanently refused the address at bounced_at, so the phone shows the §6.16
-/// line naming it, with no link.
 public nonisolated struct MoneyRecap_V1_EmailBounced: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

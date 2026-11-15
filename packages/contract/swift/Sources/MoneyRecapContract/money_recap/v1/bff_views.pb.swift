@@ -20,14 +20,11 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// Everything Home draws (PRD §6.8), joined by the BFF (ARCHITECTURE §6.1).
-/// The phone stores this message whole and never recomputes a figure (A2, I4).
 public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Empty until onboarding; Home omits the greeting when empty.
   public var displayName: String {
     get {_storage._displayName}
     set {_uniqueStorage()._displayName = newValue}
@@ -38,20 +35,16 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
     set {_uniqueStorage()._avatarKey = newValue}
   }
 
-  /// ISO 4217 code every amount below is held in, ledger's, so it changes in
-  /// the conversion's own answer while members' copy follows by event (§8.9).
   public var currencyCode: String {
     get {_storage._currencyCode}
     set {_uniqueStorage()._currencyCode = newValue}
   }
 
-  /// The current Recap Month as "YYYY-MM" in the Member's local dates.
   public var month: String {
     get {_storage._month}
     set {_uniqueStorage()._month = newValue}
   }
 
-  /// Spent so far this month (PRD §8.3).
   public var spent: MoneyRecap_V1_Money {
     get {_storage._spent ?? MoneyRecap_V1_Money()}
     set {_uniqueStorage()._spent = newValue}
@@ -61,7 +54,6 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   /// Clears the value of `spent`. Subsequent reads from it will return its default value.
   public mutating func clearSpent() {_uniqueStorage()._spent = nil}
 
-  /// Money In this month (PRD §8.2).
   public var moneyIn: MoneyRecap_V1_Money {
     get {_storage._moneyIn ?? MoneyRecap_V1_Money()}
     set {_uniqueStorage()._moneyIn = newValue}
@@ -71,7 +63,6 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   /// Clears the value of `moneyIn`. Subsequent reads from it will return its default value.
   public mutating func clearMoneyIn() {_uniqueStorage()._moneyIn = nil}
 
-  /// Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
   public var saved: MoneyRecap_V1_Money {
     get {_storage._saved ?? MoneyRecap_V1_Money()}
     set {_uniqueStorage()._saved = newValue}
@@ -81,7 +72,6 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   /// Clears the value of `saved`. Subsequent reads from it will return its default value.
   public mutating func clearSaved() {_uniqueStorage()._saved = nil}
 
-  /// Absent until a Salary is set (PRD D54).
   public var salary: MoneyRecap_V1_SalaryFacts {
     get {_storage._salary ?? MoneyRecap_V1_SalaryFacts()}
     set {_uniqueStorage()._salary = newValue}
@@ -91,7 +81,6 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// Absent until a Saving Target is set.
   public var savingTarget: MoneyRecap_V1_SavingTargetFacts {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetFacts()}
     set {_uniqueStorage()._savingTarget = newValue}
@@ -101,21 +90,16 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   /// Clears the value of `savingTarget`. Subsequent reads from it will return its default value.
   public mutating func clearSavingTarget() {_uniqueStorage()._savingTarget = nil}
 
-  /// The month's Streak so far (PRD §8.5, D43): the longest spend-free run in
-  /// the window to today. With no Spends it is the elapsed days, which the
-  /// empty Spend list prints as "Streak day {n}"; 1 on the sign-up day.
   public var streakDay: Int32 {
     get {_storage._streakDay}
     set {_uniqueStorage()._streakDay = newValue}
   }
 
-  /// Days left in the month counting today, never below 1 (PRD §8.7).
   public var daysRemaining: Int32 {
     get {_storage._daysRemaining}
     set {_uniqueStorage()._daysRemaining = newValue}
   }
 
-  /// Absent unless the Target Warning has fired this month (PRD §8.8).
   public var targetWarning: MoneyRecap_V1_TargetWarning {
     get {_storage._targetWarning ?? MoneyRecap_V1_TargetWarning()}
     set {_uniqueStorage()._targetWarning = newValue}
@@ -125,28 +109,21 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   /// Clears the value of `targetWarning`. Subsequent reads from it will return its default value.
   public mutating func clearTargetWarning() {_uniqueStorage()._targetWarning = nil}
 
-  /// Past months with a Recap, newest first: the past-Recap list, SCREEN-STATES
-  /// C7 (PRD §6.8); each row opens its month's GetRecap.
   public var recapMonths: [MoneyRecap_V1_RecapMonth] {
     get {_storage._recapMonths}
     set {_uniqueStorage()._recapMonths = newValue}
   }
 
-  /// ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
   public var firstRecapOn: String {
     get {_storage._firstRecapOn}
     set {_uniqueStorage()._firstRecapOn = newValue}
   }
 
-  /// How many decimals the Currency has, as Profile.currency_digits: the Log
-  /// a spend amount field allows exactly this many (PRD §6.9).
   public var currencyDigits: Int32 {
     get {_storage._currencyDigits}
     set {_uniqueStorage()._currencyDigits = newValue}
   }
 
-  /// "YYYY-MM-DD", ledger's earliest date a Spend may carry, today being the
-  /// latest: the Log a spend date picker's range (PRD §6.9, D72).
   public var earliestSpendDate: String {
     get {_storage._earliestSpendDate}
     set {_uniqueStorage()._earliestSpendDate = newValue}
@@ -159,15 +136,11 @@ public nonisolated struct MoneyRecap_V1_HomeView: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-/// One month's Recap as the phone stores it (I4): ledger's Recap for the full
-/// or the Partial Recap (PRD §6.11 to §6.14, §6.17) joined with the Member's
-/// current Display Name, since nothing about a Recap is stored (§7).
 public nonisolated struct MoneyRecap_V1_RecapView: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Every figure of the month; situation says which four screens to draw.
   public var recap: MoneyRecap_V1_Recap {
     get {_recap ?? MoneyRecap_V1_Recap()}
     set {_recap = newValue}
@@ -177,10 +150,8 @@ public nonisolated struct MoneyRecap_V1_RecapView: Sendable {
   /// Clears the value of `recap`. Subsequent reads from it will return its default value.
   public mutating func clearRecap() {self._recap = nil}
 
-  /// The current Display Name (PRD §6.11, §6.14, SCREEN-STATES D2).
   public var displayName: String = String()
 
-  /// ISO 4217 code every amount in recap is held in, ledger's (HomeView).
   public var currencyCode: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -190,24 +161,17 @@ public nonisolated struct MoneyRecap_V1_RecapView: Sendable {
   fileprivate var _recap: MoneyRecap_V1_Recap? = nil
 }
 
-/// The Spend list for one month (PRD §6.10, D59): the switcher's months, one
-/// Category row and every Spend, newest first, joined by the BFF.
 public nonisolated struct MoneyRecap_V1_SpendListView: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// "YYYY-MM" the list shows.
   public var month: String = String()
 
-  /// ISO 4217 code every amount below is held in, ledger's (HomeView).
   public var currencyCode: String = String()
 
-  /// Every month with a Spend or Money In, "YYYY-MM", newest first, the current
-  /// month included: what the month switcher lists (PRD D59).
   public var months: [String] = []
 
-  /// Spent in the month (PRD §8.3); "0" for an empty month.
   public var spent: MoneyRecap_V1_Money {
     get {_spent ?? MoneyRecap_V1_Money()}
     set {_spent = newValue}
@@ -217,20 +181,12 @@ public nonisolated struct MoneyRecap_V1_SpendListView: Sendable {
   /// Clears the value of `spent`. Subsequent reads from it will return its default value.
   public mutating func clearSpent() {self._spent = nil}
 
-  /// One row per Category with a Spend, largest first (PRD §6.10).
   public var categories: [MoneyRecap_V1_CategoryShare] = []
 
-  /// Newest first, deleted rows excluded; the detail and edit sheets read
-  /// every §6.9 field from here.
   public var spends: [MoneyRecap_V1_Spend] = []
 
-  /// The month's Streak so far (PRD §8.5, D43): MonthSummary.streak_day for
-  /// the current month, Recap.streak.days for a past one; what the empty
-  /// month's "Nothing spent yet. Streak day {n}." line prints.
   public var streakDay: Int32 = 0
 
-  /// How many decimals the Currency has, as HomeView.currency_digits: the
-  /// Log a spend and Edit spend amount fields opened here allow this many.
   public var currencyDigits: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -240,15 +196,11 @@ public nonisolated struct MoneyRecap_V1_SpendListView: Sendable {
   fileprivate var _spent: MoneyRecap_V1_Money? = nil
 }
 
-/// Everything Settings draws (PRD §6.16): the profile from members, the rows
-/// in force and the D56 facts from ledger, the toggles from notify.
 public nonisolated struct MoneyRecap_V1_SettingsView: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Display Name, Avatar, Currency and the deletion stamp (§6.18); the
-  /// Currency and its decimals are ledger's, as in HomeView.
   public var profile: MoneyRecap_V1_Profile {
     get {_profile ?? MoneyRecap_V1_Profile()}
     set {_profile = newValue}
@@ -258,8 +210,6 @@ public nonisolated struct MoneyRecap_V1_SettingsView: Sendable {
   /// Clears the value of `profile`. Subsequent reads from it will return its default value.
   public mutating func clearProfile() {self._profile = nil}
 
-  /// Salary and Payday, Saving Target, payday_passed_this_month (D56) and
-  /// has_amounts_to_convert (§8.9 step 2); a "Not set" row is an absent field.
   public var ledgerSettings: MoneyRecap_V1_LedgerSettings {
     get {_ledgerSettings ?? MoneyRecap_V1_LedgerSettings()}
     set {_ledgerSettings = newValue}
@@ -269,8 +219,6 @@ public nonisolated struct MoneyRecap_V1_SettingsView: Sendable {
   /// Clears the value of `ledgerSettings`. Subsequent reads from it will return its default value.
   public mutating func clearLedgerSettings() {self._ledgerSettings = nil}
 
-  /// The three toggles and the reminder time; the push-permission state is
-  /// the phone's own (PRD §6.16).
   public var notificationPrefs: MoneyRecap_V1_NotificationPrefs {
     get {_notificationPrefs ?? MoneyRecap_V1_NotificationPrefs()}
     set {_notificationPrefs = newValue}
@@ -289,22 +237,16 @@ public nonisolated struct MoneyRecap_V1_SettingsView: Sendable {
   fileprivate var _notificationPrefs: MoneyRecap_V1_NotificationPrefs? = nil
 }
 
-/// Where onboarding resumes and every answer saved so far, so a force-quit
-/// re-selects earlier answers (PRD §6.4). A skipped step counts as saved.
 public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The first unanswered step, 1 to 4; 0 once step 4 is saved or skipped,
-  /// when the app opens on Home.
   public var nextStep: Int32 {
     get {_storage._nextStep}
     set {_uniqueStorage()._nextStep = newValue}
   }
 
-  /// Display Name, Avatar key and Currency as saved by steps 1 and 2; an empty
-  /// field is an unanswered one.
   public var profile: MoneyRecap_V1_Profile {
     get {_storage._profile ?? MoneyRecap_V1_Profile()}
     set {_uniqueStorage()._profile = newValue}
@@ -314,8 +256,6 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `profile`. Subsequent reads from it will return its default value.
   public mutating func clearProfile() {_uniqueStorage()._profile = nil}
 
-  /// Step 3's answer, the Salary in force, which Home's prompts reopen after
-  /// setup too; absent before step 2 is saved, or when none is set.
   public var salary: MoneyRecap_V1_SalarySetting {
     get {_storage._salary ?? MoneyRecap_V1_SalarySetting()}
     set {_uniqueStorage()._salary = newValue}
@@ -325,8 +265,6 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `salary`. Subsequent reads from it will return its default value.
   public mutating func clearSalary() {_uniqueStorage()._salary = nil}
 
-  /// Step 4's answer, the Saving Target in force; absent before step 2 is
-  /// saved, or when none is set, skipped or blocked by no Salary (D44).
   public var savingTarget: MoneyRecap_V1_SavingTargetSetting {
     get {_storage._savingTarget ?? MoneyRecap_V1_SavingTargetSetting()}
     set {_uniqueStorage()._savingTarget = newValue}
@@ -336,9 +274,6 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   /// Clears the value of `savingTarget`. Subsequent reads from it will return its default value.
   public mutating func clearSavingTarget() {_uniqueStorage()._savingTarget = nil}
 
-  /// The given_name claim of the Member's own token, which fills step 1's First
-  /// name field; empty when the provider shared none (PRD §6.4). Read by the
-  /// BFF, since the email sign-in path never gives the phone an identity token.
   public var suggestedName: String {
     get {_storage._suggestedName}
     set {_uniqueStorage()._suggestedName = newValue}
@@ -351,54 +286,41 @@ public nonisolated struct MoneyRecap_V1_OnboardingState: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-/// What the currency confirm sheet draws, or why it does not open (PRD §8.9
-/// steps 1 to 3, SCREEN-STATES D6, D7).
 public nonisolated struct MoneyRecap_V1_CurrencyChangePreview: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// ISO 4217 code of every amount today.
   public var fromCurrencyCode: String {
     get {_storage._fromCurrencyCode}
     set {_uniqueStorage()._fromCurrencyCode = newValue}
   }
 
-  /// ISO 4217 code the Member picked.
   public var toCurrencyCode: String {
     get {_storage._toCurrencyCode}
     set {_uniqueStorage()._toCurrencyCode = newValue}
   }
 
-  /// True when the provider has no rate for the pair (D35): the phone asks
-  /// for a manual rate (D7) and previews again with it.
   public var unsupportedPair: Bool {
     get {_storage._unsupportedPair}
     set {_uniqueStorage()._unsupportedPair = newValue}
   }
 
-  /// True with no Salary and no Spends: ChangeCurrency skips the confirm sheet
-  /// and needs no rate (§8.9 step 2).
   public var nothingToConvert: Bool {
     get {_storage._nothingToConvert}
     set {_uniqueStorage()._nothingToConvert = newValue}
   }
 
-  /// PROVIDER for a fetched rate, MANUAL for one the Member typed; what
-  /// ChangeCurrency sends back with preview.rate.
   public var source: MoneyRecap_V1_RateSource {
     get {_storage._source}
     set {_uniqueStorage()._source = newValue}
   }
 
-  /// "YYYY-MM-DD" the provider rate is dated; empty for a manual rate.
   public var asOf: String {
     get {_storage._asOf}
     set {_uniqueStorage()._asOf = newValue}
   }
 
-  /// The before-and-after rows and the rate, rounded by ledger; absent when
-  /// unsupported_pair or nothing_to_convert.
   public var preview: MoneyRecap_V1_ConversionPreview {
     get {_storage._preview ?? MoneyRecap_V1_ConversionPreview()}
     set {_uniqueStorage()._preview = newValue}

@@ -9,35 +9,20 @@ import Connect
 import Foundation
 import SwiftProtobuf
 
-/// The only service the phone talks to (ARCHITECTURE §6); answers are stored
-/// whole (I4). No request carries an idempotency key: shared.proto's package
-/// doc says where the BFF gets one.
 public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
 
-    /// Sent without a bearer token. resource_exhausted past 5 per email per hour
-    /// or when the count fails (PRD §11, §6.3); invalid_argument for an address
-    /// that does not parse or the mail host refuses; unavailable when the realm or
-    /// the send fails (§7.5).
     @available(iOS 13, *)
     func `requestMagicLink`(request: MoneyRecap_V1_BffServiceRequestMagicLinkRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestMagicLinkResponse>
 
-    /// Home always shows the current month (PRD §6.8, D59), so no month argument.
-    /// failed_precondition until steps 1 and 2 are answered: Home greets by name
-    /// and prints every amount in the Member's Currency (spec #92).
     @available(iOS 13, *)
     func `getHome`(request: MoneyRecap_V1_GetHomeRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_GetHomeResponse>
 
-    /// One month's full or Partial Recap, or the current month's preview (D47).
-    /// not_found for a past month with no Spend and no Money In (not on Home's
-    /// list); invalid_argument for a malformed or later month.
     @available(iOS 13, *)
     func `getRecap`(request: MoneyRecap_V1_BffServiceGetRecapRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetRecapResponse>
 
     @available(iOS 13, *)
     func `listSpends`(request: MoneyRecap_V1_BffServiceListSpendsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceListSpendsResponse>
 
-    /// The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
-    /// HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
     @available(iOS 13, *)
     func `logSpend`(request: MoneyRecap_V1_BffServiceLogSpendRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceLogSpendResponse>
 
@@ -47,47 +32,27 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `deleteSpend`(request: MoneyRecap_V1_BffServiceDeleteSpendRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceDeleteSpendResponse>
 
-    /// Where onboarding resumes after a force-quit (PRD §6.4).
     @available(iOS 13, *)
     func `getOnboardingState`(request: MoneyRecap_V1_BffServiceGetOnboardingStateRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetOnboardingStateResponse>
 
-    /// One members.SaveProfile carrying the answers and the step: one write under
-    /// the one Idempotency-Key (A14).
     @available(iOS 13, *)
     func `saveProfile`(request: MoneyRecap_V1_BffServiceSaveProfileRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveProfileResponse>
 
-    /// Called on every launch (A3); the answer drives the restore sheet (D60).
     @available(iOS 13, *)
     func `setTimezone`(request: MoneyRecap_V1_BffServiceSetTimezoneRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSetTimezoneResponse>
 
     @available(iOS 13, *)
     func `getSettings`(request: MoneyRecap_V1_BffServiceGetSettingsRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceGetSettingsResponse>
 
-    /// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
-    /// included; failed_precondition when the D56 sheet should have opened.
-    /// During onboarding it is a setup save, and step 3 is then recorded in
-    /// members, after ledger answers (spec #92).
     @available(iOS 13, *)
     func `saveSalary`(request: MoneyRecap_V1_BffServiceSaveSalaryRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveSalaryResponse>
 
-    /// ledger.SaveTarget, during onboarding a setup save, and step 4 then
-    /// recorded in members after ledger answers, as SaveSalary; a first Target
-    /// after setup starts this month, later ones next month (D65);
-    /// failed_precondition without a Salary (D44).
     @available(iOS 13, *)
     func `saveTarget`(request: MoneyRecap_V1_BffServiceSaveTargetRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceSaveTargetResponse>
 
-    /// nothing_to_convert, no quote, when ledger holds no amounts; else
-    /// ledger.PreviewConversion of manual_rate or of currency.Quote's rate:
-    /// unsupported_pair, or unavailable when the fetch fails (PRD §8.9 step 1).
-    /// out_of_range past 11 digits (D57).
     @available(iOS 13, *)
     func `previewCurrencyChange`(request: MoneyRecap_V1_BffServicePreviewCurrencyChangeRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServicePreviewCurrencyChangeResponse>
 
-    /// ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
-    /// writes under one key: members.SaveProfile, then ledger.RelabelCurrency
-    /// (PRD §8.9 steps 2 and 4). failed_precondition with no rate while ledger
-    /// holds amounts; out_of_range past D57.
     @available(iOS 13, *)
     func `changeCurrency`(request: MoneyRecap_V1_BffServiceChangeCurrencyRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceChangeCurrencyResponse>
 
@@ -97,21 +62,15 @@ public protocol MoneyRecap_V1_BffServiceClientInterface: Sendable {
     @available(iOS 13, *)
     func `registerDevice`(request: MoneyRecap_V1_BffServiceRegisterDeviceRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRegisterDeviceResponse>
 
-    /// notify.ForgetDevice (§7.3), required: forgetting the phone is its whole job.
     @available(iOS 13, *)
     func `forgetDevice`(request: MoneyRecap_V1_BffServiceForgetDeviceRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceForgetDeviceResponse>
 
-    /// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
-    /// failed_precondition with EmailBounced is the §6.16 line naming the refused
-    /// address, with no link; any other failure is the retry line.
     @available(iOS 13, *)
     func `requestExport`(request: MoneyRecap_V1_BffServiceRequestExportRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestExportResponse>
 
-    /// Stamps the request; the phone signs out on the answer (§7.1 step 1).
     @available(iOS 13, *)
     func `requestDeletion`(request: MoneyRecap_V1_BffServiceRequestDeletionRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceRequestDeletionResponse>
 
-    /// Clears the stamp inside the 24-hour window (§7.1 step 2, D60).
     @available(iOS 13, *)
     func `cancelDeletion`(request: MoneyRecap_V1_BffServiceCancelDeletionRequest, headers: Connect.Headers) async -> ResponseMessage<MoneyRecap_V1_BffServiceCancelDeletionResponse>
 }
