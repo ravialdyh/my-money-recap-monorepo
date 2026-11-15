@@ -1,12 +1,7 @@
 import SwiftUI
 
-/// One ground per screen, from four (`design-tokens/README.md`, "Design rules"): the violet `recap` ground unless
-/// `ground` names another.
-/// Content sits inside the screen insets, its type white, or ink on the yellow `earning` ground.
 struct Screen<Content: View>: View {
     var ground = Tokens.Ground.recap
-    /// True for a screen with no scroll view of its own: it scrolls when it is taller than the screen, as a phone
-    /// held sideways makes it (PRD §11 "Platform"), and fills the screen otherwise, so its spacers still push.
     var scrolls = false
     @ViewBuilder let content: () -> Content
 

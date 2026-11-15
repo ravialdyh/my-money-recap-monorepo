@@ -1,10 +1,7 @@
 import SwiftUI
 
-/// D2 Profile (PRD §6.16): setup's First name field and `Pick your avatar` grid on the white sheet, then Save, which
-/// returns to Settings. A failed save keeps what was typed above the Settings save line.
 struct ProfileView: View {
     @State private var model: ProfileViewModel
-    /// What the field shows; the model keeps only what `DisplayName` allows, as on step 1.
     @State private var typed: String
     @FocusState private var focused: Bool
     @Environment(\.dismiss) private var dismiss

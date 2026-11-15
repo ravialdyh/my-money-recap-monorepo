@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Fredoka headline, `m` by default; `l` the sign-in and Recap cover size, `compact` the Recap's
-/// 36pt, `display` the Archetype title. `l` and `display`, white, keep their tokens' line heights, under the font's
-/// own.
 struct Headline: View {
     enum Size { case l, m, compact, display }
     let text: String
@@ -28,7 +25,6 @@ struct Headline: View {
     }
 }
 
-/// Nunito body line under a headline, muted on the ground.
 struct SubCopy: View {
     let text: String
 
@@ -40,8 +36,6 @@ struct SubCopy: View {
     }
 }
 
-/// Small label above a stat: Nunito label, secondary ink; `coral` is the uppercase coral
-/// tone.
 struct Eyebrow: View {
     let text: String
     var coral = false
@@ -53,8 +47,6 @@ struct Eyebrow: View {
     }
 }
 
-/// A white label set at a line height below the font's own, which `Text` cannot draw without clipping the last
-/// descender; the font follows Dynamic Type.
 private struct TightLines: UIViewRepresentable {
     let text: String
     let style: TextStyle

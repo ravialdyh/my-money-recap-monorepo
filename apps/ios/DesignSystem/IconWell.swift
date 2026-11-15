@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Tinted circle holding a Category glyph: 30pt around the 16pt glyph, on its hue's tint.
 struct IconWell: View {
     let tone: Icon.Name
 

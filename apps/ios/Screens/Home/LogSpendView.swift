@@ -1,8 +1,6 @@
 import MoneyRecapContract
 import SwiftUI
 
-/// PRD §6.9, §6.10 / SCREEN-STATES B2 to B4, B7, B8: the amount, the eight Category chips, the Date row and its wheel
-/// picker, the note, the one failure line and Save; editing, Save changes and the Delete row. It scrolls sideways.
 struct LogSpendView: View {
     @State private var model: LogSpendViewModel
     @State private var picking = false
@@ -73,7 +71,6 @@ struct LogSpendView: View {
         .presentationBackground(Tokens.Surface.sheet)
     }
 
-    /// The Date row opening the wheel picker, or, for a Spend older than the picker's days, its date as read-only text.
     private var dateRow: some View {
         VStack(alignment: .leading, spacing: 0) {
             if model.dateLocked {
@@ -108,7 +105,6 @@ struct LogSpendView: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Puts the keyboard away, so the wheel picker and Save are not under it.
     private func endEditing() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }

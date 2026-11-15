@@ -2,8 +2,6 @@ import Foundation
 import MoneyRecapContract
 import SwiftData
 
-/// One month's Spend list as the BFF last sent it (IOS I4), beside `HomeSnapshot`, so a month already opened reads
-/// offline. An answer replaces its month whole; `HomeSnapshot.erase` deletes every month with the rest.
 @Model
 final class SpendListSnapshot {
     @Attribute(.unique) var month: String

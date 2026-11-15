@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Page 4, C4 or P4 (PRD §6.14, §6.17), green: C4's Archetype, mascot, Saved against Spent and Share, or with none the
-/// target card and no Share; P4's closing line. The pills end each, at 40% with no Archetype. Scrolls held sideways.
 struct RecapArchetypePage: View {
     @Bindable var model: RecapViewModel
     var active = true
@@ -72,7 +70,6 @@ struct RecapArchetypePage: View {
         CompareBars(rows: model.savedAgainstSpent, shown: active)
     }
 
-    /// C4's pills under the card, the month's picked out, or all at 40% without an Archetype.
     private func pills(_ archetype: ArchetypePill.Kind?) -> some View {
         ArchetypeRow(selected: archetype)
             .opacity(archetype == nil ? Tokens.State.disabledOpacity : 1)
@@ -80,7 +77,6 @@ struct RecapArchetypePage: View {
             .padding(.leading, RecapLayout.pillsInset)
     }
 
-    /// The Archetype's mascot in the asset catalog.
     static func mascot(_ archetype: ArchetypePill.Kind) -> String {
         switch archetype {
         case .squirrel: "ill-squirrel"
@@ -92,7 +88,6 @@ struct RecapArchetypePage: View {
 }
 
 extension RecapLayout {
-    /// "This month, {Display Name}, you were": 15pt heavy Nunito (`RecapPersonalityScreen`).
     static let lead = TextStyle(
         family: Tokens.FontFamily.text,
         weight: .heavy,
@@ -101,16 +96,12 @@ extension RecapLayout {
         letterSpacing: 0,
         uppercase: false
     )
-    /// The mascot's slot width and the height it is capped at, so the tallest, the Hustler's, clears the pills.
     static let mascot: CGFloat = 340
     static let mascotCap: CGFloat = 300
-    /// The pill row's inset under C4's card (`marginLeft: 18`).
     static let pillsInset: CGFloat = 18
 }
 
-/// Page 4's words (spec #151 copy table): the title, description, name and closing line are ledger's (A2).
 extension RecapViewModel {
-    /// The month's Archetype, nil on a Partial Recap and without a Saving Target.
     var archetype: ArchetypePill.Kind? {
         switch answer?.recap.archetype {
         case .squirrel: .squirrel
@@ -121,17 +112,14 @@ extension RecapViewModel {
         }
     }
 
-    /// "This month, {Display Name}, you were", the current name.
     var personalityLead: String {
         "This month, \(answer?.displayName ?? ""), you were"
     }
 
-    /// "Share your {Archetype name}", the short name ledger sends ("Share your Squirrel").
     var share: String {
         "Share your \(answer?.recap.archetypeName ?? "")"
     }
 
-    /// C6's five facts, nil where page 4 has no Share: a Partial Recap or a month without an Archetype.
     var poster: SharePoster? {
         guard let archetype, let answer else { return nil }
         return SharePoster(
@@ -143,12 +131,10 @@ extension RecapViewModel {
         )
     }
 
-    /// Share: draws the poster at 1080 by 1920 and hands it to the system share sheet.
     func sharePoster() {
         shared = poster.map { SharedPicture(image: $0.picture()) }
     }
 
-    /// Saved against Spent as shares of their sum, a negative Saved printed as it is and drawn empty.
     var savedAgainstSpent: [CompareBars.Row] {
         guard let recap = answer?.recap else { return [] }
         return [

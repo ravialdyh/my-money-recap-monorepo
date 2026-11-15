@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// PRD §6.7 / SCREEN-STATES A7, step 4 of onboarding: the back chevron and the step pill, the question, then the slider
-/// card with Done and Skip for now, or, without a Salary (D44), the prompt back to step 3 and Skip for now alone.
 struct TargetView: View {
     @State private var model: TargetViewModel
     private let onBack: () -> Void
@@ -67,8 +65,6 @@ struct TargetView: View {
     }
 }
 
-/// Setup's slider card, which D4 reuses: `Share of salary to keep`, the percentage, the slider from 0 to 100 in steps
-/// of 5 and the preview, under `error` when there is one.
 struct TargetCard: View {
     @Binding var percent: Int
     let preview: String?

@@ -1,9 +1,6 @@
 import Connect
 import MoneyRecapContract
 
-/// Every server call Settings and the screens it opens make (IOS I3): one box, so a new Settings call is one field
-/// here.
-/// Each default answers as with no signal, so a test or a picture names only the calls it drives.
 struct SettingsCalls {
     var fetch: SettingsViewModel.Fetch = { throw ConnectError(code: .unavailable, message: nil) }
     var saveProfile: NameAvatarViewModel.Save = { _, _ in .offline }
@@ -16,8 +13,6 @@ struct SettingsCalls {
     var requestDeletion: DeleteAccountViewModel.Request = unavailable
     var logOut: () async -> Void = {}
 
-    /// The signed-in BFF client's calls, each retried once after a token refresh (IOS I3); Log out forgets the phone's
-    /// push token first.
     static func live(
         session: AuthSession,
         client: MoneyRecap_V1_BffServiceClient,

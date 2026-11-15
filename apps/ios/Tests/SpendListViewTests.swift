@@ -4,8 +4,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// The Spend list and Category detail as drawn (SCREEN-STATES B6, B6b): the rows, the switcher open, both empty months
-/// and the detail each differ, and the month line is drawn. The magic-link UI test turns them sideways.
 @MainActor
 final class SpendListViewTests: XCTestCase {
     func testEveryStateIsDrawnApart() async throws {
@@ -47,7 +45,6 @@ final class SpendListViewTests: XCTestCase {
         XCTAssertNotEqual(rows, otherLine, "the month line under the switcher is drawn")
     }
 
-    /// D58: with no network path the empty month's plus button draws at 40%, and back online as before.
     func testThePlusButtonDimsOffline() async throws {
         let url = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "list-spends", withExtension: "json"))
         var empty = try MoneyRecap_V1_BffServiceListSpendsResponse(

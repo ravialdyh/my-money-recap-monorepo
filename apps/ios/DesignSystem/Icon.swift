@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// The eight Category glyphs, drawn on a 16-unit grid (PRD D20): each
-/// in its Category hue, or in `color` where the glyph sits on ink, a selected tone Chip.
 struct Icon: View {
-    /// The eight Categories in PRD D20's order, each with its hue and its label.
     enum Name: CaseIterable {
         case snacks, games, toys, rides, clothes, bills, gifts, other
 
@@ -20,7 +17,6 @@ struct Icon: View {
             }
         }
 
-        /// The glyph's own fill, `color.data.category-*`.
         var hue: Color {
             switch self {
             case .snacks: Tokens.Data.categorySnacks
@@ -34,7 +30,6 @@ struct Icon: View {
             }
         }
 
-        /// The hue's `*.100` tint a tone Chip sits on.
         var well: Color {
             switch self {
             case .snacks: Tokens.Surface.wellCoral
@@ -67,7 +62,6 @@ struct Icon: View {
         .accessibilityHidden(true)
     }
 
-    /// Each glyph as the separate shapes its SVG draws, filled one by one so overlaps never cancel.
     static func parts(_ name: Name) -> [Path] {
         switch name {
         case .snacks:
@@ -112,7 +106,6 @@ struct Icon: View {
         }
     }
 
-    /// Games' base, `A6 3.2 0 0 1 14 13.5`: the top half of an ellipse on (2, 13.5) to (14, 13.5), in two quarters.
     private static var dome: Path {
         let k: CGFloat = 0.5523
         return Path { path in
@@ -131,7 +124,6 @@ struct Icon: View {
         }
     }
 
-    /// Rides' cabin: the slanted roof with the two 1.6 corner arcs at its top.
     private static var roof: Path {
         Path { path in
             path.move(to: CGPoint(x: 2.6, y: 6.6))

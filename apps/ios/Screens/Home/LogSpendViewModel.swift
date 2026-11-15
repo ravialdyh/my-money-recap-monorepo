@@ -2,9 +2,6 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// B2 to B4 Log a spend (PRD §6.9) and B7 its edit (§6.10): an amount in the Currency's decimals, a Category, a date in
-/// the last 60 days, today by default (D34), and a note. Save answers the fresh Home, or nil after a failure, keeping
-/// every value.
 @Observable
 @MainActor
 final class LogSpendViewModel: Identifiable {
@@ -20,7 +17,6 @@ final class LogSpendViewModel: Identifiable {
     static let deleteFailure = "We couldn't delete this spend. Try again."
     static let dateHelper = "You can log up to 60 days back, never ahead."
     static let oldDateHelper = "Dates older than 60 days can't be changed."
-    /// PRD §6.9's note limit, counted as ledger counts it: code points of the NFC form.
     static let noteLimit = 80
 
     struct Values: Equatable {
@@ -39,9 +35,7 @@ final class LogSpendViewModel: Identifiable {
     private(set) var isSaving = false
     private(set) var failed = false
     private(set) var deleteFailed = false
-    /// The Spend being edited (B7); nil for Log a spend.
     let spend: MoneyRecap_V1_Spend?
-    /// Ledger's earliest date to today, the dates it takes (PRD §8.10, D72); today alone before Home names one.
     let dates: ClosedRange<Date>
     private var attempt: SaveAttempt<Values>?
     private var deletion: SaveAttempt<String>?
@@ -49,10 +43,8 @@ final class LogSpendViewModel: Identifiable {
     private let locale: Locale
     private let write: Write
     private let delete: Delete?
-    /// The network path an edit follows; nil for Log a spend, which Home already keeps closed offline (D58).
     private let connection: Connection?
 
-    /// Log a spend: the Date row reads today until the Member picks another day.
     convenience init(
         currency: String,
         digits: Int,
@@ -75,7 +67,6 @@ final class LogSpendViewModel: Identifiable {
         }
     }
 
-    /// B7 Edit spend: every field prefilled from `spend`, saved whole by `edit` or deleted by `delete`.
     convenience init(
         editing spend: MoneyRecap_V1_Spend,
         currency: String,
@@ -131,12 +122,10 @@ final class LogSpendViewModel: Identifiable {
         self.write = write
     }
 
-    /// B7 old Spend: its date is outside the days ledger takes, so it stays as it is (PRD §6.10, D72).
     var dateLocked: Bool {
         !dates.contains(date)
     }
 
-    /// The months a write changes, "YYYY-MM": the edited Spend's own and the one its date now names.
     var months: Set<String> {
         Set([spend?.date, day].compactMap { $0.map { String($0.prefix(7)) } })
     }
@@ -149,13 +138,11 @@ final class LogSpendViewModel: Identifiable {
         self.category = category
     }
 
-    /// Keeps the first 80 code points of the note's NFC form, the most ledger stores.
     func type(_ note: String) {
         let scalars = note.precomposedStringWithCanonicalMapping.unicodeScalars
         self.note = String(String.UnicodeScalarView(scalars.prefix(Self.noteLimit)))
     }
 
-    /// The Date row: "Today, 26 September", or the chosen day alone, as the device writes a day and a month.
     var dateLabel: String {
         let style = Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone).day().month(.wide)
         let day = date.formatted(style)
@@ -166,12 +153,10 @@ final class LogSpendViewModel: Identifiable {
         (Decimal(string: amount) ?? 0) > 0 && category != nil && !isSaving && !offline
     }
 
-    /// No network path while editing: Save changes and Delete this spend sit at 40%, the Spend stays readable (D58).
     var offline: Bool {
         !(connection?.online ?? true)
     }
 
-    /// The fresh Home once saved. A retry of the same values sends the same key; changed values a new one (IOS I3).
     func save() async -> MoneyRecap_V1_HomeView? {
         guard canSave, let category else { return nil }
         let values = Values(
@@ -195,7 +180,6 @@ final class LogSpendViewModel: Identifiable {
         return home
     }
 
-    /// B8 confirmed: the fresh Home once deleted, or nil after a failure, the Spend kept. A retry sends the same key.
     func deleteSpend() async -> MoneyRecap_V1_HomeView? {
         guard let spend, let delete, !isSaving, !offline else { return nil }
         let current = deletion ?? SaveAttempt(spend.id)
@@ -219,7 +203,6 @@ final class LogSpendViewModel: Identifiable {
         }
     }
 
-    /// The contract's Category for a glyph: both follow PRD D20's order.
     static func contract(_ category: Icon.Name) -> MoneyRecap_V1_Category {
         MoneyRecap_V1_Category(rawValue: (Icon.Name.allCases.firstIndex(of: category) ?? 7) + 1) ?? .other
     }

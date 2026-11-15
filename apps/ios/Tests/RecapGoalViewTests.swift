@@ -3,8 +3,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Screen 3 as drawn, opened on its page: C3 met, missed, with no Spend and with no Saving Target, and P3 before and
-/// after Payday, each unlike the others; held sideways it scrolls rather than clips. The pictures are kept as evidence.
 @MainActor
 final class RecapGoalViewTests: XCTestCase {
     private func page(_ name: String) async throws -> RecapPagerView {

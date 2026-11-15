@@ -3,8 +3,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// D4 Saving target (D65, D44) on 29 September in Jakarta over the recorded Settings answers: the forward-only line,
-/// the no-Salary card, a failed save, and D4 opened from D1 and from each Recap target card.
 @MainActor
 final class TargetEditViewModelTests: XCTestCase {
     private typealias Answer = Result<MoneyRecap_V1_BffServiceSaveTargetResponse, ConnectError>
@@ -86,8 +84,6 @@ final class TargetEditViewModelTests: XCTestCase {
         XCTAssertEqual(sent[0].1, sent[1].1, "the retry counts once")
     }
 
-    /// D1 opens D4 over its stored answer; a save's Settings replace the stored copy, keeping the stored notification
-    /// preferences the answer lacks; D4's no-Salary card puts D3 in its place.
     func testSettingsOpensD4AndItsSaveReplacesTheStoredSettings() async throws {
         let context = try SettingsViewModelTests.context()
         let answer = try MoneyRecap_V1_BffServiceSaveTargetResponse.with {
@@ -114,8 +110,6 @@ final class TargetEditViewModelTests: XCTestCase {
         XCTAssertNotNil(settings.salaryEdit, "D3 opens in D4's place")
     }
 
-    /// Each Recap target card, on screens 2, 3 and 4, opens D4 over the Recap; its save replaces Home and closing it
-    /// leaves the Recap on the same page.
     func testEachRecapTargetCardOpensD4OverItsPage() async throws {
         let context = try SettingsViewModelTests.context()
         let recap = try RecapViewModelTests.recorded("recap-no-target")

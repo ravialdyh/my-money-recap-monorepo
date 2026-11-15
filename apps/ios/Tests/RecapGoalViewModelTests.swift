@@ -2,8 +2,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// Screen 3's words from recorded `GetRecap` answers (IOS I9): Maya's months in pounds, recorded from the stack on
-/// 26 September 2026 (UTC), the day `today` stands for, and the partial months of `RecapViewModelTests`.
 @MainActor
 final class RecapGoalViewModelTests: XCTestCase {
     static let recordedOn = Calendar.current.date(from: DateComponents(year: 2026, month: 9, day: 26, hour: 12))!
@@ -23,7 +21,6 @@ final class RecapGoalViewModelTests: XCTestCase {
         try await Self.loaded(RecapViewModelTests.recorded(name))
     }
 
-    /// Canvas C3: June, Saved £640 of a £480 target, eight Categories, the splurge with its note.
     func testTargetMetDrawsThreeBarsTheRollUpAndTheSplurge() async throws {
         let model = try await loaded("recap-target-met")
         XCTAssertEqual(model.pages, [.cover, .kept, .goal, .archetype])
@@ -46,7 +43,6 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertEqual(model.bars.first?.spoken, "Bills, 35 percent, £616")
     }
 
-    /// October's canvas in July: 65%, a part-full bar, the splurge with no note named by its Category.
     func testTargetMissedDrawsAPartFullBarAndASplurgeWithNoNote() async throws {
         let model = try await loaded("recap-target-missed")
         XCTAssertEqual(model.goalHeadline, "65% of your saving target")
@@ -72,7 +68,6 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertNil(model.splurge)
     }
 
-    /// May, before the Saving Target's first month: no percentage anywhere, the target card instead (PRD §6.13).
     func testNoSavingTargetHeadsWithSpentAndDrawsTheTargetCard() async throws {
         let model = try await loaded("recap-no-target")
         XCTAssertEqual(model.pages, [.cover, .kept, .goal, .archetype])
@@ -83,7 +78,6 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertEqual(model.splurge, "£420 on a flight home. Your biggest single buy.")
     }
 
-    /// P3 (PRD §6.17, D55): September so far, Payday moved to the 30th, 4 days after the recording.
     func testTheMonthSoFarBeforePaydayNamesThePayday() async throws {
         let model = try await loaded("recap-before-payday")
         XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal, .closing])
@@ -95,7 +89,6 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertEqual(model.splurge, "£280 on phone and internet. Your biggest single buy.")
     }
 
-    /// After Payday, and in both past partial months, P3 has no target card.
     func testP3AfterPaydayAndInAPastPartialMonthHasNoTargetCard() async throws {
         for name in ["recap-after-payday", "recap-sign-up", "recap-no-money-in"] {
             let model = try await loaded(name)
@@ -108,7 +101,6 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertEqual(sign.rollUp, nil, "two Categories, no roll-up")
     }
 
-    /// "You kept every penny that came in." only while Money In is above 0.
     func testNoSpendAndNoMoneyInKeepsNoPenny() async throws {
         var answer = try RecapViewModelTests.recorded("recap-preview")
         let paid = await Self.loaded(answer)

@@ -14,7 +14,6 @@ final class SaveAttemptTests: XCTestCase {
         XCTAssertEqual(attempt.values, "Europe/London")
     }
 
-    /// No connection is what Connect reports for an unreachable BFF or a dropped network; anything else is a refusal.
     func testNoConnectionIsUnavailableOrATimeout() {
         XCTAssertEqual(SaveResult(Result<Int, ConnectError>.success(1)), .saved)
         for code in [Code.unavailable, .deadlineExceeded] {

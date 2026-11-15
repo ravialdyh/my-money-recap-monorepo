@@ -2,20 +2,16 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// D4 Saving target (PRD §6.16, D65): setup's slider over the last Target saved, 20% with none, and ledger's month a
-/// save starts in. Without a Salary it is blocked and points to D3 (D44).
 @Observable
 @MainActor
 final class TargetEditViewModel: Identifiable {
     typealias Save = (MoneyRecap_V1_BffServiceSaveTargetRequest, Headers) async
         -> Result<MoneyRecap_V1_BffServiceSaveTargetResponse, ConnectError>
 
-    /// The Salary in force; nil blocks the screen (D44).
     let salary: MoneyRecap_V1_Money?
     let digits: Int
     var percent: Int
     private(set) var isSaving = false
-    /// The last save failed: the slider stays where it was, over `SettingsViewModel.saveFailure`.
     private(set) var failed = false
     private let starts: String
     private let today: Date
@@ -48,12 +44,10 @@ final class TargetEditViewModel: Identifiable {
         salary == nil
     }
 
-    /// Setup's "{amount} of {salary} each month", the phone's one sum (ARCHITECTURE A2).
     var preview: String? {
         salary.flatMap { TargetViewModel.preview(of: $0, percent: percent, digits: digits, locale: locale) }
     }
 
-    /// "Your new target starts in October." only when ledger says a save now starts after this month (D65).
     var startsLine: String? {
         let now = calendar.dateComponents([.year, .month], from: today)
         let current = String(format: "%04d-%02d", now.year ?? 0, now.month ?? 0)
@@ -65,7 +59,6 @@ final class TargetEditViewModel: Identifiable {
         !isBlocked && !isSaving
     }
 
-    /// True once saved. A retry of the same percent sends the same key; a failure keeps the slider where it was.
     func commit() async -> Bool {
         guard canSave else { return false }
         var current = attempt ?? SaveAttempt(percent)

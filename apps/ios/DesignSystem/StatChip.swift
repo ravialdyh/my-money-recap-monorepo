@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Tinted pill with an 8pt status dot: "Money in £2,400", "Saved £640", "Spent £1,760".
 struct StatChip: View {
     enum Tone { case earned, saved, spent }
     let tone: Tone

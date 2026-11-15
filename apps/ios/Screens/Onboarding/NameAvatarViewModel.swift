@@ -2,9 +2,6 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// A4 Name and avatar (SCREEN-STATES, PRD §6.4, IOS I6): the First name field, prefilled with what the provider
-/// shared, and the six Avatars. Next stays off until both answers are valid, and saves them with step 1 in one
-/// write, one key per attempt (A14).
 @Observable
 @MainActor
 final class NameAvatarViewModel {
@@ -18,7 +15,6 @@ final class NameAvatarViewModel {
     private(set) var name: String
     private(set) var avatar: String?
     private(set) var isSaving = false
-    /// The last save could not reach the BFF: the step says so and Next tries again (`NoConnectionView.copy`).
     private(set) var offline = false
     private var attempt: SaveAttempt<Answers>?
     private let save: Save
@@ -41,7 +37,6 @@ final class NameAvatarViewModel {
         DisplayName.stored(name) != nil && avatar != nil && !isSaving
     }
 
-    /// True once the answers are saved. A retry of the same answers sends the same key; changed ones a new key.
     func next() async -> Bool {
         guard let stored = DisplayName.stored(name), let avatar, !isSaving else { return false }
         let answers = Answers(name: stored, avatar: avatar)

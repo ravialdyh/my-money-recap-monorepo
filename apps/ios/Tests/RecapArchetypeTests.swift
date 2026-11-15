@@ -1,8 +1,6 @@
 import XCTest
 @testable import MyMoneyRecap
 
-/// Page 4, C4 and P4 (#156), from recorded `GetRecap` answers: Budi's rupiah Augusts (Squirrel, Hustler, overspent
-/// Treat-Yourself, Slow Burner), Maya's pound July and no-target May, the partial months. Pictures are evidence.
 @MainActor
 final class RecapArchetypeTests: XCTestCase {
     private struct Case {
@@ -61,7 +59,6 @@ final class RecapArchetypeTests: XCTestCase {
         XCTAssertEqual(model.savedAgainstSpent.map(\.display), ["£640", "£1,760"])
     }
 
-    /// P4 in each situation: ledger's closing line, no Archetype.
     func testP4ClosesEachPartialSituationWithLedgersLine() async throws {
         let cases = [
             ("recap-preview", "Your recap arrives on 1 October."),
@@ -105,7 +102,6 @@ final class RecapArchetypeTests: XCTestCase {
         }
     }
 
-    /// Every C4 fits upright at 393 by 852 with the pills in full, the tallest mascot, the Hustler's, included.
     func testEachArchetypesPageFitsUpright() async throws {
         for name in Self.archetypes {
             let overflow = try await overflow(page(name), size: CGSize(width: 393, height: 852))

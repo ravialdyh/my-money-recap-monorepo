@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Chips in a row that wraps (`StatChipRow`, `.mmr-stat-chip-row`): each at its own width, 8pt apart, a new line when
-/// the next would not fit, as Home's stat chips do in rupiah (X3) and the Log a spend Categories do (PRD §6.9).
 struct StatChipRow: Layout {
     var spacing = Tokens.Space._3
 

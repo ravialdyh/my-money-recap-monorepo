@@ -4,8 +4,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// Step 2 (PRD §6.5, spec #92): the platform's common currencies, each one the server accepts, sorted by British name
-/// and searched by name or code; the region's currency starts chosen; Next saves it with step 2, one key per choice.
 @MainActor
 final class CurrencyViewModelTests: XCTestCase {
     private let britain = Locale(identifier: "en_GB")
@@ -29,8 +27,6 @@ final class CurrencyViewModelTests: XCTestCase {
         XCTAssertFalse(options.contains { $0.code == "DEM" || $0.code == "XAU" }, "no retired money and no gold")
     }
 
-    /// The server accepts every row (ARCHITECTURE §7.2): each listed code is one some territory takes as tender in
-    /// the CLDR file ledger rounds with, read here from the repository, so a new iOS that lists more fails here first.
     func testEveryListedCurrencyIsOneTheServerAccepts() throws {
         let path = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
             .deletingLastPathComponent().appendingPathComponent("backend/internal/cldr/currencyData.json")
@@ -67,7 +63,6 @@ final class CurrencyViewModelTests: XCTestCase {
         XCTAssertTrue(model(region: britain).canContinue, "so most Members just tap Next")
     }
 
-    /// Going back to step 2, or resuming on it, re-selects the saved Currency rather than the region's (spec #92).
     func testTheSavedCurrencyStartsChosenOverTheRegions() {
         XCTAssertEqual(model(saved: "EUR", region: britain).selected, "EUR")
         XCTAssertEqual(model(saved: "", region: britain).selected, "GBP", "nothing saved: the region's own")

@@ -1,24 +1,15 @@
 import AppAuth
 import SwiftUI
 
-/// AppAuth-iOS drives `ASWebAuthenticationSession` with PKCE against endpoints discovered from the
-/// realm's well-known document (IOS I1). The resulting `OIDAuthState` lives in the Keychain (I2).
 @Observable
 @MainActor
 final class AuthSession {
-    /// SCREEN-STATES A1 "sign-in refused": the realm refused a token refresh (IOS I3), so the session is gone,
-    /// not the tap.
     static let refusedCopy = "Your session expired. Sign in again."
 
     private(set) var authState: OIDAuthState?
-    /// Set when sign-out was not the Member's choice, read once by Sign in.
     private(set) var signInMessage: String?
-    /// A refused login token, which returns the Member to Enter email carrying its copy (PRD §6.3).
     private(set) var magicLinkFailure: MagicLinkFailure?
-    /// AppAuth needs the in-flight session retained until the redirect arrives.
     private var flow: OIDExternalUserAgentSession?
-    /// The login tokens redeemed successfully in this session: the only thing that tells an already-used
-    /// link from an expired one, since both are `invalid_grant` (spec #61).
     private var redeemed: Set<String> = []
 
     init() {
@@ -30,7 +21,6 @@ final class AuthSession {
         }
     }
 
-    /// Starts from a given state instead of the Keychain; the tests' seam.
     init(authState: OIDAuthState) {
         self.authState = authState
     }
@@ -39,8 +29,6 @@ final class AuthSession {
         authState?.isAuthorized ?? false
     }
 
-    /// The authorization-code flow of IOS I1: Apple and Google through their `kc_idp_hint`, and Keycloak's own
-    /// page with none, which a debug launch argument drives for the UI test (spec #61 seam 6).
     func signIn(identityProvider: IdentityProvider? = nil) async throws {
         let configuration = try await discover()
         let request = AuthConfig.authorizationRequest(configuration, identityProvider: identityProvider)
@@ -59,8 +47,6 @@ final class AuthSession {
         persist()
     }
 
-    /// Where all three incoming-link sources land (spec #61): the login token is redeemed by one direct
-    /// grant, and the session is built from a synthesized authorization response so it can refresh.
     func openMagicLink(_ url: URL) async {
         magicLinkFailure = nil
         guard let token = MagicLink.loginToken(in: url) else {
@@ -79,14 +65,10 @@ final class AuthSession {
         }
     }
 
-    /// The copy Enter email shows: a refused login token, or a request either screen could not send.
     func record(_ failure: MagicLinkFailure?) {
         magicLinkFailure = failure
     }
 
-    /// The access token, refreshed if expired (I1, I3). Any refresh error throws, as AppAuth may pass the stale token
-    /// too. Only the realm's refusal signs out; a network error, a realm 5xx, a garbled answer or a failed ID token
-    /// check keeps the session (PRD D61).
     func freshAccessToken() async throws -> String {
         guard let authState else { throw CancellationError() }
         let held = authState.lastTokenResponse
@@ -114,28 +96,23 @@ final class AuthSession {
         }
     }
 
-    /// The BFF rejected the token: force a refresh, which ends the session only if the realm refuses it (I3).
     func recoverFromUnauthenticated() async {
         authState?.setNeedsTokenRefresh()
         _ = try? await freshAccessToken()
     }
 
-    /// Log out (D12) and a granted deletion (D11): `forget` first, while the token works, then the realm's 30-day
-    /// session ended with the refresh token, then the erase. Both server steps are best effort (PRD §9).
     func logOut(forget: () async -> Void) async {
         await forget()
         await endRealmSession()
         signOut()
     }
 
-    /// Erases the session; the cache goes with it in `RootView` (PRD §7 "on device only", I4).
     func signOut(message: String? = nil) {
         signInMessage = message
         authState = nil
         Keychain.delete()
     }
 
-    /// The archiver the Keychain item is written with (I2); the magic-link state's round trip is a test.
     func persist() {
         guard let authState, let data = try? NSKeyedArchiver.archivedData(
             withRootObject: authState,
@@ -144,8 +121,6 @@ final class AuthSession {
         Keychain.write(data)
     }
 
-    /// Posts the refresh token to the realm's discovered logout endpoint, through AppAuth's session as every realm call
-    /// goes; any failure is ignored.
     private func endRealmSession() async {
         guard let authState, let refresh = authState.refreshToken,
               let endpoint = authState.lastAuthorizationResponse.request.configuration.endSessionEndpoint

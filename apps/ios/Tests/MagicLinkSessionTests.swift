@@ -2,8 +2,6 @@ import AppAuth
 import XCTest
 @testable import MyMoneyRecap
 
-/// The magic-link session: redeemed through the incoming-link handler against a stub realm, and carried
-/// through the Keychain archiver with what a refresh needs (IOS I1, I2, spec #61).
 @MainActor
 final class MagicLinkSessionTests: XCTestCase {
     override func setUp() {
@@ -76,9 +74,6 @@ final class MagicLinkSessionTests: XCTestCase {
     }
 }
 
-/// Keycloak for `AuthConfig.issuer`: discovery, then each login token redeemed once and `invalid_grant` after,
-/// as for the `refused` ones a test marks expired. Any other grant, like the test host's own refresh, is
-/// refused and spends nothing.
 final class StubLoginTokenRealm: StubURLProtocol {
     nonisolated(unsafe) static var refused: Set<String> = []
 
@@ -104,7 +99,6 @@ final class StubLoginTokenRealm: StubURLProtocol {
         return (200, #"{"access_token":"access","expires_in":300,"refresh_token":"refresh","token_type":"Bearer"}"#)
     }
 
-    /// URLSession hands a protocol the form body as a stream, not as `httpBody`.
     private var loginToken: String? {
         guard let stream = request.httpBodyStream else { return nil }
         stream.open()

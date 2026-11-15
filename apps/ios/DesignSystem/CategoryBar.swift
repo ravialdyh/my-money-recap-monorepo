@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// `CategoryBar`: the Category's name and percentage over a 16pt bar in its hue, read by VoiceOver as
-/// "{Category}, {n} percent, {amount}" (PRD §11). `shown` reveals the fill (`Reveal`).
 struct CategoryBar: View {
     let category: Icon.Name
     let percent: Int

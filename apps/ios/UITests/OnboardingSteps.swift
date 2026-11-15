@@ -1,18 +1,14 @@
 import XCTest
 
 extension XCTestCase {
-    /// The runner's `MMR_BFF_URL` and `MMR_ISSUER`, the two the app reads, handed on at launch.
     static var appEnvironment: [String: String] {
         ProcessInfo.processInfo.environment.filter { ["MMR_BFF_URL", "MMR_ISSUER"].contains($0.key) }
     }
 
-    /// 0 in `currency`, as the app prints a whole amount (`Money`): in the device locale, without a zero fraction.
     static func zero(_ currency: String) -> String {
         Decimal(0).formatted(.currency(code: currency).precision(.fractionLength(0)))
     }
 
-    /// Onboarding step 1 (PRD §6.4), its name already in the field: no Next without an Avatar, then the Avatar and
-    /// Next.
     @MainActor
     func answerStepOne(_ app: XCUIApplication, avatar: String) {
         XCTAssert(app.staticTexts["What should we call you?"].waitForExistence(timeout: 30), "step 1 (PRD §6.4)")
@@ -25,7 +21,6 @@ extension XCTestCase {
         app.buttons["Next"].tap()
     }
 
-    /// Step 2's back chevron (spec #92): step 1 again, its saved name in the field and its Avatar re-selected.
     @MainActor
     func backToStepOne(_ app: XCUIApplication, finding name: String, _ avatar: String) {
         XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2 (PRD §6.5)")
@@ -37,8 +32,6 @@ extension XCTestCase {
         XCTAssert(app.buttons["Next"].isEnabled)
     }
 
-    /// Onboarding step 2 (PRD §6.5, SCREEN-STATES A5): a search that matches nothing says so and clears, a search by
-    /// name finds the Currency, and Next saves it.
     @MainActor
     func searchStepTwo(_ app: XCUIApplication, for query: String, choosing row: String) {
         XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2 (PRD §6.5)")
@@ -57,8 +50,6 @@ extension XCTestCase {
         app.buttons["Next"].tap()
     }
 
-    /// Step 3 (PRD §6.6, SCREEN-STATES A6): back to step 2 and forward, Next off until an amount, a 12th digit
-    /// refused with the D57 line, and a Payday not today's, so the sign-up month shows Money In 0 (PRD §8.11).
     @MainActor
     func answerStepThree(_ app: XCUIApplication) {
         XCTAssert(app.staticTexts["Your monthly salary"].waitForExistence(timeout: 30), "step 3 (PRD §6.6)")
@@ -86,15 +77,11 @@ extension XCTestCase {
         app.buttons["Next"].tap()
     }
 
-    /// Home's hero eyebrow, "Spent so far", with the countdown to the Salary once one is set (PRD §6.8).
     @MainActor
     func spentSoFar(_ app: XCUIApplication) -> XCUIElement {
         app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Spent so far'")).firstMatch
     }
 
-    /// Step 4 (PRD §6.7, SCREEN-STATES A7): back to step 3 and forward, 20% by default with its amount, the knob
-    /// dragged
-    /// to 25% and the preview following it, then Done.
     @MainActor
     func answerStepFour(_ app: XCUIApplication, salary: Int) {
         XCTAssert(app.staticTexts["How much do you want to keep?"].waitForExistence(timeout: 30), "step 4 (PRD §6.7)")
@@ -112,7 +99,6 @@ extension XCTestCase {
         app.buttons["Done"].tap()
     }
 
-    /// "{share} of {salary} each month" in rupiah, as the app prints a whole amount (`Money`).
     static func preview(_ share: Int, of salary: Int) -> String {
         "\(rupiah(share)) of \(rupiah(salary)) each month"
     }
@@ -121,8 +107,6 @@ extension XCTestCase {
         Decimal(amount).formatted(.currency(code: "IDR").precision(.fractionLength(0)))
     }
 
-    /// Home at zero (PRD §6.8), greeting the Member and printing every figure in the Currency step 2 saved: the B1
-    /// "no salary set" layout; with `salary` the Salary prompt gone; with a `target` amount its card filled in.
     @MainActor
     func assertHomeAtZero(
         _ app: XCUIApplication,
@@ -157,8 +141,6 @@ extension XCTestCase {
         XCTAssert(app.staticTexts[greeting].exists, "Home greets the Member by name (PRD §6.8)")
     }
 
-    /// PRD §11 "Platform": the screen held sideways, `control` reached by scrolling where the screen scrolls, a
-    /// picture, then upright again (#106).
     @MainActor
     func sideways(_ app: XCUIApplication, reaching control: XCUIElement, _ name: String) {
         turn(app, to: .landscapeLeft, name)
@@ -172,7 +154,6 @@ extension XCTestCase {
         turn(app, to: .portrait, name)
     }
 
-    /// Turns the phone and waits until the window has turned too, then for the rotation to settle.
     @MainActor
     private func turn(_ app: XCUIApplication, to orientation: UIDeviceOrientation, _ name: String) {
         XCUIDevice.shared.orientation = orientation

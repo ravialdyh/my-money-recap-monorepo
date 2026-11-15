@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// PRD §6.5 / SCREEN-STATES A5, step 2 of onboarding: the back chevron to step 1 and the step pill, the question, the
-/// search and the list in one card, then Next.
 struct CurrencyView: View {
     @State private var model: CurrencyViewModel
     private let onBack: () -> Void
@@ -38,8 +36,6 @@ struct CurrencyView: View {
         }
     }
 
-    /// Held sideways, the question and Next sit beside the card, so the list keeps the height a stacked column
-    /// would spend on them (PRD §11 "Platform").
     @Environment(\.verticalSizeClass) private var height
 
     private var header: some View {
@@ -79,15 +75,12 @@ struct CurrencyView: View {
     }
 }
 
-/// A5's search pill over the matching rows, or its empty line and Clear search; D5 reuses it with `value` beside the
-/// chosen row, its `Changed ✓` (SCREEN-STATES D5).
 struct CurrencyPicker: View {
     @Binding var query: String
     let visible: [CurrencyViewModel.Option]
     let noMatch: String?
     let selected: String?
     var value: String?
-    /// D5's fixed list height, the canvas's 336pt, so the sheet around it scrolls; nil fills what the step leaves.
     var listHeight: CGFloat?
     var searching: FocusState<Bool>.Binding
     let choose: (String) -> Void
@@ -102,7 +95,6 @@ struct CurrencyPicker: View {
         }
     }
 
-    /// The canvas's search pill: a magnifier and the field on the field surface, ringed violet while typing.
     private var search: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
@@ -127,8 +119,6 @@ struct CurrencyPicker: View {
         ))
     }
 
-    /// Every matching row, scrolled so the chosen one shows; a tap chooses and puts the keyboard away, uncovering Next.
-    /// VoiceOver reads the name before the code.
     private var list: some View {
         ScrollViewReader { reader in
             ScrollView {
@@ -159,7 +149,6 @@ struct CurrencyPicker: View {
         }
     }
 
-    /// A5 empty search: the line and the link that clears the field; the chosen row stays chosen underneath.
     private func empty(_ line: String) -> some View {
         VStack(spacing: 10) {
             Text(line)

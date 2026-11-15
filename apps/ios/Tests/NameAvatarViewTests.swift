@@ -2,8 +2,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Step 1 as drawn (PRD §6.4): the app ships the six Avatars under the contract's keys, the chosen one is ringed, and
-/// a Member's answers are drawn in place. The UI tests read the same screen through VoiceOver's labels.
 @MainActor
 final class NameAvatarViewTests: XCTestCase {
     func testTheAppShipsTheSixAvatarsUnderTheContractsKeys() {

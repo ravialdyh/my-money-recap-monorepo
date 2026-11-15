@@ -1,8 +1,6 @@
 import XCTest
 @testable import MyMoneyRecap
 
-/// A2 Enter email (SCREEN-STATES): Send disabled until the address is one, the coral helper only after
-/// blur or Send, and each failure code with its own copy (PRD §6.2, §6.3).
 @MainActor
 final class EnterEmailViewModelTests: XCTestCase {
     func testSendStaysDisabledAndSilentWhileTheAddressIsTyped() {

@@ -2,8 +2,6 @@ import AppAuth
 import XCTest
 @testable import MyMoneyRecap
 
-/// The authorization request Apple and Google ride on (#71): the hint that skips Keycloak's page, the `prompt=login`
-/// that keeps an SSO cookie from signing the last Member in instead, and the 30-day offline session (PRD D62).
 final class AuthConfigTests: XCTestCase {
     private let configuration = OIDServiceConfiguration(
         authorizationEndpoint: URL(string: "http://localhost:8080/realms/mmr/protocol/openid-connect/auth")!,

@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// The Saving Target slider (PRD §6.7): the violet `ProgressBar` with a 28pt ink knob ringed in white,
-/// dragged anywhere on the full 44pt row, snapping to `step`. VoiceOver and UI tests meet it as the system slider.
 struct Slider: View {
     let label: String
     @Binding var value: Int
@@ -49,7 +47,6 @@ struct Slider: View {
         )
     }
 
-    /// The value nearest `fraction` of the range, on a step.
     func snapped(_ fraction: Double) -> Int {
         let raw = Double(range.lowerBound) + min(max(fraction, 0), 1) * Double(range.upperBound - range.lowerBound)
         return Int((raw / Double(step)).rounded()) * step

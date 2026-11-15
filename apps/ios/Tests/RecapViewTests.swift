@@ -3,8 +3,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Page 1 as drawn: C1 and P1 differ from each other and from the loading state; held sideways the page scrolls
-/// rather than clips; X4, Budi's rupiah cover, fits upright with its chips wrapped. The pictures are kept as evidence.
 @MainActor
 final class RecapViewTests: XCTestCase {
     private let upright = CGSize(width: 393, height: 852)
@@ -49,9 +47,6 @@ final class RecapViewTests: XCTestCase {
         try keep(picture(page, size: sideways), "c1-sideways")
     }
 
-    /// X4 (PRD D45): Budi's recorded month in rupiah on an id-ID phone. Money In steps down to 40pt, the Saved and
-    /// Spent
-    /// chips wrap, and the illustration narrows from 310 to 260pt so the page dots stay on screen.
     func testTheRupiahCoverFitsWithItsChipsWrapped() async throws {
         let page = try await pager(RecapViewModelTests.recorded("recap-squirrel"), locale: Locale(identifier: "id_ID"))
         XCTAssertEqual(page.model.hero, "Rp150.000.000")

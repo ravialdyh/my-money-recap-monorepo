@@ -2,8 +2,6 @@ import SwiftUI
 import XCTest
 
 extension XCTestCase {
-    /// `view` settled, every reveal skipped, as it draws in a 393 × 852 window, the size of the iPhone the UI tests run
-    /// on, or `size`. SwiftUI's accessibility tree is empty in a unit test, so the render tests compare pictures.
     @MainActor
     func picture(_ view: some View, size: CGSize = CGSize(width: 393, height: 852)) -> Data? {
         let host = hosted(view, size: size)
@@ -12,8 +10,6 @@ extension XCTestCase {
         }.pngData()
     }
 
-    /// How far the vertical scroll view on screen, a pager's neighbouring pages left out, runs past its bounds with its
-    /// safe-area insets once `view` is laid out at `size`, to the point: 0 when it fits, above 0 when it scrolls.
     @MainActor
     func overflow(_ view: some View, size: CGSize) -> CGFloat {
         let host = hosted(view, size: size)
@@ -29,7 +25,6 @@ extension XCTestCase {
         }.max() ?? 0
     }
 
-    /// The home indicator's inset on an upright iPhone, which a window smaller than the simulator's screen lacks.
     private static var homeIndicator: CGFloat {
         34
     }

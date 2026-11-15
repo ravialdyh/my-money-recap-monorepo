@@ -1,8 +1,6 @@
 import MoneyRecapContract
 import SwiftUI
 
-/// B6 Spend list (PRD §6.10, D59), the full-height sheet over Home: the month switcher, one row per Category that opens
-/// B6b, or the empty month's line and the plus button that opens Log a spend. It scrolls, so it works sideways.
 struct SpendListView: View {
     @State private var model: SpendListViewModel
     @State private var logging: LogSpendViewModel?
@@ -11,8 +9,6 @@ struct SpendListView: View {
     private let edit: (MoneyRecap_V1_Spend) -> LogSpendViewModel?
     private let onSaved: (MoneyRecap_V1_HomeView) -> Void
 
-    /// `log` and `edit` are Home's Log a spend and Edit spend sheets; `onSaved` hands a write's fresh Home back, and
-    /// the list asks again for every month the write changed.
     init(
         model: SpendListViewModel,
         log: @escaping () -> LogSpendViewModel? = { nil },
@@ -107,7 +103,6 @@ struct SpendListView: View {
         }
     }
 
-    /// The open switcher: every month with data, newest first, the shown one checked (`ListRow trailing="check"`).
     private var switcher: some View {
         Card {
             VStack(spacing: 0) {
@@ -121,8 +116,6 @@ struct SpendListView: View {
     }
 }
 
-/// B6b Category detail: that Category's Spends, newest first, each its note or Category, its date and amount, under its
-/// share of the month. A Spend opens its edit sheet (B7); back returns to the list.
 struct CategoryView: View {
     let model: SpendListViewModel
     let category: Icon.Name

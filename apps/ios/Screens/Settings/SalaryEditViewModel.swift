@@ -2,8 +2,6 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// D3 Salary and payday (PRD §6.16, §8.10, D56): setup's amount field and Payday picker over the Salary in force.
-/// Save asks "Which salary is this?" only for a changed amount with the same Payday on or after this month's Payday.
 @Observable
 @MainActor
 final class SalaryEditViewModel: Identifiable {
@@ -17,14 +15,11 @@ final class SalaryEditViewModel: Identifiable {
     }
 
     let currency: String
-    /// The Currency's decimals from the server's CLDR data, the most the field takes (D57).
     let digits: Int
     var amount: String
     private(set) var payday: String
     private(set) var isSaving = false
-    /// The last save failed: what was typed stays, over `SettingsViewModel.saveFailure`.
     private(set) var failed = false
-    /// "Which salary is this?" is open.
     var asking = false
     private let ledger: MoneyRecap_V1_LedgerSettings
     private let today: Date
@@ -75,14 +70,12 @@ final class SalaryEditViewModel: Identifiable {
         (Decimal(string: sent) ?? 0) > 0 && (amountChanged || paydayChanged) && !isSaving
     }
 
-    /// A new Payday starts next month, alone or with the amount (D56); nil while the picked day is the saved one.
     var startsLine: String? {
         guard paydayChanged else { return nil }
         let month = monthName(1)
         return amountChanged ? "Your new salary and payday start in \(month)." : "Your new payday starts in \(month)."
     }
 
-    /// "{amount} from your next payday, {date}." while a later Salary waits (owner, 2026-09-29).
     var waitingLine: String? {
         guard ledger.hasNextSalary, let month = ISODate.month(ledger.nextSalary.effectiveFrom) else { return nil }
         var gmt = Calendar(identifier: .gregorian)
@@ -116,7 +109,6 @@ final class SalaryEditViewModel: Identifiable {
         "\(monthName(0)) stays at \(Money.format(ledger.salary.amount.amount, currency: currency, locale: locale))"
     }
 
-    /// True once saved. A changed amount with the same Payday on or after this month's Payday opens the sheet instead.
     func commit() async -> Bool {
         guard canSave else { return false }
         if ledger.hasSalary, amountChanged, !paydayChanged, ledger.paydayPassedThisMonth {
@@ -126,13 +118,11 @@ final class SalaryEditViewModel: Identifiable {
         return await send(.unspecified)
     }
 
-    /// The sheet's row: this month for a correction, next month for a new Salary.
     func answer(_ applies: MoneyRecap_V1_SalaryAppliesFrom) async -> Bool {
         asking = false
         return await send(applies)
     }
 
-    /// A retry of the same answers sends the same key; `failed_precondition`, the Payday passed meanwhile, asks.
     private func send(_ applies: MoneyRecap_V1_SalaryAppliesFrom) async -> Bool {
         let answers = Answers(amount: sent, payday: payday, applies: applies)
         var current = attempt ?? SaveAttempt(answers)

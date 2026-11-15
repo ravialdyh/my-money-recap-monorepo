@@ -4,11 +4,8 @@ import UserNotifications
 import XCTest
 @testable import MyMoneyRecap
 
-/// D8 Notifications and D1's Notifications row (PRD §6.16) over a faked iOS permission and a faked API, so no test
-/// shows the system alert: each permission state, a failed save and the row's value.
 @MainActor
 final class NotificationsViewModelTests: XCTestCase {
-    /// iOS as the tests see it: `status` until the alert is answered with `allows`.
     @MainActor
     final class FakeIOS {
         var status: UNAuthorizationStatus
@@ -39,7 +36,6 @@ final class NotificationsViewModelTests: XCTestCase {
         }
     }
 
-    /// The API as the tests see it: every message sent with its key, answered as sent unless `fails`.
     final class FakeAPI {
         var fails = false
         var sent: [(prefs: MoneyRecap_V1_NotificationPrefs, key: String?)] = []
@@ -68,7 +64,6 @@ final class NotificationsViewModelTests: XCTestCase {
         )
     }
 
-    /// Allowed: each switch sends the whole message at once under a key of its own, and the answer is what shows.
     func testEachChangeSendsTheWholeMessage() async {
         let ios = FakeIOS(.authorized), api = FakeAPI()
         let model = Self.model(ios, api)
@@ -88,7 +83,6 @@ final class NotificationsViewModelTests: XCTestCase {
         XCTAssertEqual(ios.asked, 0, "already allowed: no alert")
     }
 
-    /// A failed save puts the switch back and shows the Settings save line; the next success clears it.
     func testAFailedSavePutsTheSwitchBack() async {
         let ios = FakeIOS(.authorized), api = FakeAPI()
         let model = Self.model(ios, api)
@@ -102,7 +96,6 @@ final class NotificationsViewModelTests: XCTestCase {
         XCTAssertFalse(model.failed)
     }
 
-    /// Denied: the Banner's state, and a switch opens iOS Settings instead of changing or saving.
     func testDeniedOpensIOSSettingsAndSavesNothing() async {
         let ios = FakeIOS(.denied), api = FakeAPI()
         let model = Self.model(ios, api)
@@ -115,8 +108,6 @@ final class NotificationsViewModelTests: XCTestCase {
         XCTAssertEqual(ios.asked, 0, "iOS asks once only; after a no, only iOS Settings can change it")
     }
 
-    /// Never asked: turning a switch on asks first and saves once allowed; refused, nothing is saved and D8 turns to
-    /// the denied state. Turning one off never asks.
     func testNeverAskedAsksFirst() async {
         let ios = FakeIOS(.notDetermined), api = FakeAPI()
         let model = Self.model(ios, api)
@@ -137,7 +128,6 @@ final class NotificationsViewModelTests: XCTestCase {
         XCTAssertTrue(none.sent.isEmpty)
     }
 
-    /// The wheel's time is saved as "HH:MM" on a 24-hour clock; the same time again sends nothing.
     func testThePickedTimeIsSavedAsHoursAndMinutes() async throws {
         let ios = FakeIOS(.authorized), api = FakeAPI()
         let model = Self.model(ios, api)
@@ -153,8 +143,6 @@ final class NotificationsViewModelTests: XCTestCase {
         XCTAssertTrue(Self.model(FakeIOS(.authorized), FakeAPI(), online: false).offline)
     }
 
-    /// The row: "{n} on", "All off", "Off in iOS Settings" when denied, and no value with nothing to count; an answer
-    /// without notify's preferences keeps the stored ones, and D8 opens only over preferences.
     func testTheSettingsRowCountsWhatIsOn() async throws {
         let context = try SettingsViewModelTests.context()
         var answer = try SettingsViewModelTests.recorded("settings-filled")

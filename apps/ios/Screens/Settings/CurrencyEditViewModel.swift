@@ -2,8 +2,6 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// D5 to D7 Currency (PRD §8.9): another code is previewed, then changes at once with nothing to convert, or opens
-/// D6 with a fetched rate, its failed fetch, or D7's typed rate. Every figure is ledger's (ARCHITECTURE A2).
 @Observable
 @MainActor
 final class CurrencyEditViewModel: Identifiable {
@@ -12,7 +10,6 @@ final class CurrencyEditViewModel: Identifiable {
     typealias Change = (MoneyRecap_V1_BffServiceChangeCurrencyRequest, Headers) async
         -> Result<MoneyRecap_V1_BffServiceChangeCurrencyResponse, ConnectError>
 
-    /// Which confirm sheet is open: D6 with a fetched rate, D6 when the fetch failed, or D7.
     enum Step: Equatable {
         case confirm, failed, manual
     }
@@ -23,21 +20,14 @@ final class CurrencyEditViewModel: Identifiable {
 
     let options: [CurrencyViewModel.Option]
     var query = ""
-    /// The Currency every amount is held in.
     private(set) var current: String
-    /// `Changed ✓` beside the current row after a direct change, until the list next opens (a new model).
     private(set) var changedValue: String?
-    /// The code the open sheet converts to; nil while no sheet is open.
     private(set) var target: String?
     private(set) var step = Step.confirm
-    /// The last preview answered for the sheet's code and, in D7, for the rate typed now.
     private(set) var preview: MoneyRecap_V1_CurrencyChangePreview?
-    /// D7's rate as typed: digits and one separator, at most 11 digits before it and 12 after.
     private(set) var rate = ""
-    /// The sheet's refusal line, `storeLimit` or `convertFailure`; the D5 list's is the Settings save line.
     private(set) var refusal: String?
     private(set) var isBusy = false
-    /// D7's preview, asked `pause` after typing stops.
     private(set) var typing: Task<Void, Never>?
     private let askPreview: Preview
     private let change: Change
@@ -78,7 +68,6 @@ final class CurrencyEditViewModel: Identifiable {
         }
     }
 
-    /// The current code does nothing; another asks for a preview without a rate.
     func choose(_ code: String) async {
         guard code != current, !isBusy else { return }
         refusal = nil
@@ -97,13 +86,11 @@ final class CurrencyEditViewModel: Identifiable {
         }
     }
 
-    /// D6 failed's `Try again`: the fetch once more.
     func tryAgain() async {
         guard let target else { return }
         await choose(target)
     }
 
-    /// D6 failed's `Enter it myself`: D7 with no rate typed.
     func enterItMyself() {
         step = .manual
         preview = nil
@@ -119,7 +106,6 @@ final class CurrencyEditViewModel: Identifiable {
         rate = ""
     }
 
-    /// D7's field: the text clamped to the rate's limits, and the preview asked again a moment after typing stops.
     func type(_ text: String) {
         rate = Self.clamp(text)
         preview = nil
@@ -148,13 +134,10 @@ final class CurrencyEditViewModel: Identifiable {
         }
     }
 
-    /// Convert: enabled once a preview with its rate has answered and nothing refused it past D57.
     var canConvert: Bool {
         preview?.hasPreview == true && refusal != Self.storeLimit && !isBusy
     }
 
-    /// Convert under one key per code and rate; the answer's Home and Settings replace the stored ones (the caller's
-    /// `change`), and the sheet closes on the new Currency.
     func convert() async {
         guard canConvert, let target, let preview else { return }
         isBusy = true
@@ -190,25 +173,21 @@ final class CurrencyEditViewModel: Identifiable {
         rate = ""
     }
 
-    /// "Convert everything to GBP?"
     var title: String {
         "Convert everything to \(target ?? "")?"
     }
 
-    /// D6's rate line: "All your amounts will be converted at today's rate, 1 IDR = 0.000046 GBP."
     var rateLine: String? {
         guard step == .confirm, let conversion = preview?.preview else { return nil }
         return "All your amounts will be converted at today's rate, 1 \(conversion.fromCurrencyCode) = "
             + "\(Self.number(conversion.rate, locale: locale)) \(conversion.toCurrencyCode)."
     }
 
-    /// "Your Rp150.000.000 salary becomes £6.900.", with a Salary only.
     var salaryLine: String? {
         guard let conversion = preview?.preview, conversion.hasSalaryBefore else { return nil }
         return "Your \(money(conversion.salaryBefore)) salary becomes \(money(conversion.salaryAfter))."
     }
 
-    /// The rows `Salary` (with a Salary only) and `Spends`, each "{before} → {after}".
     var rows: [(label: String, value: String)] {
         guard let conversion = preview?.preview else { return [] }
         let salary = conversion.hasSalaryBefore
@@ -220,14 +199,11 @@ final class CurrencyEditViewModel: Identifiable {
         Money.format(amount.amount, currency: amount.currencyCode, locale: locale)
     }
 
-    /// A decimal string in `locale`, every digit ledger sent kept.
     static func number(_ decimal: String, locale: Locale) -> String {
         let value = Decimal(string: decimal) ?? 0
         return value.formatted(.number.locale(locale).precision(.fractionLength(0 ... 12)))
     }
 
-    /// Digits and the first `.` or `,`, at most 11 digits before it and 12 after; extra keys are dropped, never the
-    /// whole edit.
     static func clamp(_ text: String) -> String {
         var whole = "", fraction = "", separator: Character?
         for key in text {
@@ -244,7 +220,6 @@ final class CurrencyEditViewModel: Identifiable {
         return whole + (separator.map(String.init) ?? "") + fraction
     }
 
-    /// The typed rate as the BFF reads it, "0.5" for ",5", or nil unless it is above zero.
     static func sendable(_ typed: String) -> String? {
         let parts = typed.split(separator: typed.contains(",") ? "," : ".", omittingEmptySubsequences: false)
         let whole = parts.first.map(String.init).flatMap { $0.isEmpty ? nil : $0 } ?? "0"

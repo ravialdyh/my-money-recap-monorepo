@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// `ArchetypePill`: a 24pt pill in its Archetype's colour, white type, at 60% unless `selected`,
-/// which is full opacity with a 2pt white ring. Read by VoiceOver as its name; not a control here.
 struct ArchetypePill: View {
-    /// The four money personalities with the legend's fixed labels (`ARCHETYPE_LABEL` in types.ts).
     enum Kind: CaseIterable {
         case squirrel, hustler, treatYourself, slowBurner
 
@@ -42,7 +39,6 @@ struct ArchetypePill: View {
     }
 }
 
-/// `ArchetypeRow`: the four pills in order, `space.2` apart, the one `selected` picked out.
 struct ArchetypeRow: View {
     var selected: ArchetypePill.Kind?
 

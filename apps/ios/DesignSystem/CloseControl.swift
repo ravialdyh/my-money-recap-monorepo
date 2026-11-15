@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// The Recap pager's 44pt close control (PRD D46): the system plus turned 45°, named "Close", in the ground's type
-/// colour: white, or ink `onLight` (the yellow ground).
 struct CloseControl: View {
     var onLight = false
     let action: () -> Void

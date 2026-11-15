@@ -3,7 +3,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// A4 Name and avatar (PRD §6.4): what the field keeps, when Next turns on, and what one save sends.
 @MainActor
 final class NameAvatarViewModelTests: XCTestCase {
     func testTheFieldKeepsLettersInAnyScriptAndStopsAtThirty() {
@@ -58,7 +57,6 @@ final class NameAvatarViewModelTests: XCTestCase {
         XCTAssertNotEqual(keys[1], keys[2], "a changed Avatar is a new write")
     }
 
-    /// A save that cannot reach the BFF says so in the card (spec #92), keeps the answers, and Next tries again.
     func testASaveWithNoConnectionIsSaidAndNextTriesAgain() async {
         var answer = SaveResult.offline
         let model = NameAvatarViewModel(name: "Maya", avatar: "otter") { _, _ in answer }

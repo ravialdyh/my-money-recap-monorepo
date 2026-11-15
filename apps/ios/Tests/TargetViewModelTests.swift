@@ -5,9 +5,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Step 4 (PRD §6.7, D44, spec #92): 20% by default, the preview a share of the Salary rounded half up to the
-/// Currency's
-/// decimals, Done saving the percent under one key per answer, Skip for now recording step 4; no Salary blocks Done.
 @MainActor
 final class TargetViewModelTests: XCTestCase {
     private func money(_ amount: String, _ code: String) -> MoneyRecap_V1_Money {

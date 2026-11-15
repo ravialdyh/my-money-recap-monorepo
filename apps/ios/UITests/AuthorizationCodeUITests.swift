@@ -1,8 +1,5 @@
 import XCTest
 
-/// The authorization-code flow Apple and Google Members use, through Continue with email under the debug
-/// launch argument: the PKCE request, the web sheet, the state from its authorization response (spec #61
-/// seam 6). Needs the test Member's password.
 @MainActor
 final class AuthorizationCodeUITests: XCTestCase {
     override func setUp() {
@@ -73,19 +70,13 @@ final class AuthorizationCodeUITests: XCTestCase {
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "and Back returns to Home, not to step 3")
     }
 
-    /// The web sheet and its "wants to use localhost to sign in" alert are drawn by system processes
-    /// (SpringBoard, SafariViewService), not the app, so element queries look there first.
     private let hosts = ["com.apple.springboard", "com.apple.SafariViewService"]
         .map(XCUIApplication.init(bundleIdentifier:)) + [XCUIApplication()]
 
-    /// Keycloak's SSO cookie outlives a run, and under `prompt=login` the next run inside its idle window gets the
-    /// re-authentication form: the username fixed to the test Member, the focus already in the password field.
     private func isReauthenticating(_ sheet: XCUIApplication) -> Bool {
         sheet.webViews.buttons["Restart login"].waitForExistence(timeout: 2)
     }
 
-    /// The web sheet drops keys typed while its software keyboard slides away, silently. Each attempt clears the field
-    /// with ⌘A and ⌫, which also spend that slide, then types and waits for the field to read the text back.
     private func type(_ text: String, into field: XCUIElement, on page: XCUIElement) {
         focus(field, on: page)
         for attempt in 1 ... 3 {
@@ -101,9 +92,6 @@ final class AuthorizationCodeUITests: XCTestCase {
         XCTFail("\(field) never read back what was typed")
     }
 
-    /// On iOS 26.0 the keyboard's toolbar covers the password field once the username is typed, so a tap there never
-    /// focuses it. A tap that leaves the field unfocused is followed by one on the top of the page, putting the
-    /// keyboard away.
     private func focus(_ field: XCUIElement, on page: XCUIElement) {
         let focused = NSPredicate(format: "hasKeyboardFocus == true")
         for attempt in 1 ... 3 {
@@ -118,8 +106,6 @@ final class AuthorizationCodeUITests: XCTestCase {
         XCTFail("\(field) never took the keyboard focus")
     }
 
-    /// A lone Return is dropped the same way, and the Sign In button can sit under the keyboard's toolbar. So Return
-    /// is sent again while the form, still holding the whole text, has not gone after ten seconds.
     private func submit(_ field: XCUIElement, holding text: String) {
         for attempt in 1 ... 3 {
             field.typeText("\n")
@@ -138,7 +124,6 @@ final class AuthorizationCodeUITests: XCTestCase {
         try XCTUnwrap(first(hosts.map { $0.buttons[title] }, attempts: 6), "no system button titled \(title)")
     }
 
-    /// Polls each candidate for about a second per attempt and returns the first that exists.
     private func first(_ candidates: [XCUIElement], attempts: Int) -> XCUIElement? {
         for _ in 0 ..< attempts {
             for candidate in candidates where candidate.waitForExistence(timeout: 1) {
@@ -150,8 +135,6 @@ final class AuthorizationCodeUITests: XCTestCase {
 }
 
 private extension XCUIElement {
-    /// WebKit applies keys after `typeText` returns, so this polls for up to ten seconds. A password field reads back
-    /// as one bullet per character, so only its length can be checked.
     func settles(on text: String) -> Bool {
         let predicate = elementType == .secureTextField
             ? NSPredicate(format: "value.length == %d", text.count)

@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// D5 Currency (PRD §6.16, §8.9): setup's search and list in one card on the white sheet, the list the canvas's
-/// height and scrolling inside it, the sheet scrolling sideways; another code opens the confirm sheet over it.
 struct CurrencyEditView: View {
     @State private var model: CurrencyEditViewModel
     @FocusState private var searching: Bool
@@ -35,11 +33,8 @@ struct CurrencyEditView: View {
     }
 }
 
-/// D6 and D7 (SCREEN-STATES): the confirm sheet with the rate line and the before-and-after rows, its failed fetch
-/// with `Try again` and `Enter it myself`, or the typed rate; each ends `This can't be undone.` and scrolls sideways.
 struct ConvertSheet: View {
     let model: CurrencyEditViewModel
-    /// What the rate field shows; the model keeps only what the rate's limits allow.
     @State private var typed = ""
 
     var body: some View {
@@ -80,7 +75,6 @@ struct ConvertSheet: View {
         .presentationBackground(Tokens.Surface.sheet)
     }
 
-    /// The canvas's paragraph: the line in secondary ink, then `This can't be undone.` in primary.
     private func paragraph(_ line: String) -> some View {
         let lead = line.isEmpty ? Text("") : Text("\(line) ").foregroundStyle(Tokens.Text.secondary)
         return (lead + Text("This can't be undone.").foregroundStyle(Tokens.Text.primary))
@@ -112,7 +106,6 @@ struct ConvertSheet: View {
             .disabled(!model.canConvert)
     }
 
-    /// D7's field: "Rate: 1 IDR =", the new code after it, and why the Member types it.
     private var rateField: some View {
         MMRTextField(
             label: "Rate: 1 \(model.current) =",

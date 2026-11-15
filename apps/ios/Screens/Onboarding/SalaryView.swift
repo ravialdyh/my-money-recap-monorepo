@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// PRD §6.6 / SCREEN-STATES A6, step 3 of onboarding: the back chevron and the step pill, the question, the
-/// amount card and the Payday card, then Next and Skip for now.
 struct SalaryView: View {
     @State private var model: SalaryViewModel
     private let onBack: () -> Void

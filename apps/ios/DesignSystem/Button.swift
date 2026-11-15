@@ -1,13 +1,9 @@
 import SwiftUI
 
-/// 52pt full-width pill. Ink by default; `secondary` is the white pill with the ink ring; `coral` is D10 and D11's
-/// Delete my account.
-/// `loading` swaps in a spinner (SCREEN-STATES A1 loading); the environment's `isEnabled` gives the 40% disabled look.
 struct MMRButton: View {
     enum Variant { case primary, secondary, coral }
     let title: String
     var variant: Variant = .primary
-    /// SF Symbol name for the 20pt leading glyph ("plus" on Log a spend).
     var icon: String?
     var loading = false
     let action: () -> Void
@@ -43,7 +39,6 @@ struct MMRButton: View {
     }
 }
 
-/// Pressed = scale 0.97 and brightness −8% for `motion.duration.press`; disabled = opacity 0.4. One rule each.
 struct PressableStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
 

@@ -1,17 +1,13 @@
 import SwiftUI
 
-/// `CompareBars`: 18pt bars, each a label, a track and its amount, read by VoiceOver as "{label},
-/// {amount}". The fills reveal (`Reveal`) when `shown` turns true.
 struct CompareBars: View {
     struct Row {
         let label: String
-        /// The amount as a number, for the drawn length only (ARCHITECTURE A2).
         let value: Double
         let display: String
         let tone: ProgressBar.Tone
     }
 
-    /// `total` reads each row as a share of the whole; `max` scales against the largest row.
     enum Scale { case total, max }
 
     let rows: [Row]
@@ -48,7 +44,6 @@ struct CompareBars: View {
         }
     }
 
-    /// Each row's drawn length, 0 to 1: its value over the rows' sum or their largest, a negative one drawn empty.
     static func fractions(_ values: [Double], scale: Scale) -> [Double] {
         let basis = scale == .max ? values.max() ?? 0 : values.reduce(0, +)
         return values.map { basis > 0 ? min(max($0 / basis, 0), 1) : 0 }

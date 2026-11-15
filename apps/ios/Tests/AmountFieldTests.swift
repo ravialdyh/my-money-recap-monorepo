@@ -2,8 +2,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// The amount field (PRD D57, D71, spec #92): it reads what is typed as the exact decimal the contract carries, in
-/// the device's separators, drops a 12th whole digit or a decimal the Currency lacks, and draws the D57 line at 11.
 @MainActor
 final class AmountFieldTests: XCTestCase {
     private let us = Locale(identifier: "en_US")
@@ -51,8 +49,6 @@ final class AmountFieldTests: XCTestCase {
         XCTAssertNotEqual(picture(field("150000000", "IDR")), picture(field("150000000", "JPY")), "IDR against ¥")
     }
 
-    /// #106: the size comes from the printed width in Fredoka bold, not from a count of characters: a long rupiah
-    /// Salary steps down from 48 through 36 to 28pt, and two lines of one length but different widths size apart.
     func testTheAmountStepsDownByItsPrintedWidth() {
         XCTAssertEqual(AmountField.font(of: 48).familyName, "Fredoka", "the bundled face is the one measured")
         let short = "Rp 150.000.000"

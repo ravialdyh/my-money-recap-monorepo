@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// D4 Saving target (PRD §6.16): setup's slider card, the forward-only line when a save starts next month, then Save;
-/// with no Salary, setup's `Set a salary first` card, which opens D3 (D44). It scrolls sideways.
 struct TargetEditView: View {
     @State private var model: TargetEditViewModel
     @Environment(\.dismiss) private var dismiss

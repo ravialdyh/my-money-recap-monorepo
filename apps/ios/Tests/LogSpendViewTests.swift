@@ -5,8 +5,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// The Log a spend sheet as drawn (SCREEN-STATES B2 to B4): empty, filled, at the 11-digit cap with its line, failed
-/// with its line; and as Edit spend (B7): prefilled, an old date, a failed save and a failed delete.
 @MainActor
 final class LogSpendViewTests: XCTestCase {
     private func drawn(_ model: LogSpendViewModel) -> Data? {

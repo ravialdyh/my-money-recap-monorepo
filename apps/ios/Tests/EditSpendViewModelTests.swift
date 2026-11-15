@@ -5,8 +5,6 @@ import SwiftData
 import XCTest
 @testable import MyMoneyRecap
 
-/// Edit spend and its delete (PRD §6.10, B7, B8) on the Spend and Home recorded in `Fixtures/log-spend.json`: the
-/// sheet is prefilled, an old date stays, both failures keep the Spend and a retry keeps its key.
 @MainActor
 final class EditSpendViewModelTests: XCTestCase {
     private var calendar: Calendar {
@@ -32,8 +30,6 @@ final class EditSpendViewModelTests: XCTestCase {
         )
     }
 
-    /// No network path: Save changes and Delete this spend are refused before any request, the Spend stays readable,
-    /// and the path coming back opens both again with no relaunch (D58, owner 2026-09-25).
     func testOfflineTheEditCanBeReadButNotSavedOrDeleted() async throws {
         let recorded = try LogSpendViewModelTests.recordedAnswer()
         var calls = 0
@@ -97,7 +93,6 @@ final class EditSpendViewModelTests: XCTestCase {
         XCTAssertEqual(model.months, ["2026-09", "2026-07"], "both months the move changed")
     }
 
-    /// B7 old Spend: a date before the picker's days stays as it is and is sent unchanged; the rest stays editable.
     func testAnOldDateStaysReadOnly() async throws {
         var old = try LogSpendViewModelTests.recordedAnswer().spend
         old.date = "2026-07-10"
@@ -116,7 +111,6 @@ final class EditSpendViewModelTests: XCTestCase {
         XCTAssertEqual(model.months, ["2026-07"])
     }
 
-    /// B8: a failed delete keeps the Spend and says so; the retry sends the same key; the answer is Home.
     func testAFailedDeleteKeepsTheSpendAndARetryKeepsItsKey() async throws {
         let recorded = try LogSpendViewModelTests.recordedAnswer()
         var keys: [String] = []
@@ -146,8 +140,6 @@ final class EditSpendViewModelTests: XCTestCase {
         XCTAssertNil(none, "Log a spend has nothing to delete")
     }
 
-    /// Home opens the edit sheet in its Currency; after a write the list asks again for the month shown and every month
-    /// the write changed, and a Category left empty closes its detail.
     func testHomeOpensTheSheetAndTheListAsksForEveryChangedMonth() async throws {
         let recorded = try LogSpendViewModelTests.recordedAnswer()
         let context = try ModelContext(ModelContainer(

@@ -2,9 +2,6 @@ import Foundation
 import MoneyRecapContract
 import SwiftData
 
-/// The last `SettingsView` as the bytes the BFF sent, plus when it arrived (IOS I4), so Settings draws at once and
-/// reads
-/// offline. An answer replaces it whole; nothing edits it; `HomeSnapshot.erase` deletes it with the rest.
 @Model
 final class SettingsSnapshot {
     var bytes: Data

@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Full-width card, no shadow: coral for the Target Warning (PRD D38, D53), violet `info` for a notice,
-/// grey for no connection (D58). An × for the warning's session-only dismissal (§6.8); a link, underlined, after the
-/// text.
 struct Banner: View {
     enum Tone {
         case warning, info, offline

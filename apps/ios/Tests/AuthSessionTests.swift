@@ -125,7 +125,6 @@ final class AuthSessionTests: XCTestCase {
         XCTAssertNil(Keychain.read())
     }
 
-    /// Runs `BearerInterceptor`'s request step alone, where no response interceptor follows a failure.
     private func intercept(
         _ session: AuthSession,
         base: String = BffClient.baseURL,
@@ -142,7 +141,6 @@ final class AuthSessionTests: XCTestCase {
         }
     }
 
-    /// The BFF's `unauthenticated`, which every path but one answers by forcing a refresh.
     private func respondUnauthenticated(_ interceptor: BearerInterceptor) async {
         let answer = HTTPResponse(
             code: .unauthenticated, headers: [:], message: nil, trailers: [:], error: nil, tracingInfo: nil
@@ -152,8 +150,6 @@ final class AuthSessionTests: XCTestCase {
         }
     }
 
-    /// A signed-in state whose access token expires in `expiresIn` seconds; once it has, the next action refreshes
-    /// against `realm`.
     private func signedIn(realm: String, expiresIn: Int = 0) -> AuthSession {
         StubRealm.install()
         let endpoint = URL(string: "https://\(realm)/token")!
@@ -176,9 +172,6 @@ final class AuthSessionTests: XCTestCase {
     }
 }
 
-/// The realm: `refusing.invalid` refuses the refresh token (RFC 6749 §5.2), `refreshing.invalid` answers it with the
-/// access token `refreshed`, `ending.invalid` keeps each logout form it is posted, and any other host fails in transit,
-/// as with no signal.
 final class StubRealm: StubURLProtocol {
     nonisolated(unsafe) static var loggedOut: [String] = []
 
@@ -194,7 +187,6 @@ final class StubRealm: StubURLProtocol {
     }
 }
 
-/// A realm answered from memory: `install()` routes AppAuth's requests to the subclass's `startLoading`.
 class StubURLProtocol: URLProtocol {
     override static func canInit(with _: URLRequest) -> Bool {
         true
@@ -212,7 +204,6 @@ class StubURLProtocol: URLProtocol {
         OIDURLSessionProvider.setSession(URLSession(configuration: configuration))
     }
 
-    /// The request's body, which URLSession hands a protocol as a stream.
     var body: Data {
         guard let stream = request.httpBodyStream else { return request.httpBody ?? Data() }
         stream.open()

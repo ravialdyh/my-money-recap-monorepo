@@ -1,8 +1,6 @@
 import XCTest
 
 extension SignInUITests {
-    /// #170: the Settings chip opens D1, each row read with its value; Profile renames the Member and Save returns to
-    /// D1 with the new name; D1 sideways reaches Log out; back closes it and Home greets the new name.
     func renameInSettings(_ app: XCUIApplication, from old: String, to new: String) {
         app.buttons["Settings"].tap()
         XCTAssert(app.staticTexts["Settings"].waitForExistence(timeout: 10), "the chip opens D1")
@@ -38,9 +36,6 @@ extension SignInUITests {
         snapshot("29-home-greets-new-name")
     }
 
-    /// #172: Saving target opens D4 over the setup Target, 25%, with the forward-only line, since the setup save was
-    /// the first; the slider moves the preview, D4 sideways reaches Save, and Save returns to D1, where 25% stays in
-    /// force this month (D65).
     func editTargetInSettings(_ app: XCUIApplication, salary: Int) {
         app.buttons["Settings"].tap()
         let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Saving target' AND label CONTAINS '25%'"))
@@ -67,9 +62,6 @@ extension SignInUITests {
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "back to Home")
     }
 
-    /// #174: D5 with the rupiah checked; the pound meets the failed fetch (no rates App ID) twice; D7's typed rate
-    /// previews the Salary; Convert returns to D5 on the pound; D1 and Home read pounds; the month so far is stored
-    /// again.
     func convertToPoundsInSettings(_ app: XCUIApplication, salary: Int, rate: String, pounds: Decimal) {
         app.buttons["Settings"].tap()
         let row = { (label: String, value: String) in
@@ -131,8 +123,6 @@ extension SignInUITests {
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10))
     }
 
-    /// #182: Export spends opens D9 naming the address signed in with; Send it becomes Sent ✓, dimmed, and D9 sideways
-    /// still reaches it; back returns to D1 and then Home.
     func exportInSettings(_ app: XCUIApplication) {
         app.buttons["Settings"].tap()
         let row = app.buttons["Export spends"]
@@ -157,7 +147,6 @@ extension SignInUITests {
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "back to Home")
     }
 
-    /// An amount in pounds as the app prints it (`Money`): no fraction when whole, else two decimals.
     static func pounds(_ amount: Decimal) -> String {
         var source = amount, rounded = Decimal()
         NSDecimalRound(&rounded, &source, 0, .plain)
@@ -165,8 +154,6 @@ extension SignInUITests {
         return amount.formatted(.currency(code: "GBP").precision(.fractionLength(whole ? 0 : 2)))
     }
 
-    /// #179: with notifications allowed after the first Spend, D1's row counts PRD §10's two defaults; D8 turns the
-    /// Daily reminder on, which grows its `Remind me at` row and saves at once, and D1 then counts three.
     func turnOnTheReminder(_ app: XCUIApplication) {
         app.buttons["Settings"].tap()
         let row = { (value: String) in

@@ -4,10 +4,8 @@ import UserNotifications
 import XCTest
 @testable import MyMoneyRecap
 
-/// B5 and IOS I8 over a faked iOS: the alert, APNs and the API are all stand-ins, so no test shows the system alert.
 @MainActor
 final class PushRegistrationTests: XCTestCase {
-    /// iOS as the tests see it: `status` until the alert is answered with `allows`, and APNs answering `token`.
     private final class FakeSystem {
         var status = UNAuthorizationStatus.notDetermined
         var allows = true
@@ -97,7 +95,6 @@ final class PushRegistrationTests: XCTestCase {
         XCTAssertNil(push.token)
     }
 
-    /// The token can change, so every launch of an allowed phone registers again; an unasked or denied one never does.
     func testEveryLaunchRegistersOnlyWhenAllowed() async throws {
         let fake = FakeSystem(), api = FakeAPI()
         let push = try push(fake, api)
@@ -114,8 +111,6 @@ final class PushRegistrationTests: XCTestCase {
         XCTAssertEqual(api.sent.count, 2)
     }
 
-    /// No token from APNs (the simulator until #87) and a refused RegisterDevice are both ignored, and neither is
-    /// remembered.
     func testAFailedRegistrationIsIgnored() async throws {
         let fake = FakeSystem(), api = FakeAPI()
         fake.status = .authorized
@@ -156,8 +151,6 @@ final class PushRegistrationTests: XCTestCase {
         XCTAssertTrue(api.forgotten.isEmpty)
     }
 
-    /// Home asks only after the Log a spend sheet closes on a save, once per save, and a sheet closed without one never
-    /// asks.
     func testHomeAsksOnlyAfterALoggedSpendsSheetCloses() async throws {
         let fake = FakeSystem(), api = FakeAPI()
         let context = try ModelContext(ModelContainer(

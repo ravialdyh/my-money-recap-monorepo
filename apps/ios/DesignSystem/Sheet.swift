@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// The `full` sheet: a white surface filling the violet ground, with a 44pt back chevron over a Fredoka `m` headline
-/// as its whole chrome. It scrolls when held sideways.
 struct Sheet<Content: View>: View {
     let title: String
     let back: () -> Void

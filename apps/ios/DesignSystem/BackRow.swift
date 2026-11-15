@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// The canvases' `backRow`: a 44pt back chevron and the white label pill, with no header title. Enter email and Check
-/// your inbox carry `Email` (README A2, A3); every onboarding step after the first carries its step (SCREEN-STATES).
 struct BackRow: View {
     let label: String
     let back: () -> Void

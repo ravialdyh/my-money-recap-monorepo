@@ -1,8 +1,6 @@
 import Foundation
 import Security
 
-/// One generic-password item, `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` (PRD §9, IOS I2).
-/// The `LAContext` gate and the 30-day rule are later slices.
 enum Keychain {
     private static let query: [CFString: Any] = [
         kSecClass: kSecClassGenericPassword,

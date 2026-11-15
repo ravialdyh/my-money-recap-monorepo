@@ -1,8 +1,6 @@
 import XCTest
 
 extension SignInUITests {
-    /// Spec #151, #153 to #156: the dashed card under `Past recaps` opens the month so far on P1, the Spend deleted;
-    /// swipes turn to P2, P3 and P4, each sideways reaching Close; the first dot turns back to P1; Close returns Home.
     func openTheMonthSoFar(_ app: XCUIApplication) {
         let label = app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Past recaps'")).firstMatch
         XCTAssert(label.waitForExistence(timeout: 10), "the label over the dashed card")
@@ -39,12 +37,10 @@ extension SignInUITests {
         XCTAssertFalse(streak.exists)
     }
 
-    /// The one element labelled `label` on screen: the pager keeps its neighbouring page, dots included, in the tree.
     private func onScreen(_ query: XCUIElementQuery, _ label: String) -> XCUIElement? {
         query.matching(NSPredicate(format: "label == %@", label)).allElementsBoundByIndex.first { $0.isHittable }
     }
 
-    /// #156: P4 closes the month so far with ledger's line, the four pills and no Share.
     private func swipeToTheClosingPage(_ app: XCUIApplication) {
         let next = Calendar.current.date(byAdding: .month, value: 1, to: .now) ?? .now
         let line = app.staticTexts["Your recap arrives on 1 \(next.formatted(.dateTime.month(.wide)))."]
@@ -56,8 +52,6 @@ extension SignInUITests {
         snapshot("24-recap-closing")
     }
 
-    /// #155: P3 with the Spend deleted: its chips, `Where {Spent} went`, nothing spent and no splurge, and the Payday
-    /// card only before Payday, so it holds whichever day it runs.
     func swipeToTheSpendingPage(_ app: XCUIApplication, from page: Int) {
         let headline = app.staticTexts["Where \(Self.zero("IDR")) went"]
         var swipes = 0

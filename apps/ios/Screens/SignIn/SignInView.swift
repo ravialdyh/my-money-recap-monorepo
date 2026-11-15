@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// PRD §6.1 / SCREEN-STATES A1. Apple and Google hand the web sheet to their provider through `kc_idp_hint` (#71).
 struct SignInView: View {
     private let session: AuthSession
     @State private var model: SignInViewModel
@@ -62,8 +61,6 @@ struct SignInView: View {
         .animation(.easeOut(duration: Tokens.Motion.Duration.reduced), value: model.errorMessage)
     }
 
-    /// Enter email, or the old web sheet when the debug launch argument keeps the authorization-code flow
-    /// under test (spec #61 seam 6).
     private func continueWithEmail() {
         if AuthConfig.usesAuthorizationCodeFlow {
             tap(.email)
@@ -76,8 +73,6 @@ struct SignInView: View {
         Task { await model.tap(button) }
     }
 
-    /// Apple's own button style (black pill, system type, Apple glyph), listed first as App Store guideline 4.8
-    /// expects; the glyph becomes the spinner while its sheet is open.
     private var appleButton: some View {
         Button { tap(.apple) } label: {
             Label {
@@ -98,7 +93,6 @@ struct SignInView: View {
     }
 }
 
-/// The email path's two screens, pushed on Sign in's own stack (PRD §6.2, §6.3).
 enum EmailStep: Hashable {
     case enterEmail
     case checkInbox(String)

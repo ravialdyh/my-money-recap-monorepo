@@ -4,8 +4,6 @@ import SwiftData
 import XCTest
 @testable import MyMoneyRecap
 
-/// D1 Settings and D2 Profile (PRD §6.16) from the BFF's recorded `GetSettings` answers for the test Member in rupiah:
-/// `settings-filled.json` with a Salary paid on the 25th and a 20% Target, `settings-not-set.json` after steps 1 and 2.
 @MainActor
 final class SettingsViewModelTests: XCTestCase {
     static func recorded(_ name: String) throws -> MoneyRecap_V1_SettingsView {
@@ -62,8 +60,6 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertEqual(SettingsViewModel.payday("last"), "Last day")
     }
 
-    /// The stored copy is drawn at once and replaced whole by the answer; a failed read keeps it; erasing the store, as
-    /// sign-out and `--reset-snapshot` do, deletes it (IOS I4).
     func testTheStoredCopyIsDrawnAtOnceThenReplaced() async throws {
         let context = try Self.context()
         let bare = try Self.recorded("settings-not-set")
@@ -88,8 +84,6 @@ final class SettingsViewModelTests: XCTestCase {
         XCTAssertFalse(try Self.model({ MoneyRecap_V1_SettingsView() }, context: Self.context()).offline)
     }
 
-    /// Save turns on only for a valid, changed name or Avatar, sends those two alone, and keeps what was typed when it
-    /// fails; the retry reuses the key.
     func testProfileSavesAChangedNameAndKeepsItWhenTheSaveFails() async throws {
         var sent: [(MoneyRecap_V1_BffServiceSaveProfileRequest, Headers)] = []
         var result = SaveResult.failed

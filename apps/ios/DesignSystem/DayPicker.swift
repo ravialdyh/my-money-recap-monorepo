@@ -1,9 +1,6 @@
 import SwiftUI
 
-/// Payday picker (PRD D51): 44pt pills, 1 to 31 then `Last day`, nothing disabled, the selection
-/// the ink pill, centred on open, and the next three dates below, which are the caller's arithmetic (PRD §8.2).
 struct DayPicker: View {
-    /// The contract's Payday values in the order the picker draws them.
     static let values = (1 ... 31).map(String.init) + ["last"]
 
     let selected: String

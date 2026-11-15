@@ -2,14 +2,11 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// A5 Currency (SCREEN-STATES, PRD §6.5, IOS I6): the platform's common currencies by British English name, searched
-/// by name or code, the region's currency chosen where it names one (spec #92). Next saves it with step 2 (A14).
 @Observable
 @MainActor
 final class CurrencyViewModel {
     typealias Save = (MoneyRecap_V1_BffServiceSaveProfileRequest, Headers) async -> SaveResult
 
-    /// One row, as the canvas labels it: "IDR · Indonesian Rupiah".
     struct Option: Equatable, Identifiable {
         let code: String
         let name: String
@@ -23,8 +20,6 @@ final class CurrencyViewModel {
         }
     }
 
-    /// `Locale.commonISOCurrencyCodes`, named and sorted in `names`, British English: today's currencies and a few
-    /// recently withdrawn, such as the Croatian Kuna. The platform's longer list adds older money and gold.
     nonisolated static func options(names: Locale = Locale(identifier: "en_GB")) -> [Option] {
         Locale.commonISOCurrencyCodes
             .map { Option(code: $0, name: names.localizedString(forCurrencyCode: $0) ?? $0) }
@@ -35,13 +30,10 @@ final class CurrencyViewModel {
     var query = ""
     private(set) var selected: String?
     private(set) var isSaving = false
-    /// The last save could not reach the BFF: the step says so and Next tries again (`NoConnectionView.copy`).
     private(set) var offline = false
     private var attempt: SaveAttempt<String>?
     private let save: Save
 
-    /// `saved` is the Currency already saved, which starts chosen (spec #92: going back or resuming re-selects it);
-    /// empty, the device `region`'s starts chosen when the list has it, and otherwise nothing does.
     init(
         saved: String = "",
         region: Locale = .autoupdatingCurrent,
@@ -63,7 +55,6 @@ final class CurrencyViewModel {
         Self.noMatch(query, in: options)
     }
 
-    /// The rows whose code or name holds the query, ignoring case and accents; every row for an empty query.
     nonisolated static func matching(_ query: String, in options: [Option]) -> [Option] {
         let needle = query.trimmingCharacters(in: .whitespaces)
         guard !needle.isEmpty else { return options }
@@ -73,7 +64,6 @@ final class CurrencyViewModel {
         }
     }
 
-    /// `No currency matches "{query}".` (SCREEN-STATES A5) while the query matches no row.
     nonisolated static func noMatch(_ query: String, in options: [Option]) -> String? {
         let needle = query.trimmingCharacters(in: .whitespaces)
         return matching(needle, in: options).isEmpty ? "No currency matches \"\(needle)\"." : nil
@@ -91,7 +81,6 @@ final class CurrencyViewModel {
         selected != nil && !isSaving
     }
 
-    /// True once the Currency is saved. A retry of the same choice sends the same key; another choice a new key.
     func next() async -> Bool {
         guard let selected, !isSaving else { return false }
         var current = attempt ?? SaveAttempt(selected)

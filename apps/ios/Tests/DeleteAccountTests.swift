@@ -3,8 +3,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// D10 and D11 Delete account (SCREEN-STATES D10, D11): only exactly `DELETE` asks, a granted request signs out, a
-/// failure keeps the Member signed in with its line and retries under the same key, and both screens scroll sideways.
 @MainActor
 final class DeleteAccountTests: XCTestCase {
     typealias Answer = Result<MoneyRecap_V1_BffServiceRequestDeletionResponse, ConnectError>

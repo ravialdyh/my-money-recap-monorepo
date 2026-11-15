@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// The helper-text link inside a card: violet, underlined, a 44pt tap target (the canvases' "Clear search").
 struct TextLink: View {
     let title: String
     let action: () -> Void
@@ -19,9 +18,6 @@ struct TextLink: View {
     }
 }
 
-/// The white text button on the violet ground under a step's primary button (the canvases' "Skip for now"): the
-/// ground's
-/// ink, a 44pt tap target, full width.
 struct GroundLink: View {
     let title: String
     let action: () -> Void

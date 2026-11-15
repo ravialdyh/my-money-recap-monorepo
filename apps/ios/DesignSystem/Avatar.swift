@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// A single round Avatar badge for the Home greeting; an unknown key shows the violet well
-/// alone.
 struct Avatar: View {
     let key: String
     private let size = Tokens.Size.avatarInline

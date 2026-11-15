@@ -2,8 +2,6 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// PRD §6.8 / SCREEN-STATES B1. The prompts open steps 3 and 4 (D54, D69), Log a spend its sheet unless offline
-/// (D58), the hero and month chip the Spend list (D59), the Recap entries a Recap, and the Settings chip D1.
 struct HomeView: View {
     @State private var model: HomeViewModel
     @State private var logging: LogSpendViewModel?
@@ -13,8 +11,6 @@ struct HomeView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var open: (Int) -> Void = { _ in }
 
-    /// The launch sends the zone (`LaunchView`); Home asks only for itself, once more after the interceptor refreshes
-    /// the token on `unauthenticated` (IOS I3), and hands `onboardingNeeded` back to the launch when refused.
     init(
         session: AuthSession,
         context: ModelContext,
@@ -28,7 +24,6 @@ struct HomeView: View {
         self.open = open
     }
 
-    /// Home over a given model, as the render tests draw it.
     init(model: HomeViewModel) {
         _model = State(initialValue: model)
     }
@@ -76,7 +71,6 @@ struct HomeView: View {
         .fullScreenCover(item: $settings, onDismiss: { Task { await model.refresh() } }, content: SettingsView.init)
     }
 
-    /// `motion.reveal.number` for the numbers a save changed; with Reduce Motion, the 150 ms fade.
     private var reveal: Animation {
         reduceMotion
             ? .easeInOut(duration: Tokens.Motion.Duration.reduced)
@@ -134,7 +128,6 @@ struct HomeView: View {
         }
     }
 
-    /// The `Past recaps` label over the list, or over the dashed preview card before any Recap (D47).
     private func pastRecaps(_ home: MoneyRecap_V1_HomeView) -> some View {
         VStack(alignment: .leading, spacing: Tokens.Space._3) {
             Text("Past recaps")
@@ -152,7 +145,6 @@ struct HomeView: View {
         }
     }
 
-    /// PRD §6.8 target card: "{Saved} of {target amount}", the bar filled by Saved, and ledger's §8.7 sentence.
     private func target(_ home: MoneyRecap_V1_HomeView) -> some View {
         Card(minHeight: Tokens.Size.homeTargetCard) {
             ViewThatFits(in: .horizontal) {
@@ -173,7 +165,6 @@ struct HomeView: View {
         }
     }
 
-    /// "{Saved} of {target amount}", one line; beside the title while both fit, under it otherwise (X3).
     private var progress: some View {
         Text(model.targetProgress ?? "")
             .textStyle(Tokens.TypeRamp.labelM)
@@ -183,7 +174,6 @@ struct HomeView: View {
             .foregroundStyle(Tokens.Text.secondary)
     }
 
-    /// PRD §6.19 first load: both cards at their filled heights with `ink.100` blocks in place of numbers. No spinner.
     private var skeleton: some View {
         Group {
             Card(minHeight: Tokens.Size.homeHeroCard) {

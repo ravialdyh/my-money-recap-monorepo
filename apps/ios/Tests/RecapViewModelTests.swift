@@ -3,8 +3,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// Recorded `GetRecap` answers (`Fixtures/recap-*.json`, IOS I9) drive every case: which pages each situation draws,
-/// the words page 1 prints, and the loading state kept when the BFF cannot answer.
 @MainActor
 final class RecapViewModelTests: XCTestCase {
     static func recorded(_ name: String) throws -> MoneyRecap_V1_RecapView {
@@ -23,9 +21,6 @@ final class RecapViewModelTests: XCTestCase {
         return model
     }
 
-    /// Budi's August, recorded from the stack with his sign-up, Salary and Saving Target moved to 1 August: the
-    /// Squirrel.
-    /// en-GB prints the rupiah's code, then a no-break space.
     func testAFullMonthDrawsTheCoverWithMoneyInSavedAndSpent() async throws {
         let model = try await Self.loaded("recap-squirrel")
         XCTAssertEqual(model.pages, [.cover, .kept, .goal, .archetype])
@@ -46,8 +41,6 @@ final class RecapViewModelTests: XCTestCase {
         XCTAssertEqual(model.chips.first?.text, "Saved -IDR\u{00A0}2,000,000")
     }
 
-    /// The three partial situations draw P1, headed by situation, Spent as the hero and never Money In (PRD §6.17):
-    /// September so far, a sign-up on 27 August after its Payday, and an August with a Spend and no Salary.
     func testEachPartialSituationDrawsP1WithItsHeadline() async throws {
         let cases = [
             ("recap-preview", "September so far", "IDR\u{00A0}0", "No spends"),
@@ -64,7 +57,6 @@ final class RecapViewModelTests: XCTestCase {
         }
     }
 
-    /// §6.19: before any answer there is no page to turn, and with no answer the loading state stays.
     func testTheLoadingStateIsKeptOnAFailure() async {
         let model = RecapViewModel(
             month: "2026-08",
