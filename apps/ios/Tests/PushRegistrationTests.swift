@@ -70,7 +70,7 @@ final class PushRegistrationTests: XCTestCase {
         XCTAssertEqual(fake.asked, 1, "iOS never asked, so the alert shows")
         XCTAssertEqual(fake.registered, 1, "allowed, so the phone registers")
         XCTAssertEqual(api.sent.map(\.token), ["dead01"])
-        XCTAssertNotNil(api.sent.first?.key, "RegisterDevice needs the Idempotency-Key header (A14)")
+        XCTAssertNotNil(api.sent.first?.key, "RegisterDevice needs the Idempotency-Key header")
         XCTAssertEqual(push.token, "dead01", "remembered for Log out")
     }
 
@@ -140,7 +140,7 @@ final class PushRegistrationTests: XCTestCase {
         await push.launched()
         await push.forget()
         XCTAssertEqual(api.forgotten.map(\.token), ["dead01"])
-        XCTAssertNotNil(api.forgotten.first?.key, "ForgetDevice needs the Idempotency-Key header (A14)")
+        XCTAssertNotNil(api.forgotten.first?.key, "ForgetDevice needs the Idempotency-Key header")
         XCTAssertNotEqual(api.forgotten.first?.key, api.sent.first?.key)
     }
 

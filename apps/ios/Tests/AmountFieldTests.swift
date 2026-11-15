@@ -21,7 +21,7 @@ final class AmountFieldTests: XCTestCase {
         XCTAssertEqual(AmountText.parsed("12.345", digits: 2, locale: us), "12.34")
         XCTAssertEqual(AmountText.parsed("9,999,999,99999", digits: 0, locale: us), "99999999999", "two keys at once")
         XCTAssertEqual(AmountText.parsed("99,999,999,999", digits: 0, locale: us), "99999999999")
-        XCTAssertTrue(AmountText.isFull("99999999999"), "11 digits draw the D57 line")
+        XCTAssertTrue(AmountText.isFull("99999999999"), "11 digits draw the limit line")
         XCTAssertTrue(AmountText.isFull("99999999999.5"))
         XCTAssertFalse(AmountText.isFull("9999999999.99"))
     }
@@ -45,7 +45,7 @@ final class AmountFieldTests: XCTestCase {
             .padding()
             .background(.white)
         }
-        XCTAssertNotEqual(picture(field("9999999999", "IDR")), picture(field("99999999999", "IDR")), "the D57 line")
+        XCTAssertNotEqual(picture(field("9999999999", "IDR")), picture(field("99999999999", "IDR")), "the limit line")
         XCTAssertNotEqual(picture(field("150000000", "IDR")), picture(field("150000000", "JPY")), "IDR against ¥")
     }
 

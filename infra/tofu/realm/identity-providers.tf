@@ -1,10 +1,10 @@
 variable "google_client_id" {
-  description = "The Google OAuth client's id, google_client_id in the secrets file (A13). A plain variable because Keycloak's vault resolves only the client secret."
+  description = "The Google OAuth client's id, google_client_id in the secrets file. A plain variable because Keycloak's vault resolves only the client secret."
   type        = string
 }
 
 variable "apple_services_id" {
-  description = "The Sign in with Apple Services ID, apple_services_id in the secrets file: the client id the Apple extension signs its client-secret JWT for (PRD §6.1)."
+  description = "The Sign in with Apple Services ID, apple_services_id in the secrets file: the client id the Apple extension signs its client-secret JWT for."
   type        = string
 }
 

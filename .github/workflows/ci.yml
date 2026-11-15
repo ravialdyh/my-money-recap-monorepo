@@ -113,7 +113,7 @@ jobs:
           version: 1.73.0
           setup_only: true
       - run: buf lint
-      - name: No breaking change against main, decision A1
+      - name: No breaking change against main
         run: |
           git fetch --no-tags origin main:refs/remotes/origin/main
           buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
@@ -178,10 +178,10 @@ jobs:
             https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz
           echo "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10  age.tgz" | sha256sum -c -
           tar -xzf age.tgz && sudo mv age/age age/age-keygen /usr/local/bin/
-      - name: Secrets decrypt to one file per value at mode 0400, decision A13
+      - name: Secrets decrypt to one file per value at mode 0400
         working-directory: infra/secrets
         run: ./decrypt-smoke.sh
-      - name: The wizard reports each of the nine setup steps done or missing, decision A13
+      - name: The wizard reports each of the nine setup steps done or missing
         working-directory: infra/wizard
         run: ./check-smoke.sh
       - name: Compose stack with the migration steps, the realm, members, notify, Mailpit and the BFF
@@ -200,7 +200,7 @@ jobs:
           pct=$(go tool cover -func=cover.filtered | awk '/^total:/ {print substr($3, 1, length($3) - 1)}')
           test -n "$pct"
           python3 ../../tools/coverage/coverage_gate.py go "$pct"
-      - name: Login Token issued and redeemed on the pinned Keycloak image, decision A10
+      - name: Login Token issued and redeemed on the pinned Keycloak image
         working-directory: infra/compose
         run: ./a10-smoke.sh
       - name: The realm the stack built re-applies as a no-op, so no resource is re-created

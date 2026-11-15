@@ -54,7 +54,7 @@ final class ExportTests: XCTestCase {
         let sending = Task { await model.commit() }
         await clock.started(1)
         XCTAssertEqual(model.button, "Sent ✓")
-        XCTAssertFalse(model.canSend, "dimmed to 40%, so a double tap cannot send twice (D67)")
+        XCTAssertFalse(model.canSend, "dimmed to 40%, so a double tap cannot send twice")
         XCTAssertNil(model.error)
         XCTAssertEqual(clock.waited, [.seconds(60)])
         await clock.pass()
@@ -98,7 +98,7 @@ final class ExportTests: XCTestCase {
         await clock.pass()
         await again.value
         XCTAssertEqual(keys.count, 3)
-        XCTAssertEqual(keys[0], keys[1], "the retry repeats the failed attempt's key (A14)")
+        XCTAssertEqual(keys[0], keys[1], "the retry repeats the failed attempt's key")
         XCTAssertNotEqual(keys[1], keys[2], "a new export after the 60 seconds is a new key")
     }
 

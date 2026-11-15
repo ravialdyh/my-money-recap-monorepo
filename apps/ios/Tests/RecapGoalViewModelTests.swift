@@ -52,7 +52,7 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertEqual(
             model.rollUp,
             "Rides, Games, Other\u{00A0}·\u{00A0}27%",
-            "the canvas's fourth bar joins the roll-up (D71), its share joined to the last name"
+            "the canvas's fourth bar joins the roll-up, its share joined to the last name"
         )
         XCTAssertEqual(model.splurge, "£560 on clothes. Your biggest single buy.")
     }

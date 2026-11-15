@@ -26,7 +26,7 @@ final class AuthConfigTests: XCTestCase {
 
     func testEveryWayInAsksForTheThirtyDaySession() throws {
         let request = AuthConfig.authorizationRequest(configuration, identityProvider: .google)
-        XCTAssertTrue(try XCTUnwrap(request.scope).split(separator: " ").contains("offline_access"), "PRD D62")
+        XCTAssertTrue(try XCTUnwrap(request.scope).split(separator: " ").contains("offline_access"))
         let direct = MagicLink.tokenRequest(configuration, loginToken: "lt:f891f3fb-dc63-4e62-92e3-cd0b948b93b8")
         XCTAssertEqual(direct.scope, "login-token offline_access", "the magic link keeps its sign-in as long")
     }

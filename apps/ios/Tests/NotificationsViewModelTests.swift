@@ -79,7 +79,7 @@ final class NotificationsViewModelTests: XCTestCase {
             $0.dailyReminder = true
             $0.reminderTime = "20:00"
         }, "the whole message, the first change included")
-        XCTAssertNotEqual(api.sent[0].key, api.sent[1].key, "each change is its own write (A14)")
+        XCTAssertNotEqual(api.sent[0].key, api.sent[1].key, "each change is its own write")
         XCTAssertEqual(ios.asked, 0, "already allowed: no alert")
     }
 

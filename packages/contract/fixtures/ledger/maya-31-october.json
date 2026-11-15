@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.7, Maya on 31 October with one £500 Spend on the 5th: days remaining = 31 − 31 + 1 = 1, never 0; Money In £2,400 (Payday 25 passed, §8.2), Saved £1,900 (§8.3); on track since 500 ≤ 2,400 − 480, allowance floor((2,400 − 480 − 500) ÷ 1) = £1,420; Streak 26, the 6th to the 31st (§8.5).",
+  "doc": "Maya on 31 October with one £500 Spend on the 5th: days remaining = 31 − 31 + 1 = 1, never 0; Money In £2,400 (Payday 25 passed), Saved £1,900; on track since 500 ≤ 2,400 − 480, allowance floor((2,400 − 480 − 500) ÷ 1) = £1,420; Streak 26, the 6th to the 31st.",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",

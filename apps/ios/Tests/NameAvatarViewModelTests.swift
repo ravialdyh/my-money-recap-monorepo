@@ -21,7 +21,7 @@ final class NameAvatarViewModelTests: XCTestCase {
             sent.append((request, headers))
             return .saved
         }
-        XCTAssertFalse(model.canContinue, "nothing answered yet (SCREEN-STATES A4 empty)")
+        XCTAssertFalse(model.canContinue, "nothing answered yet")
         model.type(" Maya ")
         XCTAssertFalse(model.canContinue, "no Avatar yet")
         model.choose("owl")

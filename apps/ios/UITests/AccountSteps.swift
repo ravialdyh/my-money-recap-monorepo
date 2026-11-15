@@ -9,7 +9,7 @@ extension SignInUITests {
         XCTAssert(row.waitForExistence(timeout: 30), "D1 lists Log out")
         row.tap()
         let sheet = app.sheets.firstMatch
-        XCTAssert(sheet.waitForExistence(timeout: 10), "Log out asks once in the system action sheet (D12)")
+        XCTAssert(sheet.waitForExistence(timeout: 10), "Log out asks once in the system action sheet")
         XCTAssert(sheet.staticTexts[
             "Log out of My Money Recap? You'll need your email or Apple or Google account to get back in."
         ].exists)

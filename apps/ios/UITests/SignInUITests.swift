@@ -54,10 +54,10 @@ final class SignInUITests: XCTestCase {
         app.launch()
         let nameField = app.textFields["First name"]
         XCTAssert(nameField.waitForExistence(timeout: 30), "a force-quit on step 1 reopens step 1")
-        XCTAssertFalse(app.buttons["Back"].exists, "step 1 has no back chevron (SCREEN-STATES A4)")
+        XCTAssertFalse(app.buttons["Back"].exists, "step 1 has no back chevron")
         nameField.tap()
         nameField.typeText("Maya2")
-        XCTAssertEqual(nameField.value as? String, "Maya", "the field refuses a digit (PRD §6.4)")
+        XCTAssertEqual(nameField.value as? String, "Maya", "the field refuses a digit")
         answerStepOne(app, avatar: "Otter")
         backToStepOne(app, finding: "Maya", "Otter")
         app.buttons["Next"].tap()
@@ -67,7 +67,7 @@ final class SignInUITests: XCTestCase {
         app.launch()
         XCTAssert(
             app.staticTexts["Which currency?"].waitForExistence(timeout: 30),
-            "a force-quit on step 2 reopens step 2, the first unanswered (spec #92)"
+            "a force-quit on step 2 reopens step 2, the first unanswered"
         )
         backToStepOne(app, finding: "Maya", "Otter")
         snapshot("05-resumed-answers-restored")
@@ -82,7 +82,7 @@ final class SignInUITests: XCTestCase {
         app.launch()
         XCTAssert(
             app.staticTexts[offline].waitForExistence(timeout: 30),
-            "part-way through setup with no signal: the named state, never Home (spec #92)"
+            "part-way through setup with no signal: the named state, never Home"
         )
         app.buttons["Try again"].tap()
         let settled = expectation(
@@ -118,7 +118,7 @@ final class SignInUITests: XCTestCase {
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10))
         XCTAssertFalse(
             app.buttons["Continue with email"].exists,
-            "the Keychain session skips Sign in on relaunch (IOS I2)"
+            "the Keychain session skips Sign in on relaunch"
         )
         snapshot("08-relaunched-home-from-snapshot")
 
@@ -128,13 +128,13 @@ final class SignInUITests: XCTestCase {
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10))
         XCTAssert(
             app.staticTexts["Money in \(Self.zero("GBP"))"].exists,
-            "a Member who finished setup reaches Home from the stored answer with no signal (PRD D61, spec #92)"
+            "a Member who finished setup reaches Home from the stored answer with no signal"
         )
         snapshot("09-bff-unreachable-snapshot-still-shown")
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on '")).firstMatch.tap()
         XCTAssert(
             app.staticTexts["\(Date().formatted(.dateTime.month(.wide))) so far"].waitForExistence(timeout: 10),
-            "the dashed card opens the stored preview's P1 with no signal (PRD D61, IOS I4)"
+            "the dashed card opens the stored preview's P1 with no signal"
         )
         XCTAssert(app.staticTexts["No spends"].exists, "the stored answer's figures")
         snapshot("26-recap-stored-no-signal")

@@ -54,7 +54,7 @@ func TestSaveProfile(t *testing.T) {
 	p, err = save("k5", &moneyrecapv1.SaveProfileRequest{CurrencyCode: proto.String("BHD"), OnboardingStep: proto.Int32(2)})
 	want("back to step 2 for another Currency", p, err, "José", "fox", "BHD", 3)
 	if p.CurrencyDigits != 3 {
-		t.Errorf("BHD answers %d decimals, want 3, the CLDR data step 3 types with (spec #92)", p.CurrencyDigits)
+		t.Errorf("BHD answers %d decimals, want 3, the CLDR data step 3 types with", p.CurrencyDigits)
 	}
 	if _, err := save("k4", &moneyrecapv1.SaveProfileRequest{AvatarKey: proto.String("owl")}); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Errorf("k4 reused for another Avatar: %v, want invalid_argument", err)

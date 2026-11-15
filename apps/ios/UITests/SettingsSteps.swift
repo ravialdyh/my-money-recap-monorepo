@@ -79,7 +79,7 @@ extension SignInUITests {
         search.typeText("pound")
         app.buttons["British Pound, GBP"].tap()
         let failed = app.staticTexts["We couldn't get today's rate."]
-        XCTAssert(failed.waitForExistence(timeout: 30), "no rates App ID: the fetch fails (D6)")
+        XCTAssert(failed.waitForExistence(timeout: 30), "no rates App ID: the fetch fails")
         XCTAssert(app.staticTexts["Convert everything to GBP?"].exists)
         let enter = app.buttons["Enter it myself"]
         XCTAssert(enter.exists && app.buttons["Cancel"].exists)
@@ -137,7 +137,7 @@ extension SignInUITests {
         snapshot("37-export")
         app.buttons["Send it"].tap()
         let sent = app.buttons["Sent ✓"]
-        XCTAssert(sent.waitForExistence(timeout: 30), "the email is sent: the button itself says so (D67)")
+        XCTAssert(sent.waitForExistence(timeout: 30), "the email is sent: the button itself says so")
         XCTAssertFalse(sent.isEnabled, "dimmed for 60 seconds, so a double tap cannot send twice")
         snapshot("38-export-sent")
         sideways(app, reaching: sent, "export-sent")

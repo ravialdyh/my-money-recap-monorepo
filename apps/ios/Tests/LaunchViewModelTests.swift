@@ -61,9 +61,9 @@ final class LaunchViewModelTests: XCTestCase {
             asked += 1
             return nil
         })
-        XCTAssertEqual(model.route, .home, "drawn from the snapshot before any call (I4), so no signal is needed")
+        XCTAssertEqual(model.route, .home, "drawn from the snapshot before any call, so no signal is needed")
         await model.start()
-        XCTAssertEqual(zones, 1, "the zone goes on every launch (A3)")
+        XCTAssertEqual(zones, 1, "the zone goes on every launch")
         XCTAssertEqual(asked, 0)
     }
 
@@ -79,7 +79,7 @@ final class LaunchViewModelTests: XCTestCase {
         model.stepTwoSaved()
         XCTAssertEqual(model.route, .stepThree(currency: "EUR", digits: 2, saved: nil), "typed in the saved Currency")
         model.stepThreeDone()
-        XCTAssertEqual(model.route, .stepFour(salary: nil, digits: 2, saved: nil), "skipped, so blocked (D44)")
+        XCTAssertEqual(model.route, .stepFour(salary: nil, digits: 2, saved: nil), "skipped, so blocked")
         model.setSalary()
         XCTAssertEqual(model.route, .stepThree(currency: "EUR", digits: 2, saved: nil), "the prompt back to step 3")
         let typed = salary("2400.00", "EUR")

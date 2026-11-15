@@ -83,7 +83,7 @@ final class EditSpendViewModelTests: XCTestCase {
         let home = await model.save()
         XCTAssertEqual(home, recorded.home, "the answer's Home replaces the snapshot")
         XCTAssertEqual(sent.count, 2)
-        XCTAssertEqual(sent[0].1, sent[1].1, "a retry of the same values sends the same key (IOS I3)")
+        XCTAssertEqual(sent[0].1, sent[1].1, "a retry of the same values sends the same key")
         let request = sent[1].0
         XCTAssertEqual(request.spendID, recorded.spend.id)
         XCTAssertEqual(request.amount.amount, "25000")
@@ -134,7 +134,7 @@ final class EditSpendViewModelTests: XCTestCase {
         XCTAssertEqual(home, recorded.home)
         XCTAssertFalse(model.deleteFailed)
         XCTAssertEqual(ids, [recorded.spend.id, recorded.spend.id])
-        XCTAssertEqual(keys[0], keys[1], "a retried delete is one delete (A14)")
+        XCTAssertEqual(keys[0], keys[1], "a retried delete is one delete")
         let log = LogSpendViewModel(currency: "IDR", digits: 0, earliest: "") { _, _ in .failure(self.unavailable) }
         let none = await log.deleteSpend()
         XCTAssertNil(none, "Log a spend has nothing to delete")

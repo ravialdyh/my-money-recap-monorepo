@@ -43,7 +43,7 @@ func TestASetupSaveReplacesTheSetupSalary(t *testing.T) {
 		t.Fatalf("a setup save the month after sign-up: %v, want 3600000 from 2026-09, the sign-up month", got)
 	}
 	if got := salary("s4", "3600000", "1", false); got.Salary.GetPayday() != "25" || got.NextSalary.GetPayday() != "1" || got.NextSalary.GetEffectiveFrom() != "2026-11" {
-		t.Fatalf("an edit after setup: %v, want the 25th now and the 1st from 2026-11 (D56)", got)
+		t.Fatalf("an edit after setup: %v, want the 25th now and the 1st from 2026-11", got)
 	}
 }
 
@@ -157,7 +157,7 @@ func replicaCode(t *testing.T, db *pgxpool.Pool, id string) string {
 }
 
 func TestAStepThreeAfterPaydayIsTheSignUpMonths(t *testing.T) {
-	raw, err := os.ReadFile(filepath.Join(fixtureDir, "prd-8.11-signup-27-september.json"))
+	raw, err := os.ReadFile(filepath.Join(fixtureDir, "signup-27-september.json"))
 	if err != nil {
 		t.Fatal(err)
 	}

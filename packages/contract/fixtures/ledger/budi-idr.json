@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.4 and D45, Budi's IDR ledger on 30 September: target Rp150.000.000 × 20 ÷ 100 = Rp30.000.000; Spent Rp94.000.000, Money In Rp150.000.000 (§8.2), Saved Rp56.000.000 (§8.3); Streak 6, the 9th to the 14th (§8.5); allowance floor((150.000.000 − 30.000.000 − 94.000.000) ÷ 1) (§8.7); under the line (§8.8).",
+  "doc": "Budi's IDR ledger on 30 September: target Rp150.000.000 × 20 ÷ 100 = Rp30.000.000; Spent Rp94.000.000, Money In Rp150.000.000, Saved Rp56.000.000; Streak 6, the 9th to the 14th; allowance floor((150.000.000 − 30.000.000 − 94.000.000) ÷ 1); under the line.",
   "timezone": "Asia/Jakarta",
   "signedUpOn": "2026-08-01",
   "currencyCode": "IDR",

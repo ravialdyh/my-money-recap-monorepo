@@ -71,7 +71,7 @@ extension SignInUITests {
             .firstMatch
         let day = Calendar.current.component(.day, from: .now) == 1 ? "2nd" : "1st"
         if payday.exists {
-            XCTAssertEqual(payday.label, "Your salary lands on the \(day).", "the step-3 Payday, before it (D55)")
+            XCTAssertEqual(payday.label, "Your salary lands on the \(day).", "the step-3 Payday, before it")
         }
         XCTAssertEqual(app.staticTexts["Saving target"].exists, payday.exists, "the target card only before Payday")
         let selected = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Page ' AND selected == true"))

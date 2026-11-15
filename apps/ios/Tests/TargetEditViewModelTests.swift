@@ -56,7 +56,7 @@ final class TargetEditViewModelTests: XCTestCase {
             calls += 1
             return .success(.init())
         }
-        XCTAssertTrue(edit.isBlocked, "D44: setup's Set a salary first card")
+        XCTAssertTrue(edit.isBlocked, "setup's Set a salary first card")
         XCTAssertNil(edit.preview)
         XCTAssertFalse(edit.canSave)
         let saved = await edit.commit()

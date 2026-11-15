@@ -25,7 +25,7 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertNotNil(HomeSnapshot.load(from: context))
         HomeSnapshot.erase(from: context)
         XCTAssertNil(HomeSnapshot.load(from: context))
-        XCTAssertNil(RecapSnapshot.load("2026-09", from: context), "every stored Recap goes with it (IOS I4)")
+        XCTAssertNil(RecapSnapshot.load("2026-09", from: context), "every stored Recap goes with it")
     }
 
     func testZeroHomeGreetsTheMemberWithoutASavedChip() async throws {
@@ -37,9 +37,9 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertNil(model.home, "no snapshot yet: the skeleton")
         await model.refresh()
         XCTAssertNotNil(model.home)
-        XCTAssertEqual(model.greeting, "Hi, Test", "Home is only served once step 1 has the name (spec #92)")
+        XCTAssertEqual(model.greeting, "Hi, Test", "Home is only served once step 1 has the name")
         XCTAssertEqual(model.home?.currencyCode, "IDR", "every figure in the Currency step 2 saved")
-        XCTAssertFalse(model.showsSavedChip, "Money In is 0, so no Saved chip (D41)")
+        XCTAssertFalse(model.showsSavedChip, "Money In is 0, so no Saved chip")
         XCTAssertEqual(model.home?.spent.amount, "0")
         XCTAssertEqual(model.heroEyebrow, "Spent so far")
         XCTAssertEqual(model.previewCopy, "Your first recap arrives on 1 October.")
@@ -112,7 +112,7 @@ final class HomeViewModelTests: XCTestCase {
             screens: HomeScreens(context: context),
             onboardingNeeded: { sent += 1 }
         )
-        XCTAssertEqual(model.home?.month, "2026-09", "the snapshot is on screen before any call completes (I4)")
+        XCTAssertEqual(model.home?.month, "2026-09", "the snapshot is on screen before any call completes")
         await model.refresh()
         XCTAssertEqual(model.home?.month, "2026-09", "a failed refresh keeps the last snapshot")
         XCTAssertEqual(sent, 0, "no signal is not a reason to leave Home")

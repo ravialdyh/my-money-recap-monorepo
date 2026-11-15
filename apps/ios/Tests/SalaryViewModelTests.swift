@@ -38,7 +38,7 @@ final class SalaryViewModelTests: XCTestCase {
             return answer
         }
         XCTAssertEqual(step.amount, "", "the field starts empty")
-        XCTAssertEqual(step.payday, "25", "PRD §6.6 default")
+        XCTAssertEqual(step.payday, "25", "default payday")
         XCTAssertFalse(step.canContinue)
         step.amount = "0"
         XCTAssertFalse(step.canContinue, "zero is no Salary")
@@ -102,7 +102,7 @@ final class SalaryViewModelTests: XCTestCase {
         step.choose("24")
         XCTAssertEqual(step.nextPaydays, ["24 Oct", "24 Nov", "24 Dec"])
         step.choose("31")
-        XCTAssertEqual(step.nextPaydays, ["30 Sep", "31 Oct", "30 Nov"], "PRD §12, criterion 13")
+        XCTAssertEqual(step.nextPaydays, ["30 Sep", "31 Oct", "30 Nov"], "next three paydays")
         step.choose("last")
         XCTAssertEqual(step.nextPaydays, ["30 Sep", "31 Oct", "30 Nov"])
         let january = try model(on: "2027-01-31")

@@ -11,7 +11,7 @@ extension XCTestCase {
 
     @MainActor
     func answerStepOne(_ app: XCUIApplication, avatar: String) {
-        XCTAssert(app.staticTexts["What should we call you?"].waitForExistence(timeout: 30), "step 1 (PRD §6.4)")
+        XCTAssert(app.staticTexts["What should we call you?"].waitForExistence(timeout: 30), "step 1")
         XCTAssert(app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Step 1 of 4'")).firstMatch.exists)
         XCTAssertFalse(app.buttons["Next"].isEnabled, "Next stays off until an Avatar is picked")
         app.buttons[avatar].tap()
@@ -23,7 +23,7 @@ extension XCTestCase {
 
     @MainActor
     func backToStepOne(_ app: XCUIApplication, finding name: String, _ avatar: String) {
-        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2 (PRD §6.5)")
+        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2")
         app.buttons["Back"].tap()
         let field = app.textFields["First name"]
         XCTAssert(field.waitForExistence(timeout: 10), "Back returns to step 1")
@@ -34,7 +34,7 @@ extension XCTestCase {
 
     @MainActor
     func searchStepTwo(_ app: XCUIApplication, for query: String, choosing row: String) {
-        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2 (PRD §6.5)")
+        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2")
         XCTAssert(app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Step 2 of 4'")).firstMatch.exists)
         let search = app.textFields["Search by name or code"]
         search.tap()
@@ -52,7 +52,7 @@ extension XCTestCase {
 
     @MainActor
     func answerStepThree(_ app: XCUIApplication) {
-        XCTAssert(app.staticTexts["Your monthly salary"].waitForExistence(timeout: 30), "step 3 (PRD §6.6)")
+        XCTAssert(app.staticTexts["Your monthly salary"].waitForExistence(timeout: 30), "step 3")
         XCTAssert(app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Step 3 of 4'")).firstMatch.exists)
         app.buttons["Back"].tap()
         XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 10), "Back returns to step 2")
@@ -64,7 +64,7 @@ extension XCTestCase {
         amount.tap()
         amount.typeText("999999999999")
         XCTAssertEqual(amount.value as? String, Int64(99_999_999_999).formatted(), "the 12th digit is refused")
-        XCTAssert(app.staticTexts["That's more than the app can store."].exists, "SCREEN-STATES A6 amount too long")
+        XCTAssert(app.staticTexts["That's more than the app can store."].exists, "amount too long")
         snapshot("step-3-amount-too-long")
         amount.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 11) + "150000000")
         XCTAssertEqual(amount.value as? String, Int64(150_000_000).formatted(), "grouped as the device writes it")
@@ -84,12 +84,12 @@ extension XCTestCase {
 
     @MainActor
     func answerStepFour(_ app: XCUIApplication, salary: Int) {
-        XCTAssert(app.staticTexts["How much do you want to keep?"].waitForExistence(timeout: 30), "step 4 (PRD §6.7)")
+        XCTAssert(app.staticTexts["How much do you want to keep?"].waitForExistence(timeout: 30), "step 4")
         app.buttons["Back"].tap()
         XCTAssert(app.staticTexts["Your monthly salary"].waitForExistence(timeout: 10), "Back returns to step 3")
         app.buttons["Next"].tap()
         XCTAssert(app.staticTexts["How much do you want to keep?"].waitForExistence(timeout: 30), "and Next to step 4")
-        XCTAssert(app.staticTexts[Self.preview(salary / 5, of: salary)].exists, "20% by default (PRD §6.7)")
+        XCTAssert(app.staticTexts[Self.preview(salary / 5, of: salary)].exists, "20% by default")
         let slider = app.sliders["Saving target"]
         slider.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5))
             .press(forDuration: 0.1, thenDragTo: slider.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.5)))
@@ -115,15 +115,15 @@ extension XCTestCase {
         salary: Bool = false,
         target: Int? = nil
     ) {
-        XCTAssert(spentSoFar(app).waitForExistence(timeout: 30), "Home at zero (PRD §6.8)")
+        XCTAssert(spentSoFar(app).waitForExistence(timeout: 30), "Home at zero")
         XCTAssert(app.staticTexts[Self.zero(currency)].exists, "the hero shows Spent at \(Self.zero(currency))")
         XCTAssert(app.staticTexts["Money in \(Self.zero(currency))"].exists)
         XCTAssertEqual(
             app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Saved'")).count,
             0,
-            "no Saved chip while Money In is 0 (D41)"
+            "no Saved chip while Money In is 0"
         )
-        XCTAssertEqual(app.buttons["Set your monthly salary"].exists, !salary, "the prompt only without a Salary (D54)")
+        XCTAssertEqual(app.buttons["Set your monthly salary"].exists, !salary, "the prompt only without a Salary")
         XCTAssertEqual(app.buttons["Set a saving target"].exists, target == nil, "the prompt only without a Target")
         if let target {
             XCTAssert(app.staticTexts["\(Self.zero(currency)) of \(Self.rupiah(target))"].exists, "Saved of the Target")
@@ -131,14 +131,14 @@ extension XCTestCase {
                 app.staticTexts
                     .matching(NSPredicate(format: "label BEGINSWITH 'Nothing to keep yet. Your salary lands on the '"))
                     .firstMatch.exists,
-                "before the first Payday, the salary-lands line (spec #92)"
+                "before the first Payday, the salary-lands line"
             )
         }
         XCTAssert(app.buttons["Log a spend"].exists)
         XCTAssertFalse(app.buttons["See last month"].isEnabled)
         XCTAssert(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on'")).firstMatch
             .exists)
-        XCTAssert(app.staticTexts[greeting].exists, "Home greets the Member by name (PRD §6.8)")
+        XCTAssert(app.staticTexts[greeting].exists, "Home greets the Member by name")
     }
 
     @MainActor

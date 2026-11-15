@@ -47,7 +47,7 @@ final class DeleteAccountTests: XCTestCase {
         await model.delete()
         XCTAssertTrue(signedOut)
         XCTAssertEqual(keys.count, 2)
-        XCTAssertEqual(keys[0], keys[1], "the retry repeats the failed attempt's key (A14)")
+        XCTAssertEqual(keys[0], keys[1], "the retry repeats the failed attempt's key")
     }
 
     func testSettingsSignsOutThroughOneLogOut() async throws {
