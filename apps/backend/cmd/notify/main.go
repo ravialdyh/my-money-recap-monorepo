@@ -1,4 +1,3 @@
-// The notify service binary: `notify` serves, `notify migrate` applies the schema and exits.
 package main
 
 import (
@@ -22,17 +21,12 @@ func main() {
 	}
 }
 
-// run is the start-up every database-backed binary shares (internal/serve), given this service's
-// name, its schema step, its handler, its two consumers, its schedules and its outbox relay.
 func run() error {
 	return serve.Main("notify", notify.Migrate, handler, consumer, membersConsumer, schedules, relay)
 }
 
-// service is the one Service: handler builds it before serve.Main builds the consumers, whose loops push through it.
 var service *notify.Service
 
-// handler is NotifyService behind the bearer check, EmailMagicLink exempt (§4.2 point 3). NOTIFY_MEMBERS_URL
-// takes the ownership read with the caller's token; NOTIFY_LEDGER_URL the schedules' reads with notify's own (§4.2).
 func handler(env *serve.Env, db *pgxpool.Pool, check connect.Option) (string, http.Handler) {
 	smtp, from := env.Get("NOTIFY_SMTP_ADDR", ""), env.Get("NOTIFY_MAIL_FROM", "")
 	members := moneyrecapv1connect.NewMembersServiceClient(http.DefaultClient, env.Get("NOTIFY_MEMBERS_URL", ""), connect.WithInterceptors(auth.Forward()))
@@ -42,7 +36,6 @@ func handler(env *serve.Env, db *pgxpool.Pool, check connect.Option) (string, ht
 	return moneyrecapv1connect.NewNotifyServiceHandler(service, check)
 }
 
-// apple is the push sender (§7.3): a key that does not parse stops the start-up, and no key at all is a laptop's.
 func apple(env *serve.Env) *notify.Apple {
 	host, topic := env.Get("NOTIFY_APNS_HOST", "https://api.push.apple.com"), env.Get("NOTIFY_APNS_TOPIC", "com.mymoneyrecap.app")
 	key, err := notify.ParseAppleKey(env.Optional("NOTIFY_APPLE_PUSH_KEY"))
@@ -52,7 +45,6 @@ func apple(env *serve.Env) *notify.Apple {
 	return &notify.Apple{Host: host, Topic: topic, TeamID: env.Optional("NOTIFY_APPLE_TEAM_ID"), KeyID: env.Optional("NOTIFY_APPLE_PUSH_KEY_ID"), Key: key, Client: http.DefaultClient}
 }
 
-// consumer is the warning's event backup: ledger's Spend events on the broker NOTIFY_AMQP_URL names (§4.3, §6.2).
 func consumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 	url := env.Get("NOTIFY_AMQP_URL", "")
 	return func(ctx context.Context) {
@@ -60,7 +52,6 @@ func consumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 	}
 }
 
-// membersConsumer keeps the replica from members' events on the same broker (§7.3 "Consumes").
 func membersConsumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 	url := env.Get("NOTIFY_AMQP_URL", "")
 	return func(ctx context.Context) {
@@ -68,10 +59,8 @@ func membersConsumer(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 	}
 }
 
-// schedules is Recap ready and the daily reminder, ticking every minute (§4.5).
 func schedules(*serve.Env, *pgxpool.Pool) func(context.Context) { return service.Schedule }
 
-// relay publishes the outbox, today notify.member.purged, to the broker NOTIFY_AMQP_URL names (§4.3, §7.1 step 5).
 func relay(env *serve.Env, db *pgxpool.Pool) func(context.Context) {
 	url := env.Get("NOTIFY_AMQP_URL", "")
 	return func(ctx context.Context) { events.Relay(ctx, db, url) }

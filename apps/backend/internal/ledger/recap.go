@@ -12,8 +12,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// GetRecap answers one month's Recap on the Member's local today: the current month always, an earlier one only
-// with data (not_found otherwise, the months Home never lists), a later one never.
 func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv1.GetRecapRequest]) (*connect.Response[moneyrecapv1.GetRecapResponse], error) {
 	m, err := parseMonth(req.Msg.Month)
 	if err != nil {
@@ -32,7 +30,6 @@ func (s *Service) GetRecap(ctx context.Context, req *connect.Request[moneyrecapv
 	return connect.NewResponse(&moneyrecapv1.GetRecapResponse{Recap: l.recap(m, l.today)}), nil
 }
 
-// archetypes are PRD §8.6's names, one-line descriptions and titles, the phone's only source for any (A2).
 var archetypes = map[moneyrecapv1.Archetype][3]string{
 	moneyrecapv1.Archetype_ARCHETYPE_SQUIRREL:       {"Squirrel", "You stashed more than you meant to, and you didn't crack once.", "The Squirrel"},
 	moneyrecapv1.Archetype_ARCHETYPE_HUSTLER:        {"Hustler", "You hit your number while still living a little.", "The Hustler"},
@@ -40,8 +37,6 @@ var archetypes = map[moneyrecapv1.Archetype][3]string{
 	moneyrecapv1.Archetype_ARCHETYPE_SLOW_BURNER:    {"Slow Burner", "Lots of little spends added up. Sneaky.", "The Slow Burner"},
 }
 
-// recap is month m's Recap on today (PRD §8, §6.11 to §6.14): the current month is the preview and a partial month
-// (§8.11) is in its situation, each with its §6.17 closing line and no Archetype.
 func (l ledgerOf) recap(m month, today time.Time) *moneyrecapv1.Recap {
 	s := l.summary(m, today)
 	r := &moneyrecapv1.Recap{
@@ -91,7 +86,6 @@ func (l ledgerOf) recap(m month, today time.Time) *moneyrecapv1.Recap {
 	return r
 }
 
-// percentOf is round(part ÷ whole × 100), halves away from zero (§8.4, §6.13), held at int32's bounds; 0 when whole is 0.
 func percentOf(part, whole *big.Rat) int32 {
 	if whole.Sign() == 0 {
 		return 0
@@ -100,7 +94,6 @@ func percentOf(part, whole *big.Rat) int32 {
 	return int32(n)
 }
 
-// streakFacts is the Streak with its window and its run's first and last day (PRD §8.5, §6.12).
 func (l ledgerOf) streakFacts(m month, today time.Time) *moneyrecapv1.StreakFacts {
 	start, end := l.window(m, today)
 	days, first, last := l.streak(m, today)
@@ -111,11 +104,8 @@ func (l ledgerOf) streakFacts(m month, today time.Time) *moneyrecapv1.StreakFact
 	return f
 }
 
-// dayMonth is a date as the §6.17 closing line prints it: "1 November".
 func dayMonth(d time.Time) string { return strconv.Itoa(d.Day()) + " " + d.Month().String() }
 
-// recapMonths is Home's past-Recap list on today (PRD §6.8, §8.11): pastMonths, each labelled by its Archetype name
-// or "Partial".
 func (l ledgerOf) recapMonths(today time.Time) []*moneyrecapv1.RecapMonth {
 	var list []*moneyrecapv1.RecapMonth
 	for _, m := range l.pastMonths(today) {

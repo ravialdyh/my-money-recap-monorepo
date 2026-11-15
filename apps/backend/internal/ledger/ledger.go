@@ -1,5 +1,3 @@
-// Package ledger is the money service (ARCHITECTURE §7.2): the Salary, Saving Target and Spend rows, the
-// settings read, and every Home and Recap figure of PRD §8 over them.
 package ledger
 
 import (
@@ -27,11 +25,8 @@ import (
 //go:embed migrations/*.sql
 var migrations embed.FS
 
-// Migrate applies this service's embedded migrations to the ledger database (internal/migrate).
 func Migrate(ctx context.Context, db *pgxpool.Pool) error { return migrate.Run(ctx, db, migrations) }
 
-// Service implements LedgerService over a pool. Members answers the profile read that fills the replica
-// on a miss, under the caller's forwarded token; Now is the clock, nil meaning time.Now.
 type Service struct {
 	moneyrecapv1connect.UnimplementedLedgerServiceHandler
 	DB      *pgxpool.Pool
@@ -39,19 +34,14 @@ type Service struct {
 	Now     func() time.Time
 }
 
-// errNoFacts is a Member members knows too little about for any figure: no zone, no sign-up date or no Currency.
 var errNoFacts = errors.New("the Member has no time zone, sign-up date or currency yet")
 
-// member is one Member's ledger as of their local today.
 type member struct {
 	ledgerOf
 	id    string
 	today time.Time
 }
 
-// load reads the Member's replica and rows. The replica keeps the subject whose token filled it, so another
-// token's call is a miss members answers under that token (§4.2). A job's token skips that check; a replica it
-// cannot use is not_found.
 func (s *Service) load(ctx context.Context, id string) (member, error) {
 	if err := (&pgtype.UUID{}).Scan(id); err != nil {
 		return member{}, connect.NewError(connect.CodeNotFound, errors.New("no such member"))
@@ -97,8 +87,6 @@ func (s *Service) load(ctx context.Context, id string) (member, error) {
 	return m, nil
 }
 
-// facts are the replica's three facts about a Member (ARCHITECTURE §7.2): the zone every "today" is read in,
-// the sign-up date that bounds the Streak window and names the sign-up month, and the Currency.
 type facts struct {
 	zone, code string
 	signedUp   pgtype.Date
@@ -106,9 +94,6 @@ type facts struct {
 
 func (f facts) complete() bool { return f.zone != "" && f.signedUp.Valid && f.code != "" }
 
-// fill is the profile-on-a-miss read (§6.2 step 3): members.GetProfile under the caller's token, then the row
-// upserted with that token's subject. It fills only facts the row lacks, so a read racing a newer event cannot
-// overwrite it.
 func (s *Service) fill(ctx context.Context, id string) (facts, error) {
 	res, err := s.Members.GetProfile(ctx, connect.NewRequest(&moneyrecapv1.GetProfileRequest{MemberId: id}))
 	if connect.CodeOf(err) == connect.CodeNotFound {
@@ -139,7 +124,6 @@ func (s *Service) fill(ctx context.Context, id string) (facts, error) {
 	return f, nil
 }
 
-// querier is a pool or a transaction, so a write can read back the rows it changed.
 type querier interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 }
@@ -163,8 +147,6 @@ func salaries(ctx context.Context, db querier, id string) ([]salaryRow, error) {
 	})
 }
 
-// spends reads every Spend of the Member that is not deleted (PRD §7), oldest date first and, within a day, in the
-// order they were logged, so the first of two equal Spends is the earlier one (§8.3's Splurge).
 func spends(ctx context.Context, db querier, id string, c cash) ([]spendRow, error) {
 	rows, err := db.Query(ctx, `SELECT id::text, amount::text, original_amount::text, original_currency, category, spent_on, note, created_at, updated_at
 		FROM spend WHERE member_id = $1 AND deleted_at IS NULL ORDER BY spent_on, created_at`, id)
@@ -225,5 +207,4 @@ func (s *Service) GetSettings(ctx context.Context, req *connect.Request[moneyrec
 	return connect.NewResponse(&moneyrecapv1.GetSettingsResponse{Settings: l.settings(l.today, false)}), nil
 }
 
-// storeFailed is serve.StoreFailed for this service.
 func storeFailed(ctx context.Context, err error) error { return serve.StoreFailed(ctx, "ledger", err) }

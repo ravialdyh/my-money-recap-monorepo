@@ -11,8 +11,6 @@ func rat(s string) *big.Rat {
 	return r
 }
 
-// Amounts carry the decimals CLDR gives the Currency (package cldr), rounded half up (PRD §8.4), and a sentence
-// prints them as the phone does: "£320", "Rp400.000", a fraction only when there is one (#106).
 func TestAmountsFollowTheCurrencysDecimals(t *testing.T) {
 	gbp, err := currencyOf("GBP")
 	if err != nil || gbp.scale != 2 {
@@ -41,8 +39,6 @@ func TestAmountsFollowTheCurrencysDecimals(t *testing.T) {
 	}
 }
 
-// A currency CLDR knows but the older x/text symbols lack prints with its code for a symbol rather than stopping
-// the sentence, since step 2 accepts every code CLDR does (§7.2).
 func TestASentencePrintsEveryCurrency(t *testing.T) {
 	for _, code := range []string{"MRU", "SLE", "VES", "XCG", "ZWG"} {
 		c, err := currencyOf(code)

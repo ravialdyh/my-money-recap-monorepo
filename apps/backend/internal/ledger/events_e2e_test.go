@@ -18,8 +18,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestMembersEventsReachTheReplica writes to the members container and never calls ledger: the outbox, the
-// relay, the broker and ledger's consumer carry every staged event into processed_events and the replica.
 func TestMembersEventsReachTheReplica(t *testing.T) {
 	base, membersURL, kc, pw := os.Getenv("LEDGER_TEST_URL"), os.Getenv("MEMBERS_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD")
 	membersDSN := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")

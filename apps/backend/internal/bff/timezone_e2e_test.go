@@ -16,9 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestSetTimezoneEndToEnd sends Asia/Jakarta through the BFF to the members container, whose image has
-// no zone files, so the answer proves the binary carries Go's zone data (#96); a keyless call creates
-// nothing. It skips like TestEndToEnd.
 func TestSetTimezoneEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
@@ -76,8 +73,6 @@ func TestSetTimezoneEndToEnd(t *testing.T) {
 	}
 }
 
-// TestCancelDeletionEndToEnd stamps a throwaway Member's row, never the realm's test Member, whom the deletion job
-// would delete: the launch call answers the stamp, "Keep my account" clears it, and one past 24 hours stays (D60).
 func TestCancelDeletionEndToEnd(t *testing.T) {
 	base, kc, mailpit, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_MAILPIT"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || mailpit == "" || dsn == "" {

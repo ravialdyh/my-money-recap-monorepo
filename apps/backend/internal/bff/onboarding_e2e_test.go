@@ -16,9 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestOnboardingEndToEnd walks steps 1 to 3 through the BFF, members and ledger containers as the realm's test
-// Member: Home refused until the Currency, bad answers refused, Home greeting, back to step 1, then step 3. Skips
-// like TestEndToEnd.
 func TestOnboardingEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {
@@ -100,8 +97,6 @@ func TestOnboardingEndToEnd(t *testing.T) {
 	stepFour(ctx, t, client, state)
 }
 
-// stepThree saves step 3 through the BFF and ledger (#103): the Salary, then the step; a crash between the two,
-// replayed by lowering the step; a new Payday replacing the Salary from the sign-up month; a Currency relabelling it.
 func stepThree(ctx context.Context, t *testing.T, client moneyrecapv1connect.BffServiceClient, db *pgxpool.Pool, sub string, state func() *moneyrecapv1.OnboardingState, save func(*moneyrecapv1.BffServiceSaveProfileRequest) error) {
 	t.Helper()
 	salary := func(amount, payday string) error {
@@ -148,8 +143,6 @@ func stepThree(ctx context.Context, t *testing.T, client moneyrecapv1connect.Bff
 	t.Log("step 3 saved, resumed after a crash, replaced with a new Payday, and relabelled EUR and back to IDR")
 }
 
-// stepFour saves step 4 through the BFF and ledger (#104): the Target from the sign-up month with its amount on Home,
-// then setup over, so a second Target is an edit starting next month (D65).
 func stepFour(ctx context.Context, t *testing.T, client moneyrecapv1connect.BffServiceClient, state func() *moneyrecapv1.OnboardingState) {
 	t.Helper()
 	target := func(percent int32) *moneyrecapv1.BffServiceSaveTargetResponse {

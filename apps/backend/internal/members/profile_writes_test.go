@@ -13,8 +13,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
-// SaveProfile writes only the answers sent, stores the name in NFC, keeps the highest step when an earlier one
-// is saved again, answers the Currency's decimals, refuses what internal/answers refuses and honours the key (A14).
 func TestSaveProfile(t *testing.T) {
 	db := testDB(t)
 	subject := "profile-" + t.Name()
@@ -83,8 +81,6 @@ func TestSaveProfile(t *testing.T) {
 	}
 }
 
-// CancelDeletion clears a stamp written straight into the row and stages members.deletion.cancelled once; a
-// replay, a Member with no stamp and a stamp past the 24 hours change nothing (D60, ARCHITECTURE §7.1 step 2).
 func TestCancelDeletionClearsAStampUnderADayOld(t *testing.T) {
 	db := testdb.Scratch(t, "MMR_TEST_MEMBERS_DATABASE_URL", Migrate)
 	subject := "cancel-" + t.Name()
@@ -150,8 +146,6 @@ func TestCancelDeletionClearsAStampUnderADayOld(t *testing.T) {
 	}
 }
 
-// RequestDeletion stamps the request and stages members.deletion.requested once; a replay and a second request keep
-// the first stamp and stage nothing more, and a keyless request is refused (ARCHITECTURE §7.1 step 1).
 func TestRequestDeletionKeepsTheFirstStamp(t *testing.T) {
 	db := testDB(t)
 	subject := "delete-" + t.Name()

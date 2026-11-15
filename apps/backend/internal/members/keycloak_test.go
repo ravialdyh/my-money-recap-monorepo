@@ -13,8 +13,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// members' own key deletes a throwaway Keycloak account the test creates with it, and a second delete of the same
-// account counts as done (ARCHITECTURE §7.1 step 4). The realm's test Member is never touched.
 func TestMembersKeyDeletesAKeycloakAccount(t *testing.T) {
 	kc, secret := os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MEMBERS_TEST_CLIENT_SECRET")
 	if kc == "" || secret == "" {
@@ -39,8 +37,6 @@ func TestMembersKeyDeletesAKeycloakAccount(t *testing.T) {
 	}
 }
 
-// throwaway creates a Keycloak account with members' own key and answers its subject; the account is deleted when the
-// test ends. The realm's test Member is never touched.
 func throwaway(t *testing.T, k Keycloak) string {
 	t.Helper()
 	name := "throwaway-" + strings.ToLower(rand.Text())
@@ -57,7 +53,6 @@ func throwaway(t *testing.T, k Keycloak) string {
 	return subject
 }
 
-// admin answers the status of one admin call made with members' own key.
 func admin(t *testing.T, k Keycloak, method, at, body string) int {
 	t.Helper()
 	return request(t, k, method, at, body).StatusCode

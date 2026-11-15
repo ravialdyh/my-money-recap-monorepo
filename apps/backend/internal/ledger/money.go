@@ -14,11 +14,8 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/cldr"
 )
 
-// errNotCurrency is a code no territory takes as tender in CLDR.
 var errNotCurrency = errors.New("currency_code is not an ISO 4217 currency")
 
-// cash is one Currency as ledger holds it: its ISO 4217 code and the decimals CLDR gives it (package cldr, §7.2
-// "Rounding"): GBP 2, IDR 0. The phone prints an amount with exactly these decimals.
 type cash struct {
 	code  string
 	scale int
@@ -32,25 +29,19 @@ func currencyOf(code string) (cash, error) {
 	return cash{code: code, scale: scale}, nil
 }
 
-// money is r at the currency's decimals, halves rounded up (PRD §8.4): big.Rat rounds half away from zero,
-// which is half up for every amount ledger holds, since none is negative.
 func (c cash) money(r *big.Rat) *moneyrecapv1.Money {
 	return &moneyrecapv1.Money{Amount: r.FloatString(c.scale), CurrencyCode: c.code}
 }
 
-// rounded is r at the currency's decimals, as money stores it.
 func (c cash) rounded(r *big.Rat) *big.Rat {
 	v, _ := new(big.Rat).SetString(r.FloatString(c.scale))
 	return v
 }
 
-// unit is the currency's smallest amount, 1 at 0 decimals and 0.01 at 2, the least a rewrite or relabel leaves.
 func (c cash) unit() *big.Rat {
 	return new(big.Rat).SetFrac(big.NewInt(1), new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(c.scale)), nil))
 }
 
-// printed is an amount in a sentence as the phone prints one (§8.7, #106): the home locale's symbol and grouping, a
-// space only after a code, no fraction when whole: "£320", "Rp400.000"; the code where x/text lacks one: "VES 1.500".
 func (c cash) printed(r *big.Rat) string {
 	region, _ := language.ParseRegion(c.code[:2])
 	base, _ := language.Make("und-" + region.String()).Base()

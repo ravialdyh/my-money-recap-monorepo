@@ -1,5 +1,3 @@
-// Package auth verifies the Keycloak JWT on every RPC but the pre-authentication procedures, which
-// are sent before a Member has a token (ARCHITECTURE §4.2, PRD §9), and fetches a background job's own token.
 package auth
 
 import (
@@ -26,17 +24,11 @@ type ctxKey struct{}
 
 type fetchFailedKey struct{}
 
-// Claims is what a verified token tells the handler: the subject, the standard OIDC email and
-// given_name claims, the raw token so the BFF can forward it unchanged (§4.2 point 3), and Job for a
-// background job's token, which owns no Member.
 type Claims struct {
 	Subject, Email, GivenName, Raw string
 	Job                            bool
 }
 
-// Verifier checks issuer, audience, expiry and signature against the realm JWKS. Keys are cached
-// and refetched on any miss, so while the realm is down a token with a cached key still verifies and
-// any other is unavailable, never accepted.
 type Verifier struct {
 	v        *oidc.IDTokenVerifier
 	audience string
@@ -47,13 +39,8 @@ func NewVerifier(ctx context.Context, issuer, jwksURL, audience string) *Verifie
 	return &Verifier{oidc.NewVerifier(issuer, keySet{keys}, &oidc.Config{SkipClientIDCheck: true}), audience}
 }
 
-// jwksClient gives a key fetch five seconds and fails, in its transport, any answer but a whole 200 of
-// JSON, a redirect included, so every failed fetch (refused, DNS, timeout, TLS, 5xx, truncated body,
-// a body that is not JSON) surfaces as a *url.Error.
 var jwksClient = &http.Client{Timeout: 5 * time.Second, Transport: okOnly{http.DefaultTransport}}
 
-// okOnly turns any answer but a whole 200 of JSON into a transport error; go-oidc would report it as
-// plain text.
 type okOnly struct{ next http.RoundTripper }
 
 func (t okOnly) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -76,8 +63,6 @@ func (t okOnly) RoundTrip(req *http.Request) (*http.Response, error) {
 	return res, nil
 }
 
-// keySet is the realm's RemoteKeySet. A fetch that fails, or that the caller's deadline cuts short, sets
-// the *bool the interceptor put in the context, because go-oidc's Verify flattens that error into text.
 type keySet struct{ *oidc.RemoteKeySet }
 
 func (k keySet) VerifySignature(ctx context.Context, jwt string) ([]byte, error) {
@@ -90,23 +75,16 @@ func (k keySet) VerifySignature(ctx context.Context, jwt string) ([]byte, error)
 	return payload, err
 }
 
-// preAuth are the procedures sent before a Member has a token, which Interceptor calls through
-// unverified. Membership is by procedure name, never by service, so the rest of the same service
-// stays behind the check (ARCHITECTURE §4.2 point 3).
 var preAuth = map[string]bool{
 	moneyrecapv1connect.BffServiceRequestMagicLinkProcedure:  true,
 	moneyrecapv1connect.NotifyServiceEmailMagicLinkProcedure: true,
 }
 
-// job is a background job's service account (ARCHITECTURE §4.2): its tokens name audience, and pass
-// the check only on calls.
 type job struct {
 	audience string
 	calls    map[string]bool
 }
 
-// jobs are the background jobs by the client id their tokens carry as azp. A job has no Member token,
-// so it sends its own, which a service accepts only for the calls named here; any other is permission_denied.
 var jobs = map[string]job{
 	"notify": {audience: "ledger", calls: map[string]bool{
 		moneyrecapv1connect.LedgerServiceGetSpentTodayProcedure:      true,
@@ -114,9 +92,6 @@ var jobs = map[string]job{
 	}},
 }
 
-// Interceptor rejects any request without a valid bearer token, a pre-authentication procedure
-// apart, and stores its Claims for From. A token it cannot check because the realm's keys are out
-// of reach is unavailable, so the phone keeps its session (PRD D61).
 func (v *Verifier) Interceptor() connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
@@ -158,19 +133,15 @@ func (v *Verifier) Interceptor() connect.UnaryInterceptorFunc {
 	}
 }
 
-// notValid logs why a token failed and answers a generic unauthenticated: go-oidc's text can quote the
-// realm's key answer, which the phone has no use for.
 func notValid(err error) error {
 	log.Printf("auth: %v", err)
 	return connect.NewError(connect.CodeUnauthenticated, errors.New("the bearer token is not valid"))
 }
 
-// NewContext stores verified Claims; the interceptor calls it, tests may too.
 func NewContext(ctx context.Context, c Claims) context.Context {
 	return context.WithValue(ctx, ctxKey{}, c)
 }
 
-// From is the verified token's Claims, zero outside the interceptor.
 func From(ctx context.Context) Claims {
 	claims, ok := ctx.Value(ctxKey{}).(Claims)
 	if !ok {
@@ -179,8 +150,6 @@ func From(ctx context.Context) Claims {
 	return claims
 }
 
-// Forward is a client interceptor that sends the caller's own bearer token on to a service,
-// unchanged, so the service verifies the same JWT again (§4.2 point 3).
 func Forward() connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {

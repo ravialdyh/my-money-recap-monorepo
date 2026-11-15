@@ -13,7 +13,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// A rate is a positive decimal of at most 11 digits before the separator and 12 after, to a real Currency (spec #169).
 func TestARateHasLimits(t *testing.T) {
 	for rate, ok := range map[string]bool{
 		"20150": true, "0.000049600000": true, "99999999999.999999999999": true, "1": true,
@@ -28,8 +27,6 @@ func TestARateHasLimits(t *testing.T) {
 	}
 }
 
-// ApplyCurrencyConversion replays its key and refuses it reused; a D57 overflow is out_of_range in both calls with
-// nothing written; another Member's amounts, the Currency held now and a missing source are refused.
 func TestApplyCurrencyConversion(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000c173"
 	ctx, s, log := spendsOf(t, id, "converter")
@@ -96,7 +93,6 @@ func TestApplyCurrencyConversion(t *testing.T) {
 	}
 }
 
-// The conversion stamps the replica's Currency, so a members event from before it cannot take the code back.
 func TestAConversionOutlivesALateMembersEvent(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000c175"
 	ctx, s, _ := spendsOf(t, id, "late-event")
@@ -114,7 +110,6 @@ func TestAConversionOutlivesALateMembersEvent(t *testing.T) {
 	}
 }
 
-// A rewrite rounds half up to the new decimals and, as the relabel does, never leaves an amount at zero.
 func TestARewriteRoundsHalfUpAndStaysAboveZero(t *testing.T) {
 	c, err := conversionOf("0.00002", "BHD")
 	if err != nil {

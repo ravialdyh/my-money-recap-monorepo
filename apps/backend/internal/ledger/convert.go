@@ -15,21 +15,16 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/idempotency"
 )
 
-// ratePattern is a rate as quoted or typed (spec #169): a decimal with at most 11 digits before the separator and
-// 12 after.
 var ratePattern = regexp.MustCompile(`^\d{1,11}(\.\d{1,12})?$`)
 
-// errTooLong is D57 broken by a rewrite: the phone shows "That's more than the app can store." and nothing is written.
 var errTooLong = errors.New("a converted amount would pass 11 digits before the separator (D57)")
 
-// conversion is one Currency change: the Currency the amounts go into and the rate, units of it per current unit.
 type conversion struct {
 	to   cash
 	rate *big.Rat
 	text string
 }
 
-// conversionOf checks a rate and a code as sent: a positive ratePattern decimal and an ISO 4217 Currency.
 func conversionOf(rate, code string) (conversion, error) {
 	to, err := currencyOf(code)
 	if err != nil {
@@ -42,8 +37,6 @@ func conversionOf(rate, code string) (conversion, error) {
 	return conversion{to: to, rate: r, text: rate}, nil
 }
 
-// rewritten is PRD §8.9 step 4 for one amount: amount × rate, rounded half up to the new decimals, never below the
-// smallest unit, as the relabel keeps every amount above zero; the SQL rewrite in convert stores the same.
 func (c conversion) rewritten(amount *big.Rat) *big.Rat {
 	v := c.to.rounded(new(big.Rat).Mul(amount, c.rate))
 	if v.Sign() == 0 {
@@ -52,8 +45,6 @@ func (c conversion) rewritten(amount *big.Rat) *big.Rat {
 	return v
 }
 
-// preview is the confirm sheet's rows (PRD §8.9 step 3): the Salary in force and the total of every Spend, before
-// and after. out_of_range when any Salary row or Spend would pass D57; invalid_argument for the Currency held now.
 func (l member) preview(c conversion) (*moneyrecapv1.ConversionPreview, error) {
 	if c.to.code == l.cash.code {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("the amounts are already in that currency"))
@@ -81,7 +72,6 @@ func (l member) preview(c conversion) (*moneyrecapv1.ConversionPreview, error) {
 	return p, nil
 }
 
-// PreviewConversion answers preview for the rate and Currency sent; nothing is written.
 func (s *Service) PreviewConversion(ctx context.Context, req *connect.Request[moneyrecapv1.PreviewConversionRequest]) (*connect.Response[moneyrecapv1.PreviewConversionResponse], error) {
 	c, err := conversionOf(req.Msg.Rate, req.Msg.ToCurrencyCode)
 	if err != nil {
@@ -98,8 +88,6 @@ func (s *Service) PreviewConversion(ctx context.Context, req *connect.Request[mo
 	return connect.NewResponse(&moneyrecapv1.PreviewConversionResponse{Preview: p}), nil
 }
 
-// ApplyCurrencyConversion is PRD §8.9 step 4 in one transaction, checked as preview under the Member's lock: the rows
-// rewritten, originals kept, the conversion row, the event, and the replica's Currency stamped as the relabel does.
 func (s *Service) ApplyCurrencyConversion(ctx context.Context, req *connect.Request[moneyrecapv1.ApplyCurrencyConversionRequest]) (*connect.Response[moneyrecapv1.ApplyCurrencyConversionResponse], error) {
 	msg := req.Msg
 	if msg.IdempotencyKey == "" {
@@ -135,7 +123,6 @@ func (s *Service) ApplyCurrencyConversion(ctx context.Context, req *connect.Requ
 	return connect.NewResponse(answer), nil
 }
 
-// convert writes a checked conversion inside tx and fills answer with the settings and month in the new Currency.
 func (l member) convert(ctx context.Context, tx pgx.Tx, c conversion, source moneyrecapv1.RateSource, answer *moneyrecapv1.ApplyCurrencyConversionResponse) (err error) {
 	unit := c.to.unit().FloatString(c.to.scale)
 	for _, table := range []string{"salary_setting", "spend"} {

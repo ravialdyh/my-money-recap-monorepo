@@ -21,8 +21,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// testDB opens the Compose stack's members database and applies the schema, skipping unless
-// MMR_TEST_MEMBERS_DATABASE_URL is set (infra/compose/README.md).
 func testDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
@@ -85,8 +83,6 @@ func TestConcurrentFirstCallsCreateOneRow(t *testing.T) {
 	t.Logf("%d concurrent first calls → 1 row, every call returned member id %s", n, ids[0])
 }
 
-// A Member whose email an admin cleared still refreshes a token, one without the claim; the stored
-// address must survive it (PRD §7: it addresses the magic link and the CSV export).
 func TestAnEmptyEmailClaimKeepsTheStoredAddress(t *testing.T) {
 	db := testDB(t)
 	subject := "empty-claim-" + t.Name()

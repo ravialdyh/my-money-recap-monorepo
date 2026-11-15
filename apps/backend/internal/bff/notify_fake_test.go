@@ -8,8 +8,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// fakeNotify is notify as the BFF sees it: kept is the stamped copy, which EvaluateWarning stamps on a crossed_line;
-// prefs the preferences SavePrefs replaces unless saveErr; hang never answers, like a stopped container.
 type fakeNotify struct {
 	hang      bool
 	kept      *moneyrecapv1.TargetWarning

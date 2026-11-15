@@ -14,8 +14,6 @@ import (
 
 var hexToken = regexp.MustCompile(`^[0-9a-f]+$`)
 
-// RegisterDevice upserts the phone's row on its APNs token under the Member's key (A14): a token another Member held
-// moves to this one, and a Member may hold several (ARCHITECTURE §7.3).
 func (s *Service) RegisterDevice(ctx context.Context, req *connect.Request[moneyrecapv1.RegisterDeviceRequest]) (*connect.Response[moneyrecapv1.RegisterDeviceResponse], error) {
 	m := req.Msg
 	if m.IdempotencyKey == "" {
@@ -37,8 +35,6 @@ func (s *Service) RegisterDevice(ctx context.Context, req *connect.Request[money
 	return connect.NewResponse(answer), nil
 }
 
-// ForgetDevice deletes this Member's row for the phone's token under their key (A14), so a logged-out phone stays
-// quiet (PRD §6.16); a token another Member now holds, or none holds, is left as it is.
 func (s *Service) ForgetDevice(ctx context.Context, req *connect.Request[moneyrecapv1.ForgetDeviceRequest]) (*connect.Response[moneyrecapv1.ForgetDeviceResponse], error) {
 	m := req.Msg
 	if m.IdempotencyKey == "" {
@@ -59,7 +55,6 @@ func (s *Service) ForgetDevice(ctx context.Context, req *connect.Request[moneyre
 	return connect.NewResponse(answer), nil
 }
 
-// device is a device write's token, lowercase hex, once the caller is shown to own the Member (§4.2 point 3).
 func (s *Service) device(ctx context.Context, member, apnsToken string) (string, error) {
 	token := strings.ToLower(apnsToken)
 	if !hexToken.MatchString(token) {

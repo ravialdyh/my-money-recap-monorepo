@@ -16,8 +16,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Until onboarding ends every step-3 save replaces the setup Salary from the sign-up month, a new Payday
-// included, even a month later; after it, a new Payday waits for next month (owner 2026-09-23, D56).
 func TestASetupSaveReplacesTheSetupSalary(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a011"
@@ -49,8 +47,6 @@ func TestASetupSaveReplacesTheSetupSalary(t *testing.T) {
 	}
 }
 
-// A Member who signed up in July and sets both in September after setup starts them in September, leaving the
-// delivered months without; during setup a Target starts in the sign-up month and a re-save replaces it (owner 2026-09-23).
 func TestFirstSavesStartThisMonthAfterSetup(t *testing.T) {
 	db := testDB(t)
 	after := "00000000-0000-4000-8000-00000000a014"
@@ -91,8 +87,6 @@ func TestFirstSavesStartThisMonthAfterSetup(t *testing.T) {
 	}
 }
 
-// A Currency change during onboarding relabels the Salary, never converts it: amount and original take the new code,
-// rounded half up and kept above zero, and the replica takes it at once, so a save right after is accepted (spec #92).
 func TestRelabelCurrency(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a012"
@@ -162,9 +156,6 @@ func replicaCode(t *testing.T, db *pgxpool.Pool, id string) string {
 	return code
 }
 
-// A Member who signs up after this month's Payday and answers step 3 gets the Salary the partial-month fixture
-// holds, from the sign-up month: September is partial, with Money In 0, no Saved and a countdown to October's
-// Payday (PRD §8.11, D52, spec #92).
 func TestAStepThreeAfterPaydayIsTheSignUpMonths(t *testing.T) {
 	raw, err := os.ReadFile(filepath.Join(fixtureDir, "prd-8.11-signup-27-september.json"))
 	if err != nil {

@@ -8,8 +8,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// GetRecap joins ledger's month with the Member's current Display Name and Currency under the caller's token, and
-// passes ledger's refusals through naming only the call (PRD §7, ARCHITECTURE §6).
 func TestGetRecapJoinsTheMemberAndPassesCodesThrough(t *testing.T) {
 	ledger := &fakeLedger{}
 	s := newService(t, &fakeMembers{profile: onboarded()}, &fakeNotify{})

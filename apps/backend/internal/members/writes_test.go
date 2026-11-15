@@ -10,9 +10,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// A Member created at 20:00 UTC on 22 September signed up on the 23rd in Jakarta. A repeated key replays
-// the first answer and writes nothing, a reused key with another zone is refused, and a later zone
-// changes only the zone (A3, A14).
 func TestSetTimezoneStampsTheLocalSignUpDateOnceAndHonoursTheKey(t *testing.T) {
 	db := testDB(t)
 	subject := "timezone-" + t.Name()
@@ -83,7 +80,6 @@ func TestSetTimezoneStampsTheLocalSignUpDateOnceAndHonoursTheKey(t *testing.T) {
 	}
 }
 
-// A key older than 24 hours is swept by the next keyed write, so a day-old key no longer replays (A14).
 func TestKeysOlderThanADayAreSwept(t *testing.T) {
 	db := testDB(t)
 	subject := "sweep-" + t.Name()

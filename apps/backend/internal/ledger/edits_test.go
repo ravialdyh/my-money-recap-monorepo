@@ -13,8 +13,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// spendsOf answers the Member's ledger rows as a test sets them up: a Service on Jakarta's 20 September 2026, a
-// Member since July on a 3,000,000 Salary with a 20% Target (a 2,400,000 line), and a Spend logger.
 func spendsOf(t *testing.T, id, subject string) (context.Context, *Service, func(key, amount, date string) *moneyrecapv1.LogSpendResponse) {
 	t.Helper()
 	db := testDB(t)
@@ -36,8 +34,6 @@ func spendsOf(t *testing.T, id, subject string) (context.Context, *Service, func
 	return ctx, s, log
 }
 
-// An edit crosses the line as a log does, replays a key and refuses it reused; moving a Spend to last month changes
-// both months; a date older than 60 days may stay but a Spend never moves to or from one; another Member's is not_found.
 func TestEditSpend(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000a801"
 	ctx, s, log := spendsOf(t, id, "editor")
@@ -131,8 +127,6 @@ func TestEditSpend(t *testing.T) {
 	}
 }
 
-// A delete leaves every figure as if the Spend had never been logged, answers the month it left with crossed_line
-// false, replays its key; a deleted Spend, and another Member's, is not_found.
 func TestDeleteSpend(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000a803"
 	ctx, s, log := spendsOf(t, id, "deleter")
@@ -207,8 +201,6 @@ func TestDeleteSpend(t *testing.T) {
 	}
 }
 
-// Every Spend write stages its event in its own transaction, carrying the answer's Spend, month and crossed_line
-// (ARCHITECTURE §4.3, A4); a replayed key stages nothing more.
 func TestEverySpendWriteStagesItsEvent(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000a805"
 	ctx, s, log := spendsOf(t, id, "announcer")

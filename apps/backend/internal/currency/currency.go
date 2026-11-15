@@ -1,5 +1,3 @@
-// Package currency quotes the day's exchange rate from Open Exchange Rates' USD table, cached in Redis (ARCHITECTURE
-// §7.4, PRD D35). It never touches an amount (A2) and holds nothing about any Member.
 package currency
 
 import (
@@ -22,42 +20,31 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/answers"
 )
 
-// LatestURL is the provider's table of the latest rates against the US dollar, the only base its free plan serves.
 const LatestURL = "https://openexchangerates.org/api/latest.json"
 
-// cacheFor is how long a day's table stays in Redis under fx:{date}:USD (spec #169).
 const cacheFor = 36 * time.Hour
 
-// digits is how many significant digits a quoted rate keeps (spec #169).
 const digits = 8
 
-// errUnavailable is every failed fetch, and no App ID: the phone shows D6's failed state (PRD §8.9 step 1).
 var errUnavailable = errors.New("the exchange rate could not be fetched")
 
-// errNoAppID is a stack with no Open Exchange Rates App ID, as every laptop stack is.
 var errNoAppID = errors.New("no Open Exchange Rates App ID is configured")
 
-// fetchClient bounds one fetch from the provider.
 var fetchClient = &http.Client{Timeout: 10 * time.Second}
 
-// Service implements CurrencyService. An empty AppID answers unavailable without a fetch; Rates is the table's URL.
 type Service struct {
 	moneyrecapv1connect.UnimplementedCurrencyServiceHandler
 	AppID string
 	Rates string
 	Cache *redis.Client
-	// Now names the day's cache key; nil means time.Now.
-	Now func() time.Time
+	Now   func() time.Time
 }
 
-// table is the provider's answer: units of each code per US dollar, and the Unix time it was taken.
 type table struct {
 	Timestamp int64                  `json:"timestamp"`
 	Rates     map[string]json.Number `json:"rates"`
 }
 
-// Quote is the cross rate from the day's table, dated by it: failed_precondition with UnsupportedPair for a code the
-// table lacks, unavailable when the table cannot be had.
 func (s *Service) Quote(ctx context.Context, req *connect.Request[moneyrecapv1.QuoteRequest]) (*connect.Response[moneyrecapv1.QuoteResponse], error) {
 	from, to := req.Msg.FromCurrencyCode, req.Msg.ToCurrencyCode
 	if err := errors.Join(answers.CurrencyCode(from), answers.CurrencyCode(to)); err != nil {
@@ -77,7 +64,6 @@ func (s *Service) Quote(ctx context.Context, req *connect.Request[moneyrecapv1.Q
 	}), nil
 }
 
-// today is the day's table from Redis, or fetched and cached when Redis has none, holds a broken one or is down.
 func (s *Service) today(ctx context.Context) (*table, error) {
 	if s.AppID == "" {
 		return nil, errNoAppID
@@ -102,7 +88,6 @@ func (s *Service) today(ctx context.Context) (*table, error) {
 	return t, nil
 }
 
-// now is the clock in UTC: Now, or time.Now when it is nil.
 func (s *Service) now() time.Time {
 	if s.Now == nil {
 		return time.Now().UTC()
@@ -110,7 +95,6 @@ func (s *Service) now() time.Time {
 	return s.Now().UTC()
 }
 
-// fetch is the provider's table, the App ID sent as a header so no address carries it; any answer but 200 fails.
 func (s *Service) fetch(ctx context.Context) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.Rates, http.NoBody)
 	if err != nil {
@@ -128,7 +112,6 @@ func (s *Service) fetch(ctx context.Context) ([]byte, error) {
 	return io.ReadAll(io.LimitReader(res.Body, 1<<20))
 }
 
-// parse reads a table, refusing one with no timestamp or no rates.
 func parse(body []byte) (*table, error) {
 	var t table
 	if err := json.Unmarshal(body, &t); err != nil {
@@ -140,7 +123,6 @@ func parse(body []byte) (*table, error) {
 	return &t, nil
 }
 
-// cross is units of to per one from, rounded to 8 significant digits; false when either code has no positive rate.
 func (t *table) cross(from, to string) (string, bool) {
 	f, okFrom := t.rate(from)
 	x, okTo := t.rate(to)
@@ -150,14 +132,11 @@ func (t *table) cross(from, to string) (string, bool) {
 	return significant(new(big.Rat).Quo(x, f), digits), true
 }
 
-// rate is the table's exact decimal for code, and whether it is a positive number.
 func (t *table) rate(code string) (*big.Rat, bool) {
 	r, ok := new(big.Rat).SetString(string(t.Rates[code]))
 	return r, ok && r.Sign() > 0
 }
 
-// significant is r, positive, as a plain decimal string rounded half away from zero to n significant digits, with no
-// trailing zeros after the point.
 func significant(r *big.Rat, n int) string {
 	e := len(r.Num().String()) - len(r.Denom().String())
 	if r.Cmp(pow10(e)) < 0 {
@@ -174,7 +153,6 @@ func significant(r *big.Rat, n int) string {
 	return strings.TrimSuffix(strings.TrimRight(s, "0"), ".")
 }
 
-// pow10 is ten to the power e, e negative included.
 func pow10(e int) *big.Rat {
 	abs := e
 	if e < 0 {
@@ -187,7 +165,6 @@ func pow10(e int) *big.Rat {
 	return p
 }
 
-// unsupported is failed_precondition carrying UnsupportedPair (D35): the phone asks the Member for a rate.
 func unsupported(from, to string) error {
 	err := connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("the rates site has no rate from %s to %s", from, to))
 	if d, derr := connect.NewErrorDetail(&moneyrecapv1.UnsupportedPair{FromCurrencyCode: from, ToCurrencyCode: to}); derr == nil {

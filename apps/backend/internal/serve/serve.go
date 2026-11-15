@@ -1,5 +1,3 @@
-// Package serve is what every binary shares: required-or-default environment, and one HTTP server
-// with /healthz and graceful shutdown (ARCHITECTURE §10: each Go container listens on 8080).
 package serve
 
 import (
@@ -14,13 +12,8 @@ import (
 	"time"
 )
 
-// Env reads a binary's environment, remembering the first required variable that was missing, so
-// start-up reads everything it needs and then fails once, through main, with its defers intact.
 type Env struct{ err error }
 
-// Get is the variable's value, or def; an empty def means the variable is required. A secret arrives
-// as the file <key>_FILE names, whose trimmed contents win over key, so it is never also reported
-// missing (ARCHITECTURE A13).
 func (e *Env) Get(key, def string) string {
 	if v := e.fromFile(key); v != "" {
 		return v
@@ -34,7 +27,6 @@ func (e *Env) Get(key, def string) string {
 	return def
 }
 
-// Optional is Get for a variable that may stay unset: its value, from <key>_FILE first, or "" and no error.
 func (e *Env) Optional(key string) string {
 	if v := e.fromFile(key); v != "" {
 		return v
@@ -42,9 +34,6 @@ func (e *Env) Optional(key string) string {
 	return os.Getenv(key)
 }
 
-// fromFile is the trimmed contents of the file <key>_FILE names, and "" when that variable is unset
-// or the file holds only whitespace. A named file that cannot be read is the first error: a mount the
-// container cannot reach is not a missing variable.
 func (e *Env) fromFile(key string) string {
 	path := os.Getenv(key + "_FILE")
 	if path == "" {
@@ -60,12 +49,8 @@ func (e *Env) fromFile(key string) string {
 	return strings.TrimSpace(string(body))
 }
 
-// Err is the first required variable that was missing or unreadable, or nil.
 func (e *Env) Err() error { return e.err }
 
-// Run adds /healthz to mux (ready, when set, must succeed for "ok"; Main passes the pool's Ping) and
-// serves until ctx is done, then drains in-flight requests for up to five seconds before it returns
-// nil. A listen error returns at once.
 func Run(ctx context.Context, name, addr string, mux *http.ServeMux, ready func(context.Context) error) error {
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if ready != nil {

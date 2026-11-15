@@ -131,9 +131,6 @@ func TestInterceptorSendsNoRealmText(t *testing.T) {
 	}
 }
 
-// The BFF reaches notify on a request that carries no token, because an exempted hop never filled
-// the context Forward reads (ARCHITECTURE §4.2 point 3). Its siblings on the same service must
-// still be refused, or the exemption is by service.
 func TestAPreAuthProcedureIsTheOnlyOneCalledThroughWithoutAToken(t *testing.T) {
 	v := NewVerifier(context.Background(), issuer, serveKey(t, newKey(t)).URL, "bff")
 	srv := httptest.NewServer(mux(moneyrecapv1connect.NewNotifyServiceHandler(reached{}, connect.WithInterceptors(v.Interceptor()))))
@@ -154,8 +151,6 @@ func TestAPreAuthProcedureIsTheOnlyOneCalledThroughWithoutAToken(t *testing.T) {
 	}
 }
 
-// The BFF's RequestMagicLink is outside the check one hop earlier, and for the same reason: it is
-// sent before a Member has a token (#69, §4.2 point 2). Its siblings stay behind the check.
 func TestTheBffsPreAuthProcedureIsTheOnlyOneCalledThroughWithoutAToken(t *testing.T) {
 	v := NewVerifier(context.Background(), issuer, serveKey(t, newKey(t)).URL, "bff")
 	srv := httptest.NewServer(mux(moneyrecapv1connect.NewBffServiceHandler(reachedBff{}, connect.WithInterceptors(v.Interceptor()))))
@@ -172,9 +167,6 @@ func TestTheBffsPreAuthProcedureIsTheOnlyOneCalledThroughWithoutAToken(t *testin
 	}
 }
 
-// Forward sends the caller's own token on, and nothing at all when the context holds no verified
-// claims, which is what an exempted hop leaves behind: the reason notify needs its own exemption
-// rather than a token from the BFF (§4.2 point 3).
 func TestForwardSendsAHeaderOnlyWhenTheContextHoldsAToken(t *testing.T) {
 	for name, c := range map[string]struct {
 		ctx  context.Context
@@ -195,7 +187,6 @@ func TestForwardSendsAHeaderOnlyWhenTheContextHoldsAToken(t *testing.T) {
 	}
 }
 
-// reached answers both procedures the exemption test calls, so a handler that ran is a nil error.
 type reached struct {
 	moneyrecapv1connect.UnimplementedNotifyServiceHandler
 }
@@ -208,7 +199,6 @@ func (reached) GetPrefs(context.Context, *connect.Request[moneyrecapv1.GetPrefsR
 	return connect.NewResponse(&moneyrecapv1.GetPrefsResponse{}), nil
 }
 
-// reachedBff is the same for the BFF's own pair: the exempted procedure and one behind the check.
 type reachedBff struct {
 	moneyrecapv1connect.UnimplementedBffServiceHandler
 }
@@ -236,7 +226,6 @@ func newKey(t *testing.T) *rsa.PrivateKey {
 	return key
 }
 
-// serveKey is a realm whose JWKS holds key's public half under kid k1, closed when the test ends.
 func serveKey(t *testing.T, key *rsa.PrivateKey) *httptest.Server {
 	t.Helper()
 	jwks := jose.JSONWebKeySet{Keys: []jose.JSONWebKey{{Key: &key.PublicKey, KeyID: "k1", Algorithm: "RS256", Use: "sig"}}}
@@ -249,8 +238,6 @@ func serveKey(t *testing.T, key *rsa.PrivateKey) *httptest.Server {
 	return srv
 }
 
-// call sends one request through v's interceptor with header as Authorization (none when empty); code
-// is 0 when the handler ran, subject is what the handler saw, and text is the error sent back.
 func call(ctx context.Context, v *Verifier, header string) (subject string, code connect.Code, text string) {
 	req := connect.NewRequest(&struct{}{})
 	if header != "" {

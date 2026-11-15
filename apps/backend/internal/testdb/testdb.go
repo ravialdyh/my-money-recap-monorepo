@@ -1,5 +1,3 @@
-// Package testdb is the tests' scratch schema: a service's migrations in a schema of the test's own, so the stack's
-// relays, consumers and jobs never meet a test's rows.
 package testdb
 
 import (
@@ -12,8 +10,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Scratch opens the database dsnVar names in a new schema built by migrate and dropped when the test ends. It skips
-// the test without dsnVar.
 func Scratch(t *testing.T, dsnVar string, migrate func(context.Context, *pgxpool.Pool) error) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv(dsnVar)

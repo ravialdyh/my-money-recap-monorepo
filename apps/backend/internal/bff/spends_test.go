@@ -10,8 +10,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// LogSpend hands the Spend to ledger under the phone's key and the caller's token, then answers the current month's
-// Home in the Member's Currency and decimals and ledger's earliest date, even for a Spend dated last month; ledger's refusal keeps its code.
 func TestLogSpendWritesLedgerThenAnswersThisMonthsHome(t *testing.T) {
 	msg := &moneyrecapv1.BffServiceLogSpendRequest{
 		Amount: &moneyrecapv1.Money{Amount: "12.40", CurrencyCode: "GBP"}, Category: moneyrecapv1.Category_CATEGORY_SNACKS, Date: "2026-08-30", Note: "Kopi",
@@ -45,8 +43,6 @@ func TestLogSpendWritesLedgerThenAnswersThisMonthsHome(t *testing.T) {
 	}
 }
 
-// A current-month Spend tells notify ledger's crossed_line and copy under the phone's key, and Home's banner is the
-// copy notify kept; a past-month Spend stamps nothing and reads the state; notify hanging still answers, without it.
 func TestLogSpendEvaluatesTheWarningForThisMonthOnly(t *testing.T) {
 	first, later := &moneyrecapv1.TargetWarning{Message: "You've passed your saving line. Rp50.000 over."}, &moneyrecapv1.TargetWarning{Message: "You've passed your saving line. Rp150.000 over."}
 	notify := &fakeNotify{}
@@ -85,8 +81,6 @@ func TestLogSpendEvaluatesTheWarningForThisMonthOnly(t *testing.T) {
 	}
 }
 
-// ListSpends asks ledger for the month given, or with none the current month in the Member's zone, and joins its Spends,
-// the switcher's months, the month's Streak and the Currency's decimals; ledger's refusal keeps its code.
 func TestListSpendsJoinsLedgersMonth(t *testing.T) {
 	profile := onboarded()
 	profile.Timezone, profile.CurrencyDigits = "Asia/Jakarta", 0
@@ -117,8 +111,6 @@ func TestListSpendsJoinsLedgersMonth(t *testing.T) {
 	}
 }
 
-// EditSpend hands every field to ledger under the phone's key and the caller's token; an edit now in this month tells
-// notify its crossed_line and Home shows the kept copy, one moved to August stamps nothing; ledger's refusal keeps its code.
 func TestEditSpendWritesLedgerThenAnswersThisMonthsHome(t *testing.T) {
 	kept := &moneyrecapv1.TargetWarning{Message: "You've passed your saving line. Rp50.000 over."}
 	notify := &fakeNotify{}
@@ -157,8 +149,6 @@ func TestEditSpendWritesLedgerThenAnswersThisMonthsHome(t *testing.T) {
 	}
 }
 
-// DeleteSpend hands the Spend's id to ledger under the phone's key and never tells notify: Home's banner is the state
-// notify kept, so a warning stays after a delete; ledger's refusal keeps its code.
 func TestDeleteSpendKeepsTheBannerFromTheState(t *testing.T) {
 	kept := &moneyrecapv1.TargetWarning{Message: "You've passed your saving line. Rp50.000 over."}
 	notify := &fakeNotify{kept: kept}

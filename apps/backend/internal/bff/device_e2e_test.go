@@ -15,8 +15,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// TestRegisterDeviceEndToEnd (#178): the API refuses a keyless registration, then stores the phone's token in notify
-// under the signed-in Member, once for a repeated key.
 func TestRegisterDeviceEndToEnd(t *testing.T) {
 	base, kc, pw, dsn, notifyDSN := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL"), os.Getenv("NOTIFY_TEST_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" || notifyDSN == "" {

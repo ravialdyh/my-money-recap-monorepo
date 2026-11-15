@@ -14,17 +14,12 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 )
 
-// MembersQueue is notify's queue of members' events, and MembersKeys what it binds (ARCHITECTURE §4.3, §7.3
-// "Consumes"): the facts it copies and the deletion-pending flag.
 const MembersQueue = "notify.members"
 
 var MembersKeys = []string{"members.created", "members.updated", "members.deletion.requested", "members.deletion.cancelled", "members.deleted"}
 
-// purged is every table holding a Member's rows, which members.deleted empties (ARCHITECTURE §7.1 step 5).
 var purged = []string{"notification_preference", "device", "month_flag", "sent_log", "idempotency", "outbox", "member_facts"}
 
-// ApplyMemberEvent keeps the replica from MembersKeys: the facts and the deletion-pending flag, each stamped so an
-// older event never overrides a newer one; members.deleted purges the Member and stages notify.member.purged.
 func ApplyMemberEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 	switch d.RoutingKey {
 	case "members.created", "members.updated":
@@ -41,8 +36,6 @@ func ApplyMemberEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 	return fmt.Errorf("notify.members does not bind %q", d.RoutingKey)
 }
 
-// applyFacts copies the zone and the email of members.created and members.updated (one shape); an empty fact
-// never clears one, the Display Name is not kept, since no push prints it, and a new zone moves both next-fire times.
 func applyFacts(ctx context.Context, tx pgx.Tx, body []byte) error {
 	var e moneyrecapv1.MembersUpdated
 	if err := proto.Unmarshal(body, &e); err != nil {
@@ -72,8 +65,6 @@ func applyFacts(ctx context.Context, tx pgx.Tx, body []byte) error {
 	return reschedule(ctx, tx, env.MemberId, time.Now())
 }
 
-// flagDeletion sets or clears the deletion-pending flag from members.deletion.requested or
-// members.deletion.cancelled (one shape), unless a newer one of the two already has.
 func flagDeletion(ctx context.Context, tx pgx.Tx, body []byte, pending bool) error {
 	var e moneyrecapv1.MembersDeletionRequested
 	if err := proto.Unmarshal(body, &e); err != nil {

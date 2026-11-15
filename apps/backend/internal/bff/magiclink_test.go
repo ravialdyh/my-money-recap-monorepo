@@ -17,7 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// fakeLimit is Redis for the tests that are not about the limit: one counter per key, as INCR is.
 type fakeLimit struct {
 	counts map[string]int64
 }
@@ -30,7 +29,6 @@ func (f *fakeLimit) Count(_ context.Context, key string, _ time.Duration) (int64
 	return f.counts[key], nil
 }
 
-// fakeMailer is notify: it keeps the last request and fails with sendErr when set.
 type fakeMailer struct {
 	got     *moneyrecapv1.EmailMagicLinkRequest
 	calls   int
@@ -45,8 +43,6 @@ func (f *fakeMailer) EmailMagicLink(_ context.Context, req *connect.Request[mone
 	return connect.NewResponse(&moneyrecapv1.EmailMagicLinkResponse{}), nil
 }
 
-// fakeRealm answers the two calls A10 makes, recording the login-token body; tokenStatus and
-// loginStatus break either of them.
 type fakeRealm struct {
 	body                     map[string]any
 	authorization            string
@@ -104,8 +100,6 @@ func request(email, key string) *connect.Request[moneyrecapv1.BffServiceRequestM
 	return req
 }
 
-// The handler reads the address from the request, never from the claims an exempted request never
-// fills, and asks the realm on A10's exact terms (ARCHITECTURE §7.5).
 func TestRequestMagicLinkAsksTheRealmOnA10sTermsAndMailsTheLink(t *testing.T) {
 	realm, mailer := &fakeRealm{}, &fakeMailer{}
 	s := newMagicLinkService(t, realm, mailer)
@@ -127,8 +121,6 @@ func TestRequestMagicLinkAsksTheRealmOnA10sTermsAndMailsTheLink(t *testing.T) {
 	}
 }
 
-// An absent Idempotency-Key header, which the app sends none of until its key interceptor (IOS I3),
-// mints a fresh UUID per accepted request, because notify rejects an empty key (A14).
 func TestRequestMagicLinkMintsAFreshKeyWhenTheHeaderIsAbsent(t *testing.T) {
 	mailer := &fakeMailer{}
 	s := newMagicLinkService(t, &fakeRealm{}, mailer)
@@ -144,8 +136,6 @@ func TestRequestMagicLinkMintsAFreshKeyWhenTheHeaderIsAbsent(t *testing.T) {
 	}
 }
 
-// A realm that answers nothing at all, Keycloak stopped, is unavailable too: the transport error
-// comes back before any status does.
 func TestRequestMagicLinkWhenTheRealmIsUnreachable(t *testing.T) {
 	mailer := &fakeMailer{}
 	s := newMagicLinkService(t, &fakeRealm{}, mailer)
@@ -156,8 +146,6 @@ func TestRequestMagicLinkWhenTheRealmIsUnreachable(t *testing.T) {
 	}
 }
 
-// Five per address per hour, then resource_exhausted before the realm or notify is called, and the
-// address is lower-cased into the key so a capital letter cannot buy five more (PRD §11, §4.4).
 func TestRequestMagicLinkRefusesTheSixthRequestForAnAddress(t *testing.T) {
 	mailer := &fakeMailer{}
 	s := newMagicLinkService(t, &fakeRealm{}, mailer)
@@ -172,8 +160,6 @@ func TestRequestMagicLinkRefusesTheSixthRequestForAnAddress(t *testing.T) {
 	}
 }
 
-// The closed door: a Redis that answers nothing refuses the send rather than passing the request
-// through. The end-to-end sixth request passes either way, so this is the only gate on the branch.
 func TestRequestMagicLinkFailsClosedWhenRedisIsUnreachable(t *testing.T) {
 	mailer := &fakeMailer{}
 	s := newMagicLinkService(t, &fakeRealm{}, mailer)

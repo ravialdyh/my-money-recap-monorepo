@@ -14,21 +14,16 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// recapKind and reminderKind are the two schedules' kinds in sent_log, each named as its switch's column: the period
-// is the month the Recap is of, and the Member's local date the reminder is for.
 const (
 	recapKind    = "recap_ready"
 	reminderKind = "daily_reminder"
 )
 
-// batch is how many due Members one tick of a schedule takes, and senders how many of them it serves at once (§4.5).
 const (
 	batch   = 500
 	senders = 8
 )
 
-// nextRecap and nextReminder are a member_facts row f's next-fire times from $2 in its zone (migration 0010): 09:00 on
-// the next 1st while Recap ready is on, the chosen time's next coming while the reminder is on, and NULL otherwise.
 const (
 	nextRecap    = `CASE WHEN coalesce((SELECT recap_ready FROM notification_preference p WHERE p.member_id = f.member_id), true) THEN next_recap(f.timezone, $2) END`
 	nextReminder = `(SELECT next_reminder(f.timezone, p.daily_reminder_time, $2) FROM notification_preference p WHERE p.member_id = f.member_id AND p.daily_reminder)`
@@ -38,13 +33,11 @@ type execer interface {
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-// reschedule sets both of the Member's next-fire times from now: after a zone change or a preferences save.
 func reschedule(ctx context.Context, db execer, id string, now time.Time) error {
 	_, err := db.Exec(ctx, `UPDATE member_facts f SET next_recap_at = `+nextRecap+`, next_reminder_at = `+nextReminder+` WHERE f.member_id = $1`, id, now)
 	return err
 }
 
-// Schedule runs both schedules now and then every minute until ctx ends (ARCHITECTURE §4.5, §7.3).
 func (s *Service) Schedule(ctx context.Context) {
 	every := time.NewTicker(time.Minute)
 	defer every.Stop()
@@ -67,11 +60,8 @@ func (s *Service) tick(ctx context.Context, now time.Time) {
 	}
 }
 
-// due is one Member whose next-fire time has come, and the period that fire is for.
 type due struct{ ID, Period string }
 
-// dueBy is the one indexed query of a schedule's tick: the batch of Members whose column is at or before now, soonest
-// first, each with period, an expression over the row.
 func (s *Service) dueBy(ctx context.Context, column, period string, now time.Time) ([]due, error) {
 	rows, err := s.DB.Query(ctx, `SELECT member_id::text, `+period+` FROM member_facts WHERE `+column+` <= $1 ORDER BY `+column+` LIMIT $2`, now, batch)
 	if err != nil {
@@ -80,8 +70,6 @@ func (s *Service) dueBy(ctx context.Context, column, period string, now time.Tim
 	return pgx.CollectRows(rows, pgx.RowToStructByPos[due])
 }
 
-// each runs fire for each Member of the batch, senders at a time, then advances that Member's column from now with
-// next; a fire that fails leaves the column as it is, so the next tick tries again.
 func (s *Service) each(ctx context.Context, members []due, column, next string, now time.Time, fire func(due) error) {
 	var g errgroup.Group
 	g.SetLimit(senders)
@@ -100,8 +88,6 @@ func (s *Service) each(ctx context.Context, members []due, column, next string, 
 	_ = g.Wait()
 }
 
-// recapReady is PRD §10's Recap ready: at 09:00 local on the 1st, a push when ledger's month list, read with notify's
-// own key, holds last month, a partial month included.
 func (s *Service) recapReady(ctx context.Context, now time.Time) error {
 	members, err := s.dueBy(ctx, "next_recap_at", `to_char((next_recap_at AT TIME ZONE timezone) - interval '1 month', 'YYYY-MM')`, now)
 	if err != nil {
@@ -128,8 +114,6 @@ func (s *Service) recapReady(ctx context.Context, now time.Time) error {
 	return nil
 }
 
-// remind is PRD §10's daily reminder: at the Member's chosen time, a push when ledger's spent-today, one call for the
-// batch with notify's own key, counts no Spend dated today.
 func (s *Service) remind(ctx context.Context, now time.Time) error {
 	members, err := s.dueBy(ctx, "next_reminder_at", `to_char(next_reminder_at AT TIME ZONE timezone, 'YYYY-MM-DD')`, now)
 	if err != nil || len(members) == 0 {
@@ -156,7 +140,6 @@ func (s *Service) remind(ctx context.Context, now time.Time) error {
 	return nil
 }
 
-// logFailed logs a push that was claimed and then failed; its sent_log row stays, so it is never sent again.
 func logFailed(kind, period string, err error) {
 	if err != nil {
 		log.Printf("notify: %s push %s: %v", kind, period, err)

@@ -14,9 +14,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// TestNotifysKeyReadsTheRealLedgerForABatch ticks both schedules for two throwaway Members against the ledger
-// container with notify's own token: the one with a Spend today and one last month hears the Recap alone, the other
-// the reminder alone.
 func TestNotifysKeyReadsTheRealLedgerForABatch(t *testing.T) {
 	base, ledgerDSN, kc, secret := os.Getenv("LEDGER_TEST_URL"), os.Getenv("LEDGER_TEST_DATABASE_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("NOTIFY_TEST_CLIENT_SECRET")
 	if base == "" || ledgerDSN == "" || kc == "" || secret == "" {

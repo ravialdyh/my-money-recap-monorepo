@@ -1,5 +1,3 @@
-// Package migrate is the schema step every service shares (ARCHITECTURE §10): the same image with
-// the `migrate` subcommand, run once before the service starts.
 package migrate
 
 import (
@@ -11,9 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Run applies every file under files' "migrations" directory not yet recorded in schema_migrations,
-// in file-name order (embed.FS lists a directory sorted by name), each in its own transaction. Safe
-// to rerun.
 func Run(ctx context.Context, db *pgxpool.Pool, files fs.FS) error {
 	entries, err := fs.ReadDir(files, "migrations")
 	if err != nil {
@@ -48,14 +43,8 @@ func Run(ctx context.Context, db *pgxpool.Pool, files fs.FS) error {
 	return nil
 }
 
-// ledgerLock is the advisory-lock key a migrate run holds for the length of each file's transaction.
-// One arbitrary constant serves every service, because the lock is per database and each service has
-// its own (ARCHITECTURE A9).
 const ledgerLock = 5138619
 
-// lockMigrationLedger serialises two migrate runs racing on one database, so the ledger is created
-// once and each file applies once. CREATE TABLE IF NOT EXISTS is not race-safe for concurrent DDL;
-// an advisory lock needs no schema to guard it.
 func lockMigrationLedger(ctx context.Context, tx pgx.Tx) error {
 	if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock($1)`, ledgerLock); err != nil {
 		return err

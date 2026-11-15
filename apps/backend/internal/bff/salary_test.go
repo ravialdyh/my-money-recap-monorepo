@@ -22,8 +22,6 @@ func salaryAt(step int32) *moneyrecapv1.Profile {
 	return &moneyrecapv1.Profile{MemberId: "m-1", DisplayName: "Maya", AvatarKey: "fox", CurrencyCode: "IDR", OnboardingStep: step}
 }
 
-// During setup ledger saves the Salary as a setup save, then members records step 3 under the same key; a failed
-// ledger write records no step, a re-save records none again, and after setup the save is an edit (spec #92).
 func TestSaveSalaryWritesLedgerThenTheStep(t *testing.T) {
 	this := moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_THIS_MONTH
 	msg := &moneyrecapv1.BffServiceSaveSalaryRequest{Amount: &moneyrecapv1.Money{Amount: "150000000", CurrencyCode: "IDR"}, Payday: "25", AppliesFrom: this}
@@ -62,8 +60,6 @@ func TestSaveSalaryWritesLedgerThenTheStep(t *testing.T) {
 	}
 }
 
-// Step 4 mirrors step 3: a setup save in ledger, then step 4 in members under the same key; D44's refusal passes
-// through with no step recorded; after setup the save is an edit and no step is sent (spec #92, owner 2026-09-23).
 func TestSaveTargetWritesLedgerThenTheStep(t *testing.T) {
 	msg := &moneyrecapv1.BffServiceSaveTargetRequest{Percent: 20}
 	members, ledger := &fakeMembers{profile: salaryAt(3)}, &fakeLedger{}
@@ -100,8 +96,6 @@ func TestSaveTargetWritesLedgerThenTheStep(t *testing.T) {
 	}
 }
 
-// A Currency saved again during setup relabels step 3's Salary in ledger, after members holds it, and the answer
-// carries the relabelled Salary; a first Currency moves nothing; after setup a change is refused (spec #92).
 func TestSaveProfileRelabelsDuringSetupAndRefusesAfter(t *testing.T) {
 	change := &moneyrecapv1.BffServiceSaveProfileRequest{CurrencyCode: proto.String("EUR"), OnboardingStep: proto.Int32(2)}
 	members, ledger := &fakeMembers{profile: salaryAt(3)}, &fakeLedger{salary: &moneyrecapv1.SalarySetting{Amount: &moneyrecapv1.Money{Amount: "150000000", CurrencyCode: "IDR"}}}
@@ -133,8 +127,6 @@ func TestSaveProfileRelabelsDuringSetupAndRefusesAfter(t *testing.T) {
 	}
 }
 
-// A resume at step 3 or 4, or Home's prompts after setup, carry the saved Salary and Target from ledger; before the
-// Currency ledger is never asked, and a ledger that fails is unavailable rather than an empty step (spec #92).
 func TestGetOnboardingStateCarriesStepThreesAnswer(t *testing.T) {
 	saved := &moneyrecapv1.SalarySetting{Amount: &moneyrecapv1.Money{Amount: "150000000", CurrencyCode: "IDR"}, Payday: "last"}
 	target := &moneyrecapv1.SavingTargetSetting{Percent: 35, EffectiveFrom: "2026-09"}

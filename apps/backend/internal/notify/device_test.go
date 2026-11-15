@@ -10,8 +10,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// A Member's phones each hold a row, a repeated key writes once, and a token another Member signs in with moves to
-// them; a keyless, non-hex or someone else's registration is refused and writes nothing (spec #169, "Devices").
 func TestADeviceIsUpsertedOnItsToken(t *testing.T) {
 	ann, bob := "00000000-0000-4000-8000-00000000d001", "00000000-0000-4000-8000-00000000d002"
 	s := warningService(t, ann, map[string]string{"ann": ann, "bob": bob})
@@ -75,8 +73,6 @@ func TestADeviceIsUpsertedOnItsToken(t *testing.T) {
 	}
 }
 
-// Log out forgets the phone: this Member's row for the token goes, once for a repeated key, while another Member's
-// row for a token is left as it is; a keyless or someone else's call is refused (spec #169, "Devices").
 func TestForgetDeviceDeletesOnlyTheMembersRow(t *testing.T) {
 	ann, bob := "00000000-0000-4000-8000-00000000d011", "00000000-0000-4000-8000-00000000d012"
 	s := warningService(t, ann, map[string]string{"ann": ann, "bob": bob})

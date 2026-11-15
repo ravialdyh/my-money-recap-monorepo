@@ -1,4 +1,3 @@
-// The BFF binary (ARCHITECTURE §6): the only thing the phone talks to. Owns no database.
 package main
 
 import (
@@ -23,7 +22,6 @@ func main() {
 	}
 }
 
-// run holds main's body so every defer still runs when a start-up step fails.
 func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()

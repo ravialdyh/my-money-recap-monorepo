@@ -9,8 +9,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// ListSpends is the Spend list (PRD §6.10, D59) for the month asked, or the current one in the Member's zone: ledger's
-// month, the switcher's months and the Streak, asked at once, each required, each code passed through, in ledger's Currency.
 func (s *Service) ListSpends(ctx context.Context, req *connect.Request[moneyrecapv1.BffServiceListSpendsRequest]) (*connect.Response[moneyrecapv1.BffServiceListSpendsResponse], error) {
 	profile, err := s.member(ctx)
 	if err != nil {

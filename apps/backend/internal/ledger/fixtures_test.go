@@ -15,11 +15,8 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// fixtureDir is packages/contract/fixtures/ledger, relative to this file (ARCHITECTURE §7.2 "Tests").
 const fixtureDir = "../../../../packages/contract/fixtures/ledger"
 
-// manifest names every fixture the folder must hold, alphabetically, one line per PRD example; a
-// file without a line, or a line without a file, fails TestFixturesMatchManifest.
 var manifest = []string{
 	"prd-12.4-idr-salary-10th",
 	"prd-12.4-idr-salary-25th",
@@ -65,7 +62,6 @@ func fixtureNames(t *testing.T, dir string) []string {
 	return names
 }
 
-// manifestMismatch says how the folder disagrees with want, or nothing when they match.
 func manifestMismatch(t *testing.T, dir string, want []string) string {
 	t.Helper()
 	if got := fixtureNames(t, dir); !slices.Equal(got, want) {
@@ -181,8 +177,6 @@ func TestBadOriginalsSeesEachDrift(t *testing.T) {
 	}
 }
 
-// A ledger converted before the file starts holds amounts in its Currency and originals in another: that passes, and
-// each row after a second conversion keeps its input row's original.
 func TestBadOriginalsTakesAnEarlierConversion(t *testing.T) {
 	idr := &moneyrecapv1.Money{Amount: "48360000", CurrencyCode: "IDR"}
 	gbp := &moneyrecapv1.Money{Amount: "2400.00", CurrencyCode: "GBP"}
@@ -210,8 +204,6 @@ func hasExpectation(f *moneyrecapv1.LedgerFixture) bool {
 		f.Settings != nil || f.ConversionPreview != nil || f.CrossedLine != nil
 }
 
-// eachMessage calls visit with m and every message populated under it, each by its path; a list
-// element's path carries its index.
 func eachMessage(m protoreflect.Message, path string, visit func(protoreflect.Message, string)) {
 	visit(m, path)
 	m.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
@@ -228,7 +220,6 @@ func eachMessage(m protoreflect.Message, path string, visit func(protoreflect.Me
 	})
 }
 
-// badAmounts walks every populated field and returns each Money whose amount breaks D57, by path.
 func badAmounts(m protoreflect.Message, path string) []string {
 	var bad []string
 	eachMessage(m, path, func(msg protoreflect.Message, at string) {
@@ -239,8 +230,6 @@ func badAmounts(m protoreflect.Message, path string) []string {
 	return bad
 }
 
-// badOriginals returns, by path, each Spend and SalarySetting breaking the README's original_amount rule: present; on
-// an input row its amount, or in another Currency after an earlier conversion; after convert its input row's.
 func badOriginals(f *moneyrecapv1.LedgerFixture) []string {
 	typed := map[string]*moneyrecapv1.Money{}
 	for _, s := range f.Salaries {

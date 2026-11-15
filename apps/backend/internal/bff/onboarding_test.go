@@ -11,7 +11,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Steps 1 and 2 resume on their missing answers, steps 3 and 4 on the highest step saved (spec #92).
 func TestNextStepFollowsTheAnswers(t *testing.T) {
 	for want, p := range map[int32]*moneyrecapv1.Profile{
 		1: {AvatarKey: "fox", CurrencyCode: "IDR", OnboardingStep: 4},
@@ -26,7 +25,6 @@ func TestNextStepFollowsTheAnswers(t *testing.T) {
 	}
 }
 
-// The state carries the given_name the caller's own token holds, which fills step 1 in (PRD §6.4).
 func TestGetOnboardingStateCarriesTheGivenName(t *testing.T) {
 	s := newService(t, &fakeMembers{}, &fakeNotify{})
 	named := auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "test@example.com", GivenName: "Test", Raw: "tok"})
@@ -36,8 +34,6 @@ func TestGetOnboardingStateCarriesTheGivenName(t *testing.T) {
 	}
 }
 
-// SaveProfile refuses a missing key or a bad answer before any members call, and otherwise hands members the
-// phone's key, the Member's id and the answers as sent (A14).
 func TestSaveProfileChecksBeforeAnyCall(t *testing.T) {
 	members := &fakeMembers{}
 	s := newService(t, members, &fakeNotify{})

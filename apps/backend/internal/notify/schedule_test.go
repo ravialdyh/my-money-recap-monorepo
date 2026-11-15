@@ -19,15 +19,11 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
-// scheduleDB is the notify schema in a schema of its own, dropped at the end, so the stack's notify never ticks the
-// test's rows and a test's clock never ticks the stack's.
 func scheduleDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	return testdb.Scratch(t, "NOTIFY_TEST_DATABASE_URL", Migrate)
 }
 
-// fakeLedger answers the schedules' two reads: months holds each Member's month list, today each Member's count of
-// Spends dated today; a Member in neither is one ledger does not know.
 type fakeLedger struct {
 	moneyrecapv1connect.UnimplementedLedgerServiceHandler
 	months  map[string][]string
@@ -54,7 +50,6 @@ func (f *fakeLedger) GetSpentToday(_ context.Context, req *connect.Request[money
 	return connect.NewResponse(res), nil
 }
 
-// scheduleService ticks against ledger and a fake Apple service over its own schema.
 func scheduleService(t *testing.T, ledger *fakeLedger) (*Service, *fakeApple) {
 	t.Helper()
 	mux := http.NewServeMux()
@@ -65,8 +60,6 @@ func scheduleService(t *testing.T, ledger *fakeLedger) (*Service, *fakeApple) {
 	return &Service{DB: scheduleDB(t), Ledger: moneyrecapv1connect.NewLedgerServiceClient(srv.Client(), srv.URL), Apple: apple}, fake
 }
 
-// scheduled is a Member in zone with one device named after the id, the reminder at reminder ("" keeps the defaults),
-// and next-fire times set from now.
 func scheduled(t *testing.T, s *Service, id, zone, reminder string, now time.Time) {
 	t.Helper()
 	if _, err := s.DB.Exec(t.Context(), `INSERT INTO member_facts (member_id, timezone) VALUES ($1, $2)`, id, zone); err != nil {
@@ -85,7 +78,6 @@ func scheduled(t *testing.T, s *Service, id, zone, reminder string, now time.Tim
 
 func deviceOf(id string) string { return strings.ReplaceAll(id, "-", "") }
 
-// next is the Member's next-fire time in column, the zero time when it is NULL.
 func next(t *testing.T, s *Service, id, column string) time.Time {
 	t.Helper()
 	var at *time.Time
@@ -98,7 +90,6 @@ func next(t *testing.T, s *Service, id, column string) time.Time {
 	return at.UTC()
 }
 
-// alerts is each device's alert bodies, in the order Apple received them.
 func alerts(t *testing.T, fake *fakeApple) map[string][]string {
 	t.Helper()
 	got := map[string][]string{}
@@ -125,8 +116,6 @@ func utc(s string) time.Time {
 	return at
 }
 
-// Recap ready fires at 09:00 on the 1st in each Member's zone, 02:00 UTC in Jakarta and 08:00 UTC in a London summer,
-// at 09:00 UTC once London's clocks go back, and a second run, or a replay of the same fire, sends nothing more.
 func TestRecapReadyAtNineOnTheFirstInTheMembersZone(t *testing.T) {
 	london, jakarta := "00000000-0000-4000-8000-00000000d001", "00000000-0000-4000-8000-00000000d002"
 	ledger := &fakeLedger{months: map[string][]string{london: {"2026-10", "2026-09", "2026-08"}, jakarta: {"2026-09", "2026-08"}}}
@@ -175,8 +164,6 @@ func TestRecapReadyAtNineOnTheFirstInTheMembersZone(t *testing.T) {
 	}
 }
 
-// Recap ready sends only when last month is on ledger's list, a partial sign-up month included, and never to a Member
-// ledger does not know, whose switch is off or whose deletion is pending; each still moves to the next 1st.
 func TestRecapReadyNeedsLastMonthsData(t *testing.T) {
 	empty, partial, unknown, off, leaving := "00000000-0000-4000-8000-00000000d101", "00000000-0000-4000-8000-00000000d102",
 		"00000000-0000-4000-8000-00000000d103", "00000000-0000-4000-8000-00000000d104", "00000000-0000-4000-8000-00000000d105"
@@ -209,8 +196,6 @@ func TestRecapReadyNeedsLastMonthsData(t *testing.T) {
 	}
 }
 
-// The reminder asks ledger once for the batch and sends only on no Spend dated today, never with the switch off or a
-// deletion pending, then moves each Member to the next day; a second run, or a replay, sends nothing more.
 func TestTheReminderSkipsADayWithASpend(t *testing.T) {
 	spent, idle, off, leaving := "00000000-0000-4000-8000-00000000d201", "00000000-0000-4000-8000-00000000d202",
 		"00000000-0000-4000-8000-00000000d203", "00000000-0000-4000-8000-00000000d204"

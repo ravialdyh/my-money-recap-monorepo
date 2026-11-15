@@ -13,8 +13,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// The switcher lists the current month and every past month with a Spend or Money In, newest first, as Home's list
-// does; a month lists its Spends newest first, its Categories largest first with share and count (PRD §6.10, D59).
 func TestTheSpendListAndItsMonths(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a701"
@@ -74,8 +72,6 @@ func TestTheSpendListAndItsMonths(t *testing.T) {
 	}
 }
 
-// Spent today is each Member's own today: at 20:00 UTC Jakarta is on the 16th, London on the 15th. notify's token
-// reads both and the month list; unknown ids are left out; a Member's token reads only its own (§4.2).
 func TestSpentTodayIsEachMembersOwnToday(t *testing.T) {
 	db := testDB(t)
 	jakarta, london := "00000000-0000-4000-8000-00000000a771", "00000000-0000-4000-8000-00000000a772"

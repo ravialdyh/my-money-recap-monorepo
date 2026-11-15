@@ -13,8 +13,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// Home's list is every past month with a Spend or Money In, newest first, by Archetype or "Partial", the only past
-// months that answer; the current month is the preview; another token reads none (PRD §6.8, §8.11, §4.2).
 func TestRecapsAndHomesList(t *testing.T) {
 	db := testDB(t)
 	id := "00000000-0000-4000-8000-00000000a601"
@@ -90,7 +88,6 @@ func TestRecapsAndHomesList(t *testing.T) {
 	}
 }
 
-// kept% is clamped 0 to 999 (PRD §8.4): a 1% target kept a hundred times over, and a month spent past its Salary.
 func TestKeptIsClamped(t *testing.T) {
 	c, _ := currencyOf("GBP")
 	today := time.Date(2026, 10, 5, 0, 0, 0, 0, time.UTC)

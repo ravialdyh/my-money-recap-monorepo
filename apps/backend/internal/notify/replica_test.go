@@ -17,7 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/events"
 )
 
-// acks counts what the consumer answered the broker for one delivery.
 type acks struct{ acked, rejected int }
 
 func (a *acks) Ack(uint64, bool) error { a.acked++; return nil }
@@ -28,8 +27,6 @@ func (a *acks) Nack(uint64, bool, bool) error {
 
 func (a *acks) Reject(uint64, bool) error { a.rejected++; return nil }
 
-// feed hands the consumer one delivery as the broker would and answers whether it was acked, recording its id for
-// the cleanup.
 type feed struct {
 	t   *testing.T
 	s   *Service
@@ -58,7 +55,6 @@ func (f *feed) deliver(messageID, key string, msg proto.Message) bool {
 	return a.acked == 1 && a.rejected == 0
 }
 
-// replicaOf is the Member's copy as "zone email pending", "-" for an empty fact.
 func replicaOf(t *testing.T, s *Service, id string) string {
 	t.Helper()
 	var zone, email string
@@ -89,8 +85,6 @@ func deletion(id string, at time.Duration) *moneyrecapv1.MembersDeletionRequeste
 	return &moneyrecapv1.MembersDeletionRequested{Envelope: &moneyrecapv1.EventEnvelope{MemberId: id, OccurredAt: timestamppb.New(base.Add(at))}}
 }
 
-// members.created and members.updated give the copy its zone and email, an empty fact never clears one, and the copy
-// has nowhere to hold a Display Name; the two deletion events set and clear the flag (spec #169, "The replica").
 func TestTheConsumerKeepsTheFactsAndTheFlag(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000c001"
 	s := warningService(t, id, nil)
@@ -118,8 +112,6 @@ func TestTheConsumerKeepsTheFactsAndTheFlag(t *testing.T) {
 	}
 }
 
-// An older event never overrides a newer one of its kind: a late deletion request after the cancel leaves the flag
-// clear, and a late members.updated brings back neither the old zone nor the old email.
 func TestALateEventNeverOverridesANewerOne(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000c002"
 	s := warningService(t, id, nil)
@@ -137,8 +129,6 @@ func TestALateEventNeverOverridesANewerOne(t *testing.T) {
 	}
 }
 
-// A second delivery of one message id changes nothing, even carrying other facts, and is acked; a malformed event or
-// a key notify.members does not bind is rejected, never nacked, toward its five tries (§4.3).
 func TestADuplicateDeliveryChangesNothing(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000c003"
 	s := warningService(t, id, nil)
@@ -166,8 +156,6 @@ func TestADuplicateDeliveryChangesNothing(t *testing.T) {
 	}
 }
 
-// The owner check's profile read fills the zone and the email of a row the events never reached (a Member from
-// before #176), and a later read leaves a newer event's facts, and a later event older than the read, alone.
 func TestTheProfileReadFillsTheCopy(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000c004"
 	s := warningService(t, id, map[string]string{"owner": id})
@@ -198,8 +186,6 @@ func TestTheProfileReadFillsTheCopy(t *testing.T) {
 	}
 }
 
-// notify's idempotency table is A14's (spec #169, "Idempotency"): a repeated key replays its answer, a key reused for
-// another request is invalid_argument, a failed write keeps no key, and keys past 24 hours are swept.
 func TestTheIdempotencyTableClaimsAKeyOnce(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000c005"
 	s := warningService(t, id, nil)
@@ -249,8 +235,6 @@ func TestTheIdempotencyTableClaimsAKeyOnce(t *testing.T) {
 	}
 }
 
-// A new zone from members' events, and a preferences save, each move the next-fire times to 09:00 on the next 1st and
-// the chosen time in the zone now held.
 func TestAZoneChangeMovesTheNextTimes(t *testing.T) {
 	id := "00000000-0000-4000-8000-00000000d301"
 	s := &Service{DB: scheduleDB(t), Members: membersClient(t, map[string]string{"owner": id})}
@@ -271,7 +255,6 @@ func TestAZoneChangeMovesTheNextTimes(t *testing.T) {
 	fires(t, s, id, "Europe/London", 7, 30)
 }
 
-// fires checks the Member's next Recap ready is 09:00 on the next 1st in zone and the next reminder hour:minute there.
 func fires(t *testing.T, s *Service, id, zone string, hour, minute int) {
 	t.Helper()
 	loc, err := time.LoadLocation(zone)

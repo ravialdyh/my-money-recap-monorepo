@@ -19,8 +19,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// onboard sends the zone UTC and answers steps 1 and 2 through the BFF under token, as the app does, so GetHome
-// answers: the name Test, the owl and IDR, the rupiah PRD D45 proves every screen in, with ledger's months in UTC.
 func onboard(ctx context.Context, t *testing.T, base, token string) {
 	t.Helper()
 	client := moneyrecapv1connect.NewBffServiceClient(http.DefaultClient, base, testauth.Bearer(token))
@@ -38,9 +36,6 @@ func onboard(ctx context.Context, t *testing.T, base, token string) {
 	}
 }
 
-// TestEndToEnd drives the BFF's HTTP boundary against the real Compose stack (#17, spec #10).
-// It skips unless BFF_TEST_URL, MMR_TEST_KEYCLOAK, MMR_TEST_USER_PASSWORD and
-// MMR_TEST_MEMBERS_DATABASE_URL are all set; infra/compose/README.md lists their values.
 func TestEndToEnd(t *testing.T) {
 	base, kc, pw, dsn := os.Getenv("BFF_TEST_URL"), os.Getenv("MMR_TEST_KEYCLOAK"), os.Getenv("MMR_TEST_USER_PASSWORD"), os.Getenv("MMR_TEST_MEMBERS_DATABASE_URL")
 	if base == "" || kc == "" || pw == "" || dsn == "" {

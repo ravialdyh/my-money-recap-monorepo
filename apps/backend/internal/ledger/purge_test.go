@@ -12,8 +12,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testdb"
 )
 
-// members.deleted purges every row ledger holds for the Member and stages ledger.member.purged, safely twice, the
-// second replacing the first event, while another Member's rows stay (ARCHITECTURE §7.1 step 5).
 func TestMembersDeletedPurgesEveryRow(t *testing.T) {
 	db := testdb.Scratch(t, "LEDGER_TEST_DATABASE_URL", Migrate)
 	ctx := context.Background()

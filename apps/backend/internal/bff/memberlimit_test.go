@@ -14,7 +14,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// served is the procedure behind the limit: it counts the requests that reached it.
 type served struct{ calls int }
 
 func (s *served) call(context.Context, connect.AnyRequest) (connect.AnyResponse, error) {
@@ -52,8 +51,6 @@ func TestMemberLimitRefusesTheRequestPastTheCeilingOfAMinute(t *testing.T) {
 	}
 }
 
-// The open door: a Redis that answers nothing lets the same request through, where the magic-link
-// limit refuses it (§4.4).
 func TestMemberLimitFailsOpenWhenRedisIsUnreachable(t *testing.T) {
 	backend := &served{}
 	unreachable := RedisLimiter{Client: redis.NewClient(&redis.Options{Addr: "127.0.0.1:1", MaxRetries: -1})}
@@ -68,7 +65,6 @@ func TestMemberLimitFailsOpenWhenRedisIsUnreachable(t *testing.T) {
 	}
 }
 
-// refusing fails the test if anything is counted.
 type refusing struct{ t *testing.T }
 
 func (r refusing) Count(context.Context, string, time.Duration) (int64, error) {

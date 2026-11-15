@@ -17,8 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/testauth"
 )
 
-// A background job's token passes only on the calls named for its job, marked Job; elsewhere it is
-// permission_denied, and a service account no job names is refused like any other audience (§4.2).
 func TestAJobsTokenPassesOnlyItsOwnCalls(t *testing.T) {
 	key := newKey(t)
 	mint := func(azp, aud string) connect.ClientOption {
@@ -61,7 +59,6 @@ func TestAJobsTokenPassesOnlyItsOwnCalls(t *testing.T) {
 	}
 }
 
-// reachedLedger answers GetSpentToday only for a job's claims, failed_precondition otherwise, so the test sees Job.
 type reachedLedger struct {
 	moneyrecapv1connect.UnimplementedLedgerServiceHandler
 }

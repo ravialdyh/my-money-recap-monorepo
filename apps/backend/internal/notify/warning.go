@@ -18,7 +18,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/serve"
 )
 
-// GetWarningState answers whether the Member's month is stamped and the copy kept when it was (PRD §8.8).
 func (s *Service) GetWarningState(ctx context.Context, req *connect.Request[moneyrecapv1.GetWarningStateRequest]) (*connect.Response[moneyrecapv1.GetWarningStateResponse], error) {
 	if _, err := time.Parse("2006-01", req.Msg.Month); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("month is not YYYY-MM"))
@@ -33,8 +32,6 @@ func (s *Service) GetWarningState(ctx context.Context, req *connect.Request[mone
 	return connect.NewResponse(&moneyrecapv1.GetWarningStateResponse{Fired: warning != nil, Warning: warning}), nil
 }
 
-// EvaluateWarning stamps the month with ledger's copy when crossed_line and unstamped, then pushes it in the
-// background. The month flag's primary key is its A14 guarantee: a repeat answers the kept copy, and one call fires.
 func (s *Service) EvaluateWarning(ctx context.Context, req *connect.Request[moneyrecapv1.EvaluateWarningRequest]) (*connect.Response[moneyrecapv1.EvaluateWarningResponse], error) {
 	m := req.Msg
 	if m.IdempotencyKey == "" {
@@ -68,14 +65,10 @@ func (s *Service) EvaluateWarning(ctx context.Context, req *connect.Request[mone
 	return connect.NewResponse(answer), nil
 }
 
-// Queue is notify's queue of ledger's Spend events, and Keys what it binds (ARCHITECTURE §4.3, §7.3 "Consumes"): a
-// delete never fires a warning (PRD §8.8), so ledger.spend.deleted is not bound.
 const Queue = "notify.ledger"
 
 var Keys = []string{"ledger.spend.logged", "ledger.spend.edited"}
 
-// StampFromEvent is the event backup (§6.2 step 6) for ledger.spend.logged and ledger.spend.edited (one shape): with
-// crossed_line it stamps the event's month if unstamped, as EvaluateWarning does, and pushes once that commits.
 func (s *Service) StampFromEvent(ctx context.Context, tx pgx.Tx, d amqp.Delivery) error {
 	var e moneyrecapv1.LedgerSpendLogged
 	if err := proto.Unmarshal(d.Body, &e); err != nil {
@@ -107,9 +100,6 @@ func (s *Service) kept(ctx context.Context, id, month string) (*moneyrecapv1.Tar
 	return &moneyrecapv1.TargetWarning{Message: message}, nil
 }
 
-// owns is ARCHITECTURE §4.2 point 3: a token other than the one the replica kept, or a row lacking a zone or an
-// email, is a miss members.GetProfile answers under that token; the read fills both unless a newer event has, and
-// a new zone moves the fire times.
 func (s *Service) owns(ctx context.Context, id string) error {
 	if err := (&pgtype.UUID{}).Scan(id); err != nil {
 		return connect.NewError(connect.CodeNotFound, errors.New("no such member"))
@@ -154,5 +144,4 @@ func (s *Service) owns(ctx context.Context, id string) error {
 	return nil
 }
 
-// storeFailed is serve.StoreFailed for this service.
 func storeFailed(ctx context.Context, err error) error { return serve.StoreFailed(ctx, "notify", err) }

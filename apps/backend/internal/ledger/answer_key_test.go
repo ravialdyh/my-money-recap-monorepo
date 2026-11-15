@@ -17,8 +17,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/internal/auth"
 )
 
-// testDB opens the Compose stack's ledger database and applies the schema, skipping unless
-// LEDGER_TEST_DATABASE_URL is set (infra/compose/README.md).
 func testDB(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	dsn := os.Getenv("LEDGER_TEST_DATABASE_URL")
@@ -36,8 +34,6 @@ func testDB(t *testing.T) *pgxpool.Pool {
 	return db
 }
 
-// seed writes one Member's replica row and settings rows straight into the database, owned by subject,
-// and removes them when the test ends; it answers a context carrying that subject's claims.
 func seed(t *testing.T, db *pgxpool.Pool, id, subject, zone, signedUp, code string, salaries []*moneyrecapv1.SalarySetting, targets []*moneyrecapv1.SavingTargetSetting) context.Context {
 	t.Helper()
 	ctx := context.Background()
@@ -65,7 +61,6 @@ func seed(t *testing.T, db *pgxpool.Pool, id, subject, zone, signedUp, code stri
 	return auth.NewContext(ctx, auth.Claims{Subject: subject})
 }
 
-// at is noon of a "YYYY-MM-DD" date in zone, so the Member's local today is that date.
 func at(t *testing.T, date, zone string) time.Time {
 	t.Helper()
 	loc, err := time.LoadLocation(zone)
@@ -79,7 +74,6 @@ func at(t *testing.T, date, zone string) time.Time {
 	return d.Add(12 * time.Hour)
 }
 
-// seedSpends writes Spend rows straight into the database; seed's cleanup removes them.
 func seedSpends(t *testing.T, db *pgxpool.Pool, id string, spends []*moneyrecapv1.Spend) {
 	t.Helper()
 	for _, s := range spends {
@@ -90,8 +84,6 @@ func seedSpends(t *testing.T, db *pgxpool.Pool, id string, spends []*moneyrecapv
 	}
 }
 
-// TestTheAnswerKey runs every PRD §8 fixture through the service and its database, none left out: rows seeded, the
-// crossing Spend logged, the Salary saved, the conversion previewed and made, then every expected field compared.
 func TestTheAnswerKey(t *testing.T) {
 	db := testDB(t)
 	for i, name := range fixtureNames(t, fixtureDir) {

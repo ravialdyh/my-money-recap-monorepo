@@ -8,8 +8,6 @@ import (
 	"testing"
 )
 
-// A name in any script passes, stored in NFC and trimmed; digits, emoji, other punctuation and a 31st code point
-// do not (PRD §6.4).
 func TestDisplayName(t *testing.T) {
 	for _, c := range []struct{ in, want string }{
 		{"Maya", "Maya"},
@@ -34,8 +32,6 @@ func TestDisplayName(t *testing.T) {
 	}
 }
 
-// The contract's documentation is the authoritative list (spec #92): AvatarKeys must be exactly the keys the
-// Profile.avatar_key comment names, in its order.
 func TestAvatarKeysAreTheContractsList(t *testing.T) {
 	proto, err := os.ReadFile("../../../../packages/contract/money_recap/v1/members.proto")
 	if err != nil {

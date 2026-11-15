@@ -11,8 +11,6 @@ import (
 	moneyrecapv1 "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1"
 )
 
-// GetSettings joins the Profile, ledger's settings with its Currency and decimals, and notify's preferences; a required
-// service failing fails the read with its code and no upstream text, notify silent leaves out the preferences.
 func TestGetSettingsJoinsProfileLedgerAndPrefs(t *testing.T) {
 	target := &moneyrecapv1.SavingTargetSetting{Percent: 20, EffectiveFrom: "2026-09"}
 	ledger := &fakeLedger{target: target, code: "BHD"}
@@ -45,8 +43,6 @@ func TestGetSettingsJoinsProfileLedgerAndPrefs(t *testing.T) {
 	}
 }
 
-// A Salary or Target save after setup answers the Home GetHome draws: the past-Recap list, notify's kept banner and
-// the earliest Spend date, the month read in the Member's zone, 21:00 UTC on 30 September being October in Jakarta.
 func TestSalaryAndTargetSavesAnswerTheWholeHome(t *testing.T) {
 	p := salaryAt(4)
 	p.Timezone = "Asia/Jakarta"
@@ -74,8 +70,6 @@ func TestSalaryAndTargetSavesAnswerTheWholeHome(t *testing.T) {
 	whole("SaveTarget", target.Msg.Home)
 }
 
-// SaveNotificationPrefs refuses a keyless call before notify, then hands notify the key, the Member's id and the whole
-// message, answering what notify stored; notify's refusal comes back with its code and no upstream text.
 func TestSaveNotificationPrefsPassesTheWholeMessageThrough(t *testing.T) {
 	notify := &fakeNotify{}
 	s := newService(t, &fakeMembers{profile: salaryAt(4)}, notify)

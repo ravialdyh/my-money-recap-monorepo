@@ -19,7 +19,6 @@ import (
 
 const testAppID = "test-app-id"
 
-// rates is a fake rates site answering body with status, counting fetches and checking the App ID header.
 func rates(t *testing.T, status int, body string) (*httptest.Server, *atomic.Int32) {
 	t.Helper()
 	var hits atomic.Int32
@@ -36,7 +35,6 @@ func rates(t *testing.T, status int, body string) (*httptest.Server, *atomic.Int
 	return site, &hits
 }
 
-// service is a Service against site and cache, its clock on day, whose cache key it deletes before and after.
 func service(t *testing.T, site string, cache *redis.Client, day string) *Service {
 	t.Helper()
 	at, err := time.Parse(time.DateOnly, day)
@@ -49,7 +47,6 @@ func service(t *testing.T, site string, cache *redis.Client, day string) *Servic
 	return &Service{AppID: testAppID, Rates: site, Cache: cache, Now: func() time.Time { return at }}
 }
 
-// liveRedis is the stack's Redis; the tests' clock sits in 2001, so their keys never meet the service's own.
 func liveRedis(t *testing.T) *redis.Client {
 	t.Helper()
 	addr := os.Getenv("BFF_TEST_REDIS")
@@ -71,7 +68,6 @@ func quote(s *Service, from, to string) (*moneyrecapv1.QuoteResponse, error) {
 
 const usdTable = `{"base":"USD","timestamp":1000000000,"rates":{"USD":1,"GBP":0.75,"IDR":16000,"EUR":0.9}}`
 
-// The cross rate comes from the USD table at 8 significant digits, dated by it, and a second quote reads Redis.
 func TestQuoteCrossRateAndCache(t *testing.T) {
 	site, hits := rates(t, http.StatusOK, usdTable)
 	s := service(t, site.URL, liveRedis(t), "2001-01-01")
@@ -94,7 +90,6 @@ func TestQuoteCrossRateAndCache(t *testing.T) {
 	}
 }
 
-// A code the table lacks is failed_precondition carrying UnsupportedPair, and a code no country uses is refused.
 func TestQuoteUnsupportedPair(t *testing.T) {
 	site, _ := rates(t, http.StatusOK, usdTable)
 	s := service(t, site.URL, liveRedis(t), "2001-01-02")
@@ -112,7 +107,6 @@ func TestQuoteUnsupportedPair(t *testing.T) {
 	}
 }
 
-// A failed fetch, a broken table and no App ID are unavailable, and no App ID fetches nothing.
 func TestQuoteUnavailable(t *testing.T) {
 	cache := liveRedis(t)
 	down, _ := rates(t, http.StatusInternalServerError, "")
@@ -131,7 +125,6 @@ func TestQuoteUnavailable(t *testing.T) {
 	}
 }
 
-// With Redis down every quote fetches the table again and still answers.
 func TestQuoteWithRedisDown(t *testing.T) {
 	site, hits := rates(t, http.StatusOK, usdTable)
 	down := redis.NewClient(&redis.Options{Addr: "127.0.0.1:1", MaxRetries: -1})
@@ -147,7 +140,6 @@ func TestQuoteWithRedisDown(t *testing.T) {
 	}
 }
 
-// significant rounds half away from zero to n digits and never prints an exponent.
 func TestSignificant(t *testing.T) {
 	for in, want := range map[string]string{
 		"1": "1", "20150": "20150", "1/3": "0.33333333", "2/3": "0.66666667", "123456785": "123456790",

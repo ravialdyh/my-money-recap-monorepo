@@ -12,7 +12,6 @@ import (
 	"github.com/ravialdyh/my-money-recap-monorepo/apps/backend/gen/money_recap/v1/moneyrecapv1connect"
 )
 
-// fakeCurrency answers Quote with quote or err, remembering the request.
 type fakeCurrency struct {
 	moneyrecapv1connect.UnimplementedCurrencyServiceHandler
 	quote *moneyrecapv1.QuoteResponse
@@ -28,7 +27,6 @@ func (f *fakeCurrency) Quote(_ context.Context, req *connect.Request[moneyrecapv
 	return connect.NewResponse(f.quote), nil
 }
 
-// currencyClient serves f over HTTP, so codes and details cross the wire as they do in the stack.
 func currencyClient(t *testing.T, f *fakeCurrency) moneyrecapv1connect.CurrencyServiceClient {
 	t.Helper()
 	mux := http.NewServeMux()
@@ -38,8 +36,6 @@ func currencyClient(t *testing.T, f *fakeCurrency) moneyrecapv1connect.CurrencyS
 	return moneyrecapv1connect.NewCurrencyServiceClient(srv.Client(), srv.URL)
 }
 
-// The preview: nothing_to_convert with no quote; ledger's preview of a typed rate as MANUAL, unquoted, or of
-// currency's as PROVIDER with its date; the unsupported pair; unavailable for any other failure; no Currency refused.
 func TestPreviewCurrencyChange(t *testing.T) {
 	provider := &moneyrecapv1.QuoteResponse{Rate: "0.0000496", Source: moneyrecapv1.RateSource_RATE_SOURCE_PROVIDER, AsOf: "2026-09-16"}
 	preview := func(amounts bool, to, rate string, quoted *fakeCurrency) (*moneyrecapv1.CurrencyChangePreview, *fakeLedger, error) {
@@ -83,8 +79,6 @@ func TestPreviewCurrencyChange(t *testing.T) {
 	}
 }
 
-// With a rate ChangeCurrency runs ledger's conversion under the phone's key and answers Home and Settings in the new
-// Currency though members still holds the old one; with none it saves members' code, then relabels, under that key.
 func TestChangeCurrency(t *testing.T) {
 	members, ledger := &fakeMembers{profile: salaryAt(4)}, &fakeLedger{code: "IDR", amounts: true}
 	s := newService(t, members, &fakeNotify{})
