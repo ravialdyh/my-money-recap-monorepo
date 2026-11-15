@@ -41,7 +41,7 @@ final class RecapViewModelTests: XCTestCase {
         XCTAssertEqual(model.chips.first?.text, "Saved -IDR\u{00A0}2,000,000")
     }
 
-    func testEachPartialSituationDrawsP1WithItsHeadline() async throws {
+    func testEachPartialSituationDrawsPartialCoverWithItsHeadline() async throws {
         let cases = [
             ("recap-preview", "September so far", "IDR\u{00A0}0", "No spends"),
             ("recap-sign-up", "Your first 5 days", "IDR\u{00A0}3,500,000", "2 spends"),

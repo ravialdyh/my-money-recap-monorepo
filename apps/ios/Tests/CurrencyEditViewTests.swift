@@ -33,11 +33,19 @@ final class CurrencyEditViewTests: XCTestCase {
         XCTAssertNotEqual(rupiah, typing, "the rate field")
         manual.type("0.000046")
         await manual.typing?.value
-        XCTAssertNotEqual(typing, picture(ConvertSheet(model: manual)), "D6's rows once a preview answers")
-        for (model, step) in [(confirm, "D6"), (manual, "D7")] {
+        XCTAssertNotEqual(
+            typing,
+            picture(ConvertSheet(model: manual)),
+            "the convert sheet's rows once a preview answers"
+        )
+        for (model, step) in [(confirm, "the convert sheet"), (manual, "the manual rate sheet")] {
             XCTAssertGreaterThan(overflow(ConvertSheet(model: model), size: sideways), 0, "\(step) scrolls sideways")
         }
-        XCTAssertLessThan(overflow(ConvertSheet(model: failed), size: sideways), 0, "D6 failed fits in its scroll view")
+        XCTAssertLessThan(
+            overflow(ConvertSheet(model: failed), size: sideways),
+            0,
+            "the failed convert sheet fits in its scroll view"
+        )
     }
 
     typealias PreviewAnswer = MoneyRecap_V1_BffServicePreviewCurrencyChangeResponse
@@ -53,7 +61,7 @@ final class CurrencyEditViewTests: XCTestCase {
         XCTAssertGreaterThan(
             overflow(CurrencyEditView(model: plain), size: sideways),
             0,
-            "D5's list scrolls sideways"
+            "the currency list scrolls sideways"
         )
     }
 }

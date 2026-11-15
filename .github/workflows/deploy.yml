@@ -28,7 +28,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Decrypt the secrets file before anything is copied, because the transport credential is inside it (A13)
+      - name: Decrypt the secrets file before anything is copied, because the transport credential is inside it
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |

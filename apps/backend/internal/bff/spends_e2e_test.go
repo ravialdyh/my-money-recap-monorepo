@@ -86,10 +86,10 @@ func TestLogSpendEndToEnd(t *testing.T) {
 		t.Fatalf("last month, before sign-up: %v, want nothing and no Streak", v)
 	}
 	if home.Msg.Home.EarliestSpendDate != first.Format(dateLayout) {
-		t.Fatalf("earliest date %q, want the 1st of the sign-up month (D72)", home.Msg.Home.EarliestSpendDate)
+		t.Fatalf("earliest date %q, want the 1st of the sign-up month", home.Msg.Home.EarliestSpendDate)
 	}
 	if _, err := log(first.AddDate(0, 0, -1), moneyrecapv1.Category_CATEGORY_RIDES); connect.CodeOf(err) != connect.CodeInvalidArgument {
-		t.Fatalf("a Spend before the sign-up month: %v, want invalid_argument (D72)", err)
+		t.Fatalf("a Spend before the sign-up month: %v, want invalid_argument", err)
 	}
 	if _, err := log(today, moneyrecapv1.Category_CATEGORY_UNSPECIFIED); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Fatalf("a Spend with no Category: %v, want invalid_argument", err)
@@ -122,7 +122,7 @@ func editAndDelete(ctx context.Context, t *testing.T, client moneyrecapv1connect
 		t.Fatalf("the Spend edited to 40000 of Rides on the 1st: %v, %v", edited, err)
 	}
 	if _, err := edit(first.AddDate(0, 0, -1)); connect.CodeOf(err) != connect.CodeInvalidArgument {
-		t.Fatalf("the Spend moved before the sign-up month: %v, want invalid_argument (D72)", err)
+		t.Fatalf("the Spend moved before the sign-up month: %v, want invalid_argument", err)
 	}
 	if err := del(); err != nil {
 		t.Fatal(err)

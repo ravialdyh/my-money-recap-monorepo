@@ -83,10 +83,10 @@ func TestLogSpend(t *testing.T) {
 		return err
 	}
 	if err := early("j1", "2026-08-31"); connect.CodeOf(err) != connect.CodeInvalidArgument {
-		t.Errorf("a Spend before the sign-up month (D72): %v, want invalid_argument", err)
+		t.Errorf("a Spend before the sign-up month: %v, want invalid_argument", err)
 	}
 	if err := early("j2", "2026-09-01"); err != nil {
-		t.Errorf("the 1st of the sign-up month, before the sign-up day (D72): %v", err)
+		t.Errorf("the 1st of the sign-up month, before the sign-up day: %v", err)
 	}
 	month, err := s.GetMonthSummary(joined, connect.NewRequest(&moneyrecapv1.GetMonthSummaryRequest{MemberId: joiner, Month: "2026-09"}))
 	if err != nil || month.Msg.EarliestSpendDate != "2026-09-01" || month.Msg.Summary.Spent.Amount != "1" {
@@ -115,14 +115,14 @@ func TestPastMonthsWithSpends(t *testing.T) {
 			{amount: big.NewRat(2000, 1), date: time.Date(2026, 9, 3, 0, 0, 0, 0, time.UTC)},
 		}}
 	if !(ledgerOf{cash: c, spends: l.spends}).settings(today, false).HasAmountsToConvert {
-		t.Error("Spends and no Salary: nothing to convert, want something (§8.9 step 2)")
+		t.Error("Spends and no Salary: nothing to convert, want something")
 	}
 	cleared := ledgerOf{cash: c, signedUp: l.signedUp, targets: []targetRow{{percent: 0, from: month{2026, time.October}}}}
 	if got := cleared.settings(today, false); got.SavingTarget != nil || got.NewSavingTargetFrom != "2026-11" {
-		t.Errorf("a lone 0%% row: %v, want Not set and the next Target from 2026-11, since the row counts as saved (D65)", got)
+		t.Errorf("a lone 0%% row: %v, want Not set and the next Target from 2026-11, since the row counts as saved", got)
 	}
 	if got := cleared.settings(today, true).NewSavingTargetFrom; got != "2026-07" {
-		t.Errorf("a setup save's answer: the next Target from %s, want the sign-up month 2026-07 (spec #92)", got)
+		t.Errorf("a setup save's answer: the next Target from %s, want the sign-up month 2026-07", got)
 	}
 	if aug := l.summary(month{2026, time.August}, today); !aug.Partial || aug.StreakDay != 28 {
 		t.Errorf("August: %v, want partial with a 28-day Streak", aug)

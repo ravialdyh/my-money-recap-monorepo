@@ -47,7 +47,7 @@ final class DeleteAccountTests: XCTestCase {
         await model.delete()
         XCTAssertTrue(signedOut)
         XCTAssertEqual(keys.count, 2)
-        XCTAssertEqual(keys[0], keys[1], "the retry repeats the failed attempt's key (A14)")
+        XCTAssertEqual(keys[0], keys[1], "the retry repeats the failed attempt's key")
     }
 
     func testSettingsSignsOutThroughOneLogOut() async throws {
@@ -59,12 +59,12 @@ final class DeleteAccountTests: XCTestCase {
             ), context: SettingsViewModelTests.context()
         )
         settings.openDeleteAccount()
-        let delete = try XCTUnwrap(settings.deleteAccount, "the row opens D10")
+        let delete = try XCTUnwrap(settings.deleteAccount, "the row opens Delete account")
         delete.typed = "DELETE"
         await delete.delete()
         XCTAssertEqual(loggedOut, 1, "a granted deletion signs out as Log out does")
         await settings.logOutNow()
-        XCTAssertEqual(loggedOut, 2, "D12's Log out")
+        XCTAssertEqual(loggedOut, 2, "the Log out row")
     }
 
     func testTheScreensDrawAndScrollSideways() async throws {

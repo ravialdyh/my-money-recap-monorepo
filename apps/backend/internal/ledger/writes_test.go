@@ -65,7 +65,7 @@ func TestSalaryAndTargetRows(t *testing.T) {
 	this := moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_THIS_MONTH
 
 	if _, err := s.SaveTarget(ctx, connect.NewRequest(&moneyrecapv1.SaveTargetRequest{IdempotencyKey: "t0", MemberId: id, Percent: 20})); connect.CodeOf(err) != connect.CodeFailedPrecondition {
-		t.Fatalf("a Target before any Salary: %v, want failed_precondition (D44)", err)
+		t.Fatalf("a Target before any Salary: %v, want failed_precondition", err)
 	}
 	first, err := salary("s1", "3000000", "25", this)
 	if err != nil || first.Settings.Salary.EffectiveFrom != "2026-09" || first.Month.Salary.DaysUntilPayday != 5 {
@@ -84,11 +84,11 @@ func TestSalaryAndTargetRows(t *testing.T) {
 	}
 	moved, err := salary("s3", "3500000", "last", this)
 	if err != nil || moved.Settings.Salary.Payday != "25" || moved.Settings.NextSalary.GetPayday() != "last" || moved.Settings.NextSalary.GetEffectiveFrom() != "2026-10" {
-		t.Fatalf("a new Payday: %v, %v, want the 25th this month and last from 2026-10 (D56)", moved, err)
+		t.Fatalf("a new Payday: %v, %v, want the 25th this month and last from 2026-10", moved, err)
 	}
 	clock = at(t, "2026-09-26", "Asia/Jakarta")
 	if _, err := salary("s4", "3600000", "25", moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_UNSPECIFIED); connect.CodeOf(err) != connect.CodeFailedPrecondition {
-		t.Errorf("unspecified after this month's Payday: %v, want failed_precondition (D56 sheet)", err)
+		t.Errorf("unspecified after this month's Payday: %v, want failed_precondition", err)
 	}
 	for name, req := range map[string]*moneyrecapv1.SaveSalaryRequest{
 		"no key":          {MemberId: id, Amount: idr("1"), Payday: "25"},
@@ -119,12 +119,12 @@ func TestSalaryAndTargetRows(t *testing.T) {
 		t.Fatalf("first Target: %v, %v, want 20%% from 2026-09, 3500000 × 20%% = 700000", firstTarget, err)
 	}
 	if firstTarget.Settings.NewSavingTargetFrom != "2026-10" {
-		t.Fatalf("after the first Target, an edit starts in %q, want 2026-10 (D65)", firstTarget.Settings.NewSavingTargetFrom)
+		t.Fatalf("after the first Target, an edit starts in %q, want 2026-10", firstTarget.Settings.NewSavingTargetFrom)
 	}
 	later, err := target("t2", 30)
 	if err != nil || later.Settings.SavingTarget.GetPercent() != 20 || later.Settings.NextSavingTarget.GetPercent() != 30 || later.Settings.NextSavingTarget.GetEffectiveFrom() != "2026-10" ||
 		later.Settings.NewSavingTargetFrom != "2026-10" {
-		t.Fatalf("a later Target: %v, %v, want 20%% now and 30%% from 2026-10, where the next edit starts too (D65)", later, err)
+		t.Fatalf("a later Target: %v, %v, want 20%% now and 30%% from 2026-10, where the next edit starts too", later, err)
 	}
 	if _, err := target("t3", 101); connect.CodeOf(err) != connect.CodeInvalidArgument {
 		t.Errorf("101%%: %v, want invalid_argument", err)

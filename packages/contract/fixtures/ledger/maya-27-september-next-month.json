@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.3, Maya on 30 September: Spent £1,760, Money In £2,400 (§8.2), Saved £640; target £480 (§8.4); Streak 9, the 12th to the 20th (§8.5); 1 day remaining, allowance floor((2,400 − 480 − 1,760) ÷ 1) = £160 (§8.7); under the line (§8.8).",
+  "doc": "Maya edits £2,400 → £2,800 on 27 September and answers \"My new salary, from 25 October\": the new row is effective from October, September stays at £2,400 with Money In £2,400 and target £480, and Settings carries the October row as the next Salary, which Salary and payday prints as \"£2,800 from your next payday, 25 October.\" Spent £1,620, Saved £780; allowance floor((2,400 − 480 − 1,620) ÷ 4) = £75; Streak 9.",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",
@@ -114,27 +114,22 @@
       },
       "category": "CATEGORY_TOYS",
       "date": "2026-09-27"
-    },
-    {
-      "id": "maya-08",
-      "amount": {
-        "amount": "140.00",
-        "currencyCode": "GBP"
-      },
-      "originalAmount": {
-        "amount": "140.00",
-        "currencyCode": "GBP"
-      },
-      "category": "CATEGORY_GIFTS",
-      "date": "2026-09-29"
     }
   ],
-  "asOf": "2026-09-30",
+  "asOf": "2026-09-27",
+  "saveSalary": {
+    "amount": {
+      "amount": "2800.00",
+      "currencyCode": "GBP"
+    },
+    "payday": "25",
+    "appliesFrom": "SALARY_APPLIES_FROM_NEXT_MONTH"
+  },
   "months": [
     {
       "month": "2026-09",
       "spent": {
-        "amount": "1760.00",
+        "amount": "1620.00",
         "currencyCode": "GBP"
       },
       "moneyIn": {
@@ -142,7 +137,7 @@
         "currencyCode": "GBP"
       },
       "saved": {
-        "amount": "640.00",
+        "amount": "780.00",
         "currencyCode": "GBP"
       },
       "salary": {
@@ -159,10 +154,10 @@
           "amount": "480.00",
           "currencyCode": "GBP"
         },
-        "progressSentence": "Keep spending under £160 a day and you'll make it."
+        "progressSentence": "Keep spending under £75 a day and you'll make it."
       },
       "streakDay": 9,
-      "daysRemaining": 1,
+      "daysRemaining": 4,
       "partial": false
     }
   ],
@@ -179,6 +174,18 @@
       "payday": "25",
       "effectiveFrom": "2026-08"
     },
+    "nextSalary": {
+      "amount": {
+        "amount": "2800.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "2800.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-10"
+    },
     "savingTarget": {
       "percent": 20,
       "effectiveFrom": "2026-08"
@@ -188,5 +195,30 @@
     "hasAmountsToConvert": true,
     "newSavingTargetFrom": "2026-10"
   },
-  "crossedLine": false
+  "salariesAfter": [
+    {
+      "amount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "2400.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-08"
+    },
+    {
+      "amount": {
+        "amount": "2800.00",
+        "currencyCode": "GBP"
+      },
+      "originalAmount": {
+        "amount": "2800.00",
+        "currencyCode": "GBP"
+      },
+      "payday": "25",
+      "effectiveFrom": "2026-10"
+    }
+  ]
 }

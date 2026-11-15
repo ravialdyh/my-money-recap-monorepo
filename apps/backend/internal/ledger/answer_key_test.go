@@ -151,7 +151,7 @@ func runFixture(t *testing.T, db *pgxpool.Pool, id, name string, f *moneyrecapv1
 		var rows int
 		if err := db.QueryRow(ctx, `SELECT count(*) FROM currency_conversion WHERE member_id = $1 AND from_code = $2 AND to_code = $3 AND rate = $4::numeric AND source = $5`,
 			id, f.CurrencyCode, f.Convert.ToCurrencyCode, f.Convert.Rate, int16(f.Convert.Source)).Scan(&rows); err != nil || rows != 1 {
-			t.Errorf("%d CurrencyConversion rows naming the change (%v), want 1 (PRD §12 AC8)", rows, err)
+			t.Errorf("%d CurrencyConversion rows naming the change (%v), want 1", rows, err)
 		}
 	}
 	for _, want := range f.Months {

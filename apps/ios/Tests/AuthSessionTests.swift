@@ -35,7 +35,7 @@ final class AuthSessionTests: XCTestCase {
         guard case let .failure(error) = try await intercept(session) else {
             return XCTFail("the call went out with the stale token")
         }
-        XCTAssertEqual(error.code, .unavailable, "the phone keeps its snapshot (PRD D61)")
+        XCTAssertEqual(error.code, .unavailable, "the phone keeps its snapshot")
     }
 
     func testARefusedRefreshOnTheRequestPathSignsOut() async throws {
@@ -69,7 +69,7 @@ final class AuthSessionTests: XCTestCase {
         guard case let .success(request) = sent else {
             return XCTFail("behind the edge's /api/ route, RequestMagicLink asked a signed-out session for a token")
         }
-        XCTAssertNil(request.headers["Authorization"], "ARCHITECTURE §5 routes /api/ to the BFF")
+        XCTAssertNil(request.headers["Authorization"], "/api/ routes to the BFF")
     }
 
     func testOnlyTheMagicLinkPathSkipsTheRecoverStepOnAnUnauthenticatedAnswer() async throws {

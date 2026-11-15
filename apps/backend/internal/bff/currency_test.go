@@ -120,6 +120,6 @@ func TestChangeCurrency(t *testing.T) {
 	}
 	s.Ledger = ledgerClient(t, &fakeLedger{err: connect.NewError(connect.CodeOutOfRange, errLedgerDown)})
 	if _, err := s.ChangeCurrency(ctx, keyed(msg, "k5")); connect.CodeOf(err) != connect.CodeOutOfRange {
-		t.Errorf("ledger refusing past D57: %v, want out_of_range", err)
+		t.Errorf("ledger refusing an amount past 11 digits: %v, want out_of_range", err)
 	}
 }

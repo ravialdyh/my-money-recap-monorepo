@@ -15,7 +15,7 @@ resource "keycloak_realm" "mmr" {
 resource "keycloak_openid_client_scope" "login_token" {
   realm_id               = keycloak_realm.mmr.id
   name                   = "login-token"
-  description            = "Requested by the app when it redeems a Login Token; routes the direct grant to the Login Token branch (A10)."
+  description            = "Requested by the app when it redeems a Login Token; routes the direct grant to the Login Token branch."
   include_in_token_scope = false
 }
 

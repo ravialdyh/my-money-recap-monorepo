@@ -35,7 +35,7 @@ sub=$(claim sub <"$body")
 [[ $sub == "$expected" ]] || fail "subject $sub is not the test Member $expected"
 echo "redeemed: sub=$sub username=$(claim preferred_username <"$body") aud=$(claim aud <"$body") email_verified=$(claim email_verified <"$body")"
 kind=$(jq -r '.refresh_token | split(".")[1] | @base64d | fromjson | .typ' <"$body")
-[[ $kind == Offline ]] || fail "the redeemed sign-in is a $kind one, not the offline one PRD D62's 30 days needs"
+[[ $kind == Offline ]] || fail "the redeemed sign-in is a $kind one, not the offline one"
 echo "sign-in kind: $kind (30 days from last use)"
 offline=$(jq -r .refresh_token <"$body")
 

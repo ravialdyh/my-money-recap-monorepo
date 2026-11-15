@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.10 and D56, Maya edits £2,400 → £2,800 on 20 September, before Payday 25: no sheet (paydayPassedThisMonth is false), so appliesFrom is left UNSPECIFIED, which before the effective Payday means THIS_MONTH, and the row is effective from September. Money In is still £0 until the 25th (§8.2), the target becomes £2,800 × 20 ÷ 100 = £560 (§8.4) and the before-Payday sentence holds (§8.7); Spent £900, Streak 9 (§8.5), days remaining 11.",
+  "doc": "Maya on 20 September: Spent £900, Money In £0 (payday in 5 days), no Saved; target £480; Streak day 9; 11 days remaining and the before-Payday sentence; under the £1,920 line.",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",
@@ -78,13 +78,6 @@
     }
   ],
   "asOf": "2026-09-20",
-  "saveSalary": {
-    "amount": {
-      "amount": "2800.00",
-      "currencyCode": "GBP"
-    },
-    "payday": "25"
-  },
   "months": [
     {
       "month": "2026-09",
@@ -98,7 +91,7 @@
       },
       "salary": {
         "amount": {
-          "amount": "2800.00",
+          "amount": "2400.00",
           "currencyCode": "GBP"
         },
         "payday": "25",
@@ -107,7 +100,7 @@
       "savingTarget": {
         "percent": 20,
         "amount": {
-          "amount": "560.00",
+          "amount": "480.00",
           "currencyCode": "GBP"
         },
         "progressSentence": "Nothing to keep yet. Your salary lands on the 25th."
@@ -120,15 +113,15 @@
   "settings": {
     "salary": {
       "amount": {
-        "amount": "2800.00",
+        "amount": "2400.00",
         "currencyCode": "GBP"
       },
       "originalAmount": {
-        "amount": "2800.00",
+        "amount": "2400.00",
         "currencyCode": "GBP"
       },
       "payday": "25",
-      "effectiveFrom": "2026-09"
+      "effectiveFrom": "2026-08"
     },
     "savingTarget": {
       "percent": 20,
@@ -139,30 +132,5 @@
     "hasAmountsToConvert": true,
     "newSavingTargetFrom": "2026-10"
   },
-  "salariesAfter": [
-    {
-      "amount": {
-        "amount": "2400.00",
-        "currencyCode": "GBP"
-      },
-      "originalAmount": {
-        "amount": "2400.00",
-        "currencyCode": "GBP"
-      },
-      "payday": "25",
-      "effectiveFrom": "2026-08"
-    },
-    {
-      "amount": {
-        "amount": "2800.00",
-        "currencyCode": "GBP"
-      },
-      "originalAmount": {
-        "amount": "2800.00",
-        "currencyCode": "GBP"
-      },
-      "payday": "25",
-      "effectiveFrom": "2026-09"
-    }
-  ]
+  "crossedLine": false
 }

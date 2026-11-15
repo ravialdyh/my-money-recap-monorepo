@@ -147,7 +147,7 @@ final class CurrencyEditViewModelTests: XCTestCase {
         await model.typing?.value
         XCTAssertEqual(calls.previews.last?.manualRate, "0.000046", "the BFF reads a point")
         XCTAssertEqual(model.salaryLine, "Your Rp150.000.000 salary becomes £6.900.")
-        XCTAssertNil(model.rateLine, "D7 has no today's rate")
+        XCTAssertNil(model.rateLine, "the manual rate sheet has no today's rate")
         XCTAssertTrue(model.canConvert)
         await model.convert()
         XCTAssertEqual(calls.changes.first?.0.rate, "0.000046")

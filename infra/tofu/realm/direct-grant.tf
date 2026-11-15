@@ -2,7 +2,7 @@ resource "keycloak_authentication_flow" "ios_direct_grant" {
   realm_id    = keycloak_realm.mmr.id
   alias       = "ios direct grant"
   provider_id = "basic-flow"
-  description = "Direct grant for the ios client: the Login Token branch when scope contains login-token, the username-password branch otherwise. The Login Token authenticator fails the flow when login_token is absent, so the two cannot be plain alternatives (A10)."
+  description = "Direct grant for the ios client: the Login Token branch when scope contains login-token, the username-password branch otherwise. The Login Token authenticator fails the flow when login_token is absent, so the two cannot be plain alternatives."
 }
 
 resource "keycloak_authentication_subflow" "login_token" {

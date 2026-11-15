@@ -47,18 +47,18 @@ final class AuthorizationCodeUITests: XCTestCase {
 
         let field = app.textFields["First name"]
         XCTAssert(field.waitForExistence(timeout: 30), "the runner cleared the test Member's row, so step 1 opens")
-        XCTAssertEqual(field.value as? String, "Test", "the token's given_name fills the field (PRD §6.4)")
+        XCTAssertEqual(field.value as? String, "Test", "the token's given_name fills the field")
         answerStepOne(app, avatar: "Fox")
         let own = try XCTUnwrap(Locale.current.currency?.identifier, "the simulator's region names a currency")
         let name = Locale(identifier: "en_GB").localizedString(forCurrencyCode: own) ?? own
-        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2 (PRD §6.5)")
-        XCTAssert(app.buttons["\(name), \(own)"].isSelected, "the region's own currency starts chosen (PRD §6.5)")
+        XCTAssert(app.staticTexts["Which currency?"].waitForExistence(timeout: 30), "step 2")
+        XCTAssert(app.buttons["\(name), \(own)"].isSelected, "the region's own currency starts chosen")
         XCTAssert(app.buttons["Next"].isEnabled, "so the Member just taps Next")
         snapshot("03-step-2-own-currency")
         app.buttons["Next"].tap()
-        XCTAssert(app.staticTexts["Your monthly salary"].waitForExistence(timeout: 30), "step 3 (PRD §6.6)")
+        XCTAssert(app.staticTexts["Your monthly salary"].waitForExistence(timeout: 30), "step 3")
         app.buttons["Skip for now"].tap()
-        XCTAssert(app.buttons["Set a salary first"].waitForExistence(timeout: 30), "step 4 blocked (D44)")
+        XCTAssert(app.buttons["Set a salary first"].waitForExistence(timeout: 30), "step 4 blocked")
         XCTAssertEqual(app.buttons.matching(identifier: "Skip for now").count, 1, "one Skip for now, the main button")
         XCTAssertFalse(app.buttons["Done"].exists)
         app.buttons["Skip for now"].tap()

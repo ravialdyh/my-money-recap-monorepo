@@ -76,7 +76,7 @@ func TestSettingsEndToEnd(t *testing.T) {
 		return client.SaveSalary(ctx, salary)
 	}
 	if _, err := edit(moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_UNSPECIFIED); connect.CodeOf(err) != connect.CodeFailedPrecondition {
-		t.Fatalf("an edit on or after the 1st with no D56 answer: %v, want failed_precondition", err)
+		t.Fatalf("an edit on or after the 1st with no which-salary answer: %v, want failed_precondition", err)
 	}
 	saved, err := edit(moneyrecapv1.SalaryAppliesFrom_SALARY_APPLIES_FROM_NEXT_MONTH)
 	if err != nil {
@@ -94,7 +94,7 @@ func TestSettingsEndToEnd(t *testing.T) {
 	}
 	sameAsGetHome("SaveTarget", aimed.Msg.Home)
 	if l, next := aimed.Msg.Settings.LedgerSettings, first.AddDate(0, 1, 0).Format(monthLayout); l.NextSavingTarget.GetEffectiveFrom() != next || l.NewSavingTargetFrom != next {
-		t.Fatalf("SaveTarget answered %v, want the edit and any later one to start next month, %s (D65)", l, next)
+		t.Fatalf("SaveTarget answered %v, want the edit and any later one to start next month, %s", l, next)
 	}
 
 	res, err := client.GetSettings(ctx, connect.NewRequest(&moneyrecapv1.BffServiceGetSettingsRequest{}))

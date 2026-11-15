@@ -84,7 +84,7 @@ func TestSaveTargetWritesLedgerThenTheStep(t *testing.T) {
 
 	blocked := &fakeMembers{profile: salaryAt(3)}
 	s = newService(t, blocked, &fakeNotify{})
-	s.Ledger = ledgerClient(t, &fakeLedger{err: connect.NewError(connect.CodeFailedPrecondition, errors.New("no Saving Target without a Salary (D44)"))})
+	s.Ledger = ledgerClient(t, &fakeLedger{err: connect.NewError(connect.CodeFailedPrecondition, errors.New("no Saving Target without a Salary"))})
 	if _, err := s.SaveTarget(ctx, keyed(msg, "k2")); connect.CodeOf(err) != connect.CodeFailedPrecondition || blocked.gotProfile != nil {
 		t.Errorf("a Target with no Salary: %v, step recorded %v; want failed_precondition and no step", err, blocked.gotProfile != nil)
 	}

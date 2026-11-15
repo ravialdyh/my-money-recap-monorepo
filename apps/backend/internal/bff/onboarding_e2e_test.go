@@ -164,7 +164,7 @@ func stepFour(ctx context.Context, t *testing.T, client moneyrecapv1connect.BffS
 		t.Fatalf("after step 4: %v, want setup over with the Salary and Target Home's prompts reopen", s)
 	}
 	if edit := target(30); edit.Home.SavingTarget.GetPercent() != 20 || edit.Settings.LedgerSettings.NextSavingTarget.GetPercent() != 30 {
-		t.Fatalf("a Target after setup: %v, want 20%% now and 30%% from next month (D65)", edit)
+		t.Fatalf("a Target after setup: %v, want 20%% now and 30%% from next month", edit)
 	}
 	t.Log("step 4 saved from the sign-up month, setup over, and a later Target waits for next month")
 }

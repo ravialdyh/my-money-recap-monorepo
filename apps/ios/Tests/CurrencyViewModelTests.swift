@@ -50,7 +50,7 @@ final class CurrencyViewModelTests: XCTestCase {
         XCTAssertNil(step.noMatch)
         step.query = "ducat"
         XCTAssertEqual(step.visible, [])
-        XCTAssertEqual(step.noMatch, "No currency matches \"ducat\".", "SCREEN-STATES A5 empty search")
+        XCTAssertEqual(step.noMatch, "No currency matches \"ducat\".", "empty search")
         XCTAssertTrue(step.canContinue, "the chosen row stays chosen underneath")
         step.clearSearch()
         XCTAssertEqual(step.visible.count, CurrencyViewModel.options().count)
@@ -87,7 +87,7 @@ final class CurrencyViewModelTests: XCTestCase {
         }
         let failed = await step.next()
         XCTAssertFalse(failed)
-        XCTAssertTrue(step.offline, "no connection is said in the card (spec #92)")
+        XCTAssertTrue(step.offline, "no connection is said in the card")
         XCTAssertTrue(step.canContinue, "a failed save leaves Next on, the way to try again")
         answer = .saved
         let retried = await step.next()

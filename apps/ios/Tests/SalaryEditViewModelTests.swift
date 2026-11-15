@@ -112,7 +112,7 @@ final class SalaryEditViewModelTests: XCTestCase {
         edit.amount = "175000000"
         let refused = await edit.commit()
         XCTAssertFalse(refused)
-        XCTAssertTrue(edit.asking, "the Payday passed while D3 was open")
+        XCTAssertTrue(edit.asking, "the Payday passed while the salary edit was open")
         XCTAssertFalse(edit.failed, "a question, not a failure")
         answer = .success(.init())
         let saved = await edit.answer(.thisMonth)
@@ -169,7 +169,7 @@ final class SalaryEditViewModelTests: XCTestCase {
             ), context: context, locale: Locale(identifier: "id_ID")
         )
         settingsModel.openSalary()
-        XCTAssertNil(settingsModel.salaryEdit, "no answer yet: nothing to fill D3 with")
+        XCTAssertNil(settingsModel.salaryEdit, "no answer yet: nothing to fill the salary edit with")
         await settingsModel.refresh()
         settingsModel.openSalary()
         let edit = try XCTUnwrap(settingsModel.salaryEdit)

@@ -94,7 +94,7 @@ func (s *Service) RelabelCurrency(ctx context.Context, req *connect.Request[mone
 
 func (l ledgerOf) amount(m *moneyrecapv1.Money) (*big.Rat, error) {
 	if m.GetCurrencyCode() != l.cash.code || !amountPattern.MatchString(m.GetAmount()) {
-		return nil, errors.New("amount is not a D57 decimal in the Member's currency")
+		return nil, errors.New("amount is not a decimal in the Member's currency")
 	}
 	r, _ := new(big.Rat).SetString(m.GetAmount())
 	if r.Sign() <= 0 || l.cash.rounded(r).Cmp(r) != 0 {
@@ -129,7 +129,7 @@ func (s *Service) SaveTarget(ctx context.Context, req *connect.Request[moneyreca
 		return nil, err
 	}
 	if len(l.salaries) == 0 {
-		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("no Saving Target without a Salary (D44)"))
+		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("no Saving Target without a Salary"))
 	}
 	from := l.targetStarts(l.today, req.Msg.Setup)
 	answer := &moneyrecapv1.SaveTargetResponse{}

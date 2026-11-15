@@ -69,7 +69,7 @@ final class MagicLinkSessionTests: XCTestCase {
         )
         XCTAssertNotNil(
             refresh.value(forKey: "clientID"),
-            "a nil client id raises an uncatchable exception when the refresh body is built (spec #61)"
+            "a nil client id raises an uncatchable exception when the refresh body is built"
         )
     }
 }

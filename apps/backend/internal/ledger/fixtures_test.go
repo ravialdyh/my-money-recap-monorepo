@@ -18,32 +18,32 @@ import (
 const fixtureDir = "../../../../packages/contract/fixtures/ledger"
 
 var manifest = []string{
-	"prd-12.4-idr-salary-10th",
-	"prd-12.4-idr-salary-25th",
-	"prd-12.5-idr-warning-fires",
-	"prd-12.5-idr-warning-fires-once",
-	"prd-12.6-squirrel-kept-116",
-	"prd-12.8-bhd-to-idr",
-	"prd-8.10-maya-20-september-no-sheet",
-	"prd-8.10-maya-27-september-next-month",
-	"prd-8.10-maya-27-september-this-month",
-	"prd-8.11-signup-27-september",
-	"prd-8.2-payday-31-across-months",
-	"prd-8.2-payday-last-across-months",
-	"prd-8.3-maya-20-september",
-	"prd-8.3-maya-30-september",
-	"prd-8.4-budi-idr",
-	"prd-8.5-signup-4-september-first-run",
-	"prd-8.5-signup-4-september-recap",
-	"prd-8.6-maya-september-recap",
-	"prd-8.7-maya-1-october",
-	"prd-8.7-maya-26-october",
-	"prd-8.7-maya-300-over",
-	"prd-8.7-maya-31-october",
-	"prd-8.8-maya-20-september-before-payday",
-	"prd-8.8-maya-27-october-after-payday",
-	"prd-8.9-maya-gbp-to-idr",
-	"prd-8.9-maya-idr-back-to-gbp",
+	"bhd-to-idr",
+	"budi-idr",
+	"idr-salary-10th",
+	"idr-salary-25th",
+	"idr-warning-fires",
+	"idr-warning-fires-once",
+	"maya-1-october",
+	"maya-20-september",
+	"maya-20-september-before-payday",
+	"maya-20-september-no-sheet",
+	"maya-26-october",
+	"maya-27-october-after-payday",
+	"maya-27-september-next-month",
+	"maya-27-september-this-month",
+	"maya-30-september",
+	"maya-300-over",
+	"maya-31-october",
+	"maya-gbp-to-idr",
+	"maya-idr-back-to-gbp",
+	"maya-september-recap",
+	"payday-31-across-months",
+	"payday-last-across-months",
+	"signup-27-september",
+	"signup-4-september-first-run",
+	"signup-4-september-recap",
+	"squirrel-kept-116",
 }
 
 func fixtureNames(t *testing.T, dir string) []string {
@@ -86,7 +86,7 @@ func TestManifestSeesAMissingAndAnExtraFile(t *testing.T) {
 	if manifestMismatch(t, dir, manifest) == "" {
 		t.Fatal("a missing file passed")
 	}
-	if err := os.WriteFile(filepath.Join(dir, "prd-0-extra.json"), []byte("{}"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "extra.json"), []byte("{}"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if manifestMismatch(t, dir, manifest[1:]) == "" {
@@ -112,7 +112,7 @@ func TestFixturesDecode(t *testing.T) {
 				t.Fatal("no expected value")
 			}
 			if bad := badAmounts(f.ProtoReflect(), ""); len(bad) != 0 {
-				t.Fatalf("amounts breaking D57: %v", bad)
+				t.Fatalf("amounts past 11 digits: %v", bad)
 			}
 			if bad := badOriginals(&f); len(bad) != 0 {
 				t.Fatalf("original amounts breaking the README rule: %v", bad)
@@ -123,7 +123,7 @@ func TestFixturesDecode(t *testing.T) {
 
 func TestFixtureRejectsUnknownField(t *testing.T) {
 	var f moneyrecapv1.LedgerFixture
-	if err := protojson.Unmarshal([]byte(`{"doc":"PRD §8.3","asOf":"2026-09-20","bogus":1}`), &f); err == nil {
+	if err := protojson.Unmarshal([]byte(`{"doc":"x","asOf":"2026-09-20","bogus":1}`), &f); err == nil {
 		t.Fatal("unknown field decoded")
 	}
 }

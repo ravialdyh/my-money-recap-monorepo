@@ -59,7 +59,7 @@ final class MagicLinkTests: XCTestCase {
             "That link has already been used. We can send another."
         )
         XCTAssertEqual(MagicLinkFailure.rateLimited.copy, "That's five links in an hour. Try again later.")
-        XCTAssertEqual(MagicLinkFailure.generic.copy, "We couldn't sign you in. Try again.", "A1 error")
+        XCTAssertEqual(MagicLinkFailure.generic.copy, "We couldn't sign you in. Try again.", "Sign in error")
         let copies: Set<String> = [
             MagicLinkFailure.expired.copy, MagicLinkFailure.alreadyUsed.copy,
             MagicLinkFailure.rateLimited.copy, MagicLinkFailure.generic.copy,

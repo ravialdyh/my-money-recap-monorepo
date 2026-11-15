@@ -17,7 +17,7 @@ import (
 
 var ratePattern = regexp.MustCompile(`^\d{1,11}(\.\d{1,12})?$`)
 
-var errTooLong = errors.New("a converted amount would pass 11 digits before the separator (D57)")
+var errTooLong = errors.New("a converted amount would pass 11 digits before the separator")
 
 type conversion struct {
 	to   cash

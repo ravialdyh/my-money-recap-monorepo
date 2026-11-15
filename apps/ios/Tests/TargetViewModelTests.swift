@@ -30,7 +30,7 @@ final class TargetViewModelTests: XCTestCase {
 
     func testThePreviewIsAShareOfTheSalaryRoundedHalfUpToTheCurrencysDecimals() {
         let step = model(salary: money("2400.00", "GBP"), digits: 2)
-        XCTAssertEqual(step.percent, 20, "PRD §6.7 default")
+        XCTAssertEqual(step.percent, 20, "default percent")
         XCTAssertEqual(step.preview, "£480 of £2,400 each month")
         step.percent = 35
         XCTAssertEqual(step.preview, "£840 of £2,400 each month")
@@ -40,7 +40,7 @@ final class TargetViewModelTests: XCTestCase {
         let rupiah = model(salary: money("15000005", "IDR"), locale: "id_ID")
         rupiah.percent = 5
         XCTAssertEqual(rupiah.preview, "Rp750.000 of Rp15.000.005 each month", "750,000.25 to no decimals")
-        XCTAssertNil(model(salary: nil).preview, "no Salary, no amount (D44)")
+        XCTAssertNil(model(salary: nil).preview, "no Salary, no amount")
     }
 
     func testDoneSavesThePercentWithOneKeyPerAnswer() async {
@@ -78,7 +78,7 @@ final class TargetViewModelTests: XCTestCase {
         XCTAssertTrue(step.isBlocked)
         let done = await step.done()
         XCTAssertFalse(done)
-        XCTAssertEqual(saves, 0, "no Target without a Salary (D44)")
+        XCTAssertEqual(saves, 0, "no Target without a Salary")
         let skipped = await step.skip()
         XCTAssertTrue(skipped)
         XCTAssertEqual(steps, [4], "step 4 alone, which ends setup")

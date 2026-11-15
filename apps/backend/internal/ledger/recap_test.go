@@ -69,7 +69,7 @@ func TestRecapsAndHomesList(t *testing.T) {
 	august, err := recap("2026-08")
 	if err != nil || august.Categories[0].Category != moneyrecapv1.Category_CATEGORY_SNACKS || august.Categories[4].Category != moneyrecapv1.Category_CATEGORY_CLOTHES ||
 		august.Splurge.Date != "2026-08-01" || august.GetKeptPercent() != 83 {
-		t.Errorf("August: %v, %v, want equal shares in D20 order, the earliest Splurge and 83%% kept", august, err)
+		t.Errorf("August: %v, %v, want equal shares in category order, the earliest Splurge and 83%% kept", august, err)
 	}
 	for _, month := range []string{"2026-10", "September"} {
 		if _, err := recap(month); connect.CodeOf(err) != connect.CodeInvalidArgument {

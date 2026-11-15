@@ -35,7 +35,7 @@ final class SpendListViewModelTests: XCTestCase {
         let rows = model.list?.categories.map {
             "\(SpendListViewModel.glyph($0.category).label) \(model.count($0)) \(model.money($0.amount))"
         }
-        XCTAssertEqual(rows, ["Bills 1 spend Rp150.000", "Snacks 2 spends Rp43.000"], "largest first (PRD §6.10)")
+        XCTAssertEqual(rows, ["Bills 1 spend Rp150.000", "Snacks 2 spends Rp43.000"], "largest first")
         XCTAssertNil(model.emptyLine)
         XCTAssertEqual(model.shareLine(.snacks), "Rp43.000 · 22% of September so far")
         let snacks = model.spends(.snacks).map { "\(model.title($0)), \(model.day($0)), \(model.money($0.amount))" }

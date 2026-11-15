@@ -1,5 +1,5 @@
 {
-  "doc": "PRD §8.7, Maya on 1 October, nothing spent: Payday 25 is 24 days ahead (§8.2), so the before-Payday sentence \"Nothing to keep yet. Your salary lands on the 25th.\"; days remaining 31 − 1 + 1 = 31 (§8.7); Streak day 1, the elapsed days with no Spends (§8.5); target £480 (§8.4).",
+  "doc": "Maya on 1 October, nothing spent: Payday 25 is 24 days ahead, so the before-Payday sentence \"Nothing to keep yet. Your salary lands on the 25th.\"; days remaining 31 − 1 + 1 = 31; Streak day 1, the elapsed days with no Spends; target £480.",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",
