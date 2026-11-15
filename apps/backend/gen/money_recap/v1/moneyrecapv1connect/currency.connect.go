@@ -39,9 +39,6 @@ const (
 
 // CurrencyServiceClient is a client for the money_recap.v1.CurrencyService service.
 type CurrencyServiceClient interface {
-	// Errors (ARCHITECTURE §7.4, PRD §8.9 step 1): failed_precondition with
-	// UnsupportedPair; unavailable when the provider fetch fails, which the
-	// phone shows as an InlineError with Retry.
 	Quote(context.Context, *connect.Request[v1.QuoteRequest]) (*connect.Response[v1.QuoteResponse], error)
 }
 
@@ -77,9 +74,6 @@ func (c *currencyServiceClient) Quote(ctx context.Context, req *connect.Request[
 
 // CurrencyServiceHandler is an implementation of the money_recap.v1.CurrencyService service.
 type CurrencyServiceHandler interface {
-	// Errors (ARCHITECTURE §7.4, PRD §8.9 step 1): failed_precondition with
-	// UnsupportedPair; unavailable when the provider fetch fails, which the
-	// phone shows as an InlineError with Retry.
 	Quote(context.Context, *connect.Request[v1.QuoteRequest]) (*connect.Response[v1.QuoteResponse], error)
 }
 

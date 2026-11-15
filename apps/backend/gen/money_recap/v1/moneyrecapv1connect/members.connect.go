@@ -55,21 +55,11 @@ const (
 
 // MembersServiceClient is a client for the money_recap.v1.MembersService service.
 type MembersServiceClient interface {
-	// Upsert on the Keycloak subject: creates on first sight (members.created),
-	// else refreshes the email when the token has one (members.updated). A
-	// tombstoned subject is permission_denied (§7.1 step 3).
 	GetOrCreateBySubject(context.Context, *connect.Request[v1.GetOrCreateBySubjectRequest]) (*connect.Response[v1.GetOrCreateBySubjectResponse], error)
 	GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error)
-	// Display Name, Avatar key, Currency and the onboarding step just completed
-	// or skipped, in one write (PRD §6.4, §6.5); publishes members.updated only
-	// when a MemberFacts field changed, so an Avatar-only save publishes nothing.
 	SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error)
-	// Called on every launch (A3); publishes members.updated on change.
 	SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error)
-	// Stamps deletion_requested_at and publishes members.deletion.requested
-	// (§7.1 step 1).
 	RequestDeletion(context.Context, *connect.Request[v1.RequestDeletionRequest]) (*connect.Response[v1.RequestDeletionResponse], error)
-	// Clears the stamp and publishes members.deletion.cancelled (§7.1 step 2, D60).
 	CancelDeletion(context.Context, *connect.Request[v1.CancelDeletionRequest]) (*connect.Response[v1.CancelDeletionResponse], error)
 }
 
@@ -165,21 +155,11 @@ func (c *membersServiceClient) CancelDeletion(ctx context.Context, req *connect.
 
 // MembersServiceHandler is an implementation of the money_recap.v1.MembersService service.
 type MembersServiceHandler interface {
-	// Upsert on the Keycloak subject: creates on first sight (members.created),
-	// else refreshes the email when the token has one (members.updated). A
-	// tombstoned subject is permission_denied (§7.1 step 3).
 	GetOrCreateBySubject(context.Context, *connect.Request[v1.GetOrCreateBySubjectRequest]) (*connect.Response[v1.GetOrCreateBySubjectResponse], error)
 	GetProfile(context.Context, *connect.Request[v1.GetProfileRequest]) (*connect.Response[v1.GetProfileResponse], error)
-	// Display Name, Avatar key, Currency and the onboarding step just completed
-	// or skipped, in one write (PRD §6.4, §6.5); publishes members.updated only
-	// when a MemberFacts field changed, so an Avatar-only save publishes nothing.
 	SaveProfile(context.Context, *connect.Request[v1.SaveProfileRequest]) (*connect.Response[v1.SaveProfileResponse], error)
-	// Called on every launch (A3); publishes members.updated on change.
 	SetTimezone(context.Context, *connect.Request[v1.SetTimezoneRequest]) (*connect.Response[v1.SetTimezoneResponse], error)
-	// Stamps deletion_requested_at and publishes members.deletion.requested
-	// (§7.1 step 1).
 	RequestDeletion(context.Context, *connect.Request[v1.RequestDeletionRequest]) (*connect.Response[v1.RequestDeletionResponse], error)
-	// Clears the stamp and publishes members.deletion.cancelled (§7.1 step 2, D60).
 	CancelDeletion(context.Context, *connect.Request[v1.CancelDeletionRequest]) (*connect.Response[v1.CancelDeletionResponse], error)
 }
 

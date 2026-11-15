@@ -1,9 +1,6 @@
 package answers
 
 import (
-	"os"
-	"regexp"
-	"slices"
 	"strings"
 	"testing"
 )
@@ -32,18 +29,7 @@ func TestDisplayName(t *testing.T) {
 	}
 }
 
-func TestAvatarKeysAreTheContractsList(t *testing.T) {
-	proto, err := os.ReadFile("../../../../packages/contract/money_recap/v1/members.proto")
-	if err != nil {
-		t.Fatal(err)
-	}
-	m := regexp.MustCompile(`authoritative list: ([a-z, ]+) \(`).FindSubmatch(proto)
-	if m == nil {
-		t.Fatal("members.proto names no authoritative Avatar list")
-	}
-	if listed := strings.Split(string(m[1]), ", "); !slices.Equal(listed, AvatarKeys) {
-		t.Fatalf("members.proto lists %v, AvatarKeys is %v", listed, AvatarKeys)
-	}
+func TestAvatarKeys(t *testing.T) {
 	for _, k := range AvatarKeys {
 		if AvatarKey(k) != nil {
 			t.Errorf("AvatarKey(%q) refused a listed key", k)

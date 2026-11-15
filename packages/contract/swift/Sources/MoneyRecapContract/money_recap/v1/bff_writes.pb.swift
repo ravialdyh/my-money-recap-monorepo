@@ -20,13 +20,11 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// The Log a spend sheet (PRD §6.9).
 public nonisolated struct MoneyRecap_V1_BffServiceLogSpendRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Above zero, at most 11 digits before the separator (PRD D57).
   public var amount: MoneyRecap_V1_Money {
     get {_amount ?? MoneyRecap_V1_Money()}
     set {_amount = newValue}
@@ -36,14 +34,10 @@ public nonisolated struct MoneyRecap_V1_BffServiceLogSpendRequest: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
   public var category: MoneyRecap_V1_Category = .unspecified
 
-  /// "YYYY-MM-DD", within the last 60 days including today and not before the
-  /// 1st of the sign-up month (PRD §8.10, D72).
   public var date: String = String()
 
-  /// Optional, at most 80 characters (PRD §6.9).
   public var note: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -53,10 +47,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceLogSpendRequest: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The fresh HomeView of ARCHITECTURE §6.2 step 5 and the Spend as stored. Its
-/// target_warning is, for a Spend in the current month,
-/// EvaluateWarningResponse.warning (step 4); when that call failed, or for a
-/// Spend in a past month, GetWarningState(current)'s.
 public nonisolated struct MoneyRecap_V1_BffServiceLogSpendResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -88,8 +78,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceLogSpendResponse: Sendable {
   fileprivate var _spend: MoneyRecap_V1_Spend? = nil
 }
 
-/// The edit sheet (PRD §6.10): every field is the new value, validated as
-/// LogSpend validates it.
 public nonisolated struct MoneyRecap_V1_BffServiceEditSpendRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -97,7 +85,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceEditSpendRequest: Sendable {
 
   public var spendID: String = String()
 
-  /// Above zero, at most 11 digits before the separator (PRD D57).
   public var amount: MoneyRecap_V1_Money {
     get {_amount ?? MoneyRecap_V1_Money()}
     set {_amount = newValue}
@@ -107,15 +94,10 @@ public nonisolated struct MoneyRecap_V1_BffServiceEditSpendRequest: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
   public var category: MoneyRecap_V1_Category = .unspecified
 
-  /// "YYYY-MM-DD" within the last 60 days including today and not before the
-  /// 1st of the sign-up month, or the stored date unchanged when it is already
-  /// outside that (PRD §8.10, D72, §6.10).
   public var date: String = String()
 
-  /// Optional, at most 80 characters (PRD §6.9).
   public var note: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -125,10 +107,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceEditSpendRequest: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The fresh HomeView and the Spend after the edit. Its banner comes as
-/// LogSpend's does (ARCHITECTURE §6.2), from EditSpendResponse's month and
-/// crossed_line. A past month's Recap changes at once (D22) and is fetched
-/// again on open.
 public nonisolated struct MoneyRecap_V1_BffServiceEditSpendResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -193,13 +171,11 @@ public nonisolated struct MoneyRecap_V1_BffServiceDeleteSpendResponse: Sendable 
   fileprivate var _home: MoneyRecap_V1_HomeView? = nil
 }
 
-/// Onboarding step 3 and Settings > Salary and Payday (PRD §6.6, §6.16).
 public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// Above zero, at most 11 digits before the separator (PRD D57).
   public var amount: MoneyRecap_V1_Money {
     get {_amount ?? MoneyRecap_V1_Money()}
     set {_amount = newValue}
@@ -209,12 +185,8 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryRequest: Sendable {
   /// Clears the value of `amount`. Subsequent reads from it will return its default value.
   public mutating func clearAmount() {self._amount = nil}
 
-  /// 1 to 31, or "last" (PRD D51).
   public var payday: String = String()
 
-  /// The D56 sheet's answer; UNSPECIFIED when the sheet did not open, passed
-  /// to ledger as is: failed_precondition on or after Payday means the phone
-  /// must open the sheet (PRD §8.10).
   public var appliesFrom: MoneyRecap_V1_SalaryAppliesFrom = .unspecified
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -224,8 +196,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryRequest: Sendable {
   fileprivate var _amount: MoneyRecap_V1_Money? = nil
 }
 
-/// The fresh HomeView and the Settings rows after the append, which name the
-/// month a later-effective row starts from (D56).
 public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryResponse: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -256,13 +226,11 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveSalaryResponse: @unchecked
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-/// Onboarding step 4 and Settings > Saving Target (PRD §6.7, §6.16, D65).
 public nonisolated struct MoneyRecap_V1_BffServiceSaveTargetRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// 0 to 100 in steps of 5; 0 clears the Saving Target (PRD §8.4).
   public var percent: Int32 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -300,22 +268,15 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveTargetResponse: @unchecked
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-/// The confirm sheet's Convert, or the direct change when the preview said
-/// nothing_to_convert (PRD §8.9 steps 2 and 4).
 public nonisolated struct MoneyRecap_V1_BffServiceChangeCurrencyRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// ISO 4217 code to convert into.
   public var toCurrencyCode: String = String()
 
-  /// preview.rate as the confirm sheet showed it, a decimal string; empty
-  /// only when the preview said nothing_to_convert.
   public var rate: String = String()
 
-  /// Where rate came from, as the preview answered it; UNSPECIFIED only when
-  /// rate is empty.
   public var source: MoneyRecap_V1_RateSource = .unspecified
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -323,8 +284,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceChangeCurrencyRequest: Sendabl
   public init() {}
 }
 
-/// The fresh HomeView and the Settings rows, every amount now in the new
-/// Currency.
 public nonisolated struct MoneyRecap_V1_BffServiceChangeCurrencyResponse: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

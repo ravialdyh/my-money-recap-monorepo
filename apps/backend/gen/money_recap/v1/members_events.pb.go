@@ -21,21 +21,13 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The replica facts ledger and notify keep in member_facts: from these events,
-// or from one members.GetProfile under the Member's own token on a miss
-// (ARCHITECTURE §6.2 step 3, §7.1 "Why separate", §7.2, §7.3).
 type MemberFacts struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// IANA zone name (A3). Empty on members.created, since the zone arrives with
-	// the first SetTimezone; the members.updated that follows carries it.
-	Timezone string `protobuf:"bytes,1,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	// "YYYY-MM-DD" (PRD §7 Member). Empty on members.created, stamped with the
-	// zone; consumers must not anchor a Streak window (D43) on an empty value.
-	SignedUpOn string `protobuf:"bytes,2,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
-	// ISO 4217.
-	CurrencyCode  string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	DisplayName   string `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	Email         string `protobuf:"bytes,5,opt,name=email,proto3" json:"email,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Timezone      string                 `protobuf:"bytes,1,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	SignedUpOn    string                 `protobuf:"bytes,2,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
+	CurrencyCode  string                 `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,4,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Email         string                 `protobuf:"bytes,5,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -105,7 +97,6 @@ func (x *MemberFacts) GetEmail() string {
 	return ""
 }
 
-// Routing key "members.created" (§7.1 "Publishes").
 type MembersCreated struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -158,8 +149,6 @@ func (x *MembersCreated) GetFacts() *MemberFacts {
 	return nil
 }
 
-// Routing key "members.updated": the whole replica after a change to any of
-// its fields (§7.1 "Publishes", "Consumes"); an Avatar-only save sends none.
 type MembersUpdated struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -212,7 +201,6 @@ func (x *MembersUpdated) GetFacts() *MemberFacts {
 	return nil
 }
 
-// Routing key "members.deletion.requested" (§7.1 step 1).
 type MembersDeletionRequested struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -257,7 +245,6 @@ func (x *MembersDeletionRequested) GetEnvelope() *EventEnvelope {
 	return nil
 }
 
-// Routing key "members.deletion.cancelled" (§7.1 step 2).
 type MembersDeletionCancelled struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`
@@ -302,9 +289,6 @@ func (x *MembersDeletionCancelled) GetEnvelope() *EventEnvelope {
 	return nil
 }
 
-// Routing key "members.deleted" (§7.1 step 3): ledger and notify purge on it
-// and answer with <service>.member.purged; currency stores nothing about a
-// Member.
 type MembersDeleted struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Envelope      *EventEnvelope         `protobuf:"bytes,1,opt,name=envelope,proto3" json:"envelope,omitempty"`

@@ -7,7 +7,6 @@ option go_package = "github.com/ravialdyh/my-money-recap-monorepo/apps/backend/g
 import "money_recap/v1/bff_views.proto";
 
 message BffServiceGetRecapRequest {
-  // "YYYY-MM"; the current month answers the month-so-far preview (PRD D47).
   string month = 1;
 }
 
@@ -16,7 +15,6 @@ message BffServiceGetRecapResponse {
 }
 
 message BffServiceListSpendsRequest {
-  // "YYYY-MM"; empty means the current month in the Member's zone (D59).
   string month = 1;
 }
 
@@ -36,14 +34,8 @@ message BffServiceGetSettingsResponse {
   SettingsView settings = 1;
 }
 
-// Nothing is written: the rate is quoted and ledger previews the rewrite
-// (PRD §8.9 steps 1 to 3).
 message BffServicePreviewCurrencyChangeRequest {
-  // ISO 4217 code the Member picked.
   string to_currency_code = 1;
-  // Decimal string the Member typed after an unsupported pair or a failed
-  // fetch (D7), at most 11 digits before the separator and 12 after; empty
-  // asks currency.Quote.
   string manual_rate = 2;
 }
 

@@ -5,9 +5,7 @@ public struct TextStyle {
     public let family: String
     public let weight: Font.Weight
     public let size: CGFloat
-    /// Multiple of size.
     public let lineHeight: CGFloat
-    /// In em.
     public let letterSpacing: CGFloat
     public let uppercase: Bool
 }

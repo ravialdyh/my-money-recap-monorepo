@@ -22,38 +22,20 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Who the Member is (ARCHITECTURE §7.1). Fields 1 to 6 are the walking
-// skeleton's (#10); 7 to 9 drive onboarding resume (PRD §6.4) and the restore sheet
-// (PRD §6.18, D60).
 type Profile struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	MemberId string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// The token's email claim, refreshed by every GetOrCreateBySubject whose
-	// token carries one; an empty claim keeps the stored address.
-	Email string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	// Empty until onboarding sets it.
-	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// Empty until onboarding sets it; otherwise one of the six Avatar keys, the
-	// authoritative list: fox, otter, panda, frog, owl, rabbit (PRD D36, §6.4).
-	AvatarKey string `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3" json:"avatar_key,omitempty"`
-	// ISO 4217; empty until onboarding sets it.
-	CurrencyCode string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	// IANA zone name (A3); empty until SetTimezone runs.
-	Timezone string `protobuf:"bytes,6,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	// Highest onboarding step saved, 1 to 4 (PRD §5 step 6); 0 until step 1,
-	// 4 once onboarding is done. A skipped step counts as saved (PRD §6.6).
-	OnboardingStep int32 `protobuf:"varint,7,opt,name=onboarding_step,json=onboardingStep,proto3" json:"onboarding_step,omitempty"`
-	// "YYYY-MM-DD", the local date at the moment of sign-up, fixed forever (A3,
-	// PRD §7, D43); empty until the first SetTimezone converts the create time.
-	SignedUpOn string `protobuf:"bytes,8,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
-	// Present only while a deletion request is pending (PRD D60).
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	MemberId            string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Email               string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	DisplayName         string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	AvatarKey           string                 `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3" json:"avatar_key,omitempty"`
+	CurrencyCode        string                 `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	Timezone            string                 `protobuf:"bytes,6,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	OnboardingStep      int32                  `protobuf:"varint,7,opt,name=onboarding_step,json=onboardingStep,proto3" json:"onboarding_step,omitempty"`
+	SignedUpOn          string                 `protobuf:"bytes,8,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
 	DeletionRequestedAt *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=deletion_requested_at,json=deletionRequestedAt,proto3,oneof" json:"deletion_requested_at,omitempty"`
-	// How many decimals the Currency has, from the CLDR data ledger rounds with
-	// (ARCHITECTURE §7.2); 0 while currency_code is empty. Step 3's amount field
-	// allows exactly this many (spec #92).
-	CurrencyDigits int32 `protobuf:"varint,10,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	CurrencyDigits      int32                  `protobuf:"varint,10,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Profile) Reset() {
@@ -157,12 +139,9 @@ func (x *Profile) GetCurrencyDigits() int32 {
 }
 
 type GetOrCreateBySubjectRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The Keycloak subject claim.
-	Subject string `protobuf:"bytes,1,opt,name=subject,proto3" json:"subject,omitempty"`
-	// Must equal the token's email claim, or the call is permission_denied;
-	// members stores the claim itself (ARCHITECTURE §7.1).
-	Email         string `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Subject       string                 `protobuf:"bytes,1,opt,name=subject,proto3" json:"subject,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -343,29 +322,14 @@ func (x *GetProfileResponse) GetProfile() *Profile {
 	return nil
 }
 
-// Each present field replaces the stored value; an absent field is untouched,
-// so onboarding steps 1 and 2 (PRD §6.4, §6.5) and Settings > Profile (§6.16,
-// Display Name and Avatar) each send only their answers.
 type SaveProfileRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// 1 to 30 characters after NFC and trimming, counted in code points:
-	// letters in any script with their marks, spaces, hyphens and apostrophes
-	// (PRD §6.4); anything else is invalid_argument.
-	DisplayName *string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	// One of the six keys Profile.avatar_key lists; any other is
-	// invalid_argument.
-	AvatarKey *string `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
-	// ISO 4217. During onboarding, where ledger relabels a saved Salary rather
-	// than converting it (spec #92), or the PRD §8.9 step 2 shortcut; otherwise
-	// the code changes only by consuming ledger.currency.converted (§7.1).
-	CurrencyCode *string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
-	// The step just completed or skipped, 1 to 4 (PRD §5 step 6), saved in the
-	// same write as the answers so one Idempotency-Key covers both (A14); a
-	// skip sends only this field. A force-quit resumes at the next step (§6.4).
-	OnboardingStep *int32 `protobuf:"varint,6,opt,name=onboarding_step,json=onboardingStep,proto3,oneof" json:"onboarding_step,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	DisplayName    *string                `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	AvatarKey      *string                `protobuf:"bytes,4,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
+	CurrencyCode   *string                `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
+	OnboardingStep *int32                 `protobuf:"varint,6,opt,name=onboarding_step,json=onboardingStep,proto3,oneof" json:"onboarding_step,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -487,14 +451,12 @@ func (x *SaveProfileResponse) GetProfile() *Profile {
 }
 
 type SetTimezoneRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// IANA zone name (A3).
-	Timezone      string `protobuf:"bytes,3,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Timezone       string                 `protobuf:"bytes,3,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SetTimezoneRequest) Reset() {
@@ -593,10 +555,9 @@ func (x *SetTimezoneResponse) GetProfile() *Profile {
 }
 
 type RequestDeletionRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -690,10 +651,9 @@ func (x *RequestDeletionResponse) GetProfile() *Profile {
 }
 
 type CancelDeletionRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }

@@ -21,47 +21,24 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Everything Home draws (PRD §6.8), joined by the BFF (ARCHITECTURE §6.1).
-// The phone stores this message whole and never recomputes a figure (A2, I4).
 type HomeView struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Empty until onboarding; Home omits the greeting when empty.
-	DisplayName string `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	AvatarKey   string `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3" json:"avatar_key,omitempty"`
-	// ISO 4217 code every amount below is held in, ledger's, so it changes in
-	// the conversion's own answer while members' copy follows by event (§8.9).
-	CurrencyCode string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	// The current Recap Month as "YYYY-MM" in the Member's local dates.
-	Month string `protobuf:"bytes,4,opt,name=month,proto3" json:"month,omitempty"`
-	// Spent so far this month (PRD §8.3).
-	Spent *Money `protobuf:"bytes,5,opt,name=spent,proto3" json:"spent,omitempty"`
-	// Money In this month (PRD §8.2).
-	MoneyIn *Money `protobuf:"bytes,6,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
-	// Saved = Money In − Spent. Absent while Money In is 0 (PRD D41).
-	Saved *Money `protobuf:"bytes,7,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
-	// Absent until a Salary is set (PRD D54).
-	Salary *SalaryFacts `protobuf:"bytes,8,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Absent until a Saving Target is set.
-	SavingTarget *SavingTargetFacts `protobuf:"bytes,9,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
-	// The month's Streak so far (PRD §8.5, D43): the longest spend-free run in
-	// the window to today. With no Spends it is the elapsed days, which the
-	// empty Spend list prints as "Streak day {n}"; 1 on the sign-up day.
-	StreakDay int32 `protobuf:"varint,10,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
-	// Days left in the month counting today, never below 1 (PRD §8.7).
-	DaysRemaining int32 `protobuf:"varint,11,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
-	// Absent unless the Target Warning has fired this month (PRD §8.8).
-	TargetWarning *TargetWarning `protobuf:"bytes,12,opt,name=target_warning,json=targetWarning,proto3,oneof" json:"target_warning,omitempty"`
-	// Past months with a Recap, newest first: the past-Recap list, SCREEN-STATES
-	// C7 (PRD §6.8); each row opens its month's GetRecap.
-	RecapMonths []*RecapMonth `protobuf:"bytes,13,rep,name=recap_months,json=recapMonths,proto3" json:"recap_months,omitempty"`
-	// ISO date "YYYY-MM-DD" the first Recap arrives on (PRD D47).
-	FirstRecapOn string `protobuf:"bytes,14,opt,name=first_recap_on,json=firstRecapOn,proto3" json:"first_recap_on,omitempty"`
-	// How many decimals the Currency has, as Profile.currency_digits: the Log
-	// a spend amount field allows exactly this many (PRD §6.9).
-	CurrencyDigits int32 `protobuf:"varint,15,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
-	// "YYYY-MM-DD", ledger's earliest date a Spend may carry, today being the
-	// latest: the Log a spend date picker's range (PRD §6.9, D72).
-	EarliestSpendDate string `protobuf:"bytes,16,opt,name=earliest_spend_date,json=earliestSpendDate,proto3" json:"earliest_spend_date,omitempty"`
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	DisplayName       string                 `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	AvatarKey         string                 `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3" json:"avatar_key,omitempty"`
+	CurrencyCode      string                 `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	Month             string                 `protobuf:"bytes,4,opt,name=month,proto3" json:"month,omitempty"`
+	Spent             *Money                 `protobuf:"bytes,5,opt,name=spent,proto3" json:"spent,omitempty"`
+	MoneyIn           *Money                 `protobuf:"bytes,6,opt,name=money_in,json=moneyIn,proto3" json:"money_in,omitempty"`
+	Saved             *Money                 `protobuf:"bytes,7,opt,name=saved,proto3,oneof" json:"saved,omitempty"`
+	Salary            *SalaryFacts           `protobuf:"bytes,8,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
+	SavingTarget      *SavingTargetFacts     `protobuf:"bytes,9,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	StreakDay         int32                  `protobuf:"varint,10,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
+	DaysRemaining     int32                  `protobuf:"varint,11,opt,name=days_remaining,json=daysRemaining,proto3" json:"days_remaining,omitempty"`
+	TargetWarning     *TargetWarning         `protobuf:"bytes,12,opt,name=target_warning,json=targetWarning,proto3,oneof" json:"target_warning,omitempty"`
+	RecapMonths       []*RecapMonth          `protobuf:"bytes,13,rep,name=recap_months,json=recapMonths,proto3" json:"recap_months,omitempty"`
+	FirstRecapOn      string                 `protobuf:"bytes,14,opt,name=first_recap_on,json=firstRecapOn,proto3" json:"first_recap_on,omitempty"`
+	CurrencyDigits    int32                  `protobuf:"varint,15,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
+	EarliestSpendDate string                 `protobuf:"bytes,16,opt,name=earliest_spend_date,json=earliestSpendDate,proto3" json:"earliest_spend_date,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -208,17 +185,11 @@ func (x *HomeView) GetEarliestSpendDate() string {
 	return ""
 }
 
-// One month's Recap as the phone stores it (I4): ledger's Recap for the full
-// or the Partial Recap (PRD §6.11 to §6.14, §6.17) joined with the Member's
-// current Display Name, since nothing about a Recap is stored (§7).
 type RecapView struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Every figure of the month; situation says which four screens to draw.
-	Recap *Recap `protobuf:"bytes,1,opt,name=recap,proto3" json:"recap,omitempty"`
-	// The current Display Name (PRD §6.11, §6.14, SCREEN-STATES D2).
-	DisplayName string `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	// ISO 4217 code every amount in recap is held in, ledger's (HomeView).
-	CurrencyCode  string `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Recap         *Recap                 `protobuf:"bytes,1,opt,name=recap,proto3" json:"recap,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	CurrencyCode  string                 `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -274,31 +245,16 @@ func (x *RecapView) GetCurrencyCode() string {
 	return ""
 }
 
-// The Spend list for one month (PRD §6.10, D59): the switcher's months, one
-// Category row and every Spend, newest first, joined by the BFF.
 type SpendListView struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// "YYYY-MM" the list shows.
-	Month string `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
-	// ISO 4217 code every amount below is held in, ledger's (HomeView).
-	CurrencyCode string `protobuf:"bytes,2,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	// Every month with a Spend or Money In, "YYYY-MM", newest first, the current
-	// month included: what the month switcher lists (PRD D59).
-	Months []string `protobuf:"bytes,3,rep,name=months,proto3" json:"months,omitempty"`
-	// Spent in the month (PRD §8.3); "0" for an empty month.
-	Spent *Money `protobuf:"bytes,4,opt,name=spent,proto3" json:"spent,omitempty"`
-	// One row per Category with a Spend, largest first (PRD §6.10).
-	Categories []*CategoryShare `protobuf:"bytes,5,rep,name=categories,proto3" json:"categories,omitempty"`
-	// Newest first, deleted rows excluded; the detail and edit sheets read
-	// every §6.9 field from here.
-	Spends []*Spend `protobuf:"bytes,6,rep,name=spends,proto3" json:"spends,omitempty"`
-	// The month's Streak so far (PRD §8.5, D43): MonthSummary.streak_day for
-	// the current month, Recap.streak.days for a past one; what the empty
-	// month's "Nothing spent yet. Streak day {n}." line prints.
-	StreakDay int32 `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
-	// How many decimals the Currency has, as HomeView.currency_digits: the
-	// Log a spend and Edit spend amount fields opened here allow this many.
-	CurrencyDigits int32 `protobuf:"varint,8,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Month          string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"`
+	CurrencyCode   string                 `protobuf:"bytes,2,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	Months         []string               `protobuf:"bytes,3,rep,name=months,proto3" json:"months,omitempty"`
+	Spent          *Money                 `protobuf:"bytes,4,opt,name=spent,proto3" json:"spent,omitempty"`
+	Categories     []*CategoryShare       `protobuf:"bytes,5,rep,name=categories,proto3" json:"categories,omitempty"`
+	Spends         []*Spend               `protobuf:"bytes,6,rep,name=spends,proto3" json:"spends,omitempty"`
+	StreakDay      int32                  `protobuf:"varint,7,opt,name=streak_day,json=streakDay,proto3" json:"streak_day,omitempty"`
+	CurrencyDigits int32                  `protobuf:"varint,8,opt,name=currency_digits,json=currencyDigits,proto3" json:"currency_digits,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -389,19 +345,11 @@ func (x *SpendListView) GetCurrencyDigits() int32 {
 	return 0
 }
 
-// Everything Settings draws (PRD §6.16): the profile from members, the rows
-// in force and the D56 facts from ledger, the toggles from notify.
 type SettingsView struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Display Name, Avatar, Currency and the deletion stamp (§6.18); the
-	// Currency and its decimals are ledger's, as in HomeView.
-	Profile *Profile `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
-	// Salary and Payday, Saving Target, payday_passed_this_month (D56) and
-	// has_amounts_to_convert (§8.9 step 2); a "Not set" row is an absent field.
-	LedgerSettings *LedgerSettings `protobuf:"bytes,2,opt,name=ledger_settings,json=ledgerSettings,proto3" json:"ledger_settings,omitempty"`
-	// The three toggles and the reminder time; the push-permission state is
-	// the phone's own (PRD §6.16).
-	NotificationPrefs *NotificationPrefs `protobuf:"bytes,3,opt,name=notification_prefs,json=notificationPrefs,proto3" json:"notification_prefs,omitempty"`
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Profile           *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	LedgerSettings    *LedgerSettings        `protobuf:"bytes,2,opt,name=ledger_settings,json=ledgerSettings,proto3" json:"ledger_settings,omitempty"`
+	NotificationPrefs *NotificationPrefs     `protobuf:"bytes,3,opt,name=notification_prefs,json=notificationPrefs,proto3" json:"notification_prefs,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -457,26 +405,13 @@ func (x *SettingsView) GetNotificationPrefs() *NotificationPrefs {
 	return nil
 }
 
-// Where onboarding resumes and every answer saved so far, so a force-quit
-// re-selects earlier answers (PRD §6.4). A skipped step counts as saved.
 type OnboardingState struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The first unanswered step, 1 to 4; 0 once step 4 is saved or skipped,
-	// when the app opens on Home.
-	NextStep int32 `protobuf:"varint,1,opt,name=next_step,json=nextStep,proto3" json:"next_step,omitempty"`
-	// Display Name, Avatar key and Currency as saved by steps 1 and 2; an empty
-	// field is an unanswered one.
-	Profile *Profile `protobuf:"bytes,2,opt,name=profile,proto3" json:"profile,omitempty"`
-	// Step 3's answer, the Salary in force, which Home's prompts reopen after
-	// setup too; absent before step 2 is saved, or when none is set.
-	Salary *SalarySetting `protobuf:"bytes,3,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
-	// Step 4's answer, the Saving Target in force; absent before step 2 is
-	// saved, or when none is set, skipped or blocked by no Salary (D44).
-	SavingTarget *SavingTargetSetting `protobuf:"bytes,4,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
-	// The given_name claim of the Member's own token, which fills step 1's First
-	// name field; empty when the provider shared none (PRD §6.4). Read by the
-	// BFF, since the email sign-in path never gives the phone an identity token.
-	SuggestedName string `protobuf:"bytes,5,opt,name=suggested_name,json=suggestedName,proto3" json:"suggested_name,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	NextStep      int32                  `protobuf:"varint,1,opt,name=next_step,json=nextStep,proto3" json:"next_step,omitempty"`
+	Profile       *Profile               `protobuf:"bytes,2,opt,name=profile,proto3" json:"profile,omitempty"`
+	Salary        *SalarySetting         `protobuf:"bytes,3,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
+	SavingTarget  *SavingTargetSetting   `protobuf:"bytes,4,opt,name=saving_target,json=savingTarget,proto3,oneof" json:"saving_target,omitempty"`
+	SuggestedName string                 `protobuf:"bytes,5,opt,name=suggested_name,json=suggestedName,proto3" json:"suggested_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -546,30 +481,17 @@ func (x *OnboardingState) GetSuggestedName() string {
 	return ""
 }
 
-// What the currency confirm sheet draws, or why it does not open (PRD §8.9
-// steps 1 to 3, SCREEN-STATES D6, D7).
 type CurrencyChangePreview struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// ISO 4217 code of every amount today.
-	FromCurrencyCode string `protobuf:"bytes,1,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
-	// ISO 4217 code the Member picked.
-	ToCurrencyCode string `protobuf:"bytes,2,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
-	// True when the provider has no rate for the pair (D35): the phone asks
-	// for a manual rate (D7) and previews again with it.
-	UnsupportedPair bool `protobuf:"varint,3,opt,name=unsupported_pair,json=unsupportedPair,proto3" json:"unsupported_pair,omitempty"`
-	// True with no Salary and no Spends: ChangeCurrency skips the confirm sheet
-	// and needs no rate (§8.9 step 2).
-	NothingToConvert bool `protobuf:"varint,4,opt,name=nothing_to_convert,json=nothingToConvert,proto3" json:"nothing_to_convert,omitempty"`
-	// PROVIDER for a fetched rate, MANUAL for one the Member typed; what
-	// ChangeCurrency sends back with preview.rate.
-	Source RateSource `protobuf:"varint,5,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
-	// "YYYY-MM-DD" the provider rate is dated; empty for a manual rate.
-	AsOf string `protobuf:"bytes,6,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
-	// The before-and-after rows and the rate, rounded by ledger; absent when
-	// unsupported_pair or nothing_to_convert.
-	Preview       *ConversionPreview `protobuf:"bytes,7,opt,name=preview,proto3,oneof" json:"preview,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	FromCurrencyCode string                 `protobuf:"bytes,1,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
+	ToCurrencyCode   string                 `protobuf:"bytes,2,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
+	UnsupportedPair  bool                   `protobuf:"varint,3,opt,name=unsupported_pair,json=unsupportedPair,proto3" json:"unsupported_pair,omitempty"`
+	NothingToConvert bool                   `protobuf:"varint,4,opt,name=nothing_to_convert,json=nothingToConvert,proto3" json:"nothing_to_convert,omitempty"`
+	Source           RateSource             `protobuf:"varint,5,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
+	AsOf             string                 `protobuf:"bytes,6,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	Preview          *ConversionPreview     `protobuf:"bytes,7,opt,name=preview,proto3,oneof" json:"preview,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *CurrencyChangePreview) Reset() {

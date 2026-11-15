@@ -21,18 +21,12 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The Log a spend sheet (PRD §6.9).
 type BffServiceLogSpendRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Above zero, at most 11 digits before the separator (PRD D57).
-	Amount *Money `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
-	// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
-	Category Category `protobuf:"varint,2,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	// "YYYY-MM-DD", within the last 60 days including today and not before the
-	// 1st of the sign-up month (PRD §8.10, D72).
-	Date string `protobuf:"bytes,3,opt,name=date,proto3" json:"date,omitempty"`
-	// Optional, at most 80 characters (PRD §6.9).
-	Note          string `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Amount        *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Category      Category               `protobuf:"varint,2,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
+	Date          string                 `protobuf:"bytes,3,opt,name=date,proto3" json:"date,omitempty"`
+	Note          string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -95,10 +89,6 @@ func (x *BffServiceLogSpendRequest) GetNote() string {
 	return ""
 }
 
-// The fresh HomeView of ARCHITECTURE §6.2 step 5 and the Spend as stored. Its
-// target_warning is, for a Spend in the current month,
-// EvaluateWarningResponse.warning (step 4); when that call failed, or for a
-// Spend in a past month, GetWarningState(current)'s.
 type BffServiceLogSpendResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Home          *HomeView              `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`
@@ -151,21 +141,13 @@ func (x *BffServiceLogSpendResponse) GetSpend() *Spend {
 	return nil
 }
 
-// The edit sheet (PRD §6.10): every field is the new value, validated as
-// LogSpend validates it.
 type BffServiceEditSpendRequest struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	SpendId string                 `protobuf:"bytes,1,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
-	// Above zero, at most 11 digits before the separator (PRD D57).
-	Amount *Money `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
-	Category Category `protobuf:"varint,3,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	// "YYYY-MM-DD" within the last 60 days including today and not before the
-	// 1st of the sign-up month, or the stored date unchanged when it is already
-	// outside that (PRD §8.10, D72, §6.10).
-	Date string `protobuf:"bytes,4,opt,name=date,proto3" json:"date,omitempty"`
-	// Optional, at most 80 characters (PRD §6.9).
-	Note          string `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SpendId       string                 `protobuf:"bytes,1,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
+	Amount        *Money                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	Category      Category               `protobuf:"varint,3,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
+	Date          string                 `protobuf:"bytes,4,opt,name=date,proto3" json:"date,omitempty"`
+	Note          string                 `protobuf:"bytes,5,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -235,10 +217,6 @@ func (x *BffServiceEditSpendRequest) GetNote() string {
 	return ""
 }
 
-// The fresh HomeView and the Spend after the edit. Its banner comes as
-// LogSpend's does (ARCHITECTURE §6.2), from EditSpendResponse's month and
-// crossed_line. A past month's Recap changes at once (D22) and is fetched
-// again on open.
 type BffServiceEditSpendResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Home          *HomeView              `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`
@@ -379,17 +357,11 @@ func (x *BffServiceDeleteSpendResponse) GetHome() *HomeView {
 	return nil
 }
 
-// Onboarding step 3 and Settings > Salary and Payday (PRD §6.6, §6.16).
 type BffServiceSaveSalaryRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Above zero, at most 11 digits before the separator (PRD D57).
-	Amount *Money `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
-	// 1 to 31, or "last" (PRD D51).
-	Payday string `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
-	// The D56 sheet's answer; UNSPECIFIED when the sheet did not open, passed
-	// to ledger as is: failed_precondition on or after Payday means the phone
-	// must open the sheet (PRD §8.10).
-	AppliesFrom   SalaryAppliesFrom `protobuf:"varint,3,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Amount        *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Payday        string                 `protobuf:"bytes,2,opt,name=payday,proto3" json:"payday,omitempty"`
+	AppliesFrom   SalaryAppliesFrom      `protobuf:"varint,3,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -445,8 +417,6 @@ func (x *BffServiceSaveSalaryRequest) GetAppliesFrom() SalaryAppliesFrom {
 	return SalaryAppliesFrom_SALARY_APPLIES_FROM_UNSPECIFIED
 }
 
-// The fresh HomeView and the Settings rows after the append, which name the
-// month a later-effective row starts from (D56).
 type BffServiceSaveSalaryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Home          *HomeView              `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`
@@ -499,11 +469,9 @@ func (x *BffServiceSaveSalaryResponse) GetSettings() *SettingsView {
 	return nil
 }
 
-// Onboarding step 4 and Settings > Saving Target (PRD §6.7, §6.16, D65).
 type BffServiceSaveTargetRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 0 to 100 in steps of 5; 0 clears the Saving Target (PRD §8.4).
-	Percent       int32 `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Percent       int32                  `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -597,20 +565,13 @@ func (x *BffServiceSaveTargetResponse) GetSettings() *SettingsView {
 	return nil
 }
 
-// The confirm sheet's Convert, or the direct change when the preview said
-// nothing_to_convert (PRD §8.9 steps 2 and 4).
 type BffServiceChangeCurrencyRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// ISO 4217 code to convert into.
-	ToCurrencyCode string `protobuf:"bytes,1,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
-	// preview.rate as the confirm sheet showed it, a decimal string; empty
-	// only when the preview said nothing_to_convert.
-	Rate string `protobuf:"bytes,2,opt,name=rate,proto3" json:"rate,omitempty"`
-	// Where rate came from, as the preview answered it; UNSPECIFIED only when
-	// rate is empty.
-	Source        RateSource `protobuf:"varint,3,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ToCurrencyCode string                 `protobuf:"bytes,1,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
+	Rate           string                 `protobuf:"bytes,2,opt,name=rate,proto3" json:"rate,omitempty"`
+	Source         RateSource             `protobuf:"varint,3,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *BffServiceChangeCurrencyRequest) Reset() {
@@ -664,8 +625,6 @@ func (x *BffServiceChangeCurrencyRequest) GetSource() RateSource {
 	return RateSource_RATE_SOURCE_UNSPECIFIED
 }
 
-// The fresh HomeView and the Settings rows, every amount now in the new
-// Currency.
 type BffServiceChangeCurrencyResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Home          *HomeView              `protobuf:"bytes,1,opt,name=home,proto3" json:"home,omitempty"`

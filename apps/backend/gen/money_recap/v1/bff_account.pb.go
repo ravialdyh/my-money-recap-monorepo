@@ -22,12 +22,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// The only RPC sent without a bearer token (PRD §6.2, ARCHITECTURE §7.5).
 type BffServiceRequestMagicLinkRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The address as typed; RFC 5322 syntax is checked on the phone and again
-	// by the BFF.
-	Email         string `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -69,8 +66,6 @@ func (x *BffServiceRequestMagicLinkRequest) GetEmail() string {
 	return ""
 }
 
-// Success says only that a link was sent; the phone moves to Check your
-// inbox (PRD §6.3).
 type BffServiceRequestMagicLinkResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -107,25 +102,12 @@ func (*BffServiceRequestMagicLinkResponse) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{1}
 }
 
-// Onboarding steps 1 and 2, a skipped step, and Settings > Profile (PRD
-// §6.4, §6.5, §6.16). A present field replaces the stored value; an absent
-// one is untouched.
 type BffServiceSaveProfileRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// 1 to 30 characters, trimmed: letters, spaces, hyphens and apostrophes
-	// (PRD §6.4); anything else is invalid_argument, checked here, not only on
-	// the phone.
-	DisplayName *string `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	// One of the six keys Profile.avatar_key lists (PRD §6.4); any other is
-	// invalid_argument.
-	AvatarKey *string `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
-	// ISO 4217. Accepted during onboarding, where a saved Salary is relabelled,
-	// never converted (spec #92); after it, failed_precondition, since
-	// ChangeCurrency is the path (PRD §8.9).
-	CurrencyCode *string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
-	// The onboarding step just completed or skipped, 1 to 4 (PRD §5 step 6);
-	// a skip sends only this field. Absent from Settings > Profile.
-	OnboardingStep *int32 `protobuf:"varint,4,opt,name=onboarding_step,json=onboardingStep,proto3,oneof" json:"onboarding_step,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	DisplayName    *string                `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	AvatarKey      *string                `protobuf:"bytes,2,opt,name=avatar_key,json=avatarKey,proto3,oneof" json:"avatar_key,omitempty"`
+	CurrencyCode   *string                `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
+	OnboardingStep *int32                 `protobuf:"varint,4,opt,name=onboarding_step,json=onboardingStep,proto3,oneof" json:"onboarding_step,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -189,11 +171,9 @@ func (x *BffServiceSaveProfileRequest) GetOnboardingStep() int32 {
 }
 
 type BffServiceSaveProfileResponse struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Profile *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
-	// Step 3's answer as ledger relabelled it, when this save changed the
-	// Currency during onboarding and a Salary was saved (spec #92).
-	Salary        *SalarySetting `protobuf:"bytes,2,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	Salary        *SalarySetting         `protobuf:"bytes,2,opt,name=salary,proto3,oneof" json:"salary,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -242,11 +222,9 @@ func (x *BffServiceSaveProfileResponse) GetSalary() *SalarySetting {
 	return nil
 }
 
-// Called on every launch (ARCHITECTURE §6, A3).
 type BffServiceSetTimezoneRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// IANA zone name.
-	Timezone      string `protobuf:"bytes,1,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Timezone      string                 `protobuf:"bytes,1,opt,name=timezone,proto3" json:"timezone,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -288,8 +266,6 @@ func (x *BffServiceSetTimezoneRequest) GetTimezone() string {
 	return ""
 }
 
-// The Profile after the call; deletion_requested_at present and under 24
-// hours old opens the restore sheet (PRD §6.18, D60).
 type BffServiceSetTimezoneResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
@@ -334,8 +310,6 @@ func (x *BffServiceSetTimezoneResponse) GetProfile() *Profile {
 	return nil
 }
 
-// One toggle or the reminder time changed: the whole prefs message is sent,
-// since each writes immediately (PRD §6.16).
 type BffServiceSaveNotificationPrefsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Prefs         *NotificationPrefs     `protobuf:"bytes,1,opt,name=prefs,proto3" json:"prefs,omitempty"`
@@ -424,11 +398,9 @@ func (x *BffServiceSaveNotificationPrefsResponse) GetPrefs() *NotificationPrefs 
 	return nil
 }
 
-// Sent once push permission is granted, after the first Spend (PRD §10, I8).
 type BffServiceRegisterDeviceRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The APNs device token as hex.
-	ApnsToken     string `protobuf:"bytes,1,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApnsToken     string                 `protobuf:"bytes,1,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -506,12 +478,9 @@ func (*BffServiceRegisterDeviceResponse) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{9}
 }
 
-// Log out (PRD §6.16, SCREEN-STATES D12): this phone stops getting the
-// Member's pushes. Best effort; the phone signs out whatever the answer.
 type BffServiceForgetDeviceRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The APNs device token as hex, as RegisterDevice last sent it.
-	ApnsToken     string `protobuf:"bytes,1,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApnsToken     string                 `protobuf:"bytes,1,opt,name=apns_token,json=apnsToken,proto3" json:"apns_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -625,8 +594,6 @@ func (*BffServiceRequestExportRequest) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{12}
 }
 
-// Success means the CSV was handed to email: the button reads "Sent" for 60
-// seconds (PRD §6.16, D67). Nothing is stored (D39).
 type BffServiceRequestExportResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -699,8 +666,6 @@ func (*BffServiceRequestDeletionRequest) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{14}
 }
 
-// On this response the phone signs out and erases its cache (PRD §9,
-// ARCHITECTURE §7.1 step 1); the purge runs 24 hours after the stamp (D60).
 type BffServiceRequestDeletionResponse struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	DeletionRequestedAt *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=deletion_requested_at,json=deletionRequestedAt,proto3" json:"deletion_requested_at,omitempty"`
@@ -745,7 +710,6 @@ func (x *BffServiceRequestDeletionResponse) GetDeletionRequestedAt() *timestampp
 	return nil
 }
 
-// "Keep my account" on the restore sheet (PRD §6.18).
 type BffServiceCancelDeletionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -782,7 +746,6 @@ func (*BffServiceCancelDeletionRequest) Descriptor() ([]byte, []int) {
 	return file_money_recap_v1_bff_account_proto_rawDescGZIP(), []int{16}
 }
 
-// The Profile with the stamp cleared; the app continues to Home.
 type BffServiceCancelDeletionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`

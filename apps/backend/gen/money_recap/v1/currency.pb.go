@@ -21,8 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Typed error detail on Quote (ARCHITECTURE §7.4): the provider has no rate
-// for this pair, so the phone asks the Member for one (PRD D35, §8.9 step 1).
 type UnsupportedPair struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	FromCurrencyCode string                 `protobuf:"bytes,1,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
@@ -76,13 +74,11 @@ func (x *UnsupportedPair) GetToCurrencyCode() string {
 }
 
 type QuoteRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// ISO 4217.
-	FromCurrencyCode string `protobuf:"bytes,1,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
-	// ISO 4217.
-	ToCurrencyCode string `protobuf:"bytes,2,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	FromCurrencyCode string                 `protobuf:"bytes,1,opt,name=from_currency_code,json=fromCurrencyCode,proto3" json:"from_currency_code,omitempty"`
+	ToCurrencyCode   string                 `protobuf:"bytes,2,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *QuoteRequest) Reset() {
@@ -130,15 +126,10 @@ func (x *QuoteRequest) GetToCurrencyCode() string {
 }
 
 type QuoteResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Units of "to" per one unit of "from", as a decimal string, never a
-	// float (PRD D71).
-	Rate string `protobuf:"bytes,1,opt,name=rate,proto3" json:"rate,omitempty"`
-	// Always PROVIDER: a manual rate is typed on the phone and never passes
-	// through here (PRD §8.9 step 1); kept because §7.4 names it.
-	Source RateSource `protobuf:"varint,2,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
-	// "YYYY-MM-DD" the provider's snapshot is dated (PRD D35).
-	AsOf          string `protobuf:"bytes,3,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rate          string                 `protobuf:"bytes,1,opt,name=rate,proto3" json:"rate,omitempty"`
+	Source        RateSource             `protobuf:"varint,2,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
+	AsOf          string                 `protobuf:"bytes,3,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

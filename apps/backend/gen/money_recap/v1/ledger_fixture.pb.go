@@ -21,56 +21,27 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Test-only, carried by no RPC: one PRD §8 scenario as the answer key for
-// the arithmetic only ledger holds (A2, ARCHITECTURE §7.2 "Tests"): one
-// ledger, one "as of" date, the figures ledger must compute. JSON in
-// fixtures/ledger; run by ledger's tests.
 type LedgerFixture struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The PRD paragraph every expected value below is worked from, for example
-	// "PRD §8.3, Maya on 20 September".
-	Doc string `protobuf:"bytes,1,opt,name=doc,proto3" json:"doc,omitempty"`
-	// IANA zone every "today" is evaluated in (A3).
-	Timezone string `protobuf:"bytes,2,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	// "YYYY-MM-DD": the local date at sign-up, bounding the Streak window (D43)
-	// and naming the sign-up month (D52).
-	SignedUpOn string `protobuf:"bytes,3,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
-	// ISO 4217 code every input amount is held in.
-	CurrencyCode string `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	// The append-only salary_setting rows (PRD §7).
-	Salaries []*SalarySetting `protobuf:"bytes,5,rep,name=salaries,proto3" json:"salaries,omitempty"`
-	// The append-only saving_target_setting rows (PRD §7).
-	SavingTargets []*SavingTargetSetting `protobuf:"bytes,6,rep,name=saving_targets,json=savingTargets,proto3" json:"saving_targets,omitempty"`
-	// Every non-deleted Spend; created_at and updated_at are left for ledger to
-	// stamp.
-	Spends []*Spend `protobuf:"bytes,7,rep,name=spends,proto3" json:"spends,omitempty"`
-	// "YYYY-MM-DD": today in the Member's zone when the expected values hold.
-	AsOf string `protobuf:"bytes,8,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
-	// A SaveSalary made on as_of before the expected values are read (PRD
-	// §8.10, D56); member_id and idempotency_key stay empty.
-	SaveSalary *SaveSalaryRequest `protobuf:"bytes,9,opt,name=save_salary,json=saveSalary,proto3,oneof" json:"save_salary,omitempty"`
-	// An ApplyCurrencyConversion made on as_of before the expected values are
-	// read (PRD §8.9); member_id and idempotency_key stay empty.
-	Convert *ApplyCurrencyConversionRequest `protobuf:"bytes,10,opt,name=convert,proto3,oneof" json:"convert,omitempty"`
-	// GetMonthSummary for each listed month, as of as_of.
-	Months []*MonthSummary `protobuf:"bytes,11,rep,name=months,proto3" json:"months,omitempty"`
-	// GetRecap for each listed month, as of as_of.
-	Recaps []*Recap `protobuf:"bytes,12,rep,name=recaps,proto3" json:"recaps,omitempty"`
-	// GetSettings as of as_of.
-	Settings *LedgerSettings `protobuf:"bytes,13,opt,name=settings,proto3,oneof" json:"settings,omitempty"`
-	// PreviewConversion with convert's rate and Currency, as of as_of, before
-	// convert is made.
-	ConversionPreview *ConversionPreview `protobuf:"bytes,14,opt,name=conversion_preview,json=conversionPreview,proto3,oneof" json:"conversion_preview,omitempty"`
-	// Whether logging the last entry of spends, on its date, answered
-	// crossed_line (PRD §8.8).
-	CrossedLine *bool `protobuf:"varint,15,opt,name=crossed_line,json=crossedLine,proto3,oneof" json:"crossed_line,omitempty"`
-	// The salary_setting rows after convert or save_salary, original amounts
-	// untouched (PRD §8.9 step 4, §8.10).
-	SalariesAfter []*SalarySetting `protobuf:"bytes,16,rep,name=salaries_after,json=salariesAfter,proto3" json:"salaries_after,omitempty"`
-	// The Spend rows after convert, original amounts untouched (PRD §8.9 step 4).
-	SpendsAfter   []*Spend `protobuf:"bytes,17,rep,name=spends_after,json=spendsAfter,proto3" json:"spends_after,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState          `protogen:"open.v1"`
+	Doc               string                          `protobuf:"bytes,1,opt,name=doc,proto3" json:"doc,omitempty"`
+	Timezone          string                          `protobuf:"bytes,2,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	SignedUpOn        string                          `protobuf:"bytes,3,opt,name=signed_up_on,json=signedUpOn,proto3" json:"signed_up_on,omitempty"`
+	CurrencyCode      string                          `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	Salaries          []*SalarySetting                `protobuf:"bytes,5,rep,name=salaries,proto3" json:"salaries,omitempty"`
+	SavingTargets     []*SavingTargetSetting          `protobuf:"bytes,6,rep,name=saving_targets,json=savingTargets,proto3" json:"saving_targets,omitempty"`
+	Spends            []*Spend                        `protobuf:"bytes,7,rep,name=spends,proto3" json:"spends,omitempty"`
+	AsOf              string                          `protobuf:"bytes,8,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	SaveSalary        *SaveSalaryRequest              `protobuf:"bytes,9,opt,name=save_salary,json=saveSalary,proto3,oneof" json:"save_salary,omitempty"`
+	Convert           *ApplyCurrencyConversionRequest `protobuf:"bytes,10,opt,name=convert,proto3,oneof" json:"convert,omitempty"`
+	Months            []*MonthSummary                 `protobuf:"bytes,11,rep,name=months,proto3" json:"months,omitempty"`
+	Recaps            []*Recap                        `protobuf:"bytes,12,rep,name=recaps,proto3" json:"recaps,omitempty"`
+	Settings          *LedgerSettings                 `protobuf:"bytes,13,opt,name=settings,proto3,oneof" json:"settings,omitempty"`
+	ConversionPreview *ConversionPreview              `protobuf:"bytes,14,opt,name=conversion_preview,json=conversionPreview,proto3,oneof" json:"conversion_preview,omitempty"`
+	CrossedLine       *bool                           `protobuf:"varint,15,opt,name=crossed_line,json=crossedLine,proto3,oneof" json:"crossed_line,omitempty"`
+	SalariesAfter     []*SalarySetting                `protobuf:"bytes,16,rep,name=salaries_after,json=salariesAfter,proto3" json:"salaries_after,omitempty"`
+	SpendsAfter       []*Spend                        `protobuf:"bytes,17,rep,name=spends_after,json=spendsAfter,proto3" json:"spends_after,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *LedgerFixture) Reset() {

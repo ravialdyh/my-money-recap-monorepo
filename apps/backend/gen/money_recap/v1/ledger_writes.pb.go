@@ -22,21 +22,15 @@ const (
 )
 
 type LogSpendRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// Above zero, at most 11 digits before the separator (PRD D57).
-	Amount *Money `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
-	// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
-	Category Category `protobuf:"varint,4,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	// "YYYY-MM-DD", within the last 60 days including today and not before the
-	// 1st of the sign-up month (PRD §8.10, D72).
-	Date string `protobuf:"bytes,5,opt,name=date,proto3" json:"date,omitempty"`
-	// Optional, at most 80 characters (PRD §6.9).
-	Note          string `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Amount         *Money                 `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	Category       Category               `protobuf:"varint,4,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
+	Date           string                 `protobuf:"bytes,5,opt,name=date,proto3" json:"date,omitempty"`
+	Note           string                 `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *LogSpendRequest) Reset() {
@@ -111,8 +105,6 @@ func (x *LogSpendRequest) GetNote() string {
 	return ""
 }
 
-// The Spend as stored, the recomputed month and whether this write first took
-// Spent past the warning line (PRD §8.8), computed here and nowhere else.
 type LogSpendResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Spend         *Spend                 `protobuf:"bytes,1,opt,name=spend,proto3" json:"spend,omitempty"`
@@ -173,26 +165,17 @@ func (x *LogSpendResponse) GetCrossedLine() bool {
 	return false
 }
 
-// Every field is the new value, validated exactly as LogSpend validates it
-// (PRD §8.10, D57, §6.9); the edit sheet reuses the same fields (§6.10).
 type EditSpendRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	SpendId        string `protobuf:"bytes,3,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
-	// Above zero, at most 11 digits before the separator (PRD D57).
-	Amount *Money `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
-	// One of the eight (PRD §6.9); UNSPECIFIED is invalid_argument.
-	Category Category `protobuf:"varint,5,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
-	// "YYYY-MM-DD" within the last 60 days including today and not before the
-	// 1st of the sign-up month, or the stored date unchanged when it is already
-	// outside that (PRD §8.10, D72, §6.10).
-	Date string `protobuf:"bytes,6,opt,name=date,proto3" json:"date,omitempty"`
-	// Optional, at most 80 characters (PRD §6.9).
-	Note          string `protobuf:"bytes,7,opt,name=note,proto3" json:"note,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	SpendId        string                 `protobuf:"bytes,3,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
+	Amount         *Money                 `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	Category       Category               `protobuf:"varint,5,opt,name=category,proto3,enum=money_recap.v1.Category" json:"category,omitempty"`
+	Date           string                 `protobuf:"bytes,6,opt,name=date,proto3" json:"date,omitempty"`
+	Note           string                 `protobuf:"bytes,7,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *EditSpendRequest) Reset() {
@@ -274,13 +257,11 @@ func (x *EditSpendRequest) GetNote() string {
 	return ""
 }
 
-// The Spend after the edit and the recomputed month the Spend now sits in.
 type EditSpendResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Spend *Spend                 `protobuf:"bytes,1,opt,name=spend,proto3" json:"spend,omitempty"`
-	Month *MonthSummary          `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
-	// Never un-fires a warning (PRD §8.8); true only when this edit crossed it.
-	CrossedLine   bool `protobuf:"varint,3,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Spend         *Spend                 `protobuf:"bytes,1,opt,name=spend,proto3" json:"spend,omitempty"`
+	Month         *MonthSummary          `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
+	CrossedLine   bool                   `protobuf:"varint,3,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -337,11 +318,10 @@ func (x *EditSpendResponse) GetCrossedLine() bool {
 }
 
 type DeleteSpendRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	SpendId        string `protobuf:"bytes,3,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	SpendId        string                 `protobuf:"bytes,3,opt,name=spend_id,json=spendId,proto3" json:"spend_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -397,14 +377,11 @@ func (x *DeleteSpendRequest) GetSpendId() string {
 	return ""
 }
 
-// The Spend as it was and the recomputed month it left.
 type DeleteSpendResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	Spend *Spend                 `protobuf:"bytes,1,opt,name=spend,proto3" json:"spend,omitempty"`
-	Month *MonthSummary          `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
-	// Always false, since deleting never fires a warning (PRD §8.8); carried
-	// because every spend write and event answers it (ARCHITECTURE §7.2).
-	CrossedLine   bool `protobuf:"varint,3,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Spend         *Spend                 `protobuf:"bytes,1,opt,name=spend,proto3" json:"spend,omitempty"`
+	Month         *MonthSummary          `protobuf:"bytes,2,opt,name=month,proto3" json:"month,omitempty"`
+	CrossedLine   bool                   `protobuf:"varint,3,opt,name=crossed_line,json=crossedLine,proto3" json:"crossed_line,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -461,23 +438,15 @@ func (x *DeleteSpendResponse) GetCrossedLine() bool {
 }
 
 type SaveSalaryRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	Amount         *Money `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
-	// 1 to 31, or "last" (PRD D51).
-	Payday string `protobuf:"bytes,4,opt,name=payday,proto3" json:"payday,omitempty"`
-	// The D56 sheet's answer. UNSPECIFIED means no sheet opened: THIS_MONTH
-	// before the effective Payday in the Member's zone, failed_precondition on
-	// or after it, which the phone answers by opening the sheet (PRD §8.10).
-	AppliesFrom SalaryAppliesFrom `protobuf:"varint,5,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
-	// True while onboarding is unfinished, which only the BFF knows: the row
-	// starts in the sign-up month whatever it changes, replacing the setup
-	// Salary, since a setup save is no edit (spec #92). D56 governs the rest.
-	Setup         bool `protobuf:"varint,6,opt,name=setup,proto3" json:"setup,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Amount         *Money                 `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	Payday         string                 `protobuf:"bytes,4,opt,name=payday,proto3" json:"payday,omitempty"`
+	AppliesFrom    SalaryAppliesFrom      `protobuf:"varint,5,opt,name=applies_from,json=appliesFrom,proto3,enum=money_recap.v1.SalaryAppliesFrom" json:"applies_from,omitempty"`
+	Setup          bool                   `protobuf:"varint,6,opt,name=setup,proto3" json:"setup,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SaveSalaryRequest) Reset() {
@@ -552,7 +521,6 @@ func (x *SaveSalaryRequest) GetSetup() bool {
 	return false
 }
 
-// The settings after the append and the recomputed current month.
 type SaveSalaryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Settings      *LedgerSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
@@ -606,14 +574,12 @@ func (x *SaveSalaryResponse) GetMonth() *MonthSummary {
 }
 
 type RelabelCurrencyRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// ISO 4217, the Currency members now holds for the Member.
-	CurrencyCode  string `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	CurrencyCode   string                 `protobuf:"bytes,3,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *RelabelCurrencyRequest) Reset() {
@@ -667,7 +633,6 @@ func (x *RelabelCurrencyRequest) GetCurrencyCode() string {
 	return ""
 }
 
-// The settings after the relabel.
 type RelabelCurrencyResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Settings      *LedgerSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
@@ -713,17 +678,13 @@ func (x *RelabelCurrencyResponse) GetSettings() *LedgerSettings {
 }
 
 type SaveTargetRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// 0 to 100; 0 clears the Saving Target (PRD §8.4).
-	Percent int32 `protobuf:"varint,3,opt,name=percent,proto3" json:"percent,omitempty"`
-	// True while onboarding is unfinished, as SaveSalaryRequest.setup: the row
-	// starts in the sign-up month, replacing the setup Target (spec #92).
-	Setup         bool `protobuf:"varint,4,opt,name=setup,proto3" json:"setup,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Percent        int32                  `protobuf:"varint,3,opt,name=percent,proto3" json:"percent,omitempty"`
+	Setup          bool                   `protobuf:"varint,4,opt,name=setup,proto3" json:"setup,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SaveTargetRequest) Reset() {
@@ -784,7 +745,6 @@ func (x *SaveTargetRequest) GetSetup() bool {
 	return false
 }
 
-// The settings after the append and the recomputed current month.
 type SaveTargetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Settings      *LedgerSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`
@@ -837,21 +797,13 @@ func (x *SaveTargetResponse) GetMonth() *MonthSummary {
 	return nil
 }
 
-// The BFF forwards the rate the confirm sheet showed and where it came from
-// (ARCHITECTURE §7.2 currency flow).
 type ApplyCurrencyConversionRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// A14; see the package doc in shared.proto.
-	IdempotencyKey string `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
-	MemberId       string `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
-	// Decimal string: units of to_currency_code per unit of the current one,
-	// limited as PreviewConversionRequest.rate.
-	Rate string `protobuf:"bytes,3,opt,name=rate,proto3" json:"rate,omitempty"`
-	// PROVIDER or MANUAL, for the CurrencyConversion row (PRD §7); UNSPECIFIED
-	// is invalid_argument.
-	Source RateSource `protobuf:"varint,4,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
-	// ISO 4217 code to convert into.
-	ToCurrencyCode string `protobuf:"bytes,5,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	IdempotencyKey string                 `protobuf:"bytes,1,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
+	MemberId       string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	Rate           string                 `protobuf:"bytes,3,opt,name=rate,proto3" json:"rate,omitempty"`
+	Source         RateSource             `protobuf:"varint,4,opt,name=source,proto3,enum=money_recap.v1.RateSource" json:"source,omitempty"`
+	ToCurrencyCode string                 `protobuf:"bytes,5,opt,name=to_currency_code,json=toCurrencyCode,proto3" json:"to_currency_code,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -921,7 +873,6 @@ func (x *ApplyCurrencyConversionRequest) GetToCurrencyCode() string {
 	return ""
 }
 
-// The settings and the current month after the rewrite, in the new Currency.
 type ApplyCurrencyConversionResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Settings      *LedgerSettings        `protobuf:"bytes,1,opt,name=settings,proto3" json:"settings,omitempty"`

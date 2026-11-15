@@ -20,14 +20,11 @@ fileprivate nonisolated struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobu
   typealias Version = _2
 }
 
-/// The only RPC sent without a bearer token (PRD §6.2, ARCHITECTURE §7.5).
 public nonisolated struct MoneyRecap_V1_BffServiceRequestMagicLinkRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The address as typed; RFC 5322 syntax is checked on the phone and again
-  /// by the BFF.
   public var email: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -35,8 +32,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceRequestMagicLinkRequest: Senda
   public init() {}
 }
 
-/// Success says only that a link was sent; the phone moves to Check your
-/// inbox (PRD §6.3).
 public nonisolated struct MoneyRecap_V1_BffServiceRequestMagicLinkResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -47,17 +42,11 @@ public nonisolated struct MoneyRecap_V1_BffServiceRequestMagicLinkResponse: Send
   public init() {}
 }
 
-/// Onboarding steps 1 and 2, a skipped step, and Settings > Profile (PRD
-/// §6.4, §6.5, §6.16). A present field replaces the stored value; an absent
-/// one is untouched.
 public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// 1 to 30 characters, trimmed: letters, spaces, hyphens and apostrophes
-  /// (PRD §6.4); anything else is invalid_argument, checked here, not only on
-  /// the phone.
   public var displayName: String {
     get {_displayName ?? String()}
     set {_displayName = newValue}
@@ -67,8 +56,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   /// Clears the value of `displayName`. Subsequent reads from it will return its default value.
   public mutating func clearDisplayName() {self._displayName = nil}
 
-  /// One of the six keys Profile.avatar_key lists (PRD §6.4); any other is
-  /// invalid_argument.
   public var avatarKey: String {
     get {_avatarKey ?? String()}
     set {_avatarKey = newValue}
@@ -78,9 +65,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   /// Clears the value of `avatarKey`. Subsequent reads from it will return its default value.
   public mutating func clearAvatarKey() {self._avatarKey = nil}
 
-  /// ISO 4217. Accepted during onboarding, where a saved Salary is relabelled,
-  /// never converted (spec #92); after it, failed_precondition, since
-  /// ChangeCurrency is the path (PRD §8.9).
   public var currencyCode: String {
     get {_currencyCode ?? String()}
     set {_currencyCode = newValue}
@@ -90,8 +74,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileRequest: Sendable {
   /// Clears the value of `currencyCode`. Subsequent reads from it will return its default value.
   public mutating func clearCurrencyCode() {self._currencyCode = nil}
 
-  /// The onboarding step just completed or skipped, 1 to 4 (PRD §5 step 6);
-  /// a skip sends only this field. Absent from Settings > Profile.
   public var onboardingStep: Int32 {
     get {_onboardingStep ?? 0}
     set {_onboardingStep = newValue}
@@ -125,8 +107,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileResponse: @unchecke
   /// Clears the value of `profile`. Subsequent reads from it will return its default value.
   public mutating func clearProfile() {_uniqueStorage()._profile = nil}
 
-  /// Step 3's answer as ledger relabelled it, when this save changed the
-  /// Currency during onboarding and a Salary was saved (spec #92).
   public var salary: MoneyRecap_V1_SalarySetting {
     get {_storage._salary ?? MoneyRecap_V1_SalarySetting()}
     set {_uniqueStorage()._salary = newValue}
@@ -143,13 +123,11 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveProfileResponse: @unchecke
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-/// Called on every launch (ARCHITECTURE §6, A3).
 public nonisolated struct MoneyRecap_V1_BffServiceSetTimezoneRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// IANA zone name.
   public var timezone: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -157,8 +135,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceSetTimezoneRequest: Sendable {
   public init() {}
 }
 
-/// The Profile after the call; deletion_requested_at present and under 24
-/// hours old opens the restore sheet (PRD §6.18, D60).
 public nonisolated struct MoneyRecap_V1_BffServiceSetTimezoneResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -180,8 +156,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceSetTimezoneResponse: Sendable 
   fileprivate var _profile: MoneyRecap_V1_Profile? = nil
 }
 
-/// One toggle or the reminder time changed: the whole prefs message is sent,
-/// since each writes immediately (PRD §6.16).
 public nonisolated struct MoneyRecap_V1_BffServiceSaveNotificationPrefsRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -224,13 +198,11 @@ public nonisolated struct MoneyRecap_V1_BffServiceSaveNotificationPrefsResponse:
   fileprivate var _prefs: MoneyRecap_V1_NotificationPrefs? = nil
 }
 
-/// Sent once push permission is granted, after the first Spend (PRD §10, I8).
 public nonisolated struct MoneyRecap_V1_BffServiceRegisterDeviceRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The APNs device token as hex.
   public var apnsToken: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -248,14 +220,11 @@ public nonisolated struct MoneyRecap_V1_BffServiceRegisterDeviceResponse: Sendab
   public init() {}
 }
 
-/// Log out (PRD §6.16, SCREEN-STATES D12): this phone stops getting the
-/// Member's pushes. Best effort; the phone signs out whatever the answer.
 public nonisolated struct MoneyRecap_V1_BffServiceForgetDeviceRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// The APNs device token as hex, as RegisterDevice last sent it.
   public var apnsToken: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -283,8 +252,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceRequestExportRequest: Sendable
   public init() {}
 }
 
-/// Success means the CSV was handed to email: the button reads "Sent" for 60
-/// seconds (PRD §6.16, D67). Nothing is stored (D39).
 public nonisolated struct MoneyRecap_V1_BffServiceRequestExportResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -305,8 +272,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceRequestDeletionRequest: Sendab
   public init() {}
 }
 
-/// On this response the phone signs out and erases its cache (PRD §9,
-/// ARCHITECTURE §7.1 step 1); the purge runs 24 hours after the stamp (D60).
 public nonisolated struct MoneyRecap_V1_BffServiceRequestDeletionResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -328,7 +293,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceRequestDeletionResponse: Senda
   fileprivate var _deletionRequestedAt: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
 }
 
-/// "Keep my account" on the restore sheet (PRD §6.18).
 public nonisolated struct MoneyRecap_V1_BffServiceCancelDeletionRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -339,7 +303,6 @@ public nonisolated struct MoneyRecap_V1_BffServiceCancelDeletionRequest: Sendabl
   public init() {}
 }
 
-/// The Profile with the stamp cleared; the app continues to Home.
 public nonisolated struct MoneyRecap_V1_BffServiceCancelDeletionResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for

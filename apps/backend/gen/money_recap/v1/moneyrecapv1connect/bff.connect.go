@@ -88,64 +88,26 @@ const (
 
 // BffServiceClient is a client for the money_recap.v1.BffService service.
 type BffServiceClient interface {
-	// Sent without a bearer token. resource_exhausted past 5 per email per hour
-	// or when the count fails (PRD §11, §6.3); invalid_argument for an address
-	// that does not parse or the mail host refuses; unavailable when the realm or
-	// the send fails (§7.5).
 	RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error)
-	// Home always shows the current month (PRD §6.8, D59), so no month argument.
-	// failed_precondition until steps 1 and 2 are answered: Home greets by name
-	// and prints every amount in the Member's Currency (spec #92).
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
-	// One month's full or Partial Recap, or the current month's preview (D47).
-	// not_found for a past month with no Spend and no Money In (not on Home's
-	// list); invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error)
 	ListSpends(context.Context, *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error)
-	// The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
-	// HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
 	LogSpend(context.Context, *connect.Request[v1.BffServiceLogSpendRequest]) (*connect.Response[v1.BffServiceLogSpendResponse], error)
 	EditSpend(context.Context, *connect.Request[v1.BffServiceEditSpendRequest]) (*connect.Response[v1.BffServiceEditSpendResponse], error)
 	DeleteSpend(context.Context, *connect.Request[v1.BffServiceDeleteSpendRequest]) (*connect.Response[v1.BffServiceDeleteSpendResponse], error)
-	// Where onboarding resumes after a force-quit (PRD §6.4).
 	GetOnboardingState(context.Context, *connect.Request[v1.BffServiceGetOnboardingStateRequest]) (*connect.Response[v1.BffServiceGetOnboardingStateResponse], error)
-	// One members.SaveProfile carrying the answers and the step: one write under
-	// the one Idempotency-Key (A14).
 	SaveProfile(context.Context, *connect.Request[v1.BffServiceSaveProfileRequest]) (*connect.Response[v1.BffServiceSaveProfileResponse], error)
-	// Called on every launch (A3); the answer drives the restore sheet (D60).
 	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
-	// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
-	// included; failed_precondition when the D56 sheet should have opened.
-	// During onboarding it is a setup save, and step 3 is then recorded in
-	// members, after ledger answers (spec #92).
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
-	// ledger.SaveTarget, during onboarding a setup save, and step 4 then
-	// recorded in members after ledger answers, as SaveSalary; a first Target
-	// after setup starts this month, later ones next month (D65);
-	// failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
-	// nothing_to_convert, no quote, when ledger holds no amounts; else
-	// ledger.PreviewConversion of manual_rate or of currency.Quote's rate:
-	// unsupported_pair, or unavailable when the fetch fails (PRD §8.9 step 1).
-	// out_of_range past 11 digits (D57).
 	PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error)
-	// ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
-	// writes under one key: members.SaveProfile, then ledger.RelabelCurrency
-	// (PRD §8.9 steps 2 and 4). failed_precondition with no rate while ledger
-	// holds amounts; out_of_range past D57.
 	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
 	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
 	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
-	// notify.ForgetDevice (§7.3), required: forgetting the phone is its whole job.
 	ForgetDevice(context.Context, *connect.Request[v1.BffServiceForgetDeviceRequest]) (*connect.Response[v1.BffServiceForgetDeviceResponse], error)
-	// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
-	// failed_precondition with EmailBounced is the §6.16 line naming the refused
-	// address, with no link; any other failure is the retry line.
 	RequestExport(context.Context, *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error)
-	// Stamps the request; the phone signs out on the answer (§7.1 step 1).
 	RequestDeletion(context.Context, *connect.Request[v1.BffServiceRequestDeletionRequest]) (*connect.Response[v1.BffServiceRequestDeletionResponse], error)
-	// Clears the stamp inside the 24-hour window (§7.1 step 2, D60).
 	CancelDeletion(context.Context, *connect.Request[v1.BffServiceCancelDeletionRequest]) (*connect.Response[v1.BffServiceCancelDeletionResponse], error)
 }
 
@@ -421,64 +383,26 @@ func (c *bffServiceClient) CancelDeletion(ctx context.Context, req *connect.Requ
 
 // BffServiceHandler is an implementation of the money_recap.v1.BffService service.
 type BffServiceHandler interface {
-	// Sent without a bearer token. resource_exhausted past 5 per email per hour
-	// or when the count fails (PRD §11, §6.3); invalid_argument for an address
-	// that does not parse or the mail host refuses; unavailable when the realm or
-	// the send fails (§7.5).
 	RequestMagicLink(context.Context, *connect.Request[v1.BffServiceRequestMagicLinkRequest]) (*connect.Response[v1.BffServiceRequestMagicLinkResponse], error)
-	// Home always shows the current month (PRD §6.8, D59), so no month argument.
-	// failed_precondition until steps 1 and 2 are answered: Home greets by name
-	// and prints every amount in the Member's Currency (spec #92).
 	GetHome(context.Context, *connect.Request[v1.GetHomeRequest]) (*connect.Response[v1.GetHomeResponse], error)
-	// One month's full or Partial Recap, or the current month's preview (D47).
-	// not_found for a past month with no Spend and no Money In (not on Home's
-	// list); invalid_argument for a malformed or later month.
 	GetRecap(context.Context, *connect.Request[v1.BffServiceGetRecapRequest]) (*connect.Response[v1.BffServiceGetRecapResponse], error)
 	ListSpends(context.Context, *connect.Request[v1.BffServiceListSpendsRequest]) (*connect.Response[v1.BffServiceListSpendsResponse], error)
-	// The §6.2 flow: ledger writes, notify evaluates the warning, a fresh
-	// HomeView comes back. invalid_argument on a D57, §8.10 or §6.9 breach.
 	LogSpend(context.Context, *connect.Request[v1.BffServiceLogSpendRequest]) (*connect.Response[v1.BffServiceLogSpendResponse], error)
 	EditSpend(context.Context, *connect.Request[v1.BffServiceEditSpendRequest]) (*connect.Response[v1.BffServiceEditSpendResponse], error)
 	DeleteSpend(context.Context, *connect.Request[v1.BffServiceDeleteSpendRequest]) (*connect.Response[v1.BffServiceDeleteSpendResponse], error)
-	// Where onboarding resumes after a force-quit (PRD §6.4).
 	GetOnboardingState(context.Context, *connect.Request[v1.BffServiceGetOnboardingStateRequest]) (*connect.Response[v1.BffServiceGetOnboardingStateResponse], error)
-	// One members.SaveProfile carrying the answers and the step: one write under
-	// the one Idempotency-Key (A14).
 	SaveProfile(context.Context, *connect.Request[v1.BffServiceSaveProfileRequest]) (*connect.Response[v1.BffServiceSaveProfileResponse], error)
-	// Called on every launch (A3); the answer drives the restore sheet (D60).
 	SetTimezone(context.Context, *connect.Request[v1.BffServiceSetTimezoneRequest]) (*connect.Response[v1.BffServiceSetTimezoneResponse], error)
 	GetSettings(context.Context, *connect.Request[v1.BffServiceGetSettingsRequest]) (*connect.Response[v1.BffServiceGetSettingsResponse], error)
-	// ledger.SaveSalary with applies_from passed through as sent, UNSPECIFIED
-	// included; failed_precondition when the D56 sheet should have opened.
-	// During onboarding it is a setup save, and step 3 is then recorded in
-	// members, after ledger answers (spec #92).
 	SaveSalary(context.Context, *connect.Request[v1.BffServiceSaveSalaryRequest]) (*connect.Response[v1.BffServiceSaveSalaryResponse], error)
-	// ledger.SaveTarget, during onboarding a setup save, and step 4 then
-	// recorded in members after ledger answers, as SaveSalary; a first Target
-	// after setup starts this month, later ones next month (D65);
-	// failed_precondition without a Salary (D44).
 	SaveTarget(context.Context, *connect.Request[v1.BffServiceSaveTargetRequest]) (*connect.Response[v1.BffServiceSaveTargetResponse], error)
-	// nothing_to_convert, no quote, when ledger holds no amounts; else
-	// ledger.PreviewConversion of manual_rate or of currency.Quote's rate:
-	// unsupported_pair, or unavailable when the fetch fails (PRD §8.9 step 1).
-	// out_of_range past 11 digits (D57).
 	PreviewCurrencyChange(context.Context, *connect.Request[v1.BffServicePreviewCurrencyChangeRequest]) (*connect.Response[v1.BffServicePreviewCurrencyChangeResponse], error)
-	// ledger.ApplyCurrencyConversion; or, with nothing to convert, setup's two
-	// writes under one key: members.SaveProfile, then ledger.RelabelCurrency
-	// (PRD §8.9 steps 2 and 4). failed_precondition with no rate while ledger
-	// holds amounts; out_of_range past D57.
 	ChangeCurrency(context.Context, *connect.Request[v1.BffServiceChangeCurrencyRequest]) (*connect.Response[v1.BffServiceChangeCurrencyResponse], error)
 	SaveNotificationPrefs(context.Context, *connect.Request[v1.BffServiceSaveNotificationPrefsRequest]) (*connect.Response[v1.BffServiceSaveNotificationPrefsResponse], error)
 	RegisterDevice(context.Context, *connect.Request[v1.BffServiceRegisterDeviceRequest]) (*connect.Response[v1.BffServiceRegisterDeviceResponse], error)
-	// notify.ForgetDevice (§7.3), required: forgetting the phone is its whole job.
 	ForgetDevice(context.Context, *connect.Request[v1.BffServiceForgetDeviceRequest]) (*connect.Response[v1.BffServiceForgetDeviceResponse], error)
-	// ledger.ExportCSV then notify.EmailExport (§7.3), both required.
-	// failed_precondition with EmailBounced is the §6.16 line naming the refused
-	// address, with no link; any other failure is the retry line.
 	RequestExport(context.Context, *connect.Request[v1.BffServiceRequestExportRequest]) (*connect.Response[v1.BffServiceRequestExportResponse], error)
-	// Stamps the request; the phone signs out on the answer (§7.1 step 1).
 	RequestDeletion(context.Context, *connect.Request[v1.BffServiceRequestDeletionRequest]) (*connect.Response[v1.BffServiceRequestDeletionResponse], error)
-	// Clears the stamp inside the 24-hour window (§7.1 step 2, D60).
 	CancelDeletion(context.Context, *connect.Request[v1.BffServiceCancelDeletionRequest]) (*connect.Response[v1.BffServiceCancelDeletionResponse], error)
 }
 
