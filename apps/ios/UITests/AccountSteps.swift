@@ -6,7 +6,7 @@ extension SignInUITests {
     ) async throws -> String {
         app.buttons["Settings"].tap()
         let row = app.buttons["Log out"]
-        XCTAssert(row.waitForExistence(timeout: 30), "D1 lists Log out")
+        XCTAssert(row.waitForExistence(timeout: 30), "Settings lists Log out")
         row.tap()
         let sheet = app.sheets.firstMatch
         XCTAssert(sheet.waitForExistence(timeout: 10), "Log out asks once in the system action sheet")
@@ -21,7 +21,10 @@ extension SignInUITests {
         }
         let gone = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: sheet)
         await fulfillment(of: [gone], timeout: 10)
-        XCTAssert(row.exists, "Cancel, a tap outside where iOS draws the sheet as a popover, keeps the Member on D1")
+        XCTAssert(
+            row.exists,
+            "Cancel, a tap outside where iOS draws the sheet as a popover, keeps the Member on Settings"
+        )
         row.tap()
         XCTAssert(sheet.waitForExistence(timeout: 10))
         sheet.buttons["Log out"].tap()
@@ -33,15 +36,15 @@ extension SignInUITests {
     func deleteThenKeep(_ app: XCUIApplication, address: String, mailpit: Mailpit, after used: String) async throws {
         app.buttons["Settings"].tap()
         let row = app.buttons["Delete account"]
-        XCTAssert(row.waitForExistence(timeout: 30), "D1 lists Delete account")
+        XCTAssert(row.waitForExistence(timeout: 30), "Settings lists Delete account")
         row.tap()
-        XCTAssert(app.staticTexts["This is permanent"].waitForExistence(timeout: 10), "the row opens D10")
+        XCTAssert(app.staticTexts["This is permanent"].waitForExistence(timeout: 10), "the row opens Delete account")
         snapshot("41-delete-account")
         let next = app.buttons["Delete my account"]
         sideways(app, reaching: next, "delete-account")
         next.tap()
         let field = app.textFields["Type DELETE to confirm"]
-        XCTAssert(field.waitForExistence(timeout: 10), "D10 moves to D11")
+        XCTAssert(field.waitForExistence(timeout: 10), "Delete account moves to the delete confirmation")
         let delete = app.buttons["Delete my account"]
         XCTAssertFalse(delete.isEnabled, "nothing typed, nothing to delete")
         field.tap()

@@ -47,7 +47,7 @@ final class RecapKeptTests: XCTestCase {
         XCTAssertEqual(model.keptRows?.first?.display, "-IDR\u{00A0}2,000,000")
     }
 
-    func testP2InTheCurrentMonthAndInAPartialMonth() async throws {
+    func testPartialStreakPageInTheCurrentMonthAndInAPartialMonth() async throws {
         let cases = [
             ("recap-preview", "1 to 26 September", "New badge unlocked.", 26, 1 ... 26),
             ("recap-sign-up", "30 to 31 August", "Beat it next month.", 5, 4 ... 5),
@@ -103,7 +103,7 @@ final class RecapKeptTests: XCTestCase {
         add(attachment)
     }
 
-    func testC2AndItsVariantsAndP2DrawApart() async throws {
+    func testStreakPageAndItsVariantsAndPartialStreakPageDrawApart() async throws {
         let names = [
             "recap-maya-september", "recap-no-target", "recap-one-day-run", "recap-no-run", "recap-overspent",
             "recap-preview", "recap-sign-up",

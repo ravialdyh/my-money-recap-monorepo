@@ -59,7 +59,7 @@ final class RecapArchetypeTests: XCTestCase {
         XCTAssertEqual(model.savedAgainstSpent.map(\.display), ["£640", "£1,760"])
     }
 
-    func testP4ClosesEachPartialSituationWithLedgersLine() async throws {
+    func testPartialClosingPageClosesEachPartialSituationWithLedgersLine() async throws {
         let cases = [
             ("recap-preview", "Your recap arrives on 1 October."),
             ("recap-sign-up", "Your first full recap arrives on 1 October."),
@@ -88,7 +88,7 @@ final class RecapArchetypeTests: XCTestCase {
         add(attachment)
     }
 
-    func testC4ForEachArchetypeWithoutOneAndP4DrawApart() async throws {
+    func testArchetypePageForEachArchetypeWithoutOneAndPartialClosingPageDrawApart() async throws {
         let names = Self.archetypes + [
             "recap-overspent", "recap-no-target", "recap-preview", "recap-sign-up", "recap-no-money-in",
         ]
@@ -120,7 +120,7 @@ final class RecapArchetypeTests: XCTestCase {
             )
         }
         let closing = try await page("recap-preview")
-        XCTAssertEqual(overflow(closing, size: sideways), 0, "P4 fits sideways, nothing clipped")
+        XCTAssertEqual(overflow(closing, size: sideways), 0, "the partial closing page fits sideways, nothing clipped")
         try keep(picture(closing, size: sideways), "page-4-sideways-preview")
     }
 }

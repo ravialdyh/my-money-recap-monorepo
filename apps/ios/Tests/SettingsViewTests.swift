@@ -34,7 +34,7 @@ final class SettingsViewTests: XCTestCase {
         let list = try settings("settings-filled")
         XCTAssertGreaterThan(overflow(list, size: sideways), 0, "sideways it scrolls")
         let profile = ProfileView(model: ProfileViewModel(name: "Test", avatar: "owl") { _, _ in .saved }) {}
-        XCTAssertGreaterThan(overflow(profile, size: sideways), 0, "D2 scrolls sideways too")
+        XCTAssertGreaterThan(overflow(profile, size: sideways), 0, "Profile scrolls sideways too")
     }
 
     private func salary(_ name: String) throws -> SalaryEditViewModel {
@@ -53,7 +53,11 @@ final class SettingsViewTests: XCTestCase {
 
     func testSalaryAndItsSheetScrollSidewaysRatherThanClip() throws {
         let edit = try salary("settings-filled")
-        XCTAssertGreaterThan(overflow(SalaryEditView(model: edit) {}, size: sideways), 0, "D3 scrolls sideways")
+        XCTAssertGreaterThan(
+            overflow(SalaryEditView(model: edit) {}, size: sideways),
+            0,
+            "the salary edit scrolls sideways"
+        )
         edit.amount = "175000000"
         XCTAssertGreaterThan(overflow(WhichSalarySheet(model: edit) { _ in }, size: sideways), 0, "so does its sheet")
     }
@@ -78,7 +82,11 @@ final class SettingsViewTests: XCTestCase {
         XCTAssertNotNil(edit)
         XCTAssertNotEqual(edit, first, "the line under the card")
         XCTAssertNotEqual(first, blocked, "Set a salary first in the slider's place")
-        try XCTAssertGreaterThan(overflow(target("settings-filled"), size: sideways), 0, "D4 scrolls sideways")
+        try XCTAssertGreaterThan(
+            overflow(target("settings-filled"), size: sideways),
+            0,
+            "the target edit scrolls sideways"
+        )
     }
 
     private func notifications(

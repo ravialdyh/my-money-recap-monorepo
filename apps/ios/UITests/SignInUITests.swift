@@ -134,7 +134,7 @@ final class SignInUITests: XCTestCase {
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on '")).firstMatch.tap()
         XCTAssert(
             app.staticTexts["\(Date().formatted(.dateTime.month(.wide))) so far"].waitForExistence(timeout: 10),
-            "the dashed card opens the stored preview's P1 with no signal"
+            "the dashed card opens the stored preview's partial cover with no signal"
         )
         XCTAssert(app.staticTexts["No spends"].exists, "the stored answer's figures")
         snapshot("26-recap-stored-no-signal")
@@ -153,7 +153,7 @@ extension SignInUITests {
         app.buttons["Log a spend"].tap()
         let field = app.textFields["Amount"]
         XCTAssert(field.waitForExistence(timeout: 10), "Log a spend opens its sheet")
-        XCTAssertFalse(app.buttons["Save"].isEnabled, "B2 empty: Save disabled")
+        XCTAssertFalse(app.buttons["Save"].isEnabled, "the log sheet empty: Save disabled")
         snapshot("10-log-a-spend-empty")
         field.tap()
         field.typeText(String(amount))
@@ -165,13 +165,13 @@ extension SignInUITests {
         XCTAssert(date.exists, "the date defaults to today")
         date.tap()
         XCTAssert(app.staticTexts["You can log up to 60 days back, never ahead."].waitForExistence(timeout: 5))
-        XCTAssert(app.datePickers.firstMatch.exists, "B4 the wheel picker")
+        XCTAssert(app.datePickers.firstMatch.exists, "the date picker is a wheel")
         snapshot("11-log-a-spend-date-picker")
         date.tap()
         let note = app.textFields["Note"]
         note.tap()
         note.typeText("Kopi susu\n")
-        XCTAssert(app.buttons["Save"].isEnabled, "B3 filled")
+        XCTAssert(app.buttons["Save"].isEnabled, "the log sheet filled")
         snapshot("12-log-a-spend-filled")
         sideways(app, reaching: app.buttons["Save"], "log-a-spend")
         app.buttons["Save"].tap()
@@ -183,7 +183,7 @@ extension SignInUITests {
 
     func allowNotifications() {
         let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow"]
-        XCTAssert(allow.waitForExistence(timeout: 30), "the first Spend asks for notification permission (B5)")
+        XCTAssert(allow.waitForExistence(timeout: 30), "the first Spend asks for notification permission")
         snapshot("30-push-permission")
         allow.tap()
         XCTAssertFalse(allow.waitForExistence(timeout: 2), "the alert closed")
@@ -201,7 +201,10 @@ extension SignInUITests {
         snapshot("14-spend-list")
         sideways(app, reaching: snacks, "spend-list")
         snacks.tap()
-        XCTAssert(app.staticTexts["Kopi susu"].waitForExistence(timeout: 10), "B6b lists the Spend by its note")
+        XCTAssert(
+            app.staticTexts["Kopi susu"].waitForExistence(timeout: 10),
+            "the category detail lists the Spend by its note"
+        )
         let share = NSPredicate(
             format: "label BEGINSWITH %@ AND label ENDSWITH ' so far'",
             "\(Self.rupiah(amount)) · 100% of "

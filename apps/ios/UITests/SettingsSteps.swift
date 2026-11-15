@@ -3,7 +3,7 @@ import XCTest
 extension SignInUITests {
     func renameInSettings(_ app: XCUIApplication, from old: String, to new: String) {
         app.buttons["Settings"].tap()
-        XCTAssert(app.staticTexts["Settings"].waitForExistence(timeout: 10), "the chip opens D1")
+        XCTAssert(app.staticTexts["Settings"].waitForExistence(timeout: 10), "the chip opens Settings")
         let row = { (label: String, value: String) in
             app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@ AND label CONTAINS %@", label, value))
                 .firstMatch
@@ -20,7 +20,7 @@ extension SignInUITests {
 
         row("Profile", old).tap()
         let field = app.textFields["First name"]
-        XCTAssert(field.waitForExistence(timeout: 10), "Profile opens D2 with setup's field")
+        XCTAssert(field.waitForExistence(timeout: 10), "Profile opens its screen with setup's field")
         XCTAssertEqual(field.value as? String, old)
         XCTAssertFalse(app.buttons["Save"].isEnabled, "nothing changed yet")
         field.tap()
@@ -30,7 +30,10 @@ extension SignInUITests {
         snapshot("28-profile-renamed")
         sideways(app, reaching: app.buttons["Save"], "profile")
         app.buttons["Save"].tap()
-        XCTAssert(row("Profile", new).waitForExistence(timeout: 30), "Save returns to D1, which reads the new name")
+        XCTAssert(
+            row("Profile", new).waitForExistence(timeout: 30),
+            "Save returns to Settings with the new name"
+        )
         app.buttons["Back"].tap()
         XCTAssert(app.staticTexts["Hi, \(new)"].waitForExistence(timeout: 30), "Home greets the new name")
         snapshot("29-home-greets-new-name")
@@ -42,7 +45,7 @@ extension SignInUITests {
             .firstMatch
         XCTAssert(row.waitForExistence(timeout: 30), "the row reads the setup Target")
         row.tap()
-        XCTAssert(app.staticTexts["Share of salary to keep"].waitForExistence(timeout: 10), "D4 opens setup's card")
+        XCTAssert(app.staticTexts["Share of salary to keep"].waitForExistence(timeout: 10), "Target opens setup's card")
         XCTAssert(app.staticTexts[Self.preview(salary / 4, of: salary)].exists, "over the Target in force")
         let next = Calendar.current.date(byAdding: .month, value: 1, to: .now) ?? .now
         XCTAssert(app.staticTexts["Your new target starts in \(next.formatted(.dateTime.month(.wide)))."].exists)
@@ -56,7 +59,7 @@ extension SignInUITests {
         snapshot("30-saving-target-edit")
         sideways(app, reaching: app.buttons["Save"], "saving-target")
         app.buttons["Save"].tap()
-        XCTAssert(row.waitForExistence(timeout: 30), "Save returns to D1, 25% still in force this month")
+        XCTAssert(row.waitForExistence(timeout: 30), "Save returns to Settings, 25% still in force this month")
         XCTAssertFalse(app.staticTexts["Share of salary to keep"].exists)
         app.buttons["Back"].tap()
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "back to Home")
@@ -71,7 +74,7 @@ extension SignInUITests {
         XCTAssert(row("Currency", "IDR").waitForExistence(timeout: 30), "the row reads the rupiah")
         row("Currency", "IDR").tap()
         let search = app.textFields["Search by name or code"]
-        XCTAssert(search.waitForExistence(timeout: 10), "Currency opens D5 with setup's search")
+        XCTAssert(search.waitForExistence(timeout: 10), "Currency opens the currency list with setup's search")
         XCTAssert(app.buttons["Indonesian Rupiah, IDR"].isSelected, "the Currency held is checked")
         snapshot("31-currency")
         sideways(app, reaching: search, "currency")
@@ -89,7 +92,7 @@ extension SignInUITests {
         XCTAssert(enter.waitForExistence(timeout: 30) && failed.exists, "Try again meets the same failure")
         enter.tap()
         let field = app.textFields["Rate: 1 IDR ="]
-        XCTAssert(field.waitForExistence(timeout: 10), "Enter it myself opens D7")
+        XCTAssert(field.waitForExistence(timeout: 10), "Enter it myself opens the manual rate sheet")
         XCTAssert(app.staticTexts["We couldn't fetch this rate. Enter it yourself to continue."].exists)
         let untyped = "All your amounts will be converted at the rate you enter. This can't be undone."
         XCTAssert(app.staticTexts[untyped].exists)
@@ -107,9 +110,9 @@ extension SignInUITests {
         sideways(app, reaching: convert, "currency-manual-rate")
         convert.tap()
         let pound = app.buttons.matching(NSPredicate(format: "label == 'British Pound, GBP' AND selected == true"))
-        XCTAssert(pound.firstMatch.waitForExistence(timeout: 30), "Convert returns to D5 on the pound")
+        XCTAssert(pound.firstMatch.waitForExistence(timeout: 30), "Convert returns to the currency list on the pound")
         app.buttons["Back"].tap()
-        XCTAssert(row("Currency", "GBP").waitForExistence(timeout: 10), "D1 reads the answer's Settings")
+        XCTAssert(row("Currency", "GBP").waitForExistence(timeout: 10), "Settings reads the answer's currency")
         XCTAssert(row("Salary and payday", "\(after) · ").exists)
         app.buttons["Back"].tap()
         XCTAssert(app.staticTexts["Money in \(Self.zero("GBP"))"].waitForExistence(timeout: 30), "Home in pounds")
@@ -126,9 +129,9 @@ extension SignInUITests {
     func exportInSettings(_ app: XCUIApplication) {
         app.buttons["Settings"].tap()
         let row = app.buttons["Export spends"]
-        XCTAssert(row.waitForExistence(timeout: 30), "D1 lists Export spends")
+        XCTAssert(row.waitForExistence(timeout: 30), "Settings lists Export spends")
         row.tap()
-        XCTAssert(app.staticTexts["Email me a CSV of every spend"].waitForExistence(timeout: 10), "the row opens D9")
+        XCTAssert(app.staticTexts["Email me a CSV of every spend"].waitForExistence(timeout: 10), "Export opens")
         let helper =
             NSPredicate(
                 format: "label BEGINSWITH 'It goes to ' AND label ENDSWITH 'with its date, category, amount and note.'"
@@ -142,7 +145,7 @@ extension SignInUITests {
         snapshot("38-export-sent")
         sideways(app, reaching: sent, "export-sent")
         app.buttons["Back"].tap()
-        XCTAssert(row.waitForExistence(timeout: 10), "back to D1")
+        XCTAssert(row.waitForExistence(timeout: 10), "back to Settings")
         app.buttons["Back"].tap()
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "back to Home")
     }
@@ -163,7 +166,7 @@ extension SignInUITests {
         XCTAssert(row("2 on").waitForExistence(timeout: 30), "Recap ready and Target warning are on by default")
         row("2 on").tap()
         let reminder = app.switches["Daily reminder"]
-        XCTAssert(reminder.waitForExistence(timeout: 10), "the row opens D8")
+        XCTAssert(reminder.waitForExistence(timeout: 10), "the row opens Notifications")
         XCTAssert(app.switches["Recap ready"].exists && app.switches["Target warning"].exists)
         XCTAssertFalse(app.staticTexts["Remind me at"].exists, "no time row while the reminder is off")
         reminder.tap()
@@ -172,7 +175,7 @@ extension SignInUITests {
         snapshot("36-notifications-reminder-on")
         sideways(app, reaching: app.switches["Target warning"], "notifications")
         app.buttons["Back"].tap()
-        XCTAssert(row("3 on").waitForExistence(timeout: 30), "D1 asks again and counts the reminder")
+        XCTAssert(row("3 on").waitForExistence(timeout: 30), "Settings asks again and counts the reminder")
         app.buttons["Back"].tap()
         XCTAssert(app.buttons["Log a spend"].waitForExistence(timeout: 30), "back on Home")
     }

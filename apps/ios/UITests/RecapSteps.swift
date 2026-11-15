@@ -6,11 +6,14 @@ extension SignInUITests {
         XCTAssert(label.waitForExistence(timeout: 10), "the label over the dashed card")
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Your first recap arrives on '")).firstMatch.tap()
         let headline = app.staticTexts["\(Date().formatted(.dateTime.month(.wide))) so far"]
-        XCTAssert(headline.waitForExistence(timeout: 30), "the dashed card opens P1 once GetRecap answers")
+        XCTAssert(
+            headline.waitForExistence(timeout: 30),
+            "the dashed card opens the partial cover once GetRecap answers"
+        )
         XCTAssert(app.staticTexts["What you've spent"].exists)
         XCTAssert(app.staticTexts["No spends"].exists, "the deleted Spend is gone from the month")
         XCTAssert(app.staticTexts["Swipe to see where it all went."].exists)
-        XCTAssertFalse(app.staticTexts["Money that came your way"].exists, "P1 shows no Money In")
+        XCTAssertFalse(app.staticTexts["Money that came your way"].exists, "the partial cover shows no Money In")
         let dot = onScreen(app.buttons, "Page 1 of 4")
         XCTAssert(dot?.isSelected == true, "the page dot names its page")
         dot?.tap()
@@ -20,9 +23,13 @@ extension SignInUITests {
         app.swipeLeft()
         let streak = app.staticTexts["Your longest no-spend streak"]
         let turned = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: streak)
-        XCTAssertEqual(XCTWaiter().wait(for: [turned], timeout: 10), .completed, "a swipe turns to P2")
+        XCTAssertEqual(
+            XCTWaiter().wait(for: [turned], timeout: 10),
+            .completed,
+            "a swipe turns to the partial streak page"
+        )
         XCTAssert(onScreen(app.buttons, "Page 2 of 4")?.isSelected == true, "the second dot is lit")
-        XCTAssertFalse(app.staticTexts["Kept against your target"].exists, "P2 has no bars card")
+        XCTAssertFalse(app.staticTexts["Kept against your target"].exists, "the partial streak page has no bars card")
         snapshot("22-recap-streak")
         sideways(app, reaching: close, "recap-streak")
         swipeToTheSpendingPage(app, from: 2)
@@ -31,7 +38,11 @@ extension SignInUITests {
         sideways(app, reaching: close, "recap-closing")
         onScreen(app.buttons, "Page 1 of 4")?.tap()
         let cover = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: headline)
-        XCTAssertEqual(XCTWaiter().wait(for: [cover], timeout: 10), .completed, "the first dot turns back to P1")
+        XCTAssertEqual(
+            XCTWaiter().wait(for: [cover], timeout: 10),
+            .completed,
+            "the first dot turns back to the partial cover"
+        )
         close.tap()
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 10), "Close returns to Home")
         XCTAssertFalse(streak.exists)
@@ -45,7 +56,7 @@ extension SignInUITests {
         let next = Calendar.current.date(byAdding: .month, value: 1, to: .now) ?? .now
         let line = app.staticTexts["Your recap arrives on 1 \(next.formatted(.dateTime.month(.wide)))."]
         app.swipeLeft()
-        XCTAssert(line.waitForExistence(timeout: 10), "a swipe reaches P4 and its closing line")
+        XCTAssert(line.waitForExistence(timeout: 10), "a swipe reaches the partial closing page and its closing line")
         XCTAssert(app.staticTexts["Squirrel"].exists && app.staticTexts["Slow Burner"].exists, "the four pills")
         XCTAssertFalse(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Share your '")).firstMatch.exists)
         XCTAssert(onScreen(app.buttons, "Page 4 of 4")?.isSelected == true, "the last dot is lit")
@@ -59,11 +70,11 @@ extension SignInUITests {
             app.swipeLeft()
             swipes += 1
         }
-        XCTAssert(headline.exists, "a swipe reaches P3")
+        XCTAssert(headline.exists, "a swipe reaches the partial spending page")
         let chip = { (text: String) in
             app.staticTexts.matching(NSPredicate(format: "label ==[c] %@", text)).firstMatch
         }
-        XCTAssert(chip("Target").exists && chip("Spending").exists, "P3's chips")
+        XCTAssert(chip("Target").exists && chip("Spending").exists, "the partial spending page's chips")
         XCTAssert(app.staticTexts["Where it went"].exists)
         XCTAssert(app.staticTexts["Nothing spent this month"].exists, "the deleted Spend is gone")
         XCTAssertFalse(chip("The splurge").exists, "no splurge without a Spend")

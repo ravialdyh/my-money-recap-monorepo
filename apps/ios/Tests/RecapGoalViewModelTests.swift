@@ -81,7 +81,7 @@ final class RecapGoalViewModelTests: XCTestCase {
     func testTheMonthSoFarBeforePaydayNamesThePayday() async throws {
         let model = try await loaded("recap-before-payday")
         XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal, .closing])
-        XCTAssertEqual(model.goalHeadline, "Where £900 went", "P3 has no percentage")
+        XCTAssertEqual(model.goalHeadline, "Where £900 went", "the partial spending page has no percentage")
         XCTAssertNil(model.target)
         XCTAssertEqual(model.paydayLine, "Your salary lands on the 30th.")
         XCTAssertEqual(model.bars.map(\.percent), [56, 20, 18])
@@ -89,7 +89,7 @@ final class RecapGoalViewModelTests: XCTestCase {
         XCTAssertEqual(model.splurge, "£280 on phone and internet. Your biggest single buy.")
     }
 
-    func testP3AfterPaydayAndInAPastPartialMonthHasNoTargetCard() async throws {
+    func testPartialSpendingPageAfterPaydayAndInAPastPartialMonthHasNoTargetCard() async throws {
         for name in ["recap-after-payday", "recap-sign-up", "recap-no-money-in"] {
             let model = try await loaded(name)
             XCTAssertEqual(model.pages, [.partialCover, .streak, .partialGoal, .closing], name)

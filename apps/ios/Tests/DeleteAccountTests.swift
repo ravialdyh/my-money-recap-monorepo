@@ -59,12 +59,12 @@ final class DeleteAccountTests: XCTestCase {
             ), context: SettingsViewModelTests.context()
         )
         settings.openDeleteAccount()
-        let delete = try XCTUnwrap(settings.deleteAccount, "the row opens D10")
+        let delete = try XCTUnwrap(settings.deleteAccount, "the row opens Delete account")
         delete.typed = "DELETE"
         await delete.delete()
         XCTAssertEqual(loggedOut, 1, "a granted deletion signs out as Log out does")
         await settings.logOutNow()
-        XCTAssertEqual(loggedOut, 2, "D12's Log out")
+        XCTAssertEqual(loggedOut, 2, "the Log out row")
     }
 
     func testTheScreensDrawAndScrollSideways() async throws {

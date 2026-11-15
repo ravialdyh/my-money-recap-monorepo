@@ -34,14 +34,14 @@ final class LogSpendViewModelTests: XCTestCase {
 
     func testSaveWaitsForAnAmountAboveZeroAndACategory() throws {
         let model = try sheet { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
-        XCTAssertFalse(model.canSave, "B2 empty: Save disabled")
+        XCTAssertFalse(model.canSave, "the log sheet empty: Save disabled")
         model.amount = "25000"
         XCTAssertFalse(model.canSave, "no Category yet")
         model.amount = "0"
         model.choose(.snacks)
         XCTAssertFalse(model.canSave, "zero is no Spend")
         model.amount = "25000."
-        XCTAssertTrue(model.canSave, "B3 filled")
+        XCTAssertTrue(model.canSave, "the log sheet filled")
     }
 
     func testAFailureKeepsTheValuesAndARetryKeepsItsKey() async throws {
@@ -58,7 +58,7 @@ final class LogSpendViewModelTests: XCTestCase {
         model.type("Kopi susu")
         let failed = await model.save()
         XCTAssertNil(failed)
-        XCTAssertTrue(model.failed, "the one failure line (B2 write failed)")
+        XCTAssertTrue(model.failed, "the one failure line (the log sheet's write failed)")
         XCTAssertEqual(LogSpendViewModel.failure, "We couldn't save this spend. Try again.")
         XCTAssertTrue(model.canSave, "Save stays enabled")
         XCTAssertEqual(model.amount, "25000.", "the values are intact")

@@ -49,7 +49,7 @@ final class SharePosterTests: XCTestCase {
         let labels = Mirror(reflecting: Self.four[0]).children.map(\.label)
         XCTAssertEqual(labels, ["archetype", "month", "displayName", "saved", "spent"])
         let maya = try await RecapViewModelTests.loaded("recap-maya-september")
-        XCTAssertEqual(maya.poster, Self.four[0], "Maya's September is C6 as drawn")
+        XCTAssertEqual(maya.poster, Self.four[0], "Maya's September is the poster as drawn")
         let budi = try await Self.x5()
         XCTAssertEqual(budi.poster?.saved, "Rp56.000.000")
         XCTAssertEqual(budi.poster?.spent, "Rp94.000.000")

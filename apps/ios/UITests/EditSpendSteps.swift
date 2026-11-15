@@ -5,7 +5,10 @@ extension SignInUITests {
         spentSoFar(app).tap()
         openTheSpend(app, in: "Snacks")
         let field = app.textFields["Amount"]
-        XCTAssert(app.staticTexts["Edit spend"].waitForExistence(timeout: 10), "B7 opens titled Edit spend")
+        XCTAssert(
+            app.staticTexts["Edit spend"].waitForExistence(timeout: 10),
+            "the spend detail is titled Edit spend"
+        )
         XCTAssert(app.buttons["Save changes"].isEnabled, "prefilled, so Save changes is on")
         XCTAssert(app.textFields["Note"].value as? String == "Kopi susu", "the note prefilled")
         snapshot("17-edit-spend")
@@ -25,7 +28,7 @@ extension SignInUITests {
         XCTAssert(app.buttons["Delete this spend"].waitForExistence(timeout: 10))
         app.buttons["Delete this spend"].tap()
         let alert = app.alerts["Delete this spend?"]
-        XCTAssert(alert.waitForExistence(timeout: 10), "B8 the one confirm, an alert")
+        XCTAssert(alert.waitForExistence(timeout: 10), "the one delete confirm, an alert")
         XCTAssert(alert.staticTexts["You can't undo this."].exists)
         XCTAssert(alert.buttons["Cancel"].exists, "both buttons shown (owner, 2026-09-24)")
         snapshot("19-delete-confirm")
@@ -48,7 +51,7 @@ extension SignInUITests {
         XCTAssert(row.waitForExistence(timeout: 30), "the list shows the Spend under \(category)")
         row.tap()
         let spend = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Kopi susu'")).firstMatch
-        XCTAssert(spend.waitForExistence(timeout: 10), "B6b lists the Spend by its note")
+        XCTAssert(spend.waitForExistence(timeout: 10), "the category detail lists the Spend by its note")
         spend.tap()
     }
 }

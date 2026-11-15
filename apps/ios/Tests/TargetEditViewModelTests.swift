@@ -84,7 +84,7 @@ final class TargetEditViewModelTests: XCTestCase {
         XCTAssertEqual(sent[0].1, sent[1].1, "the retry counts once")
     }
 
-    func testSettingsOpensD4AndItsSaveReplacesTheStoredSettings() async throws {
+    func testSettingsOpensTargetEditAndItsSaveReplacesTheStoredSettings() async throws {
         let context = try SettingsViewModelTests.context()
         let answer = try MoneyRecap_V1_BffServiceSaveTargetResponse.with {
             $0.settings = try SettingsViewModelTests.recorded("settings-waiting")
@@ -96,7 +96,7 @@ final class TargetEditViewModelTests: XCTestCase {
             ), context: context, locale: Locale(identifier: "id_ID")
         )
         settings.openTarget()
-        XCTAssertNil(settings.targetEdit, "no answer yet: nothing to fill D4 with")
+        XCTAssertNil(settings.targetEdit, "no answer yet: nothing to fill the target edit with")
         await settings.refresh()
         settings.openTarget()
         let saved = try await XCTUnwrap(settings.targetEdit).commit()
@@ -107,10 +107,10 @@ final class TargetEditViewModelTests: XCTestCase {
         XCTAssertEqual(settings.settings, kept)
         settings.setSalaryFirst()
         XCTAssertNil(settings.targetEdit)
-        XCTAssertNotNil(settings.salaryEdit, "D3 opens in D4's place")
+        XCTAssertNotNil(settings.salaryEdit, "the salary edit opens in the target edit's place")
     }
 
-    func testEachRecapTargetCardOpensD4OverItsPage() async throws {
+    func testEachRecapTargetCardOpensTargetEditOverItsPage() async throws {
         let context = try SettingsViewModelTests.context()
         let recap = try RecapViewModelTests.recorded("recap-no-target")
         var saved = MoneyRecap_V1_BffServiceSaveTargetResponse()
@@ -127,7 +127,7 @@ final class TargetEditViewModelTests: XCTestCase {
             await model.load()
             model.page = page
             await model.editTarget()
-            let edit = try XCTUnwrap(model.targetEdit, "page \(page + 1)'s card opens D4")
+            let edit = try XCTUnwrap(model.targetEdit, "page \(page + 1)'s card opens the target edit")
             let done = await edit.commit()
             XCTAssertTrue(done)
             model.targetEdit = nil
