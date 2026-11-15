@@ -2,8 +2,6 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// D10 and D11 (PRD §6.16, D39, D60): `Delete my account` works only on exactly `DELETE`, asks the API to stamp the
-/// request, then signs out as Log out does; a failure keeps the Member in, and a retry repeats its key (A14).
 @Observable
 @MainActor
 final class DeleteAccountViewModel: Identifiable {
@@ -11,7 +9,6 @@ final class DeleteAccountViewModel: Identifiable {
 
     static let failedCopy = "We couldn't delete your account. Try again."
 
-    /// D11, pushed from D10's button.
     var confirming = false
     var typed = ""
     private(set) var deleting = false

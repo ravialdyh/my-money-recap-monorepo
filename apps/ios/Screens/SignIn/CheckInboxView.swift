@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// PRD §6.3 / SCREEN-STATES A3. Nothing here polls: the link itself brings the session in, through the
-/// incoming-link handler (spec #61).
 struct CheckInboxView: View {
     @Binding var path: [EmailStep]
     @State private var model: CheckInboxViewModel
@@ -40,7 +38,6 @@ struct CheckInboxView: View {
         .task { await model.countDown() }
     }
 
-    /// A3's own exit: back to A2, address still in the field.
     private func useAnotherEmail() {
         path = [.enterEmail]
     }

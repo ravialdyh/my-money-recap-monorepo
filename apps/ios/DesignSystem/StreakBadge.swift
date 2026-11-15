@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// `StreakBadge`: a 64pt yellow circle with a Fredoka number over a tiny uppercase unit, read by
-/// VoiceOver as "{value} {unit}".
 struct StreakBadge: View {
     let value: Int
     var unit = "days"

@@ -1,11 +1,7 @@
 import SwiftUI
 
-/// PRD §6.4 / SCREEN-STATES A4, step 1 of onboarding: no back chevron, the step label as the white pill every canvas
-/// draws, in the 44pt row later steps share with their chevron, the First name field and the Avatar grid, then Next.
 struct NameAvatarView: View {
     @State private var model: NameAvatarViewModel
-    /// What the field shows. The model keeps only what `DisplayName` allows, and writing that back here redraws
-    /// the field even when a refused key leaves the model's name unchanged.
     @State private var typed: String
     private let onSaved: () -> Void
     @FocusState private var focused: Bool

@@ -1,8 +1,6 @@
 import XCTest
 @testable import MyMoneyRecap
 
-/// A3 Check your inbox (SCREEN-STATES): the named address, the live m:ss countdown that reaches zero once,
-/// and Resend restarting it (PRD §6.3).
 @MainActor
 final class CheckInboxViewModelTests: XCTestCase {
     func testItNamesTheAddressAndThe15Minutes() {

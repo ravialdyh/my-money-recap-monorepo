@@ -2,8 +2,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// The share image (#157): C6's four posters with the canvases' facts, X5 from Budi's recorded rupiah month on an
-/// id-ID phone, the five facts it is built from, and Share presenting the system share sheet. Pictures are evidence.
 @MainActor
 final class SharePosterTests: XCTestCase {
     private static func canvas(_ kind: ArchetypePill.Kind, _ title: String, _ month: String) -> SharePoster {
@@ -98,8 +96,6 @@ final class SharePosterTests: XCTestCase {
         controller is UIActivityViewController || controller.children.contains(where: holdsShareSheet)
     }
 
-    /// Measured in a browser from the C6 canvases' markup with the bundled fonts: the mascot capped at 620px (the
-    /// Slow Burner's is wider, 429px tall), where the lead and the card start, and the title's lines.
     func testTheFourPostersLayOutAsTheCanvasesMeasure() throws {
         let layouts = Self.four.map(\.layout)
         XCTAssertEqual(layouts.map(\.mascot.height), [620, 620, 620, 429])
@@ -115,8 +111,6 @@ final class SharePosterTests: XCTestCase {
         }
     }
 
-    /// A 30-letter Display Name, the longest allowed, wraps the lead and name lines; the card moves down with them
-    /// and still clears the foot, even stacked under the Slow Burner's two-line title.
     func testTheLongestDisplayNameWrapsAndTheCardFollows() throws {
         let long = String(repeating: "W", count: 30)
         let poster = SharePoster(
@@ -133,7 +127,6 @@ final class SharePosterTests: XCTestCase {
         try keep(poster.picture(), "c6-longest-name")
     }
 
-    /// X5 (PRD D45): "Rp56.000.000" is too wide for its column at 120px, so Saved and Spent stack at 84px.
     func testTheRupiahPosterStacksSavedAndSpent() async throws {
         let model = try await Self.x5()
         let poster = try XCTUnwrap(model.poster)

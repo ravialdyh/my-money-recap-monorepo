@@ -2,9 +2,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// The launch after sign-in (spec #92): the zone first, then Home or the first unanswered of steps 1 to 4 with the
-/// answers already saved, going back without losing any, Home's prompts reopening steps 3 and 4, and the no-connection
-/// state when nothing answers.
 @MainActor
 final class LaunchViewModelTests: XCTestCase {
     private func state(
@@ -124,8 +121,6 @@ final class LaunchViewModelTests: XCTestCase {
         XCTAssertEqual(done.route, .home, "setup over")
     }
 
-    /// Home's prompts open step 3 or 4 after setup with the saved answers; step 3 leads on to step 4 as in setup, back
-    /// returns to Home, never to step 2, and with no answer Try again reopens the same step (owner 2026-09-23).
     func testHomesPromptsOpenStepsThreeAndFourAndBackReturnsHome() async {
         var next: MoneyRecap_V1_OnboardingState? = state(0)
         let model = LaunchViewModel(greetedBefore: true, setZone: { nil }, state: { next })
@@ -148,8 +143,6 @@ final class LaunchViewModelTests: XCTestCase {
         XCTAssertEqual(model.route, .home)
     }
 
-    /// Step 2's back chevron re-selects what step 1 saved; saving step 1 again returns to step 2 with its own saved
-    /// answer chosen, so going back never costs a later answer (spec #92).
     func testGoingBackReselectsTheSavedAnswersAndNextReturnsToStepTwo() async {
         let model = LaunchViewModel(
             greetedBefore: false,
@@ -167,8 +160,6 @@ final class LaunchViewModelTests: XCTestCase {
         XCTAssertEqual(model.route, .stepOne(name: "Mia", avatar: "fox"), "the answers the last save returned")
     }
 
-    /// Step 3's back chevron re-selects the saved Currency; saving another relabels the typed Salary, which step 3
-    /// fills in again in the new Currency with its decimals, and a later save without a Salary keeps it (spec #92).
     func testGoingBackFromStepThreeKeepsTheSalaryRelabelled() async {
         let typed = salary("150000000", "IDR")
         let model = LaunchViewModel(greetedBefore: false, setZone: { nil }, state: { self.state(3, salary: typed) })
@@ -187,8 +178,6 @@ final class LaunchViewModelTests: XCTestCase {
         XCTAssertEqual(model.route, .stepThree(currency: "EUR", digits: 2, saved: relabelled), "step 1 moved nothing")
     }
 
-    /// With no answer the Member cannot be told apart from one mid-setup, and nothing can be saved: the named state,
-    /// whose Try again runs the launch again, zone included (spec #92).
     func testNoAnswerAtLaunchIsTheNoConnectionStateAndTryAgainResumes() async {
         var zones = 0
         var next: MoneyRecap_V1_OnboardingState?
@@ -208,8 +197,6 @@ final class LaunchViewModelTests: XCTestCase {
         XCTAssertEqual(model?.route, .stepTwo(saved: ""))
     }
 
-    /// A Home that refuses (failed_precondition, spec #92) reopens the first unanswered step, even for a Member the
-    /// stored Home greeted; with no answer, the no-connection state rather than a Home that would refuse again.
     func testARefusedHomeReopensTheUnansweredStep() async {
         var next: MoneyRecap_V1_OnboardingState? = state(2)
         let model = LaunchViewModel(greetedBefore: true, setZone: { nil }, state: { next })

@@ -2,8 +2,6 @@ import Connect
 import Foundation
 import MoneyRecapContract
 
-/// D9 Export spends (PRD §6.16, D39, D67): `Send it` asks the API to email the CSV to the address signed in with.
-/// Sent, it reads `Sent ✓` at 40% for 60 seconds; a refused address is named, any other failure retried (A14).
 @Observable
 @MainActor
 final class ExportViewModel: Identifiable {
@@ -46,7 +44,6 @@ final class ExportViewModel: Identifiable {
         state == .sent ? "Sent ✓" : "Send it"
     }
 
-    /// Off while sending, for the 60 seconds after a send, and once the mail host refused the address.
     var canSend: Bool {
         state == .ready || state == .failed
     }

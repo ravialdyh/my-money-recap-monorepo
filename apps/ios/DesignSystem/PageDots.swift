@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Dots with `onSelect`: 6pt dots, the active one 22pt wide, each a control in its own 44pt-tall slice read
-/// as "Page {n} of {count}" (PRD D46, §11); ink `onLight`, on the yellow ground.
 struct PageDots: View {
     let count: Int
     @Binding var active: Int

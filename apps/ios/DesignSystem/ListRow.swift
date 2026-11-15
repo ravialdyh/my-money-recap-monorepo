@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Settings, Recap and Currency list row: label over an optional detail, a right-aligned value, then
-/// a chevron, a selected row's violet check, or nothing; a divider below. Destructive is coral; disabled, at 40%.
 struct ListRow: View {
     enum Trailing {
         case chevron, check, none
@@ -48,7 +46,6 @@ struct ListRow: View {
         .accessibilityAddTraits(trailing == .check && selected ? .isSelected : [])
     }
 
-    /// An 18pt violet disc with a white tick (`.mmr-list-row-check`), its space kept when unselected so no row moves.
     private var check: some View {
         Circle()
             .fill(Tokens.Palette.violet500)

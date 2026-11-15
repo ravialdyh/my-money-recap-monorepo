@@ -1,7 +1,6 @@
 import XCTest
 @testable import MyMoneyRecap
 
-/// `Money` prints through the platform formatter (IOS I7); a fixed locale keeps the runner's locale out of the copy.
 final class MoneyTests: XCTestCase {
     private let gb = Locale(identifier: "en_GB")
 
@@ -16,8 +15,6 @@ final class MoneyTests: XCTestCase {
         XCTAssertEqual(Money.format("150000000", currency: "IDR", locale: Locale(identifier: "id_ID")), "Rp150.000.000")
     }
 
-    /// The amount's own decimals win over the platform's count for the currency (PRD D71): iOS 26.0 and 27.0 give
-    /// RSD 0 decimals where ledger's CLDR gives 2, so a stored 100.50 would otherwise print as 101.
     func testAnAmountPrintsExactlyTheDecimalsItCarries() {
         XCTAssert(Money.format("100.50", currency: "RSD", locale: gb).hasSuffix("100.50"))
         XCTAssert(Money.format("12.345", currency: "BHD", locale: gb).hasSuffix("12.345"))

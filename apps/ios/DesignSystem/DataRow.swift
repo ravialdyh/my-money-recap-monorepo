@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Itemised row: the Category's `IconWell`, a one-line label with an optional secondary line under it,
-/// the Fredoka amount, a divider below. With an `action` the row is a button; without one it only shows.
 struct DataRow: View {
     let icon: Icon.Name
     let label: String
@@ -9,7 +7,6 @@ struct DataRow: View {
     let amount: String
     var action: (() -> Void)?
 
-    /// The canvases' secondary line: Nunito 12pt bold in secondary ink.
     private static let detailStyle = TextStyle(
         family: Tokens.FontFamily.text, weight: .bold, size: 12, lineHeight: 1.2, letterSpacing: 0, uppercase: false
     )

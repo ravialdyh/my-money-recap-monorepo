@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Empty-state card, one tap target (PRD §13, D50): eyebrow, title and helper beside a chevron well, at the filled
-/// `Card`'s height (§6.8, D54, D69). `dashed` is Home's 56pt preview card with a 36pt well (D47).
 struct PromptCard: View {
     var eyebrow: String?
     let title: String
@@ -10,7 +8,6 @@ struct PromptCard: View {
     var dashed = false
     var action: () -> Void = {}
 
-    /// The chevron well: 44pt, or the preview card's 36pt (`previewCard` in `lib.mjs`); the whole card is the target.
     private var well: CGFloat {
         dashed ? 36 : Tokens.Size.touchTargetMin
     }

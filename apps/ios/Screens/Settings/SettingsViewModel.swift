@@ -3,33 +3,21 @@ import Foundation
 import MoneyRecapContract
 import SwiftData
 
-/// D1 Settings (PRD §6.16, IOS I4, I6): the stored `SettingsView` at once, then the BFF's, each answer replacing the
-/// stored copy whole. Every value is the server's; this only words it. Offline, every row that writes is disabled.
 @Observable
 @MainActor
 final class SettingsViewModel: Identifiable {
     typealias Fetch = () async throws -> MoneyRecap_V1_SettingsView
 
-    /// The line every Settings save shows when it fails (spec #169).
     static let saveFailure = "We couldn't save this. Try again."
 
-    /// Nil until a stored copy or an answer exists: the rows show without values.
     private(set) var settings: MoneyRecap_V1_SettingsView?
-    /// D2 Profile, while it is open.
     var profile: ProfileViewModel?
-    /// D3 Salary and payday, while it is open.
     var salaryEdit: SalaryEditViewModel?
-    /// D4 Saving target, while it is open.
     var targetEdit: TargetEditViewModel?
-    /// D5 Currency, while it is open.
     var currencyEdit: CurrencyEditViewModel?
-    /// D8 Notifications, while it is open.
     var notifications: NotificationsViewModel?
-    /// iOS said no to notifications, which the Notifications row reads before any count.
     private(set) var pushDenied = false
-    /// D9 Export spends, while it is open.
     var export: ExportViewModel?
-    /// D10 Delete account, while it is open.
     var deleteAccount: DeleteAccountViewModel?
     private let calls: SettingsCalls
     private let push: PushRegistration?
@@ -52,8 +40,6 @@ final class SettingsViewModel: Identifiable {
         settings = SettingsSnapshot.load(from: context)
     }
 
-    /// The answer replaces the stored copy and what is shown; a failure keeps both, offline included. An answer
-    /// without notify's preferences keeps the stored ones (spec #169). iOS's permission is asked again each time.
     func refresh() async {
         pushDenied = await push?.status() == .denied
         guard let fresh = try? await calls.fetch() else { return }
@@ -69,7 +55,6 @@ final class SettingsViewModel: Identifiable {
         settings = fresh
     }
 
-    /// No network path: the grey Banner, and every row but Log out at 40% (D1 offline).
     var offline: Bool {
         !connection.online
     }
@@ -82,7 +67,6 @@ final class SettingsViewModel: Identifiable {
         settings?.profile.currencyCode
     }
 
-    /// "Rp150.000.000 · 25th", "{amount} · Last day", or "Not set".
     var salary: String? {
         guard let ledger = settings?.ledgerSettings else { return nil }
         guard ledger.hasSalary else { return "Not set" }
@@ -94,13 +78,11 @@ final class SettingsViewModel: Identifiable {
         return "\(amount) · \(Self.payday(ledger.salary.payday))"
     }
 
-    /// "20%", or "Not set".
     var target: String? {
         guard let ledger = settings?.ledgerSettings else { return nil }
         return ledger.hasSavingTarget ? "\(ledger.savingTarget.percent)%" : "Not set"
     }
 
-    /// "Off in iOS Settings" when denied, else "{n} on" or "All off"; nil with no preferences stored or answered.
     var notificationsValue: String? {
         if pushDenied {
             return "Off in iOS Settings"
@@ -110,7 +92,6 @@ final class SettingsViewModel: Identifiable {
         return on == 0 ? "All off" : "\(on) on"
     }
 
-    /// D8 over the saved preferences; nil while there are none to show.
     func openNotifications() {
         guard let push, let saved = settings, saved.hasNotificationPrefs else { return }
         notifications = NotificationsViewModel(
@@ -118,13 +99,11 @@ final class SettingsViewModel: Identifiable {
         )
     }
 
-    /// D2 over the saved answers; nil before Settings has any.
     func openProfile() {
         guard let saved = settings?.profile else { return }
         profile = ProfileViewModel(name: saved.displayName, avatar: saved.avatarKey, save: calls.saveProfile)
     }
 
-    /// D3 over the saved answers; nil before Settings has any. A save's Settings replace the stored copy.
     func openSalary() {
         guard let saved = settings else { return }
         let save = calls.saveSalary
@@ -137,7 +116,6 @@ final class SettingsViewModel: Identifiable {
         }
     }
 
-    /// D4 over the saved answers; nil before Settings has any. A save's Settings replace the stored copy.
     func openTarget() {
         guard let saved = settings else { return }
         let save = calls.saveTarget
@@ -150,8 +128,6 @@ final class SettingsViewModel: Identifiable {
         }
     }
 
-    /// D5 over the Currency held; nil before Settings has any. A change's Settings replace the stored copy, and every
-    /// stored Spend list and Recap is erased, since they hold the old Currency (spec #169).
     func openCurrency() {
         guard let saved = settings else { return }
         let change = calls.changeCurrency
@@ -169,29 +145,24 @@ final class SettingsViewModel: Identifiable {
         }
     }
 
-    /// D9 naming the address the Member signed in with; nil before Settings has any.
     func openExport() {
         guard let saved = settings?.profile else { return }
         export = ExportViewModel(email: saved.email, send: calls.requestExport)
     }
 
-    /// D10, whose granted request signs out as Log out does.
     func openDeleteAccount() {
         deleteAccount = DeleteAccountViewModel(request: calls.requestDeletion, signOut: calls.logOut)
     }
 
-    /// D12's `Log out`: this phone forgotten, the realm's session ended and the phone's copy erased (PRD §6.16).
     func logOutNow() async {
         await calls.logOut()
     }
 
-    /// D4's `Set a salary first`: D3 in its place (D44).
     func setSalaryFirst() {
         targetEdit = nil
         openSalary()
     }
 
-    /// A stored Payday as the row prints it: "25th", or "Last day" for the token (PRD D51).
     static func payday(_ stored: String) -> String {
         guard let day = Int(stored) else { return "Last day" }
         let ordinal = NumberFormatter()

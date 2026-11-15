@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// D10 Delete account (PRD §6.16): the coral card saying what goes and that the Member has 24 hours, and the coral
-/// button that pushes D11. Both scroll sideways.
 struct DeleteAccountView: View {
     @State private var model: DeleteAccountViewModel
     @Environment(\.dismiss) private var dismiss
@@ -30,7 +28,6 @@ struct DeleteAccountView: View {
     }
 }
 
-/// D11: `Delete my account` stays at 40% until the field holds exactly `DELETE`; a failure shows its line above it.
 struct DeleteConfirmView: View {
     @Bindable var model: DeleteAccountViewModel
     @FocusState private var focused: Bool

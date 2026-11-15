@@ -1,33 +1,25 @@
 import CoreText
 import SwiftUI
 
-/// The share image (C6, PRD §6.15): five facts and nothing else, so Salary, Money In, kept%, the target, the Streak,
-/// the Splurge, the Categories, the Avatar and the email cannot reach it (D28, AC10).
 struct SharePoster: Equatable {
     let archetype: Archetype
-    /// "September 2026".
     let month: String
     let displayName: String
-    /// Saved and Spent as printed, a negative Saved as it is.
     let saved: String
     let spent: String
 
-    /// The kind picks the mascot; the title, "The Squirrel", is ledger's (A2).
     struct Archetype: Equatable {
         let kind: ArchetypePill.Kind
         let title: String
     }
 
-    /// The poster's size in pixels, a phone story's.
     static let size = CGSize(width: 1080, height: 1920)
 
-    /// Where the drawing puts its parts, in pixels, as the C6 and X5 canvases lay them out.
     struct Layout: Equatable {
         let mascot: CGRect
         let lead: CGFloat
         let titleLines: Int
         let card: CGRect
-        /// Saved and Spent one per row at 84px: either is too wide for its 348px column at 120px, measured.
         let stacked: Bool
     }
 
@@ -51,7 +43,6 @@ struct SharePoster: Equatable {
         "\(displayName) · \(month)"
     }
 
-    /// The poster at 1080 by 1920 pixels in the bundled fonts.
     func picture() -> UIImage {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
@@ -157,13 +148,11 @@ struct SharePoster: Equatable {
     private static let title = display(168)
     private static let titleKern: CGFloat = -1.68
 
-    /// The mascot's 720px slot, as tall as the artwork at that width but never above 620px.
     private static func mascotSlot(_ image: UIImage?) -> CGRect {
         let natural = image.map { 720 * $0.size.height / max($0.size.width, 1) } ?? 620
         return CGRect(x: (size.width - 720) / 2, y: 140, width: 720, height: min(natural, 620))
     }
 
-    /// The artwork scaled to fit `slot` and centred in it, as `object-fit: contain`.
     private static func fit(_ image: UIImage, in slot: CGRect) -> CGRect? {
         guard image.size.width > 0, image.size.height > 0 else { return nil }
         let scale = min(slot.width / image.size.width, slot.height / image.size.height)
@@ -194,7 +183,6 @@ struct SharePoster: Equatable {
         font(Tokens.FontFamily.text, size, weight)
     }
 
-    /// The dot and the uppercase label in secondary ink; answers the pair's width.
     @discardableResult
     private static func label(_ text: String, dot: Color, left: CGFloat, top: CGFloat) -> CGFloat {
         UIColor(dot).setFill()
@@ -223,12 +211,10 @@ struct SharePoster: Equatable {
         NSAttributedString(string: text, attributes: [.font: font, .foregroundColor: color, .kern: kern])
     }
 
-    /// The printed width of one line of `text`, as the step-down rule measures it.
     static func width(_ text: String, _ font: UIFont, kern: CGFloat = 0) -> CGFloat {
         CTLineGetTypographicBounds(CTLineCreateWithAttributedString(string(text, font, kern: kern)), nil, nil, nil)
     }
 
-    /// `text` broken into lines no wider than `width`.
     private static func lines(
         _ text: String,
         _ font: UIFont,
@@ -242,8 +228,6 @@ struct SharePoster: Equatable {
         return (CTFrameGetLines(frame) as? [CTLine]) ?? []
     }
 
-    /// Draws `text` in CSS line boxes of `lineHeight` from `top`, each line's glyphs centred in its box as a browser
-    /// sets them; answers the bottom of the last box.
     @discardableResult
     private static func draw(
         _ text: String,
@@ -276,13 +260,11 @@ struct SharePoster: Equatable {
     }
 }
 
-/// The poster drawn for one tap on Share, which the system share sheet presents while it is set.
 struct SharedPicture: Identifiable {
     let id = UUID()
     let image: UIImage
 }
 
-/// The system share sheet (C5, IOS I8) with the poster; `done` runs when it closes, whatever the Member chose.
 struct ShareSheet: UIViewControllerRepresentable {
     let image: UIImage
     let done: () -> Void

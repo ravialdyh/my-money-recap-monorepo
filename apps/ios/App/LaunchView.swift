@@ -3,7 +3,6 @@ import MoneyRecapContract
 import SwiftData
 import SwiftUI
 
-/// Routes between the steps and Home on one client, so the zone, the state and the saves share its interceptor.
 struct LaunchView: View {
     private let session: AuthSession
     private let context: ModelContext
@@ -101,8 +100,6 @@ struct LaunchView: View {
         .task { await model.start() }
     }
 
-    /// One onboarding save, retried once after the token refreshes (IOS I3). The profile the BFF answers is what the
-    /// steps re-select when the Member goes back.
     private func saveProfile(
         _ request: MoneyRecap_V1_BffServiceSaveProfileRequest,
         _ headers: Headers
@@ -114,7 +111,6 @@ struct LaunchView: View {
         return SaveResult(saved.result)
     }
 
-    /// Step 3's Salary, retried once after the token refreshes (IOS I3); step 4 takes a share of what ledger saved.
     private func saveSalary(
         _ request: MoneyRecap_V1_BffServiceSaveSalaryRequest,
         _ headers: Headers
@@ -126,7 +122,6 @@ struct LaunchView: View {
         return SaveResult(saved.result)
     }
 
-    /// Step 4's Saving Target, retried once after the token refreshes (IOS I3).
     private func saveTarget(
         _ request: MoneyRecap_V1_BffServiceSaveTargetRequest,
         _ headers: Headers
@@ -135,7 +130,6 @@ struct LaunchView: View {
             .result)
     }
 
-    /// "Keep my account", retried once after the token refreshes (IOS I3).
     private func cancelDeletion(_ headers: Headers) async -> SaveResult {
         await SaveResult(BffClient.retried(session) { await client.cancelDeletion(request: .init(), headers: headers) }
             .result)

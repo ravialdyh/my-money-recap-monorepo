@@ -4,8 +4,6 @@ import UserNotifications
 import XCTest
 @testable import MyMoneyRecap
 
-/// D1 to D4 and D8 as drawn (SCREEN-STATES): filled, not set, offline, push denied; D3 waiting; D4 with and without its
-/// line and Salary; D8 reminder on and denied; each held sideways, the D56 sheet too, scrolls rather than clips.
 @MainActor
 final class SettingsViewTests: XCTestCase {
     private let sideways = CGSize(width: 852, height: 393)
@@ -73,8 +71,6 @@ final class SettingsViewTests: XCTestCase {
         ) { _, _ in .success(.init()) }) {}
     }
 
-    /// D4 draws the forward-only line only for a save that starts next month, and setup's no-Salary card in place of
-    /// the slider; held sideways it scrolls rather than clips.
     func testSavingTargetDrawsItsLineAndTheNoSalaryCard() throws {
         let edit = try picture(target("settings-filled"))
         let first = try picture(target("settings-filled", starts: "2026-09"))
@@ -94,8 +90,6 @@ final class SettingsViewTests: XCTestCase {
         return NotificationsView(model: model)
     }
 
-    /// D8 with the reminder on grows the `Remind me at` row; denied, the info Banner and the rows at 40%; held
-    /// sideways, it scrolls rather than clips.
     func testNotificationsDrawTheReminderAndTheDeniedState() async {
         var reminder = NotificationsViewModelTests.defaults
         reminder.dailyReminder = true
@@ -109,7 +103,6 @@ final class SettingsViewTests: XCTestCase {
         XCTAssertGreaterThan(overflow(held, size: sideways), 0, "sideways it scrolls")
     }
 
-    /// D1's Notifications row reads the count, or `Off in iOS Settings` when denied.
     func testTheNotificationsRowReadsOffWhenDenied() async throws {
         let ios = NotificationsViewModelTests.FakeIOS(.authorized)
         let context = try SettingsViewModelTests.context()

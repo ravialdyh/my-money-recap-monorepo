@@ -4,8 +4,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// D5 to D7 as drawn (SCREEN-STATES): D6 in rupiah, its failed fetch, D7 before and after a preview, D5 with
-/// `Changed ✓`, and each held sideways, where it scrolls rather than clips.
 @MainActor
 final class CurrencyEditViewTests: XCTestCase {
     private let sideways = CGSize(width: 852, height: 393)

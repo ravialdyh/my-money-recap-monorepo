@@ -1,11 +1,8 @@
 import SwiftUI
 
-/// The app's only error surface: a block in the flow inside the card, never an overlay (PRD §6.1).
 struct InlineError: View {
     let text: String
-    /// The block's fill: coral, or white where the ground is coral itself, the restore sheet (D11b), so it still reads.
     var well = Tokens.Surface.wellCoral
-    /// The trailing control (`action`): heavy and underlined, D6's `Try again`; nil removes it.
     var action: (title: String, run: () -> Void)?
 
     var body: some View {

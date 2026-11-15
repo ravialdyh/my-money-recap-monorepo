@@ -4,8 +4,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Home as drawn: with no stored answer yet it is the §6.19 first-load skeleton, the two cards at their filled
-/// heights, not a blank ground and not the zero Home it becomes; a set Target fills its card in place of the prompt.
 @MainActor
 final class HomeViewTests: XCTestCase {
     func testTheFirstLoadIsTheSkeleton() throws {
@@ -60,8 +58,6 @@ final class HomeViewTests: XCTestCase {
         XCTAssertNotEqual(prompt, filled)
     }
 
-    /// X3 (PRD D45): Budi's rupiah Home on an id-ID phone. The hero steps down to 40pt, and every other line fits its
-    /// row whole, the stat chips wrapping and "{Saved} of {target}" under its title. The picture is kept as evidence.
     func testTheRupiahHomeFitsWithoutClipping() throws {
         let context = try ModelContext(ModelContainer(
             for: HomeSnapshot.self, SpendListSnapshot.self,
@@ -115,8 +111,6 @@ final class HomeViewTests: XCTestCase {
         add(attachment)
     }
 
-    /// B1's coral Banner above the target card, in each of D53's two wordings, and gone when dismissed: the dismissed
-    /// Home draws as the one with no warning. The pictures are kept as evidence.
     func testTheWarningBannerDrawsAboveTheTargetUntilDismissed() throws {
         let context = try ModelContext(ModelContainer(
             for: HomeSnapshot.self,
@@ -168,8 +162,6 @@ final class HomeViewTests: XCTestCase {
         }
     }
 
-    /// B1 offline (D58): the grey Banner at the top and Log a spend at 40%, with and without the coral warning, over
-    /// the stored numbers; back online, Home draws as it did. The pictures are kept as evidence.
     func testOfflineHomeDrawsTheGreyBannerWithAndWithoutTheWarning() throws {
         let context = try ModelContext(ModelContainer(
             for: HomeSnapshot.self,
@@ -219,8 +211,6 @@ final class HomeViewTests: XCTestCase {
         }
     }
 
-    /// The Recap entry points under `Past recaps` (spec #151): the dashed preview card before any Recap, the rows once
-    /// months have one, scrolled to the bottom where they sit. The pictures are kept as evidence.
     func testPastRecapsDrawTheirLabelOverTheCardOrTheRows() throws {
         let context = try ModelContext(ModelContainer(
             for: HomeSnapshot.self, SpendListSnapshot.self,

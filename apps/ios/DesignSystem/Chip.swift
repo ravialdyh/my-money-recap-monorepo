@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Uppercase caption pill, about 30pt tall. `tappable` lifts the hit area to 44pt; `asLabel` draws it with no tap;
-/// `tone` is the Category chip (D70); `opens` adds the switcher's chevron (D59); `highlight` is the yellow pill,
-/// `inverse` the ink one.
 struct Chip: View {
     let text: String
     var tappable = false

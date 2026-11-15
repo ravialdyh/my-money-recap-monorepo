@@ -1,8 +1,6 @@
 import MoneyRecapContract
 import SwiftUI
 
-/// D3 Salary and payday (PRD §6.16): setup's amount card, any waiting Salary's line, the Payday card and its start
-/// line, then Save, which returns to Settings or opens "Which salary is this?". It scrolls sideways.
 struct SalaryEditView: View {
     @State private var model: SalaryEditViewModel
     @Environment(\.dismiss) private var dismiss
@@ -66,8 +64,6 @@ struct SalaryEditView: View {
     }
 }
 
-/// The D56 sheet: the body line, a tinted card of two rows, each with its consequence, and Cancel, which saves
-/// nothing. It scrolls sideways.
 struct WhichSalarySheet: View {
     let model: SalaryEditViewModel
     let choose: (MoneyRecap_V1_SalaryAppliesFrom) -> Void

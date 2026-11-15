@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// The Recap pager (spec #151, PRD D46): full screen over Home, its pages swiped left and right, the close control
-/// laid over every page top-left, a target card's D4 over it (#172). Before the answer: cover ground, illustration
-/// (§6.19).
 struct RecapPagerView: View {
     @Bindable var model: RecapViewModel
     @Environment(\.dismiss) private var dismiss
@@ -26,7 +23,6 @@ struct RecapPagerView: View {
         .task { await model.load() }
     }
 
-    /// Each page drawn by its case; the cover before the answer, when there is none.
     @ViewBuilder private func page(_ index: Int) -> some View {
         switch model.pages.indices.contains(index) ? model.pages[index] : .cover {
         case .cover, .partialCover: RecapCoverPage(model: model)
@@ -36,7 +32,6 @@ struct RecapPagerView: View {
         }
     }
 
-    /// The ground behind the safe areas, the page on screen's.
     private var ground: Color {
         switch model.pages.indices.contains(model.page) ? model.pages[model.page] : .cover {
         case .cover, .partialCover: Tokens.Ground.recap
@@ -46,7 +41,6 @@ struct RecapPagerView: View {
         }
     }
 
-    /// `motion.reveal.number` for the numbers arriving; with Reduce Motion, the 150 ms fade.
     private var reveal: Animation {
         reduceMotion
             ? .easeInOut(duration: Tokens.Motion.Duration.reduced)

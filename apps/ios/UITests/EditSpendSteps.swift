@@ -1,8 +1,6 @@
 import XCTest
 
 extension SignInUITests {
-    /// PRD §6.10 / SCREEN-STATES B7, B8: the logged Spend opens Edit spend prefilled; a new amount and Category move
-    /// Home and the list; the delete alert cancels, then deletes it, and the list and Home are back at nothing.
     func editAndDeleteTheSpend(_ app: XCUIApplication, from amount: Int, to edited: Int) {
         spentSoFar(app).tap()
         openTheSpend(app, in: "Snacks")
@@ -44,7 +42,6 @@ extension SignInUITests {
         XCTAssert(app.staticTexts[Self.zero("IDR")].waitForExistence(timeout: 10), "Home's hero is back at 0")
     }
 
-    /// Opens the one Spend in `category` from the Spend list, by its note.
     private func openTheSpend(_ app: XCUIApplication, in category: String) {
         let row = app.buttons.matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS '1 spend'", category))
             .firstMatch

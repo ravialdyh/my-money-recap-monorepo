@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// D9 Export spends (PRD §6.16): one card naming the address, its failure line inside it, then `Send it`. It scrolls
-/// sideways.
 struct ExportView: View {
     @State private var model: ExportViewModel
     @Environment(\.dismiss) private var dismiss

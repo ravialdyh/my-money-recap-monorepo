@@ -4,8 +4,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// Step 3 (PRD §6.6, spec #92): Next waits for an amount above zero and saves it with the Payday and "this month",
-/// one key per answer; Skip for now records step 3 alone; the helper shows the three paydays from today on.
 @MainActor
 final class SalaryViewModelTests: XCTestCase {
     private var calendar: Calendar {
@@ -88,7 +86,6 @@ final class SalaryViewModelTests: XCTestCase {
         XCTAssertEqual(skips[0].1, skips[1].1, "the skip retried keeps its key")
     }
 
-    /// A resume after a crash, or step 3 after going back, fills in ledger's answer (spec #92).
     func testTheSavedAnswerIsFilledIn() throws {
         let step = try model(saved: .with {
             $0.amount.amount = "150000000"
@@ -99,7 +96,6 @@ final class SalaryViewModelTests: XCTestCase {
         XCTAssertTrue(step.canContinue)
     }
 
-    /// PRD D51 and §8.2: today counts, a short month pays on its last day, and every tap redraws the three dates.
     func testTheHelperShowsTheNextThreePaydaysFromToday() throws {
         let step = try model(on: "2026-09-25")
         XCTAssertEqual(step.nextPaydays, ["25 Sep", "25 Oct", "25 Nov"], "picking 25 on the 25th shows today first")

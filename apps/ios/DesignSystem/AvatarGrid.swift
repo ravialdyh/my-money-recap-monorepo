@@ -1,14 +1,10 @@
 import SwiftUI
 
-/// The onboarding grid of the six Avatars (D36): 68pt circles named beneath, an
-/// 88pt hit area, the chosen one ringed white on a violet halo; VoiceOver hears "Pick your avatar", each animal.
 struct AvatarGrid: View {
-    /// The six keys in grid order, the list the contract documents on `Profile.avatar_key`.
     static let keys = ["fox", "otter", "panda", "frog", "owl", "rabbit"]
     let selected: String?
     let onSelect: (String) -> Void
     private let cell = Tokens.Size.avatarGridCell
-    /// PRD §6.4's 88pt hit area around each 68pt Avatar.
     private let hitArea: CGFloat = 88
 
     var body: some View {

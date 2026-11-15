@@ -2,9 +2,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Step 2 as drawn (PRD §6.5): the chosen row is checked, a search matching nothing draws its line and the link in
-/// place of the list, no connection is drawn in the card, sideways puts the question beside it, and a row checks
-/// only when chosen.
 @MainActor
 final class CurrencyViewTests: XCTestCase {
     private func step(region: String, query: String = "") -> some View {
@@ -22,7 +19,6 @@ final class CurrencyViewTests: XCTestCase {
         XCTAssertNotEqual(chosen, nothing, "a search matching nothing draws its line and Clear search")
     }
 
-    /// A save that could not reach the BFF draws `No connection. We need one to save your answers.` in the card.
     func testANoConnectionSaveIsDrawnInTheCard() async {
         let model = CurrencyViewModel(region: Locale(identifier: "id_ID")) { _, _ in .offline }
         let before = picture(CurrencyView(model: model, onBack: {}, onSaved: {}))

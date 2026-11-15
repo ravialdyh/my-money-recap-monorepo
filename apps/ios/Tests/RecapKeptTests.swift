@@ -1,8 +1,6 @@
 import XCTest
 @testable import MyMoneyRecap
 
-/// Page 2, C2 and P2 (#154): Maya's September from ledger's answer key (the stack cannot close September before
-/// 1 October), #155's no-target May, and Budi's recorded Augusts. Pictures are evidence.
 @MainActor
 final class RecapKeptTests: XCTestCase {
     func testMayasSquirrelMonthKeptAgainstHerTargetWithTheRunLit() async throws {
@@ -49,8 +47,6 @@ final class RecapKeptTests: XCTestCase {
         XCTAssertEqual(model.keptRows?.first?.display, "-IDR\u{00A0}2,000,000")
     }
 
-    /// P2: the dates as the title and the badge copy under it; in the current month the dots stop at today (the
-    /// window ends on the recording's 26 September), and a sign-up month's window starts on its sign-up day.
     func testP2InTheCurrentMonthAndInAPartialMonth() async throws {
         let cases = [
             ("recap-preview", "1 to 26 September", "New badge unlocked.", 26, 1 ... 26),
@@ -68,7 +64,6 @@ final class RecapKeptTests: XCTestCase {
         }
     }
 
-    /// The run follows the locale's day and month order; a one-day run is the single date.
     func testTheRunDatesFollowTheLocale() async throws {
         let cases = [
             ("recap-maya-september", "en_GB", "12 to 20 September"),

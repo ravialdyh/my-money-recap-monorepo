@@ -3,8 +3,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Step 4 as drawn (PRD §6.7, D44): moving the knob redraws the percent, the bar and the preview; with no Salary the
-/// slider card is the prompt back to step 3; a save that could not reach the BFF is drawn on the step.
 @MainActor
 final class TargetViewTests: XCTestCase {
     private func step(salary: String?, _ answer: SaveResult = .saved) -> TargetViewModel {

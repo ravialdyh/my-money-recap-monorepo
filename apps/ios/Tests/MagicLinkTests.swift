@@ -3,8 +3,6 @@ import Connect
 import XCTest
 @testable import MyMoneyRecap
 
-/// The incoming-link handler's two pure halves: the login token the three sources carry, and the failure
-/// code each screen-state copy belongs to (spec #61, SCREEN-STATES A3).
 @MainActor
 final class MagicLinkTests: XCTestCase {
     func testTheLoginTokenIsReadTheSameWayFromEverySource() throws {

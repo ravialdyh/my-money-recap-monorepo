@@ -2,8 +2,6 @@ import SwiftUI
 import XCTest
 @testable import MyMoneyRecap
 
-/// Step 3 as drawn (PRD §6.6): the chosen Payday is the ink pill with its dates under the picker, and a save that
-/// could not reach the BFF is drawn in the amount card.
 @MainActor
 final class SalaryViewTests: XCTestCase {
     private func step(_ answer: SaveResult = .saved) -> SalaryViewModel {
@@ -17,7 +15,6 @@ final class SalaryViewTests: XCTestCase {
         XCTAssertNotEqual(before, picture(SalaryView(model: model, onBack: {}, onDone: {})))
     }
 
-    /// A save that could not reach the BFF draws `No connection. We need one to save your answers.` in the card.
     func testANoConnectionSaveIsDrawnInTheCard() async {
         let model = step(.offline)
         model.amount = "150000000"

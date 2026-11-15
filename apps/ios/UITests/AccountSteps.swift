@@ -1,9 +1,6 @@
 import XCTest
 
 extension SignInUITests {
-    /// D12 then sign-in again (#183): Log out asks in the action sheet, Cancel keeps the Member in, Log out lands on
-    /// Sign
-    /// in, and a new link brings the same Member back to Home. Answers the link it used.
     func logOutAndBackIn(
         _ app: XCUIApplication, address: String, mailpit: Mailpit, after used: String
     ) async throws -> String {
@@ -33,8 +30,6 @@ extension SignInUITests {
         return try await signInByLink(app, address: address, mailpit: mailpit, after: used, landing: spentSoFar(app))
     }
 
-    /// D10, D11 and D11b (#183): Delete account explains the 24 hours, D11 takes exactly DELETE and signs out, and
-    /// signing in again by link offers Welcome back, whose Keep my account reaches Home.
     func deleteThenKeep(_ app: XCUIApplication, address: String, mailpit: Mailpit, after used: String) async throws {
         app.buttons["Settings"].tap()
         let row = app.buttons["Delete account"]
@@ -67,7 +62,6 @@ extension SignInUITests {
         XCTAssert(spentSoFar(app).waitForExistence(timeout: 30), "Keep my account keeps everything and reaches Home")
     }
 
-    /// Enter email, Send me a link, then the new link opened as the Mail app would, until `landing` shows.
     private func signInByLink(
         _ app: XCUIApplication, address: String, mailpit: Mailpit, after used: String, landing: XCUIElement
     ) async throws -> String {
@@ -88,8 +82,6 @@ extension SignInUITests {
     }
 }
 
-/// The Compose stack the runner points at (`scripts/ui-test.sh` reads it from `infra/compose/.env`). The
-/// app gets the BFF and the issuer; Mailpit is read from this process, never from the app.
 struct Stack {
     let mailpit: Mailpit
 
@@ -101,11 +93,9 @@ struct Stack {
     }
 }
 
-/// Mailpit's HTTP API: the newest sign-in message to an address, and the magic link inside it.
 struct Mailpit {
     let base: URL
 
-    /// The newest sign-in link to `address` that is not `used`, so a second sign-in waits for its own email.
     func link(to address: String, after used: String? = nil) async throws -> String {
         for _ in 0 ..< 20 {
             if let id = try await newestMessage(to: address) {

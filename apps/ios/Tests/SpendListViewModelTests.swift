@@ -4,9 +4,6 @@ import SwiftData
 import XCTest
 @testable import MyMoneyRecap
 
-/// The Spend list (PRD §6.10, D59) from the BFF's answer recorded after three Spends today
-/// (`Fixtures/list-spends.json`):
-/// Bills Rp150.000 once and Snacks Rp43.000 twice, the second one with no note.
 @MainActor
 final class SpendListViewModelTests: XCTestCase {
     private func recorded() throws -> MoneyRecap_V1_SpendListView {
@@ -49,8 +46,6 @@ final class SpendListViewModelTests: XCTestCase {
         )
     }
 
-    /// B6 empty: this month counts the Streak (D43); a past month with Money In and no Spend names itself (ruling
-    /// 2026-09-24). Picking the past month from the switcher asks for it and closes the switcher.
     func testBothEmptyMonths() async throws {
         var september = try recorded()
         september.categories = []
@@ -73,8 +68,6 @@ final class SpendListViewModelTests: XCTestCase {
         XCTAssertEqual(model.emptyLine, "Nothing spent in August.")
     }
 
-    /// A past month's share has no "so far"; a month opened once reads offline from its snapshot (IOS I4), which
-    /// sign-out erases with the stored Home.
     func testAMonthOpenedOnceReadsOfflineUntilSignOut() async throws {
         let context = try freshContext()
         var august = try recorded()
@@ -95,7 +88,6 @@ final class SpendListViewModelTests: XCTestCase {
         XCTAssertNil(SpendListSnapshot.load("2026-08", from: context))
     }
 
-    /// The month line under the switcher (owner ruling 2026-09-24): Spent and the count, "so far" only this month.
     func testTheMonthLineInItsFourForms() async throws {
         let many = try recorded()
         var one = many

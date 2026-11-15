@@ -3,11 +3,8 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// D9 Export spends (SCREEN-STATES D9): the card naming the address, `Sent ✓` at 40% for 60 seconds, the refused
-/// address named with no link, and any other failure retried under the same key.
 @MainActor
 final class ExportTests: XCTestCase {
-    /// Holds the 60 seconds open until the test lets them pass.
     @MainActor
     private final class Clock {
         var waited: [Duration] = []
@@ -18,7 +15,6 @@ final class ExportTests: XCTestCase {
             await withCheckedContinuation { release = $0 }
         }
 
-        /// Waits until the 60 seconds have begun, then lets them pass.
         func pass() async {
             while release == nil {
                 await Task.yield()
@@ -27,7 +23,6 @@ final class ExportTests: XCTestCase {
             release = nil
         }
 
-        /// Yields until the 60 seconds have begun.
         func started(_ count: Int) async {
             while waited.count < count {
                 await Task.yield()
@@ -68,7 +63,6 @@ final class ExportTests: XCTestCase {
         XCTAssertTrue(model.canSend)
     }
 
-    /// notify's refusal as the API passes it on: failed_precondition carrying EmailBounced.
     private static let bounced = ConnectError(code: .failedPrecondition, message: nil, details: [
         .init(
             type: MoneyRecap_V1_EmailBounced.protoMessageName,

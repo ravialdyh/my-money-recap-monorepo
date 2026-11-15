@@ -1,9 +1,6 @@
 import MoneyRecapContract
 import SwiftUI
 
-/// The launch after sign-in (spec #92): the zone (A3), whose Profile opens the restore sheet for a recent deletion
-/// (D60); then Home for a Member the stored Home greets (I4), else the first unanswered step; with no answer, no
-/// connection.
 @Observable
 @MainActor
 final class LaunchViewModel {
@@ -20,14 +17,10 @@ final class LaunchViewModel {
 
     private(set) var route: Route
     private(set) var isRetrying = false
-    /// The answers saved so far, the server's copy: from the onboarding state, then from each save's answer.
     private var profile = MoneyRecap_V1_Profile()
-    /// Step 3's saved Salary, relabelled whenever step 2 is saved again (spec #92).
     private var salary: MoneyRecap_V1_SalarySetting?
     private var target: MoneyRecap_V1_SavingTargetSetting?
-    /// The step a Home prompt opened, which Try again opens again; nil during setup.
     private var openedFromHome: Int?
-    /// The launch call's Profile, nil when the BFF could not answer.
     private let setZone: () async -> MoneyRecap_V1_Profile?
     private let state: () async -> MoneyRecap_V1_OnboardingState?
     private let now: () -> Date
@@ -52,7 +45,6 @@ final class LaunchViewModel {
         route = await decided()
     }
 
-    /// Try again on the no-connection state: the whole launch once more, zone included, or the step Home opened.
     func retry() async {
         isRetrying = true
         defer { isRetrying = false }
@@ -66,13 +58,11 @@ final class LaunchViewModel {
         route = await decided()
     }
 
-    /// "Keep my account" cleared the request: the setup check, then Home or the first unanswered step.
     func kept() async {
         route = .deciding
         route = await decided()
     }
 
-    /// A Home prompt: step 3 or 4 with the saved answers, which only the onboarding state carries (spec #92).
     func open(step: Int) async {
         openedFromHome = step
         route = .deciding
@@ -84,8 +74,6 @@ final class LaunchViewModel {
         route = step == 3 ? stepThree : stepFour
     }
 
-    /// A save the BFF answered, whose profile is what the steps re-select when the Member goes back. A Currency save
-    /// during setup also answers the Salary it relabelled; any other save leaves the Salary as it is.
     func saved(_ answer: MoneyRecap_V1_BffServiceSaveProfileResponse) {
         profile = answer.profile
         if answer.hasSalary {
@@ -101,29 +89,23 @@ final class LaunchViewModel {
         route = stepThree
     }
 
-    /// Step 3's Salary as ledger answered it, the one step 4 takes a share of.
     func salarySaved(_ settings: MoneyRecap_V1_LedgerSettings) {
         salary = settings.hasSalary ? settings.salary : salary
     }
 
-    /// Step 3 saved or skipped: step 4, as during setup, blocked when no Salary was ever saved (D44).
     func stepThreeDone() {
         route = stepFour
     }
 
-    /// Step 4's prompt back to step 3 (D44).
     func setSalary() {
         route = stepThree
     }
 
-    /// Step 4 saved or skipped: setup is over.
     func stepFourDone() {
         openedFromHome = nil
         route = .home
     }
 
-    /// The back chevron: the step before, with its saved answers. Saving it again leaves later answers and the saved
-    /// progress as they are (members keeps the highest step), and Next returns to the step after it.
     func back() {
         if openedFromHome != nil {
             openedFromHome = nil
@@ -140,13 +122,11 @@ final class LaunchViewModel {
         }
     }
 
-    /// Home answered failed_precondition: step 1 or 2 is unanswered, so that step opens (spec #92).
     func homeRefused() async {
         route = .deciding
         route = await decided()
     }
 
-    /// The launch call, and the restore sheet when its Profile carries a deletion under 24 hours old.
     private func restoring() async -> Bool {
         let zone = await setZone()
         let asked = zone.flatMap { $0.hasDeletionRequestedAt ? $0.deletionRequestedAt.date : nil }

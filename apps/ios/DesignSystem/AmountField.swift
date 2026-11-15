@@ -1,8 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Amount entry in a Card: the symbol fixed, the amount grouped as the device writes it at 48,
-/// 36 or 28pt, measured (PRD §11). `amount` is an exact decimal: 11 whole digits (D57), `digits` decimals (#92).
 struct AmountField: View {
     static let cap = "That's more than the app can store."
 
@@ -48,7 +46,6 @@ struct AmountField: View {
         }
     }
 
-    /// The symbol the platform formatter prints for the Currency in this locale: "Rp", "£", or the code itself.
     private var symbol: String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
@@ -61,8 +58,6 @@ struct AmountField: View {
         Self.size(for: symbol + " " + AmountText.shown(amount, locale: locale), in: width)
     }
 
-    /// The largest amount step at which `line`, the symbol, a space and the grouped amount, drawn in Fredoka bold,
-    /// fits `width`; 48pt before the row is measured, and 28pt when nothing fits.
     static func size(for line: String, in width: CGFloat) -> CGFloat {
         let steps = [Tokens.Size.amountL, Tokens.Size.amountM, Tokens.Size.amountS]
         return steps
@@ -70,7 +65,6 @@ struct AmountField: View {
             ?? Tokens.Size.amountS
     }
 
-    /// Fredoka at the bold weight the symbol is drawn in, which the typed amount is drawn and measured in.
     static func font(of size: CGFloat) -> UIFont {
         let family = UIFontDescriptor(fontAttributes: [.family: Tokens.FontFamily.display])
         let bold = family.addingAttributes([.traits: [UIFontDescriptor.TraitKey.weight: UIFont.Weight.bold]])
@@ -78,8 +72,6 @@ struct AmountField: View {
     }
 }
 
-/// The UIKit field under `AmountField`: each keystroke is read, kept to the cap and regrouped inside
-/// `shouldChangeCharactersIn`, before the next one arrives, so no keystroke is lost to a redraw.
 private struct AmountInput: UIViewRepresentable {
     @Binding var amount: String
     @Binding var focused: Bool
@@ -142,19 +134,13 @@ private struct AmountInput: UIViewRepresentable {
     }
 }
 
-/// What the amount field reads and writes: the exact decimal the contract carries, and that decimal as the device
-/// locale groups it. Pure, so the rules are tested without a screen.
 enum AmountText {
-    /// D57: whole digits the app can store and every screen can show.
     static let wholeDigits = 11
 
-    /// True at 11 whole digits, where the field takes no more and says so (D57).
     static func isFull(_ amount: String) -> Bool {
         amount.split(separator: ".", omittingEmptySubsequences: false)[0].count >= wholeDigits
     }
 
-    /// The exact decimal in what was typed, grouping dropped and the locale's separator read as the point, kept to 11
-    /// whole digits and the Currency's decimals, so a keystroke past either is dropped, as is a point with none.
     static func parsed(_ typed: String, digits: Int, locale: Locale) -> String {
         let point = locale.decimalSeparator ?? "."
         var whole = ""
@@ -175,7 +161,6 @@ enum AmountText {
         return String(whole.prefix(wholeDigits)) + (fraction.map { "." + $0.prefix(digits) } ?? "")
     }
 
-    /// `amount` grouped as the locale writes it, keeping a trailing point and the decimals exactly as typed.
     static func shown(_ amount: String, locale: Locale) -> String {
         guard !amount.isEmpty else { return "" }
         let parts = amount.split(separator: ".", omittingEmptySubsequences: false)

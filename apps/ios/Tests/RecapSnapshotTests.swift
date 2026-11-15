@@ -4,8 +4,6 @@ import SwiftData
 import XCTest
 @testable import MyMoneyRecap
 
-/// A Recap opened once opens again with no signal (PRD D61, IOS I4): the stored copy is drawn at once, the answer
-/// replaces it, and a failure keeps it. The erase at sign-out and on a refused Home is `HomeViewModelTests`'.
 @MainActor
 final class RecapSnapshotTests: XCTestCase {
     private func freshContext() throws -> ModelContext {

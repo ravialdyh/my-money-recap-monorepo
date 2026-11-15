@@ -1,8 +1,6 @@
 import MoneyRecapContract
 import SwiftUI
 
-/// Page 3, C3 or P3 (PRD §6.13, §6.17): the coral ground, the target card by situation, then where the money went.
-/// `active` is true while the page is on screen, which reveals its bars. Scrolls held sideways.
 struct RecapGoalPage: View {
     @Bindable var model: RecapViewModel
     var active = true
@@ -114,14 +112,12 @@ struct RecapGoalPage: View {
 }
 
 extension RecapViewModel {
-    /// C3's "{kept%} of your saving target"; P3's, and C3's with no Saving Target, "Where {Spent} went".
     var goalHeadline: String {
         guard let recap = answer?.recap else { return "" }
         return !partial && recap.hasKeptPercent ? "\(recap.keptPercent)% of your saving target"
             : "Where \(money(recap.spent)) went"
     }
 
-    /// C3's target card: "{Saved} of {target}" and the bar's drawn fill from those two figures; nil without a target.
     var target: (progress: String, fraction: Double)? {
         guard !partial, let recap = answer?.recap, recap.hasSavingTarget, recap.hasSaved else { return nil }
         let whole = Double(recap.savingTarget.amount.amount) ?? 0
@@ -131,8 +127,6 @@ extension RecapViewModel {
         )
     }
 
-    /// P3 before Payday (D55): "Your salary lands on the 25th.", the day ledger's days until Payday lands on from
-    /// today.
     var paydayLine: String? {
         guard partial, let days = answer?.recap.salary.daysUntilPayday, days > 0,
               let payday = Calendar.current.date(byAdding: .day, value: Int(days), to: today) else { return nil }
@@ -152,13 +146,11 @@ extension RecapViewModel {
         return "Where \(money(recap.spent)) went"
     }
 
-    /// "Mostly {top Category}" in lower case, or "Nothing spent this month".
     var spendingTitle: String {
         categories.first.map { "Mostly \(SpendListViewModel.glyph($0.category).label.lowercased())" }
             ?? "Nothing spent this month"
     }
 
-    /// The three largest Categories (D71), each with ledger's percentage and its amount.
     var bars: [CategoryBar] {
         categories.prefix(3).map {
             CategoryBar(
@@ -169,8 +161,6 @@ extension RecapViewModel {
         }
     }
 
-    /// "{names} · {n}%" for the Categories past the third, `n` the sum of ledger's rounded percentages (IOS §1).
-    /// No-break spaces keep "· {n}%" on the last name's line.
     var rollUp: String? {
         let rest = categories.dropFirst(3)
         guard !rest.isEmpty else { return nil }
@@ -178,12 +168,10 @@ extension RecapViewModel {
         return "\(names)\u{00A0}·\u{00A0}\(rest.reduce(0) { $0 + Int($1.percent) })%"
     }
 
-    /// No Spend, and Money In above 0.
     var everyPenny: Bool {
         categories.isEmpty && (Decimal(string: answer?.recap.moneyIn.amount ?? "") ?? 0) > 0
     }
 
-    /// "{amount} on {note, or the Category in lower case}. Your biggest single buy."; nil with no Spend.
     var splurge: String? {
         guard let recap = answer?.recap, recap.hasSplurge else { return nil }
         let spend = recap.splurge

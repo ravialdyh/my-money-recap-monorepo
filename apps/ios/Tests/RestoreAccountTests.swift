@@ -3,8 +3,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// D11b Restore account (D60, #105): only a deletion under 24 hours old opens it, before the setup check and before
-/// Home; its lines name the real days; a failed keep says so in the sheet and tries again with the same key.
 @MainActor
 final class RestoreAccountTests: XCTestCase {
     private var calendar: Calendar {

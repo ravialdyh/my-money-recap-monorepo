@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// D8 Notifications (PRD §6.16): the three switches with their helper lines, and `Remind me at` under Daily reminder
-/// while it is on, its time the system's own picker in the device locale. Denied, the info Banner and the rows at 40%.
 struct NotificationsView: View {
     @State private var model: NotificationsViewModel
     @Environment(\.dismiss) private var dismiss
@@ -67,7 +65,6 @@ struct NotificationsView: View {
         .overlay(alignment: .bottom) { Tokens.Surface.divider.frame(height: divider ? 1 : 0) }
     }
 
-    /// `Remind me at` and the saved time; tapping the time opens the system wheel, and each settled time is saved.
     private var reminderTime: some View {
         HStack(spacing: 12) {
             Text("Remind me at").textStyle(Tokens.TypeRamp.labelM)

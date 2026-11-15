@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// PRD §6.2 / SCREEN-STATES A2. One send, then Check your inbox; a refused link comes back here with its
-/// own copy and the address still in the field.
 struct EnterEmailView: View {
     private let session: AuthSession
     @Binding var path: [EmailStep]

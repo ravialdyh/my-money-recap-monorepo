@@ -3,8 +3,6 @@ import MoneyRecapContract
 import XCTest
 @testable import MyMoneyRecap
 
-/// D3 Salary and payday (PRD §8.10, D56) on 29 September in Jakarta, over the recorded Settings answers: when "Which
-/// salary is this?" opens and when it does not, each row's answer, the three lines and the failed saves.
 @MainActor
 final class SalaryEditViewModelTests: XCTestCase {
     private typealias Sent = (request: MoneyRecap_V1_BffServiceSaveSalaryRequest, headers: Headers)
@@ -159,8 +157,6 @@ final class SalaryEditViewModelTests: XCTestCase {
         XCTAssertEqual(sent()[0].headers, sent()[1].headers, "the retry counts once")
     }
 
-    /// D1 opens D3 over its stored answer; a save's Settings replace the stored copy and the row, keeping the stored
-    /// notification preferences, which a Salary save's answer does not carry.
     func testASaveReplacesTheStoredSettings() async throws {
         let context = try SettingsViewModelTests.context()
         let answer = try MoneyRecap_V1_BffServiceSaveSalaryResponse.with {

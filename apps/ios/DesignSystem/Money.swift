@@ -1,7 +1,5 @@
 import Foundation
 
-/// An exact decimal plus an ISO 4217 code (PRD §7, D71), printed by the platform formatter in the device locale with
-/// exactly the decimals ledger rounded it to, not the platform's count for the currency (I7). Whole: no fraction.
 enum Money {
     static func format(_ amount: String, currency: String, locale: Locale = .autoupdatingCurrent) -> String {
         let value = Decimal(string: amount) ?? 0

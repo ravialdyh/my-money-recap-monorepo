@@ -4,8 +4,6 @@ import SwiftData
 import XCTest
 @testable import MyMoneyRecap
 
-/// The recorded BFF answer for the test Member after steps 1 and 2 (`Fixtures/home-zero.json`, IOS I9) drives every
-/// case.
 @MainActor
 final class HomeViewModelTests: XCTestCase {
     private func recordedHome(_ name: String = "home-zero") throws -> MoneyRecap_V1_HomeView {
@@ -20,8 +18,6 @@ final class HomeViewModelTests: XCTestCase {
         ))
     }
 
-    /// Sign-out erases what the device holds (PRD §9), and the stored Home is the only setup progress it holds: it is
-    /// what opens Home with no round trip (spec #92).
     func testEraseEmptiesTheStoreAsSignOutDoes() throws {
         let context = try freshContext()
         try HomeSnapshot.replace(with: recordedHome(), in: context)
@@ -50,8 +46,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(model.monthLabel, "September")
     }
 
-    /// Home's past-recap rows print each month and the label ledger answered, its Archetype or "Partial" (PRD §6.8,
-    /// §8.11), from the BFF's answer recorded with a Hustler August and a July of Spends with no Salary.
     func testPastRecapRowsShowLedgersLabels() async throws {
         let home = try recordedHome("home-recaps")
         let model = try HomeViewModel(
@@ -63,8 +57,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(rows, ["August 2026: Hustler", "July 2026: Partial"], "newest first, as ledger lists them")
     }
 
-    /// "See last month" opens August from September's Home, and stays disabled when only an older month has data
-    /// (PRD §6.8); a row opens its own month and the preview card Home's month (spec #151).
     func testEachEntryPointOpensItsMonthsRecap() async throws {
         var home = try recordedHome("home-recaps")
         let model = try HomeViewModel(fetch: { home }, screens: HomeScreens(context: freshContext()))
@@ -89,7 +81,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(model.recap(home.month).month, "2026-09", "the preview card opens the month so far")
     }
 
-    /// PRD §6.8's countdown before the effective Payday, in the singular on the day before (§12, criterion 4).
     func testTheEyebrowCountsTheDaysToTheSalary() async throws {
         var home = try recordedHome()
         home.salary.daysUntilPayday = 15
@@ -127,8 +118,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(sent, 0, "no signal is not a reason to leave Home")
     }
 
-    /// failed_precondition means step 1 or 2 is unanswered (spec #92): the stored Home, which may still carry the
-    /// currency the backend used to invent, is deleted and onboarding opens.
     func testARefusedHomeDeletesTheStoredHomeAndOpensOnboarding() async throws {
         let context = try freshContext()
         try HomeSnapshot.replace(with: recordedHome(), in: context)
@@ -156,8 +145,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertEqual(try MoneyRecap_V1_HomeView(serializedBytes: rows[0].bytes).month, "2026-10")
     }
 
-    /// The Target Warning is the server's kept copy, before or after Payday (D53), gone once dismissed for the rest of
-    /// the run, even on a Home built again, and back on the next launch or in a month the Member has not dismissed.
     func testTheWarningStaysDismissedForTheSessionOnly() async throws {
         var home = try recordedHome()
         home.month = "2026-09"
@@ -200,8 +187,6 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertNotNil(model.warning, "October's warning is not September's")
     }
 
-    /// D58: losing the network path turns Home offline over the stored numbers, warning included, and regaining it
-    /// turns it back; each change reaches a drawn Home through observation, with no relaunch.
     func testHomeFollowsTheNetworkPathOverTheStoredNumbers() throws {
         let context = try freshContext()
         var home = try recordedHome()

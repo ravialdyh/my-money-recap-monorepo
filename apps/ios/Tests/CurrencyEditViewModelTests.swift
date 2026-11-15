@@ -5,8 +5,6 @@ import SwiftProtobuf
 import XCTest
 @testable import MyMoneyRecap
 
-/// D5 to D7 (PRD §8.9) from the BFF's recorded answers for the test Member in rupiah: with no amounts, then with a
-/// Rp150.000.000 Salary and a Rp25.000 Spend previewed and converted to pounds at a typed 0.000046.
 @MainActor
 final class CurrencyEditViewModelTests: XCTestCase {
     nonisolated static func recorded<Answer: SwiftProtobuf.Message>(
@@ -20,7 +18,6 @@ final class CurrencyEditViewModelTests: XCTestCase {
     typealias PreviewAnswer = MoneyRecap_V1_BffServicePreviewCurrencyChangeResponse
     typealias ChangeAnswer = MoneyRecap_V1_BffServiceChangeCurrencyResponse
 
-    /// The recorded typed-rate preview as a fetched one (#175 adds the fetch).
     nonisolated static func fetched() throws -> PreviewAnswer {
         var answer: PreviewAnswer = try recorded("currency-preview")
         answer.preview.source = .provider
@@ -71,8 +68,6 @@ final class CurrencyEditViewModelTests: XCTestCase {
         XCTAssertEqual(model.noMatch, "No currency matches \"zzz\".")
     }
 
-    /// Nothing to convert: the change goes at once with no rate, and the row reads `Changed ✓` until the list opens
-    /// again.
     func testNothingToConvertChangesAtOnce() async throws {
         let (model, calls) = model(
             preview: { _ in try Self.recorded("currency-nothing-to-convert") },
@@ -92,8 +87,6 @@ final class CurrencyEditViewModelTests: XCTestCase {
         XCTAssertNil(self.model { _ in PreviewAnswer() }.0.changedValue, "a new list has no Changed ✓")
     }
 
-    /// A fetched rate opens D6: the rate line, the salary sentence and the rows in the device locale; Convert sends the
-    /// preview's rate and source.
     func testAFetchedRateOpensTheConfirmSheet() async throws {
         let (model, calls) = model { _ in try Self.fetched() }
         await model.choose("GBP")
@@ -117,7 +110,6 @@ final class CurrencyEditViewModelTests: XCTestCase {
         XCTAssertNil(model.changedValue, "Changed ✓ is the direct change's")
     }
 
-    /// A failed fetch opens D6 failed; Try again asks once more, and Enter it myself opens D7 with nothing typed.
     func testAFailedFetchOffersTryAgainAndEnterItMyself() async {
         let (model, calls) = model { _ in throw Self.refused(.unavailable) }
         await model.choose("GBP")
@@ -142,8 +134,6 @@ final class CurrencyEditViewModelTests: XCTestCase {
         XCTAssertEqual(model.step, .manual)
     }
 
-    /// D7 asks again after typing stops, only for a rate above zero, and Convert waits for that answer; it sends the
-    /// typed rate as MANUAL.
     func testTheTypedRateIsPreviewedThenConverted() async {
         let (model, calls) = model { request in
             request.manualRate.isEmpty ? .with { $0.preview.unsupportedPair = true } : try Self
@@ -175,7 +165,6 @@ final class CurrencyEditViewModelTests: XCTestCase {
         XCTAssertEqual(CurrencyEditViewModel.sendable("5."), "5")
     }
 
-    /// Past D57 the sheet says so with Convert off; any other failed Convert asks to try again under the same key.
     func testRefusalsShowInTheSheet() async {
         var refusal = Code.outOfRange
         let (model, calls) = model(preview: { request in
@@ -204,9 +193,6 @@ final class CurrencyEditViewModelTests: XCTestCase {
         XCTAssertEqual(calls.changes[1].1, calls.changes[2].1, "the retry counts once")
     }
 
-    /// Through Home's Settings: the answer replaces Home and Settings, stored and shown, and every stored Spend list
-    /// and
-    /// Recap is erased, since they hold the old Currency.
     func testAConversionReplacesHomeAndSettingsAndErasesStoredScreens() async throws {
         let context = try SettingsViewModelTests.context()
         let zero: MoneyRecap_V1_GetHomeResponse = try Self.recorded("home-zero")

@@ -1,7 +1,5 @@
 import Foundation
 
-/// A3 Check your inbox (SCREEN-STATES, IOS I6): it names the address the link went to, says the link works
-/// for 15 minutes, and wakes Resend after 30 seconds behind a live m:ss countdown (PRD §6.3).
 @Observable
 @MainActor
 final class CheckInboxViewModel {
@@ -15,7 +13,6 @@ final class CheckInboxViewModel {
     private let send: (String) async -> MagicLinkFailure?
     private let tick: () async -> Void
 
-    /// `tick` is one second of waiting; the tests pass one that returns at once.
     init(
         email: String,
         send: @escaping (String) async -> MagicLinkFailure?,
@@ -38,8 +35,6 @@ final class CheckInboxViewModel {
         secondsLeft == 0 && !isSending
     }
 
-    /// Runs to zero once however often the screen appears: a second run while one is in flight, or after
-    /// the countdown is spent, would resend early or tick past zero.
     func countDown() async {
         guard !isCountingDown, secondsLeft > 0 else { return }
         isCountingDown = true
@@ -50,7 +45,6 @@ final class CheckInboxViewModel {
         }
     }
 
-    /// A link that went out again restarts the countdown; a refused one leaves it spent.
     func resend() async {
         guard canResend else { return }
         isSending = true

@@ -1,7 +1,5 @@
 import XCTest
 
-/// The sign-in-to-Home path against local Compose (IOS I9), by magic link (spec #61 seam 6). Skips unless the
-/// runner names the stack's Mailpit, as `scripts/ui-test.sh` does.
 @MainActor
 final class SignInUITests: XCTestCase {
     override func setUp() {
@@ -151,9 +149,6 @@ final class SignInUITests: XCTestCase {
 }
 
 extension SignInUITests {
-    /// PRD §6.9 / SCREEN-STATES B2 to B4: Save off while empty, the amount, one Category, today's date row and its
-    /// picker, a note, the sheet sideways, then Save closes it, notifications are allowed (B5), and the hero shows the
-    /// Spent the BFF answered.
     func logASpend(_ app: XCUIApplication, rupiah amount: Int) {
         app.buttons["Log a spend"].tap()
         let field = app.textFields["Amount"]
@@ -186,7 +181,6 @@ extension SignInUITests {
         snapshot("13-home-after-a-spend")
     }
 
-    /// SCREEN-STATES B5: once the first Spend's sheet closes, iOS asks; the alert is springboard's, not the app's.
     func allowNotifications() {
         let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow"]
         XCTAssert(allow.waitForExistence(timeout: 30), "the first Spend asks for notification permission (B5)")
@@ -197,8 +191,6 @@ extension SignInUITests {
 }
 
 extension SignInUITests {
-    /// PRD §6.10 / SCREEN-STATES B6, B6b: the hero opens the Spend list with the Spend under Snacks, its Category
-    /// opens the detail naming it by its note, back returns to the list, and the month chip opens the switcher.
     func openTheSpendList(_ app: XCUIApplication, rupiah amount: Int) {
         spentSoFar(app).tap()
         let snacks = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Snacks' AND label CONTAINS '1 spend'"))

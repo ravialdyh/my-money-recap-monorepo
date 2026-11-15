@@ -5,8 +5,6 @@ import SwiftData
 import XCTest
 @testable import MyMoneyRecap
 
-/// Log a spend (PRD §6.9) from the recorded answer `Fixtures/log-spend.json`: Save waits for an amount and a Category,
-/// a failure keeps every value, a retry keeps its key, and the date and note stay inside what ledger takes.
 @MainActor
 final class LogSpendViewModelTests: XCTestCase {
     private var calendar: Calendar {
@@ -82,7 +80,6 @@ final class LogSpendViewModelTests: XCTestCase {
         XCTAssertNotEqual(sent[2].1, sent[1].1, "changed values start a new attempt")
     }
 
-    /// The picker runs from the earliest date ledger answered to today (D72); the phone computes neither end.
     func testTheDatesRunFromLedgersEarliestToToday() throws {
         let model = try sheet { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
         XCTAssertEqual(model.dateLabel, "Today, 26 September")
@@ -95,7 +92,6 @@ final class LogSpendViewModelTests: XCTestCase {
         XCTAssertEqual(unknown.dates.lowerBound, unknown.dates.upperBound, "today alone before Home names a date")
     }
 
-    /// PRD §6.9: at most 80 characters, counted as ledger counts them, code points of the NFC form.
     func testTheNoteStopsAtEightyCharacters() throws {
         let model = try sheet { _, _ in .failure(ConnectError(code: .unavailable, message: nil)) }
         model.type(String(repeating: "e\u{301}", count: 81))
@@ -110,7 +106,6 @@ final class LogSpendViewModelTests: XCTestCase {
         )
     }
 
-    /// Home opens the sheet in its Currency and decimals, and the save's Home replaces the stored one whole (IOS I4).
     func testHomeOpensTheSheetAndStoresTheAnswer() async throws {
         let recorded = try Self.recordedAnswer()
         let context = try ModelContext(ModelContainer(

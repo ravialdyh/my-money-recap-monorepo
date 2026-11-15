@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// The 22pt goal track: a pill in the tone's light track, filled to `fraction` in the
-/// tone's data colour, the `piggy` marker riding the fill's end. The fraction is drawing only, clamped (A2).
 struct ProgressBar: View {
     enum Tone {
         case violet, green, coral
@@ -26,7 +24,6 @@ struct ProgressBar: View {
     let fraction: Double
     var tone: Tone = .green
     var piggy = false
-    /// False draws the empty track; turning true reveals the fill (`Reveal`).
     var shown = true
 
     var body: some View {
@@ -48,7 +45,6 @@ struct ProgressBar: View {
     }
 }
 
-/// The saving-target bar's marker, drawn from its shapes on the 64 by 30 grid.
 struct PiggyMarker: View {
     static let size = CGSize(width: 64, height: 30)
 
@@ -89,8 +85,6 @@ struct PiggyMarker: View {
     }
 }
 
-/// A bar's reveal (tokens `motion.reveal.bar`): the fill grows from nothing when `shown` turns true; with Reduce Motion
-/// it fades in over 150 ms instead.
 struct Reveal: ViewModifier {
     let shown: Bool
     let width: CGFloat
