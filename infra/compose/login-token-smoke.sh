@@ -58,4 +58,4 @@ status=$(curl -s -o "$body" -w '%{http_code}' -X POST "$TOKEN" -d grant_type=ref
 [[ $status == 400 && $(jq -r .error "$body") == invalid_grant ]] || fail "logout left the offline sign-in alive: HTTP $status $(jq -r '.error // "new tokens issued"' "$body")"
 echo "logout ended the offline sign-in"
 rm -f "$body"
-echo "A10 OK on $image"
+echo "login token smoke OK on $image"
