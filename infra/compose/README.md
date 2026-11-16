@@ -170,13 +170,13 @@ running `up` is enough to change it.
   flow: two conditional branches on the optional `login-token` client scope. A token request with
   `scope=login-token` runs the Login Token authenticator (A10); one without runs the username and
   password validators. The two cannot be plain alternatives, because the Login Token authenticator
-  fails the whole flow when the `login_token` field is absent (`a10-smoke.sh` proved this on the
+  fails the whole flow when the `login_token` field is absent (`login-token-smoke.sh` proved this on the
   pinned image). Keycloak's built-in scopes (`profile`, `email`, `basic`, ...) come with the realm,
   so access tokens carry `sub`.
 - `bff`: confidential client with a service account holding `realm-management` `manage-users`, which
   the Login Token endpoint needs (A10). Its secret is a variable rather than a generated value,
   because the BFF signs in as this client for that endpoint (`BFF_CLIENT_SECRET`), and so do
-  `a10-smoke.sh` and the `members` wrong-audience test.
+  `login-token-smoke.sh` and the `members` wrong-audience test.
 - `notify` and `members`: one confidential client per background job, each with a service account,
   because a job has no Member token to send (ARCHITECTURE §4.2). `notify`'s tokens name `ledger` as
   their audience, and `ledger` accepts them for `GetSpentToday` and `ListMonthsWithData` alone;
@@ -228,7 +228,7 @@ curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorizatio
 Nginx is the one container in front of the BFF and Keycloak (§5, A7). It serves plain HTTP on
 `NGINX_HOST_PORT` until a certificate exists, and [`../nginx/README.md`](../nginx/README.md) holds its
 four routes, its two static files, its limits and its TLS sidecar. Keycloak and the BFF also keep
-their own published ports, which the app's configuration, `a10-smoke.sh` and every test variable but
+their own published ports, which the app's configuration, `login-token-smoke.sh` and every test variable but
 `BFF_TEST_EDGE` use. The link in the email is `http://$MMR_HOST:$NGINX_HOST_PORT/magic?lt=...`
 (`BFF_MAGIC_LINK_BASE_URL`), so tapping it on a laptop reaches the fallback page.
 
@@ -329,7 +329,7 @@ after it.
 
 ## A10 smoke test
 
-`a10-smoke.sh` proves A10 on the pinned image, and CI runs it on every pull request that touches the
+`login-token-smoke.sh` proves A10 on the pinned image, and CI runs it on every pull request that touches the
 backend, `infra/` or the contract (the `backend` job, after the Go tests, with a throwaway `.env`). Against the running stack, using the same `.env`, it:
 
 1. gets a service-account token for `bff` and calls `POST /realms/mmr/login-token` for the test
@@ -346,7 +346,7 @@ backend, `infra/` or the contract (the `backend` job, after the Go tests, with a
    out will (PRD §9), and prints the image tag.
 
 ```bash
-infra/compose/a10-smoke.sh
+infra/compose/login-token-smoke.sh
 ```
 
 It reads `KEYCLOAK_HOST_PORT` from `.env` when set (see "One stack per laptop").

@@ -202,7 +202,7 @@ jobs:
           python3 ../../tools/coverage/coverage_gate.py go "$pct"
       - name: Login Token issued and redeemed on the pinned Keycloak image
         working-directory: infra/compose
-        run: ./a10-smoke.sh
+        run: ./login-token-smoke.sh
       - name: The realm the stack built re-applies as a no-op, so no resource is re-created
         working-directory: infra/compose
         run: ./realm-noop.sh
