@@ -5,8 +5,8 @@ services, and joins their answers into one answer per screen. It has no database
 
 ## Opening Home
 
-`members` is asked first. `ledger` and `notify` are then asked at the same time; Home still opens without
-`notify`, just with no banner.
+`members` is asked first. `ledger` and `notify` are then asked at the same time. Dashed arrows are answers.
+Home still opens without `notify`, just with no banner.
 
 ```mermaid
 sequenceDiagram
@@ -24,7 +24,7 @@ sequenceDiagram
 
 ## Logging a Spend
 
-`notify` is told only when the Spend is in the current month. Dashed arrows are answers.
+`notify` is told only when the Spend is in the current month.
 
 ```mermaid
 sequenceDiagram

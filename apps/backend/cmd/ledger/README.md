@@ -5,7 +5,7 @@ Home and in the Recap. The rules and a worked example are in [MONEY-RULES.md](MO
 
 ## Changing the Currency
 
-When a Member changes Currency with amounts saved, `ledger` rewrites them all in one go and tells `members`.
+When a Member changes Currency with amounts saved, `ledger` rewrites them all in one go. The dashed arrow is an event that tells `members`.
 
 ```mermaid
 sequenceDiagram

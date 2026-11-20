@@ -8,7 +8,7 @@ changes Currency. It keeps nothing about any Member.
 The day's whole rate table is fetched once and kept in Redis for 36 hours.
 
 ```mermaid
-flowchart LR
+flowchart TD
     bff["BFF"]
     currency["Currency service"]
     redis[("Redis cache")]
