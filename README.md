@@ -1,20 +1,113 @@
 # My Money Recap
 
-A personal money tracker for adults, styled as a playful kids' app, that turns one month of
-income, spending and saving into a Wrapped-style monthly recap.
+An iPhone app for adults that tracks one month of salary, spending and saving. It looks like a playful kids'
+app, and at the end of each month it shows a short, Wrapped-style Recap of how the month went.
 
-Work in progress: slices 1–7 are done; the real deploy and the rest of phase 1 are planned in #8 and #87.
+Work in progress: what is left before the first release is in #8 and #87.
+
+## What it does not do
+
+- No income other than the Salary: no side income, chores or earnings.
+- No bank connection, receipts, recurring Spends or budgets per category.
+- No family accounts, shared views or child users. One adult per account.
+- No adding Spends while offline. Reading offline works.
+- No Android or web app.
+
+## How the parts fit
+
+The phone talks only to the edge. Everything inside "Our backend" runs in one Compose stack.
+
+```mermaid
+flowchart TD
+    phone["iPhone app"]
+    subgraph backend["Our backend"]
+        edge["Nginx edge"]
+        bff["BFF"]
+        keycloak["Keycloak sign-in"]
+        subgraph services["Services"]
+            members["Members"]
+            ledger["Ledger"]
+            notify["Notify"]
+            currency["Currency"]
+        end
+    end
+    subgraph storage["Storage"]
+        postgres[("Postgres")]
+        rabbit[["RabbitMQ events"]]
+        redis[("Redis cache")]
+    end
+    subgraph outside["Outside services"]
+        apns["Apple push"]
+        mail["Email sender"]
+        rates["Exchange rates"]
+    end
+    phone --> edge
+    edge --> bff
+    edge --> keycloak
+    bff --> services
+    services --> storage
+    notify --> apns
+    notify --> mail
+    currency --> rates
+```
+
+The same picture as an architecture diagram:
+
+```mermaid
+architecture-beta
+    service phone(internet)[iPhone app]
+
+    group backend(cloud)[Our backend]
+    service edge(server)[Nginx edge] in backend
+    service keycloak(server)[Keycloak sign in] in backend
+    service bff(server)[BFF] in backend
+    service members(server)[Members] in backend
+    service ledger(server)[Ledger] in backend
+    service notify(server)[Notify] in backend
+    service currency(server)[Currency] in backend
+
+    group storage(database)[Storage]
+    service postgres(database)[Postgres] in storage
+    service rabbit(disk)[RabbitMQ events] in storage
+    service redis(database)[Redis cache] in storage
+
+    group outside(internet)[Outside services]
+    service apns(internet)[Apple push] in outside
+    service mail(internet)[Email sender] in outside
+    service rates(internet)[Exchange rates] in outside
+
+    phone:B --> T:edge
+    edge:R --> L:keycloak
+    edge:B --> T:bff
+    bff:B --> T:ledger
+    ledger:L --> R:members
+    ledger:R --> L:notify
+    notify:R --> L:currency
+    ledger:B --> T:postgres
+    notify:B --> T:apns
+    currency:B --> T:rates
+```
+
+## How it works
+
+- **iPhone app**: SwiftUI. The Member signs in, logs each Spend and reads the Recap.
+- **Nginx edge**: the one public door. It sends app calls to the BFF and sign-in to Keycloak.
+- **BFF**: checks who is calling and builds each screen from the services.
+- **Services**: Members (profiles), Ledger (Spends and the money rules), Notify (pushes and emails),
+  Currency (exchange rates).
+- **Storage**: one Postgres with its own database for Keycloak, Members, Ledger and Notify. RabbitMQ carries
+  events between services. Redis holds rate limits and cached exchange rates.
 
 ## Layout
 
 | Path | What lives here |
 | --- | --- |
-| `docs/` | The product rules (`PRD.md`), every screen state (`SCREEN-STATES.md`), the glossary (`CONTEXT.md`), and the backend and iOS decisions (`ARCHITECTURE.md`, `IOS.md`) |
-| `my-money-recap/` | The illustration artwork and the scripts that produce it |
-| `design-tokens/` | The token values generated into `Tokens.swift`, and the visual rules |
+| `docs/` | The glossary (`CONTEXT.md`) and the older long product and design documents |
+| `my-money-recap/` | The illustrations and the scripts that make them |
+| `design-tokens/` | The colours, type and spacing, generated into `Tokens.swift` |
 | `apps/` | The Go backend and the SwiftUI app |
-| `packages/contract/` | The Buf API contract every client is generated from |
-| `infra/` | The Compose stack, the Keycloak realm, the edge, the secrets and the setup wizard |
+| `packages/contract/` | The API contract every client is generated from |
+| `infra/` | The Compose stack, sign-in setup, edge, secrets and setup wizard |
 
 ## Getting started
 
@@ -26,8 +119,9 @@ npm install
 pipx install pre-commit && pre-commit install --install-hooks
 ```
 
-Then run the backend with `infra/compose/README.md` ("Run it") and the app with `apps/ios/README.md` ("Open").
+Then start the backend with `infra/compose/README.md` ("Run it") and the app with `apps/ios/README.md` ("Open").
 
 ## License
 
-MIT, in `LICENSE`. The Fredoka and Nunito fonts (`apps/ios/Resources/Fonts/`) are under the SIL Open Font License, and the CLDR currency data (`apps/backend/internal/cldr/`) under the Unicode License.
+MIT, in `LICENSE`. The Fredoka and Nunito fonts (`apps/ios/Resources/Fonts/`) use the SIL Open Font License.
+The CLDR currency data (`apps/backend/internal/cldr/`) uses the Unicode License.
