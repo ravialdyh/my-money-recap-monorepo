@@ -4,7 +4,7 @@ Read `README.md` for the layout and `docs/CONTEXT.md` before naming anything.
 
 ## Branching
 
-Never commit to `main`. Every change is a short branch off `main` and a pull request; CI must be green before merge. Deployment is a version tag, not a merge (`docs/ARCHITECTURE.md` A15). A ruleset on `main` enforces it: no direct push, no force push, and the `ci` and `security` checks must pass, with no one exempt.
+Never commit to `main`. Every change is a short branch off `main` and a pull request; CI must be green before merge. Deployment is a version tag, not a merge (`infra/README.md`, "Deploying"). A ruleset on `main` enforces it: no direct push, no force push, and the `ci` and `security` checks must pass, with no one exempt.
 
 A branch is named `<type>/<kebab-summary>`, where `<type>` is the change's Conventional Commits type, matching the commit subject: `feat/members-service`, `chore/ci-fold-and-tokens`, `build/react-19`. `dependabot/*` is the one exception, because the tool owns those names.
 
@@ -44,4 +44,4 @@ See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context. Glossary at `docs/CONTEXT.md`; decisions are the numbered tables in `docs/PRD.md` (D*), `docs/ARCHITECTURE.md` (A*) and `docs/IOS.md` (I*), with no `adr/` folder. See `docs/agents/domain.md`.
+Single-context. Glossary at `docs/CONTEXT.md`; there is no decisions register and no `adr/` folder. See `docs/agents/domain.md`.

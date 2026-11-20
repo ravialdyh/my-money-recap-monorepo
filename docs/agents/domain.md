@@ -1,28 +1,31 @@
 # Domain Docs
 
-How the engineering skills consume this repo's domain documentation.
+How the engineering skills use this repo's domain documentation.
 
 ## Before exploring, read these
 
-- `docs/CONTEXT.md`: the glossary. Use its terms exactly; never a synonym it lists under "Avoid".
-- The decision registers, in place of ADRs:
-  - `docs/PRD.md` §4: product decisions D1–D71, and §8 for the money rules
-  - `docs/ARCHITECTURE.md` §11: backend decisions A1–A15; §9 records the alternatives rejected
-  - `docs/IOS.md` §2: app decisions I1–I9
-- `docs/SCREEN-STATES.md`: the per-screen contract and copy, keyed by screen id.
+- `docs/CONTEXT.md`: the glossary. Use its terms exactly; never a word it lists under "Avoid".
+- The README of the part you are changing. Each one says what that part is and does.
+- `apps/backend/cmd/ledger/MONEY-RULES.md`: the money rules, with worked examples from
+  `packages/contract/fixtures/ledger/`.
 
-There is no `docs/adr/` folder and none should be created. A new decision is a new numbered row in the matching register, with a Status column entry; a changed decision is the row rewritten in place with the date, as the registers already do.
+There is no decisions register and no `docs/adr/` folder; do not create one. The code, its tests and the READMEs
+are the record of what the app does. Git history and pull requests hold why.
 
 ## Layout
 
-Single-context. One glossary, three registers, all under `docs/`. `packages/contract/` holds the protobuf schema and, under `fixtures/ledger/`, the PRD §8 answer key: written in slice 2, run by `ledger` in slice 5.
+Single-context. One glossary under `docs/`. `packages/contract/` holds the protobuf schema and, under
+`fixtures/ledger/`, the answer key for the money rules.
 
 ## Use the glossary's vocabulary
 
-Issue titles, test names and proposals use the glossary's terms: Member, Salary, Payday, Spend, Category, Saving Target, Saved, Money In, Streak, Splurge, Archetype, Recap. A concept missing from the glossary is either invented language (reconsider) or a real gap (note it for `/domain-modeling`).
+Issue titles, test names and proposals use the glossary's terms: Member, Salary, Payday, Spend, Category, Saving
+Target, Saved, Money In, Streak, Splurge, Archetype, Recap. A concept missing from the glossary is either invented
+language (reconsider) or a real gap (note it for `/domain-modeling`).
 
-## Flag decision conflicts
+## Flag conflicts
 
-If your output contradicts a numbered decision, say so explicitly rather than silently overriding:
+If your output contradicts a rule a README or `MONEY-RULES.md` states, say so explicitly rather than silently
+changing it:
 
-> _Contradicts A14 (idempotency in the owning service), but worth reopening because…_
+> _Contradicts the one-key-per-write rule in `apps/README.md`, but worth reopening because…_

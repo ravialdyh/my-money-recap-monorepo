@@ -51,7 +51,7 @@ Subject: a cute rust-orange squirrel sitting proudly on top of a plump bubblegum
 ---
 ---
 
-# Batch 2 · onboarding, avatars, archetypes (added 2026-09-04, from docs/PRD.md §13)
+# Batch 2 · onboarding, avatars, archetypes
 
 Same rules as batch 1: paste the STYLE BLOCK first, then one SUBJECT block. Tool: Nano Banana Pro (cheaper than GPT Image 2). Attach all four `renders/*.png` files as reference images to every prompt and add "match the exact illustration style, shading and colour of the reference images". Request 2K output. Generate Subject 5 first as a style test; if it matches the cover piggy, continue.
 
@@ -176,5 +176,5 @@ All of Subjects 5 to 16 are generated, cut and wired in. Nothing in this file is
    - `python3 scripts/cut_flat_bg.py renders/<n>-<name>.png <key> <width>` for a hero on a flat ground. A plain colour key is not safe (the violet letter sits on the violet ground), so it keys only the background region connected to the frame border, erodes 2px, and re-feathers. Sizes to roughly 2× display width.
    - `python3 scripts/cut_avatars.py` for the avatar sheet: finds the six circles geometrically and masks each to its inscribed circle at 204px (3× the 68px grid).
    - Both need `Pillow` and `numpy` (`python3 -m pip install --user Pillow numpy`).
-3. Add the WebP to `../apps/ios/Resources/Assets.xcassets` by hand (`../docs/IOS.md` I5).
-4. Show it with the `Illustration` component; avatars are 68pt in `AvatarGrid` (A4, D2) and 56pt as the inline `Avatar` (Home).
+3. Add the WebP to `../apps/ios/Resources/Assets.xcassets` by hand.
+4. Show it with the `Illustration` component; avatars are 68pt in `AvatarGrid` and 56pt as the inline `Avatar` (Home).

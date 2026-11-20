@@ -1,75 +1,79 @@
-# My Money Recap
+# Glossary
 
-A personal money tracker for adults, styled as a playful kids' app, that turns one month of income, spending and saving into a Wrapped-style monthly recap.
+The words this project uses, and the words it avoids. Use each term exactly as written here: in code, tests,
+issues and documents.
 
-## Language
-
-### System
+## System
 
 **BFF**:
-The one backend the app talks to (backend for frontend): it verifies the sign-in token, then joins answers from the services (`ARCHITECTURE.md` §6).
+The one backend the app talks to (backend for frontend). It checks the sign-in token, then joins the services'
+answers into one answer per screen.
 _Avoid_: API, server, gateway
 
-### People
+## People
 
 **Member**:
-The adult (18+) who owns an account and tracks their own money. There is exactly one Member per account.
+The adult (18+) who owns an account and tracks their own money. One Member per account.
 _Avoid_: Kid, child, user, parent
 
 **Display Name**:
-The first name the Member chooses at setup, shown on Home and in the recap ("Maya's recap").
+The first name the Member chooses at setup, shown on Home and in the Recap ("Maya's recap").
 _Avoid_: Username, nickname
 
 **Avatar**:
-One of a fixed set of illustrated characters the Member picks at setup to represent themselves.
+One of six illustrated characters the Member picks at setup.
 _Avoid_: Profile picture, photo
 
-### Money
+## Money
 
 **Salary**:
-The fixed take-home amount, after tax, the Member expects to receive each month (PRD D2), set once at setup and editable later. It is the only recurring income in v1.
+The fixed take-home amount, after tax, the Member expects each month. Set at setup and editable later. It is the
+only income the app knows.
 _Avoid_: Allowance, wage, pay, earnings, monthly income
 
 **Spend**:
-A single purchase the Member logs by hand, with an amount, a Category and a date.
+One purchase the Member logs by hand, with an amount, a Category and a date.
 _Avoid_: Transaction, expense, purchase, payment
 
 **Category**:
-One of eight fixed labels a Spend belongs to: Snacks, Games, Toys, Rides, Clothes, Bills, Gifts, Other.
+One of eight fixed labels for a Spend: Snacks, Games, Toys, Rides, Clothes, Bills, Gifts, Other.
 _Avoid_: Tag, type
 
 **Target Warning**:
-The once-a-month alert raised the first time a month's Spends exceed the **warning line**, which is Salary minus the Saving Target amount. Its wording differs before and after Payday (PRD D53).
+The once-a-month alert raised the first time a month's Spends pass the **warning line**: Salary minus the Saving
+Target amount. Its wording differs before and after Payday.
 _Avoid_: Budget alert, overspend alert
 
 **Payday**:
-The day of the month on which the Salary is counted as received. Stored as 1 to 31, or the token `last`, which the picker shows as `Last day`. A stored 29, 30 or 31 slides to the month's last day in a shorter month; the picker shows the three real dates that follow the selection rather than explaining the rule (PRD D51).
+The day of the month the Salary counts as received: 1 to 31, or `last`, shown as `Last day`. A 29, 30 or 31
+moves to the last day of a shorter month.
 _Avoid_: Pay date, salary date
 
 **Money In**:
-Everything that arrived in a calendar month. In v1 this is the Salary, counted from its Payday.
-_Avoid_: Income, revenue, "money that came your way" (display copy only)
+What arrived in a calendar month. Today that is the Salary, counted from its Payday.
+_Avoid_: Income, revenue
 
 **Currency**:
-The single currency an account holds all amounts in. Changing it converts every stored amount once, at that moment's exchange rate.
+The one currency an account holds every amount in. Changing it converts every stored amount once, at that
+moment's rate.
 _Avoid_: Locale, region
 
 **Saved**:
-The computed amount left over in a month: Money In minus the total of Spends. It is never logged directly, and it is **not shown at all while Money In is 0**: before Payday a Member is spending last month's salary, so a negative Saved would state the opposite of their real position (PRD D41).
+Money In minus the month's Spends. It is worked out, never logged, and not shown at all while Money In is 0.
 _Avoid_: Savings, balance, leftover
 
 **Saving Target**:
-The share of Salary, stored as a percentage, that the Member intends to keep as Saved each month.
+The percent of the Salary the Member means to keep as Saved each month.
 _Avoid_: Goal, savings goal, budget, target saving
 
 **Splurge**:
 The single largest Spend in a month.
 _Avoid_: Biggest purchase, top expense
 
-### Recap
+## Recap
 
 **Recap**:
-The read-only monthly story, four screens long, computed live from one calendar month of data.
+The read-only story of one calendar month, four screens long, worked out live from that month's data.
 _Avoid_: Report, summary, Wrapped
 
 **Recap Month**:
@@ -77,13 +81,16 @@ The calendar month a Recap covers, in the Member's local dates. Never a pay peri
 _Avoid_: Period, cycle
 
 **Streak**:
-The longest run of consecutive days with no Spend logged, inside the month. In the Member's sign-up month the run starts on the day they signed up, not the 1st, so no badge is ever awarded for days before the app existed (PRD D43).
+The longest run of days in the month with no Spend. In the sign-up month it starts on the sign-up day, not the 1st.
 _Avoid_: No-spend run
 
 **Partial Recap**:
-The four-screen Recap shown for a partial month (PRD §8.11): the sign-up month when Payday fell before sign-up, or a past month with Spends but no Money In. Built around Spent, with no Saved figure, no Archetype and no sharing. The same four screens serve the current month's live preview. "Partial month" is the month's state; "Partial Recap" is its Recap.
+The Recap of a partial month: the sign-up month when Payday came before sign-up, or a past month with Spends but
+no Money In. It shows Spent, with no Saved, no Archetype and no sharing. The same four screens show the current
+month's preview. "Partial month" is the month; "Partial Recap" is its Recap.
 _Avoid_: Mini recap, preview recap
 
 **Archetype**:
-The single money personality (Squirrel, Hustler, Treat-Yourself, Slow Burner) assigned to a Member for one month by rules over that month's numbers.
+The money personality a Member gets for one month: Squirrel, Hustler, Treat-Yourself or Slow Burner. The rules are
+in `apps/backend/cmd/ledger/MONEY-RULES.md`.
 _Avoid_: Personality type, badge, persona
