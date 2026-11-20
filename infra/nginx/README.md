@@ -1,7 +1,8 @@
 # infra/nginx
 
-The edge: the one container the phone reaches. One file, `default.conf`, holds its routes and limits, and
-`html/` holds its two static files.
+The edge. Today it serves the page a sign-in link opens and the Apple app link file. Its `/api/` and `/auth/`
+routes also work, but the app still calls the BFF and Keycloak on their own ports. One file, `default.conf`, holds
+its routes and limits, and `html/` holds the two static files.
 
 ## Where a request goes
 
@@ -17,7 +18,7 @@ flowchart TD
     phone --> nginx
     nginx -- "/api/" --> bff
     nginx -- "/auth/" --> keycloak
-    nginx -- "/magic and app link" --> files
+    nginx -- "/magic, app link" --> files
 ```
 
 ## How it works
@@ -31,8 +32,8 @@ flowchart TD
   the token.
 - **Limits per IP address**: 60 requests a second with a burst of 120, and 100 connections, on `/api/` and
   `/auth/`. The sign-in link call alone is held to 5 a minute.
-- **The 5 links per email address per hour** limit is the BFF's, in Redis, because Nginx cannot read an address
-  inside a request.
+- **The limit on sign-in links per email address** is the BFF's (`apps/backend/cmd/bff/README.md`), because
+  Nginx cannot read an address inside a request.
 - **TLS**: none yet. Nginx serves plain HTTP on port 80. The `acme` container shares a volume with it, ready
   for a certificate once there is a domain (#87).
 

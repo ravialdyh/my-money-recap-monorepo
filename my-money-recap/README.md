@@ -4,6 +4,8 @@ The app's illustrations, and the prompts and scripts that make them.
 
 ## From a render to the app
 
+Each arrow is one step from a prompt to an illustration in the app. The last step is done by hand.
+
 ```mermaid
 flowchart TD
     prompt["Prompt"]

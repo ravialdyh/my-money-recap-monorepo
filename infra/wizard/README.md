@@ -5,10 +5,10 @@ One script for the nine setup steps only a person can do. Each step ends with a 
 
 ## The nine steps
 
-Step 1 comes first because it creates the file the other steps fill. The others can be done in any order.
+The script walks the steps in this order. Step 1 comes first because it creates the file the others fill.
 
 ```mermaid
-flowchart LR
+flowchart TD
     s1["1. Age key pair"]
     apple["2 to 4. Apple"]
     google["5. Google sign-in"]
@@ -17,11 +17,11 @@ flowchart LR
     domain["8. Domain"]
     cloud["9. Cloud and deploy key"]
     s1 --> apple
-    s1 --> google
-    s1 --> rates
-    s1 --> mail
-    s1 --> domain
-    s1 --> cloud
+    apple --> google
+    google --> rates
+    rates --> mail
+    mail --> domain
+    domain --> cloud
 ```
 
 Steps 2 to 4 are Apple Developer Program enrolment, the App Store Connect API key, and the Services ID with the

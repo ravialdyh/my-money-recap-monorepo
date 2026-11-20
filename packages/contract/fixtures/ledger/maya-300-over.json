@@ -1,5 +1,5 @@
 {
-  "doc": "A Member £300 over the line: Maya on 30 September with a ninth Spend of £460, Spent £2,220 against the line £2,400 − £480 = £1,920, so the allowance is max(0, floor(−300 ÷ 1)) = £0, never negative, and the sentence is the over-the-line one with £2,220 − £1,920 = £300. Money In £2,400, Saved £180; Streak 9; the ninth Spend took Spent from £1,760 past the line on or after Payday, so it crossed and the warning reads the D53 after-Payday copy.",
+  "doc": "A Member £300 over the line: Maya on 30 September with a ninth Spend of £460, Spent £2,220 against the line £2,400 − £480 = £1,920, so the allowance is max(0, floor(−300 ÷ 1)) = £0, never negative, and the sentence is the over-the-line one with £2,220 − £1,920 = £300. Money In £2,400, Saved £180; Streak 9; the ninth Spend took Spent from £1,760 past the line on or after Payday, so it crossed and the warning reads the after-Payday copy.",
   "timezone": "Europe/London",
   "signedUpOn": "2026-08-01",
   "currencyCode": "GBP",

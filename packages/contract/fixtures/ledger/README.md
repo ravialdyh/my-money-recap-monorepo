@@ -6,6 +6,8 @@ example: a Member's Salary, Saving Target and Spends, a date, and the numbers wo
 
 ## How a fixture is checked
 
+The test feeds each file to the real `ledger` service and compares its answer with the file.
+
 ```mermaid
 flowchart TD
     file["Fixture file"]
