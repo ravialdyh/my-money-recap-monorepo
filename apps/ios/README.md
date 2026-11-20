@@ -27,7 +27,7 @@ flowchart TD
 
 ## From Home to everything else
 
-Each arrow is a screen or sheet Home opens.
+Each arrow opens the next screen or sheet; the labels say when.
 
 ```mermaid
 flowchart TD
