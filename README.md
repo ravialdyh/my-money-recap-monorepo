@@ -15,15 +15,15 @@ Work in progress: what is left before the first release is in #8 and #87.
 
 ## How the parts fit
 
-The phone talks only to the edge. Everything inside "Our backend" runs in one Compose stack.
+The phone talks only to the Nginx edge. Everything inside "Our backend" runs in one Compose stack.
 
 ```mermaid
-flowchart TD
+flowchart LR
     phone["iPhone app"]
     subgraph backend["Our backend"]
         edge["Nginx edge"]
-        bff["BFF"]
         keycloak["Keycloak sign-in"]
+        bff["BFF"]
         subgraph services["Services"]
             members["Members"]
             ledger["Ledger"]
@@ -42,50 +42,16 @@ flowchart TD
         rates["Exchange rates"]
     end
     phone --> edge
-    edge --> bff
     edge --> keycloak
-    bff --> services
-    services --> storage
+    edge --> bff
+    bff --> members
+    bff --> ledger
+    bff --> notify
+    bff --> currency
+    services -- "save data" --> storage
     notify --> apns
     notify --> mail
     currency --> rates
-```
-
-The same picture as an architecture diagram:
-
-```mermaid
-architecture-beta
-    service phone(internet)[iPhone app]
-
-    group backend(cloud)[Our backend]
-    service edge(server)[Nginx edge] in backend
-    service keycloak(server)[Keycloak sign in] in backend
-    service bff(server)[BFF] in backend
-    service members(server)[Members] in backend
-    service ledger(server)[Ledger] in backend
-    service notify(server)[Notify] in backend
-    service currency(server)[Currency] in backend
-
-    group storage(database)[Storage]
-    service postgres(database)[Postgres] in storage
-    service rabbit(disk)[RabbitMQ events] in storage
-    service redis(database)[Redis cache] in storage
-
-    group outside(internet)[Outside services]
-    service apns(internet)[Apple push] in outside
-    service mail(internet)[Email sender] in outside
-    service rates(internet)[Exchange rates] in outside
-
-    phone:B --> T:edge
-    edge:R --> L:keycloak
-    edge:B --> T:bff
-    bff:B --> T:ledger
-    ledger:L --> R:members
-    ledger:R --> L:notify
-    notify:R --> L:currency
-    ledger:B --> T:postgres
-    notify:B --> T:apns
-    currency:B --> T:rates
 ```
 
 ## How it works
