@@ -66,7 +66,7 @@ flowchart TD
 
 | Path | What lives here |
 | --- | --- |
-| `docs/` | The glossary (`CONTEXT.md`) and the older long product and design documents |
+| `docs/` | The glossary (`CONTEXT.md`) and the settings the coding agents read (`agents/`) |
 | `my-money-recap/` | The illustrations and the scripts that make them |
 | `design-tokens/` | The colours, type and spacing, generated into `Tokens.swift` |
 | `apps/` | The Go backend and the SwiftUI app |
