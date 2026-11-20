@@ -5,7 +5,7 @@ The app's illustrations, and the prompts and scripts that make them.
 ## From a render to the app
 
 ```mermaid
-flowchart LR
+flowchart TD
     prompt["Prompt"]
     render["4K render"]
     script["Cut-out script"]

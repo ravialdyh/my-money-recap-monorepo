@@ -7,7 +7,7 @@ example: a Member's Salary, Saving Target and Spends, a date, and the numbers wo
 ## How a fixture is checked
 
 ```mermaid
-flowchart LR
+flowchart TD
     file["Fixture file"]
     test["TestTheAnswerKey"]
     ledger["Ledger service"]

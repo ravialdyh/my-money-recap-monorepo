@@ -6,7 +6,7 @@ into Swift, so the app never types a value by hand.
 ## From a token to a screen
 
 ```mermaid
-flowchart LR
+flowchart TD
     json["tokens.json"]
     script["build script"]
     swift["Tokens.swift"]
