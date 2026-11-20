@@ -1,51 +1,31 @@
-# Coverage ratchet
+# Coverage gate
 
-The target is 80% for every language. The gate holds a floor per language, the floor only ever rises,
-and it stops once a language reaches the target.
+Test coverage may not fall. The target is 80% for Go and for iOS, and each language has a floor in
+`baseline.json` that only rises. Both floors are at the target now.
 
+## How it works
+
+- **Fails** when coverage drops more than 0.5 points below the floor.
+- **Passes** when coverage rises, and prints the command that records the new floor.
+- **Stops rising** once a language reaches the target.
+- **Go** leaves out the generated code in `apps/backend/gen/` and the test helpers `internal/testauth` and
+  `internal/testdb`.
+- **Go is measured** by CI's `backend` job, with the Compose stack up. **iOS is measured** by CI's `ios` job, on
+  a simulator with no stored sign-in.
+
+## Run it
+
+Check a measured number:
+
+```bash
+python3 tools/coverage/coverage_gate.py go 84.4
 ```
-python3 tools/coverage/coverage_gate.py go 42.1            # check
-python3 tools/coverage/coverage_gate.py go 42.1 --update   # check and raise the floor
+
+Check it and raise the floor:
+
+```bash
+python3 tools/coverage/coverage_gate.py go 84.4 --update
 ```
 
-It fails when coverage drops more than 0.5 points below the floor, and passes when coverage rises,
-printing the command that records the new one:
-
-```
-go: 53.6%, up from 52.9%. Run python3 tools/coverage/coverage_gate.py go 53.6 --update and commit the floor.
-```
-
-Run it and commit `baseline.json` in the same pull request that added the tests.
-
-## The floors, and how each is measured
-
-The floors are `baseline.json`, which only `--update` writes. Each comes from a measured run, not a
-guess: CI, or the same commands run locally. The history of the
-measurements is in the pull requests that raised them.
-
-| Language | Measured by | Latest |
-| --- | --- | --- |
-| `go` | The `backend` job's commands, with the Compose stack up and Mailpit started, so `internal/members`, `internal/notify`, `internal/ledger` and the end-to-end tests really run. The floor sits at the target, not at the measurement, because the ratchet stops there. | 84.4% |
-| `ios` | The `ios` job's commands, `-enableCodeCoverage YES` on both halves of the build-then-test split, on a simulator with no stored session, as CI's is: the test host is the app, and a signed-in one draws Home and counts far higher. The floor sits at the target, as Go's does. | 85.9% |
-
-## What is not counted
-
-Go drops `apps/backend/gen/**` (buf's output) and `internal/testauth` and `internal/testdb` (test helpers) from the profile
-before measuring. Generated code is not code anyone writes tests for, and leaving it in the denominator
-makes the number say nothing.
-
-## Where the gap is
-
-Go's gap is `internal/members`, whose handlers the boundary test reaches in the Compose container,
-outside the profile, and `cmd/bff`, `cmd/ledger`, `cmd/members` and `cmd/notify`: their `main`, `run` and handler
-wiring, which only the Compose stack runs. `serve.Main`'s serve path, which needs a listener and a
-signal rather than a return value, is `internal/serve`'s gap. `internal/migrate`'s uncovered lines are
-store errors a live Postgres does not raise, and `internal/notify`'s are the STARTTLS upgrade no local
-mail host offers and write errors a socket under a live deadline does not reach.
-
-iOS's gap is the views: the unit tests cover the view models, sign-in and the session, the Keychain
-and money formatting (`apps/ios/README.md`, "Layout"), and render tests draw only the states a picture can
-tell apart, since SwiftUI's accessibility tree is empty in a unit test.
-
-Nothing forces those into one change. Add tests with the slice that touches the code, raise the floor
-in the same pull request, and the ratchet keeps what you gained.
+When a floor is still below the target, commit the new `baseline.json` in the same pull request as the tests that
+raised it.

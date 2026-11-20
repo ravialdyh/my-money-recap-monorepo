@@ -1,70 +1,47 @@
 # Ledger fixtures
 
-The answer key for the money rules. Every worked example is one JSON file here, typed by `LedgerFixture` (`money_recap/v1/ledger_fixture.proto`), so
-the arithmetic that only `ledger` implements is checked against numbers written down by hand, not numbers the implementation produced.
+The answer key for the money rules (`apps/backend/cmd/ledger/MONEY-RULES.md`). Each JSON file is one worked
+example: a Member's Salary, Saving Target and Spends, a date, and the numbers worked out by hand. Each file's
+`doc` field says what it proves.
 
-`apps/backend/internal/ledger/fixtures_test.go` decodes every file, and
-`ledger`'s `TestTheAnswerKey` runs every one through the service, none left out: it
-seeds the file's rows, logs the last Spend with `LogSpend` on its own date when the file asserts `crossedLine`,
-makes its `saveSalary`, asks `PreviewConversion` for its `conversionPreview` and then makes its `convert`, sets the
-clock to `asOf` in `timezone` and compares what `GetMonthSummary`, `GetRecap`, `PreviewConversion`, `GetSettings`
-and the Salary and Spend rows answer to the expected fields; a file with `convert` must leave exactly one
-CurrencyConversion row naming it.
+## How a fixture is checked
 
-## What a fixture is
+```mermaid
+flowchart LR
+    file["Fixture file"]
+    test["TestTheAnswerKey"]
+    ledger["Ledger service"]
+    compare["Compare the answers"]
+    file --> test
+    test --> ledger
+    ledger --> compare
+    file --> compare
+```
 
-One ledger and one "as of" date, in protobuf JSON (`lowerCamelCase` names, enums as their names).
-What each field holds is its doc comment in `ledger_fixture.proto`; `spends` holds nothing dated
-after `asOf`. The rules below are the ones no field doc states.
+`TestTheAnswerKey` in `apps/backend/internal/ledger` saves the file's rows, sets the clock to its `asOf` date in
+its `timezone`, and compares what `ledger` answers with what the file expects. Every file runs; none is skipped.
 
-How `ledger`'s tests compare an answer to an expected message: a top-level expected field that is left
-out (`recaps` in a Home-only file) asserts nothing; inside a listed message every field is
-compared, so an `optional` that is absent (Saved before Payday; the Archetype of a
-Partial Recap) is left out of the file and must be absent in the answer. Three things are
-never compared: `Spend.id`, which `ledger` assigns (`maya-01` is a label that pairs an input row
-with `splurge` or `spendsAfter`), and `createdAt` and `updatedAt`, which `ledger` stamps.
+## How it works
 
-Amounts follow `Money`: a decimal string with at most 11 digits before the separator and an
-ISO 4217 code; GBP carries two decimals (`"2400.00"`), IDR none (`"150000000"`), the decimals CLDR
-reports for the currency. A sentence that embeds an amount is written as the app prints it
-(`£160`, `Rp26.000.000`).
+- **Shape**: `LedgerFixture` in `money_recap/v1/ledger_fixture.proto`, written as protobuf JSON (`lowerCamelCase`
+  names, enums by name). Each field's comment there says what it holds.
+- **Left out means not checked** for a top-level field. Inside a listed message every field is checked, so an
+  absent optional, such as Saved before Payday, must be absent in the answer too.
+- **Never compared**: `Spend.id`, `createdAt` and `updatedAt`, which `ledger` sets itself.
+- **Amounts** are decimal strings with the Currency's own decimals: GBP `"2400.00"`, IDR `"150000000"`. A sentence
+  shows an amount as the app prints it: `£160`, `Rp26.000.000`.
+- **Every Salary row and Spend** carries `originalAmount`, the amount as typed. After a Currency change each row
+  keeps its original.
+- **`streakDay`** is the Streak so far this month. **`streak.runStart`** and **`streak.runEnd`** name a Recap's
+  longest run, the earlier of two equal ones.
 
-Every `SalarySetting` and every `Spend`, wherever it sits, carries `originalAmount`: the amount as
-typed, with its Currency. An input row, in `salaries` or `spends`, has
-`originalAmount` equal to `amount`, unless an earlier conversion made it: then `amount` is in the file's
-`currencyCode` and `originalAmount` in another Currency. `maya-idr-back-to-gbp` starts there,
-converting again from Rp amounts with £ originals, the only shape that catches a conversion
-made from `originalAmount` instead of `amount`. After `convert`, every other row (`settings.salary`,
-`settings.nextSalary`, `salariesAfter`, `spendsAfter`, a Recap's `splurge`) keeps its input row's
-`originalAmount`, a `SalarySetting` paired by `effectiveFrom` and a `Spend` by `id`; a row with no
-input row fails. `fixtures_test.go` checks all three and names the row that drifts.
+## Add one
 
-Every file that asserts `settings` names `newSavingTargetFrom`, the month a Saving Target saved on `asOf` would
-start: `asOf`'s own month in a file with no `savingTargets`, the month after in every other file, since
-each of their rows counts as saved after setup.
+1. Name the file after what it proves, such as `squirrel-kept-116.json`.
+2. Work every number by hand and explain it in `doc`.
+3. Add the name to `manifest` in `apps/backend/internal/ledger/fixtures_test.go`, in alphabetical order.
+4. Run the test:
 
-`streakDay` on a month is the month's Streak so far: the longest
-spend-free run in the window up to `asOf`. With no Spends it is the elapsed days, which the empty Spend list prints
-as "Streak day {n}" (23 on 26 September for a 4 September sign-up). `streak.days`
-on a Recap is the same rule over the whole window, and `streak.runStart` and `streak.runEnd` name that run's first
-and last day, the earlier of two equally long runs, both left out when the Streak is 0; every file with an Archetype
-asserts its `archetypeTitle`. A scalar
-left out of a file is its zero value to protobuf JSON, so `partial: false` and an absent `partial`
-are the same assertion; only a message or `optional` field can be "absent".
-
-## Adding one
-
-1. Name the file after what it proves: `<what it proves>.json`, for example
-   `signup-4-september-first-run.json` or `squirrel-kept-116.json`.
-2. Work every expected number by hand and say how in `doc`.
-3. Add the name to `manifest` in `apps/backend/internal/ledger/fixtures_test.go`, keeping it
-   alphabetical; the test fails on a file without a line and a line without a file.
-4. `cd apps/backend && go test ./internal/ledger/`.
-
-## The set
-
-`manifest` in `fixtures_test.go` is the list, and each file's `doc` says what it proves.
-
-The past months of the Payday 31 and `Last day` files assert `daysRemaining` 1, the clamp applied
-literally to a month already over, and `streakDay` equal to the month's length, the no-Spends rule
-over a full window. `ledger` answers both that way, so the reading stands.
+```bash
+cd apps/backend && go test ./internal/ledger/
+```
