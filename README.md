@@ -15,16 +15,17 @@ Work in progress: what is left before the first release is in #8 and #87.
 
 ## How the parts fit
 
-The phone talks only to the Nginx edge. Everything inside "Our backend" runs in one Compose stack.
+The phone talks only to the Nginx edge. "Our backend" and "Storage" run together in one Compose stack.
 
 ```mermaid
-flowchart LR
+flowchart TD
     phone["iPhone app"]
     subgraph backend["Our backend"]
         edge["Nginx edge"]
         keycloak["Keycloak sign-in"]
         bff["BFF"]
         subgraph services["Services"]
+            direction LR
             members["Members"]
             ledger["Ledger"]
             notify["Notify"]
@@ -32,11 +33,13 @@ flowchart LR
         end
     end
     subgraph storage["Storage"]
+        direction LR
         postgres[("Postgres")]
         rabbit[["RabbitMQ events"]]
         redis[("Redis cache")]
     end
     subgraph outside["Outside services"]
+        direction LR
         apns["Apple push"]
         mail["Email sender"]
         rates["Exchange rates"]
@@ -44,14 +47,9 @@ flowchart LR
     phone --> edge
     edge --> keycloak
     edge --> bff
-    bff --> members
-    bff --> ledger
-    bff --> notify
-    bff --> currency
+    bff --> services
     services -- "save data" --> storage
-    notify --> apns
-    notify --> mail
-    currency --> rates
+    services -- "call out" --> outside
 ```
 
 ## How it works
@@ -59,8 +57,8 @@ flowchart LR
 - **iPhone app**: SwiftUI. The Member signs in, logs each Spend and reads the Recap.
 - **Nginx edge**: the one public door. It sends app calls to the BFF and sign-in to Keycloak.
 - **BFF**: checks who is calling and builds each screen from the services.
-- **Services**: Members (profiles), Ledger (Spends and the money rules), Notify (pushes and emails),
-  Currency (exchange rates).
+- **Services**: Members keeps profiles. Ledger keeps Spends and runs the money rules. Notify sends Apple
+  pushes and emails. Currency fetches exchange rates.
 - **Storage**: one Postgres with its own database for Keycloak, Members, Ledger and Notify. RabbitMQ carries
   events between services. Redis holds rate limits and cached exchange rates.
 
