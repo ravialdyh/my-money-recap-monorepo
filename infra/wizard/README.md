@@ -8,7 +8,7 @@ One script for the nine setup steps only a person can do. Each step ends with a 
 Step 1 comes first because it creates the file the other steps fill. The others can be done in any order.
 
 ```mermaid
-flowchart LR
+flowchart TD
     s1["1. Age key pair"]
     apple["2 to 4. Apple"]
     google["5. Google sign-in"]

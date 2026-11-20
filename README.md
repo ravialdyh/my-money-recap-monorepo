@@ -1,7 +1,7 @@
 # My Money Recap
 
 An iPhone app for adults that tracks one month of salary, spending and saving. It looks like a playful kids'
-app, and at the end of each month it shows a short, Wrapped-style Recap of how the month went.
+app, and at the end of each month it shows a short Recap of how the month went.
 
 Work in progress: what is left before the first release is in #8 and #87.
 
@@ -15,7 +15,8 @@ Work in progress: what is left before the first release is in #8 and #87.
 
 ## How the parts fit
 
-The phone talks only to the Nginx edge. "Our backend" and "Storage" run together in one Compose stack.
+The phone signs in with Keycloak and calls the BFF for everything else. Nginx serves the page a sign-in link opens.
+"Our backend" and "Storage" run together in one Compose stack.
 
 ```mermaid
 flowchart TD
@@ -44,9 +45,9 @@ flowchart TD
         mail["Email sender"]
         rates["Exchange rates"]
     end
-    phone --> edge
-    edge --> keycloak
-    edge --> bff
+    phone --> keycloak
+    phone --> bff
+    phone -- "sign-in link" --> edge
     bff --> services
     services -- "save data" --> storage
     services -- "call out" --> outside
@@ -55,12 +56,12 @@ flowchart TD
 ## How it works
 
 - **iPhone app**: SwiftUI. The Member signs in, logs each Spend and reads the Recap.
-- **Nginx edge**: the one public door. It sends app calls to the BFF and sign-in to Keycloak.
+- **Nginx edge**: serves the sign-in link page and the Apple app link file (`infra/nginx/README.md`).
 - **BFF**: checks who is calling and builds each screen from the services.
 - **Services**: Members keeps profiles. Ledger keeps Spends and runs the money rules. Notify sends Apple
   pushes and emails. Currency fetches exchange rates.
 - **Storage**: one Postgres with its own database for Keycloak, Members, Ledger and Notify. RabbitMQ carries
-  events between services. Redis holds rate limits and cached exchange rates.
+  events between services. Redis is a fast cache for the BFF and Currency (their READMEs say what it holds).
 
 ## Layout
 

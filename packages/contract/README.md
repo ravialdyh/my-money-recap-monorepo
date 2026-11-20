@@ -5,6 +5,8 @@ The one API contract. Every call between the phone and the BFF, and between the 
 
 ## From the contract to the code
 
+One `buf generate` makes the Go and the Swift code from the same `.proto` files.
+
 ```mermaid
 flowchart TD
     proto["The .proto files"]

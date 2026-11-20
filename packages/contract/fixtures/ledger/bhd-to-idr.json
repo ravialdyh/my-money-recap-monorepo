@@ -1,5 +1,5 @@
 {
-  "doc": "A Member in Bahrain on 30 September switching BHD → IDR at 42,137.5, three decimals to none: each amount becomes round-half-up(amount × 42,137.5) to 0 decimals. Salary 1,250.000 × 42,137.5 = 52,671,875. Spends: 12.345 → 520,187.4375 → 520,187; 0.040 → 1,685.5 → 1,686 (a half rounds up); 7.120 → 300,019; 150.500 → 6,341,693.75 → 6,341,694. The preview's Spends row is every Spend: 170.005 BHD before, 520,187 + 1,686 + 300,019 + 6,341,694 = 7,163,586 IDR after. Each row keeps its BHD original; one CurrencyConversion row; the Saving Target stays 20% (step 5).",
+  "doc": "A Member in Bahrain on 30 September switching BHD → IDR at 42,137.5, three decimals to none: each amount becomes round-half-up(amount × 42,137.5) to 0 decimals. Salary 1,250.000 × 42,137.5 = 52,671,875. Spends: 12.345 → 520,187.4375 → 520,187; 0.040 → 1,685.5 → 1,686 (a half rounds up); 7.120 → 300,019; 150.500 → 6,341,693.75 → 6,341,694. The preview's Spends row is every Spend: 170.005 BHD before, 520,187 + 1,686 + 300,019 + 6,341,694 = 7,163,586 IDR after. Each row keeps its BHD original; one CurrencyConversion row; the Saving Target stays 20%.",
   "timezone": "Asia/Bahrain",
   "signedUpOn": "2026-09-01",
   "currencyCode": "BHD",

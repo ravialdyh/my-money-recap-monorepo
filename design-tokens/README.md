@@ -5,6 +5,8 @@ into Swift, so the app never types a value by hand.
 
 ## From a token to a screen
 
+Each arrow is one step from the value in `tokens.json` to what a screen draws.
+
 ```mermaid
 flowchart TD
     json["tokens.json"]

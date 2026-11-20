@@ -24,7 +24,7 @@ sequenceDiagram
 
 ## Logging a Spend
 
-`notify` is told only when the Spend is in the current month.
+`notify` is told only when the Spend is in the current month. Dashed arrows are answers.
 
 ```mermaid
 sequenceDiagram

@@ -40,7 +40,14 @@ flowchart TD
 - **Target amount**: Salary times the Saving Target percent, rounded half up to the Currency's decimals. A 0%
   Target means no Target.
 - **Kept**: Saved divided by the Target amount, as a whole percent from 0 to 999.
-- **Allowance**: (Salary minus Target amount minus Spent) divided by the days left, counting today, never below 0.
+- **Daily limit**: (Salary minus Target amount minus Spent) divided by the days left, counting today, rounded down
+  to a whole unit, never below 0.
+- **Progress sentence**: one of five, shown on Home and in the Recap:
+  - before Payday: "Nothing to keep yet. Your salary lands on the 25th.";
+  - this month, under the line: "Keep spending under £160 a day and you'll make it.";
+  - this month, over the line: "You're £300 past your line. Next month is a fresh start.";
+  - a past month that met the target: "Target met. £160 to spare.";
+  - a past month that missed it: "{amount} short of your target."
 - **Streak**: the longest run of days with no Spend. It starts no earlier than the sign-up date and never crosses
   into another month. Of two equal runs, the earlier one counts.
 - **Target Warning**: fires once a month, the first time Spent goes past Salary minus the Target amount.

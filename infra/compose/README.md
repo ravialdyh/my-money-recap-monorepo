@@ -40,11 +40,15 @@ An arrow means the box below waits for the box above. "Once" boxes run, finish, 
 ```mermaid
 flowchart TD
     postgres["Postgres"]
-    rabbit["RabbitMQ"]
     keycloak["Keycloak"]
     realm["realm-apply, once"]
     migrate["Three migrate steps, once"]
-    services["Members, Ledger, Notify"]
+    subgraph services["Services"]
+        direction LR
+        members["Members"]
+        notify["Notify"]
+        ledger["Ledger"]
+    end
     bff["BFF"]
     nginx["Nginx edge"]
     postgres --> keycloak
@@ -52,14 +56,14 @@ flowchart TD
     keycloak --> realm
     realm --> services
     migrate --> services
-    rabbit --> services
-    services --> bff
+    members --> ledger
+    ledger --> bff
     bff --> nginx
     keycloak --> nginx
 ```
 
-Redis starts on its own; `currency` and the BFF wait for it. Mailpit and the `acme` certificate sidecar wait for
-nothing.
+The three services also wait for RabbitMQ. Redis starts on its own; `currency` and the BFF wait for it. Mailpit
+and the `acme` certificate sidecar wait for nothing.
 
 | Container | Host port | What it is |
 | --- | --- | --- |
@@ -76,8 +80,7 @@ be moved with its `*_HOST_PORT` variable.
 ## One stack per laptop
 
 A laptop runs one stack: the stock `mmr` project on the default ports. No worktree, agent or subagent starts a
-second one with another `COMPOSE_PROJECT_NAME` or other host ports; four stacks at once filled the memory of a
-16 GB laptop.
+second one with another `COMPOSE_PROJECT_NAME` or other host ports.
 
 - Before `up`, run the `ps` command above and reuse what is running.
 - Only one session at a time runs `up`, `--build`, `down` or the Go tests against the stack.

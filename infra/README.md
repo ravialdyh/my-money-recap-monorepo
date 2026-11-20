@@ -34,7 +34,7 @@ sequenceDiagram
   token.
 - **Apple and Google** go through Keycloak's identity providers, with "Trust email" on.
 - **The session** lasts 30 days from last use. Each refresh token works once.
-- **Log out** ends the session in Keycloak and forgets the phone's push token.
+- **Log out** is the app's (`apps/ios/README.md`, "How it works").
 - **Clients in the realm**: `ios` for the app, `bff` for sign-in links, and one each for `notify` and `members`,
   whose background jobs have no Member token.
 
@@ -68,6 +68,5 @@ flowchart TD
 The deploy has never run, and the server does not exist yet (#87). A deploy today would still have:
 
 - **no mail**: the server runs no Mailpit, and `notify` has no real mail provider yet;
-- **no TLS**: Nginx serves plain HTTP on port 80;
-- **a placeholder Team ID** in the apple-app-site-association file;
+- **no TLS and a placeholder Apple Team ID** at the edge (`infra/nginx/README.md`);
 - **no pinned host key**: the deploy's SSH trusts whichever server answers at the domain.

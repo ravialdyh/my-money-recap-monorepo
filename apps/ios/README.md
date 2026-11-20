@@ -5,6 +5,8 @@ maths itself. It keeps the last answer for each screen, so Home and every Recap 
 
 ## From opening the app to Home
 
+Each arrow is one way the app can go at launch; the labels say when.
+
 ```mermaid
 flowchart TD
     open["Open the app"]
@@ -25,6 +27,8 @@ flowchart TD
 
 ## From Home to everything else
 
+Each arrow is a screen or sheet Home opens.
+
 ```mermaid
 flowchart TD
     home["Home"]
@@ -37,6 +41,7 @@ flowchart TD
     rows["Seven settings screens"]
     home --> log
     log -- "first Spend only" --> push
+    rows -- "first switch on" --> push
     home --> list
     home --> recap
     recap --> share
@@ -61,18 +66,19 @@ flowchart TD
 | Spend list | One month's Spends, by Category, with edit and delete |
 | Recap | Four pages: cover, kept and Streak, target and spending, Archetype |
 | Month so far | The current month as a Recap preview, opened from Home |
-| Share poster | The Archetype page as an image to share |
+| Share poster | The Archetype page as an image to share. It never shows the Salary or Money In |
 | Settings | Profile, Salary and payday, Saving target, Currency, Notifications, Export spends, Delete account, Log out |
 
 ## How it works
 
 - **Sign-in** uses AppAuth with Keycloak (`infra/README.md`, "Signing in"). The session sits in the Keychain on
-  this device only and lasts 30 days from last use. A Face ID unlock is not built yet.
+  this device only; how long it lasts is in that section. A Face ID unlock is not built yet.
 - **Calls** go through the generated Connect client from `packages/contract`. Every write sends an
   `Idempotency-Key` that stays the same across its retries.
 - **Offline**: each screen's last answer is stored with SwiftData. With no network, Home shows a grey banner and
   logging a Spend is turned off.
-- **Pushes**: the app asks for permission once, after the first Spend is saved.
+- **Pushes**: the app asks for permission once: after the first Spend is saved, or when a Notifications switch is
+  first turned on.
 - **Log out** forgets the phone's push token, ends the session in Keycloak, and erases the Keychain and the cache.
 
 | Folder | What lives here |
