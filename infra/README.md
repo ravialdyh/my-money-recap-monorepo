@@ -15,7 +15,7 @@ and the deploy.
 ## Signing in
 
 A Member signs in with Apple, Google or an email link. Keycloak issues the tokens; the backend never sees a
-password. This is the email link:
+password. This is the email link; the dashed arrow is an answer:
 
 ```mermaid
 sequenceDiagram

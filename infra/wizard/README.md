@@ -5,16 +5,16 @@ One script for the nine setup steps only a person can do. Each step ends with a 
 
 ## The nine steps
 
-Step 1 comes first because it creates the file the other steps fill.
+Step 1 comes first because it creates the file the other steps fill. The others can be done in any order.
 
 ```mermaid
-flowchart TD
+flowchart LR
     s1["1. Age key pair"]
-    apple["2 to 4. Apple accounts and keys"]
-    google["5. Google sign-in client"]
-    rates["6. Exchange rates App ID"]
-    mail["7. Mail provider token"]
-    domain["8. Domain and registrar"]
+    apple["2 to 4. Apple"]
+    google["5. Google sign-in"]
+    rates["6. Exchange rates"]
+    mail["7. Mail provider"]
+    domain["8. Domain"]
     cloud["9. Cloud and deploy key"]
     s1 --> apple
     s1 --> google

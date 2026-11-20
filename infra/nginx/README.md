@@ -5,7 +5,7 @@ The edge: the one container the phone reaches. One file, `default.conf`, holds i
 
 ## Where a request goes
 
-Anything that matches no route gets 404.
+The two static files are the sign-in fallback page and the Apple app link file. Anything else gets 404.
 
 ```mermaid
 flowchart TD
@@ -13,13 +13,11 @@ flowchart TD
     nginx["Nginx edge"]
     bff["BFF"]
     keycloak["Keycloak"]
-    aasa["Apple app link file"]
-    magic["Sign-in fallback page"]
+    files["Two static files"]
     phone --> nginx
     nginx -- "/api/" --> bff
     nginx -- "/auth/" --> keycloak
-    nginx -- "/.well-known/" --> aasa
-    nginx -- "/magic" --> magic
+    nginx -- "/magic and app link" --> files
 ```
 
 ## How it works
