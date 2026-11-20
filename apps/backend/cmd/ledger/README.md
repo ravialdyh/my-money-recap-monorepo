@@ -56,6 +56,6 @@ From `apps/backend`:
 go test ./internal/ledger/
 ```
 
-Most tests need the stack's `ledger` database; a few also need `members` and Keycloak (`infra/compose/README.md`,
+Most tests need the stack's `ledger` database; a few also need `members` and Keycloak (`infra/compose/TESTING.md`,
 "Running the Go tests against this stack"). `TestTheAnswerKey` runs every file in
 `packages/contract/fixtures/ledger/`.

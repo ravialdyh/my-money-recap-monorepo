@@ -67,5 +67,5 @@ From `apps/backend`:
 go vet ./... && go test ./...
 ```
 
-Tests that need the Compose stack skip unless it is up and their variables are set. `infra/compose/README.md`,
+Tests that need the Compose stack skip unless it is up and their variables are set. `infra/compose/TESTING.md`,
 "Running the Go tests against this stack", lists them and runs them with `-p 1`, as CI does.

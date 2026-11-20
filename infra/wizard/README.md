@@ -1,93 +1,57 @@
 # infra/wizard
 
-The nine setup steps only a human can do, in
-order, in one script. Everything downstream of them is the planned machine root's `tofu apply` (#87)
-and the deploy's `docker compose up`, so this is where the setup stops living in the developer's head
-and starts living in the repository.
-
-```bash
-infra/wizard/setup.sh            # walk the nine steps
-infra/wizard/setup.sh --check    # report which are done; non-zero while any checkable one is not
-```
-
-Check mode is non-interactive and touches nothing, so the developer can stop halfway and come back.
+One script for the nine setup steps only a person can do. Each step ends with a value pasted into
+`infra/secrets/prod.yaml`. Any step can be skipped and done later.
 
 ## The nine steps
 
-1. One age key pair
-2. Apple Developer Program enrolment
-3. App Store Connect API key
-4. Apple Services ID and the two `.p8` keys, each with its Key ID
-5. Google OAuth client
-6. Open Exchange Rates App ID
-7. SMTP provider account and its first token
-8. Domain, and a registrar token scoped to its zone
-9. Cloud account, its API token and a deploy key
+Step 1 comes first because it creates the file the other steps fill.
 
-The keys each step fills in `infra/secrets/prod.yaml`, and where its value comes from, are `STEPS` in
-`setup.sh`; step 1 fills no key but creates the file itself and `.sops.yaml`, and step 2 produces
-nothing at all.
+```mermaid
+flowchart TD
+    s1["1. Age key pair"]
+    apple["2 to 4. Apple accounts and keys"]
+    google["5. Google sign-in client"]
+    rates["6. Exchange rates App ID"]
+    mail["7. Mail provider token"]
+    domain["8. Domain and registrar"]
+    cloud["9. Cloud and deploy key"]
+    s1 --> apple
+    s1 --> google
+    s1 --> rates
+    s1 --> mail
+    s1 --> domain
+    s1 --> cloud
+```
 
-Step 1 is first because every other step pastes into the file it creates, and it is `age-keygen`:
-free, local, and not a purchase. Step 9 also runs `ssh-keygen`, so the deploy workflow's transport
-credential comes out of a step that already exists and the nine stay nine. No step blocks on a
-purchase: each one can be declined and picked up later.
+Steps 2 to 4 are Apple Developer Program enrolment, the App Store Connect API key, and the Services ID with the
+two `.p8` keys.
 
-**Step 1 works with a key that is already there.** `$SOPS_AGE_KEY_FILE`, or
-`~/.config/sops/age/keys.txt`, is the path sops itself uses, so a developer may arrive holding a key
-from another project. The wizard never overwrites that key, and never overwrites an existing
-`prod.yaml` either: it derives the recipient with `age-keygen -y` and writes whichever of the two
-files step 1 owes (the creation rule, the secrets file) is still missing. Step 9 runs `ssh-keygen`
-only once `prod.yaml` exists, so no private key is ever left on disk with nowhere to paste it.
+## How it works
 
-## How a step is judged done
+- **Step 1** makes the age key, or uses one already in `~/.config/sops/age/keys.txt`. It writes `.sops.yaml`
+  and creates `prod.yaml` from `infra/secrets/example.yaml`. It never overwrites either.
+- **Step 9** also runs `ssh-keygen` for the deploy key, once `prod.yaml` exists.
+- **`--check`** changes nothing. It reports each step done or missing, and exits non-zero while any is missing.
+- **Done means** the key is in `prod.yaml`, no longer holds its placeholder, and the file decrypts.
+- **Step 2** produces no value, so it is reported by hand and never fails the check.
+- **The stack's own passwords and client secrets** get their own row, and a placeholder there fails the check.
 
-**Key presence is judged against `infra/secrets/example.yaml`**, which is the committed key set, so
-the two files cannot drift. A key it declares and `prod.yaml` lacks is named and fails the run; so is
-a key it declares that no step and no stack value produces, and a key a step produces that it does
-not declare. A key still holding the placeholder value example.yaml carries for it has not been
-filled in, because `prod.yaml` is born as an encryption of example.yaml and every key is present from
-that moment.
+## Run it
 
-**The age step attempts a decrypt.** Reading the recipient out of the SOPS metadata would prove
-nothing: the metadata is there by construction the instant the file is encrypted, whoever holds the
-private half. Only a decrypt distinguishes the machine that can read the file from one that cannot,
-and the same attempt is what makes the seven value steps readable, so an absent or undecryptable
-`prod.yaml` reports all eight checkable steps missing.
+```bash
+infra/wizard/setup.sh
+```
 
-**Apple Developer Program enrolment produces no value**, so there is nothing on this machine to look
-at. It is reported by hand and never counts toward the exit status (spec #61, testing decision 9).
+```bash
+infra/wizard/setup.sh --check
+```
 
-**The values the stack assembles for itself are checked too.** The fourteen `keyset.sh stack` names
-(`infra/secrets/README.md`, "The key set") come from no step: a password chosen once, for the
-three service databases and the broker a connection string built from it, and the three client secrets,
-`bff_client_secret`, `notify_client_secret` and `members_client_secret`. But the deploy hands whatever they hold to the
-machine, so a placeholder left in one reaches it. They get their own row, below the nine, and they
-count toward the exit status.
-
-## Where the creation rule goes
-
-Step 1 writes `.sops.yaml` at the repository root, not beside `prod.yaml`. Why, and when the two are
-committed, is in [`../secrets/README.md`](../secrets/README.md), "What is here, and what is not".
-
-## Proving it
+## Test it
 
 ```bash
 infra/wizard/check-smoke.sh
 ```
 
-It generates a throwaway age key in a temporary directory, points the wizard at it with
-`WIZARD_SECRETS_DIR` and `WIZARD_RULES_FILE`, and asserts the nine cases that matter: an absent
-secrets file reports all eight checkable steps missing and Apple by hand; the decrypt attempt fails
-without the private half; it passes with it, and every value filled exits zero; a stack value left at
-its placeholder is named and fails; a key `example.yaml` declares and `prod.yaml` lacks is caught; so
-is a key no step produces; a walk that finds an age key already on disk still writes the creation
-rule and the secrets file, and check mode then reads them; a walk with no secrets file leaves no SSH
-private key behind; and neither script parses `example.yaml` anywhere but `infra/secrets/keyset.sh`.
-
-Nothing secret is committed, no GitHub secret is needed, and nothing is written inside the
-repository: `WIZARD_RULES_FILE` is what keeps a walk's `.sops.yaml` in the temporary directory
-instead of the repository root, and the smoke asserts the tree stayed clean. CI runs it in the
-`backend` job, beside `infra/secrets/decrypt-smoke.sh` and on the same pinned `sops` and `age`.
-
-`shellcheck` is the other gate, already a pre-commit hook.
+It uses a throwaway age key in a temporary folder and leaves the repository untouched. CI runs it in the
+`backend` job.

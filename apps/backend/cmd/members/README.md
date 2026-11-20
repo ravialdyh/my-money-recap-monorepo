@@ -70,5 +70,5 @@ From `apps/backend`:
 go test ./internal/members/
 ```
 
-Most tests need the stack's Postgres; the deletion tests also need Keycloak (`infra/compose/README.md`,
+Most tests need the stack's Postgres; the deletion tests also need Keycloak (`infra/compose/TESTING.md`,
 "Running the Go tests against this stack").
