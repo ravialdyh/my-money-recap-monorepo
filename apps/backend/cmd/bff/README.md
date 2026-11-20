@@ -95,4 +95,4 @@ go test ./internal/bff/
 ```
 
 The unit tests need nothing. The `*EndToEnd` tests and `TestEdge` need the running stack
-(`infra/compose/README.md`, "Running the Go tests against this stack").
+(`infra/compose/TESTING.md`, "Running the Go tests against this stack").

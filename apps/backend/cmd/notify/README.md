@@ -93,4 +93,4 @@ go test ./internal/notify/
 ```
 
 Most tests need the stack's `notify` database, and some also Mailpit, `members` and RabbitMQ
-(`infra/compose/README.md`, "Running the Go tests against this stack").
+(`infra/compose/TESTING.md`, "Running the Go tests against this stack").
