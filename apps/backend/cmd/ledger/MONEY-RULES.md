@@ -52,7 +52,7 @@ flowchart TD
   - a past month that missed it: "{amount} short of your target."
 - **Streak**: the longest run of days with no Spend. It starts no earlier than the sign-up date and never crosses
   into another month. Of two equal runs, the earlier one counts.
-- **Target Warning**: fires once a month, the first time Spent goes past the warning line: Salary minus the
+- **Target Warning**: fires once a month, the first time Spent goes past the saving line: Salary minus the
   Target amount. Only a Spend dated in the current month can fire it. Editing or deleting a Spend never takes it
   back. `notify` sends it.
 - **Partial month**: the sign-up month when Payday came before sign-up, or a past month with Spends but no Money

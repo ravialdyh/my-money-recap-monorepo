@@ -8,7 +8,7 @@ month went.
   <img src="docs/media/home.png" width="200" alt="Home: Spent so far, Money in, Saved and the Saving target">
   <img src="docs/media/log-a-spend.gif" width="200" alt="Logging a 4.50 Spend in a few taps, then Home updates">
   <img src="docs/media/recap-personality.png" width="200" alt="The October Recap names the Archetype of the month">
-  <img src="docs/media/target-warning.png" width="200" alt="A Target Warning after Spent passes the warning line">
+  <img src="docs/media/target-warning.png" width="200" alt="A Target Warning after Spent passes the saving line">
 </p>
 
 Work in progress: what is left before the first release is in
@@ -24,7 +24,7 @@ Work in progress: what is left before the first release is in
 - **A Recap every month.** Four pages on last month: what came in and went out, what you kept against your
   target, your longest run of days with no Spend, where the money went, your biggest Spend (the Splurge), and
   your Archetype, a money personality (Squirrel, Hustler, Treat-Yourself or Slow Burner) you can share.
-- **A warning before the month goes wrong.** The first time Spent passes your warning line, Home shows a Target
+- **A warning before the month goes wrong.** The first time Spent passes your saving line, Home shows a Target
   Warning and a push goes out. Optional pushes also say when a Recap is ready and remind you at a time you pick
   on days you have logged nothing.
 - **Your data, your call.** Sign in with Apple, Google or an email link. Change the Currency and every amount is
@@ -128,7 +128,7 @@ flowchart TD
 | `members.deletion.requested`, `members.deletion.cancelled` | Members | Notify | Holds pushes back, or lets them go again. |
 | `members.deleted` | Members | Ledger, Notify | Deletes all of that Member's rows, then answers `ledger.member.purged` or `notify.member.purged`. |
 | `ledger.member.purged`, `notify.member.purged` | Ledger, Notify | Members | Once both arrive and the Keycloak account is gone, Members removes the profile. |
-| `ledger.spend.logged`, `ledger.spend.edited` | Ledger | Notify | If Spent just passed the warning line, keeps that month's Target Warning and sends the push. |
+| `ledger.spend.logged`, `ledger.spend.edited` | Ledger | Notify | If Spent just passed the saving line, keeps that month's Target Warning and sends the push. |
 | `ledger.currency.converted` | Ledger | Members | Sets the new Currency on the profile. |
 | `ledger.spend.deleted` | Ledger | No one yet | No queue is bound to it, so RabbitMQ drops it on arrival. |
 

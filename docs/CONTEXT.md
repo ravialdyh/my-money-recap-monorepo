@@ -44,11 +44,11 @@ The total of a month's Spends.
 _Avoid_: Expenses, spending total
 
 **Target amount**:
-The Saving Target as money: the Salary times its percent. Salary minus the Target amount is the **warning line**.
+The Saving Target as money: the Salary times its percent. Salary minus the Target amount is the **saving line**.
 _Avoid_: Goal amount, budget
 
 **Target Warning**:
-The once-a-month alert raised the first time Spent passes the warning line. Its wording differs before and after
+The once-a-month alert raised the first time Spent passes the saving line. Its wording differs before and after
 Payday.
 _Avoid_: Budget alert, overspend alert
 
