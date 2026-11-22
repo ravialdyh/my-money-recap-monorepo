@@ -113,7 +113,7 @@ events below.
 When a service changes something another service cares about, it says so with an event on RabbitMQ.
 
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph ledgerbox["Ledger"]
         save["Save the Spend"] --> outbox[("outbox row, same transaction")]
     end
