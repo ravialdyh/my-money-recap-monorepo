@@ -176,5 +176,5 @@ All of Subjects 5 to 16 are generated, cut and wired in. Nothing in this file is
    - `python3 scripts/cut_flat_bg.py renders/<n>-<name>.png <key> <width>` for a hero on a flat ground. A plain colour key is not safe (the violet letter sits on the violet ground), so it keys only the background region connected to the frame border, erodes 2px, and re-feathers. Sizes to roughly 2× display width.
    - `python3 scripts/cut_avatars.py` for the avatar sheet: finds the six circles geometrically and masks each to its inscribed circle at 204px (3× the 68px grid).
    - Both need `Pillow` and `numpy` (`python3 -m pip install --user Pillow numpy`).
-3. Add the WebP to `../apps/ios/Resources/Assets.xcassets` by hand.
+3. Save the WebP as a PNG and add it to `../apps/ios/Resources/Assets.xcassets` by hand: `@3x` for an avatar, `@2x` for anything else.
 4. Show it with the `Illustration` component; avatars are 68pt in `AvatarGrid` and 56pt as the inline `Avatar` (Home).

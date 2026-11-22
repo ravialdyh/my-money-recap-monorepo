@@ -17,11 +17,6 @@ A service saves its change and the event in one transaction, so neither exists w
 publishes the event, and each reader handles it once.
 
 ```mermaid
----
-config:
-  sequence:
-    mirrorActors: false
----
 sequenceDiagram
     participant Service
     participant DB as Its database

@@ -32,14 +32,14 @@ flowchart TD
   the token.
 - **Limits per IP address**: 60 requests a second with a burst of 120, and 100 connections, on `/api/` and
   `/auth/`. The sign-in link call alone is held to 5 a minute.
-- **The limit on sign-in links per email address** is the BFF's (`apps/backend/cmd/bff/README.md`), because
-  Nginx cannot read an address inside a request.
+- **The limit on sign-in links per email address** is the BFF's ([bff README](../../apps/backend/cmd/bff/README.md)),
+  because Nginx cannot read an address inside a request.
 - **TLS**: none yet. Nginx serves plain HTTP on port 80. The `acme` container shares a volume with it, ready
-  for a certificate once there is a domain (#87).
+  for a certificate once there is a domain ([#87](https://github.com/ravialdyh/my-money-recap-monorepo/issues/87)).
 
 ## Test it
 
-With the stack up (`infra/compose/README.md`, "Run it"):
+With the stack up ([compose README, "Run it"](../compose/README.md#run-it)):
 
 ```bash
 curl -si http://localhost:8090/.well-known/apple-app-site-association | grep -i '^HTTP/\|^Content-Type'
@@ -49,4 +49,4 @@ curl -si http://localhost:8090/.well-known/apple-app-site-association | grep -i 
 curl -s http://localhost:8090/magic | grep -o 'Open My Money Recap[^<]*'
 ```
 
-`TestEdge` in `apps/backend/internal/bff` checks the routes, both files and both limits.
+`TestEdge` in `apps/backend/internal/bff` checks the `/api/` route, both files and the sign-in link limit.

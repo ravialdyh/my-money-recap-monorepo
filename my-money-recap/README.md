@@ -4,19 +4,20 @@ The app's illustrations, and the prompts and scripts that make them.
 
 ## From a render to the app
 
-Each arrow is one step from a prompt to an illustration in the app. The last step is done by hand.
+Each arrow is one step from a prompt to an illustration in the app. The last step is done by hand: the asset
+catalog holds PNG files.
 
 ```mermaid
 flowchart TD
     prompt["Prompt"]
     render["4K render"]
     script["Cut-out script"]
-    webp["WebP asset"]
+    webp["WebP file"]
     app["iOS asset catalog"]
     prompt --> render
     render --> script
     script --> webp
-    webp -- "by hand" --> app
+    webp -- "by hand, as PNG" --> app
 ```
 
 | Path | What lives here |
@@ -26,7 +27,7 @@ flowchart TD
 | `assets/icons/` | `app-icon-1024.png`, the square app icon |
 | `renders/` | The 4K originals, kept out of git |
 | `scripts/` | The two background-removal scripts |
-| `docs/illustration-prompts.md` | The style block, one prompt per illustration, and how to add one |
+| [`docs/illustration-prompts.md`](docs/illustration-prompts.md) | The style block, one prompt per illustration, and how to add one |
 
 ## Run it
 
@@ -41,4 +42,5 @@ python3 scripts/cut_flat_bg.py renders/5-envelope.png envelope 640
 python3 scripts/cut_avatars.py
 ```
 
-Then add the WebP to `apps/ios/Resources/Assets.xcassets` by hand.
+Then save the WebP as a PNG and add it to `apps/ios/Resources/Assets.xcassets` by hand: `@3x` for an Avatar,
+`@2x` for anything else.

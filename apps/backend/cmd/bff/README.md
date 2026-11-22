@@ -9,11 +9,6 @@ services, and joins their answers into one answer per screen. It has no database
 Home still opens without `notify`, just with no banner.
 
 ```mermaid
----
-config:
-  sequence:
-    mirrorActors: false
----
 sequenceDiagram
     participant Phone
     participant BFF
@@ -32,11 +27,6 @@ sequenceDiagram
 `notify` is told only when the Spend is in the current month. Dashed arrows are answers.
 
 ```mermaid
----
-config:
-  sequence:
-    mirrorActors: false
----
 sequenceDiagram
     participant Phone
     participant BFF

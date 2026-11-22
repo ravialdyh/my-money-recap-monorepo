@@ -17,7 +17,7 @@ On a laptop, delete the volumes and start again. This deletes the stack's data:
 docker compose -f infra/compose/compose.yaml --profile mail down -v
 ```
 
-`TEST_USER_PASSWORD` and the three client secrets are different: `realm-apply` applies them again on every `up`.
+`TEST_USER_PASSWORD` and the three client secrets are not affected ([README, "The `mmr` realm"](README.md#the-mmr-realm)).
 
 ## Every sign-in link fails
 
@@ -39,7 +39,7 @@ fixes it.
 Two test packages ran at once and both signed in as the one test Member. Run them with `-p 1`:
 
 ```bash
-cd apps/backend && go test -p 1 ./...
+(cd apps/backend && go test -p 1 ./...)
 ```
 
 ## The Keycloak admin console says "HTTPS required"
@@ -58,5 +58,9 @@ docker compose -f infra/compose/compose.yaml exec keycloak /opt/keycloak/bin/kca
 
 ## Docker runs out of memory
 
-Keycloak's memory is `KEYCLOAK_JAVA_HEAP` in `.env`, `-Xms64m -Xmx512m` by default. Check that only one stack is
-running (README, "One stack per laptop").
+Keycloak's memory is `KEYCLOAK_JAVA_HEAP` in `.env`; `.env.example` sets `-Xms64m -Xmx512m`. Check that only one
+stack is running:
+
+```bash
+docker compose ls
+```

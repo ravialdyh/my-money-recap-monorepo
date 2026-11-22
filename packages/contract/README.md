@@ -14,7 +14,7 @@ flowchart TD
     go["Go code in gen"]
     swift["Swift package"]
     backend["Backend services"]
-    ios["iPhone app"]
+    ios["iOS app"]
     proto --> buf
     buf --> go
     buf --> swift
@@ -40,7 +40,7 @@ Each service block lists its calls, and each message says what it is for. Every 
 | Generated output | Where | Used by |
 | --- | --- | --- |
 | Go messages, servers and clients | `apps/backend/gen/money_recap/v1/` | The BFF and the services |
-| Swift: the `BffService` client and its messages | `swift/Sources/MoneyRecapContract/` | The iPhone app, which calls only the BFF |
+| Swift: the `BffService` client and its messages | `swift/Sources/MoneyRecapContract/` | The iOS app, which calls only the BFF |
 
 Never edit the generated files. Plugin versions are pinned in `buf.gen.yaml`. A plugin bump also moves its runtime
 pin: `apps/backend/go.mod` for Go, and `swift/Package.swift` plus the Xcode project for Swift.
@@ -50,17 +50,17 @@ pin: `apps/backend/go.mod` for Go, and `swift/Package.swift` plus the Xcode proj
 After editing a `.proto`, from the repository root:
 
 ```bash
-cd packages/contract && buf lint && buf generate
+(cd packages/contract && buf lint && buf generate)
 ```
 
 Then check that both sides still build:
 
 ```bash
-cd apps/backend && go build ./...
+(cd apps/backend && go build ./...)
 ```
 
 ```bash
-cd packages/contract/swift && swift build
+(cd packages/contract/swift && swift build)
 ```
 
 ## Test it
@@ -68,7 +68,7 @@ cd packages/contract/swift && swift build
 The breaking-change check CI runs:
 
 ```bash
-cd packages/contract && buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract"
+(cd packages/contract && buf breaking --against "$(git rev-parse --git-common-dir)#ref=origin/main,subdir=packages/contract")
 ```
 
 CI's `contract` job runs on every contract change:

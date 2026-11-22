@@ -9,11 +9,6 @@ When a Member changes Currency with amounts saved, `ledger` rewrites them all in
 event that tells `members`. With nothing saved, the Currency changes at once, with no rate and no confirm.
 
 ```mermaid
----
-config:
-  sequence:
-    mirrorActors: false
----
 sequenceDiagram
     participant Phone
     participant BFF

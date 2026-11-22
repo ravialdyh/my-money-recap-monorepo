@@ -45,7 +45,8 @@ in the `tokens` job.
   ring.
 - **Tap targets are 44pt.** Mark a small `Chip` or `ArchetypePill` `tappable` when it is a control.
 - **Motion** uses the `motion.*` tokens. With Reduce Motion on, every reveal becomes a 150ms fade.
-- **Money** is an exact decimal plus an ISO 4217 code, printed by the platform formatter with the Currency's own
-  decimals. `StatHero` and `AmountField` pick the largest size that fits: 80, 56 or 40pt, and 48, 36 or 28pt.
-- **Contrast**: `ink.500` on white is 4.6:1, so use it at 14pt and up. White on coral or green is for large text
-  only.
+- **Money** prints with the platform formatter, with the decimals the amount carries, and a whole amount with
+  none: `2400.00` GBP prints as £2,400. `StatHero` and `AmountField` pick the largest size that fits: 80, 56 or
+  40pt, and 48, 36 or 28pt.
+- **Contrast**: `ink.500` on white is 5.2:1. White on coral is 3.1:1, so large text only. White on green is
+  2.9:1, below the 3:1 that large text needs.
