@@ -40,6 +40,7 @@ flowchart TD
         redis[("Redis")]
     end
     subgraph outside["Outside services"]
+        direction LR
         apns["Apple push"]
         mail["Email sender"]
         rates["Exchange rates"]
