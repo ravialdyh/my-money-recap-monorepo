@@ -1,14 +1,14 @@
 # My Money Recap
 
-**Know where your salary went, one month at a time.** An iPhone app for adults that tracks one month of Salary,
-Spends and saving. It looks like a playful kids' app, and at the end of each month it tells the story of how the
+**Know where your salary went, one month at a time.** An iPhone and iPad app for adults that tracks one month of
+Salary, Spends and saving. It looks like a playful kids' app, and at the end of each month it tells the story of how the
 month went.
 
 <p align="center">
   <img src="docs/media/home.png" width="200" alt="Home: Spent so far, Money in, Saved and the Saving target">
   <img src="docs/media/log-a-spend.gif" width="200" alt="Logging a 4.50 Spend in a few taps, then Home updates">
-  <img src="docs/media/recap-personality.png" width="200" alt="The October Recap names a money personality">
-  <img src="docs/media/target-warning.png" width="200" alt="A Target Warning after Spent passes the saving line">
+  <img src="docs/media/recap-personality.png" width="200" alt="The October Recap names the Archetype of the month">
+  <img src="docs/media/target-warning.png" width="200" alt="A Target Warning after Spent passes the warning line">
 </p>
 
 Work in progress: what is left before the first release is in
@@ -22,9 +22,9 @@ Work in progress: what is left before the first release is in
 - **A Spend in a few taps.** Type the amount, pick one of eight Categories, add a note if you like, and save.
   Home updates at once.
 - **A Recap every month.** Four pages on last month: what came in and went out, what you kept against your
-  target, your longest run of days with no Spend, where the money went, your biggest Spend, and a money
-  personality (Squirrel, Hustler, Treat-Yourself or Slow Burner) you can share.
-- **A warning before the month goes wrong.** The first time Spent passes your saving line, Home shows a Target
+  target, your longest run of days with no Spend, where the money went, your biggest Spend (the Splurge), and
+  your Archetype, a money personality (Squirrel, Hustler, Treat-Yourself or Slow Burner) you can share.
+- **A warning before the month goes wrong.** The first time Spent passes your warning line, Home shows a Target
   Warning and a push goes out. Optional pushes also say when a Recap is ready and remind you at a time you pick
   on days you have logged nothing.
 - **Your data, your call.** Sign in with Apple, Google or an email link. Change the Currency and every amount is
@@ -55,7 +55,7 @@ services. Each service that keeps data has its own Postgres database, and no ser
 
 ```mermaid
 flowchart TD
-    app["iPhone app"]
+    app["iPhone and iPad app"]
     keycloak["Keycloak sign-in"]
     bff["BFF"]
     members["Members"]
@@ -128,8 +128,9 @@ flowchart TD
 | `members.deletion.requested`, `members.deletion.cancelled` | Members | Notify | Holds pushes back, or lets them go again. |
 | `members.deleted` | Members | Ledger, Notify | Deletes all of that Member's rows, then answers `ledger.member.purged` or `notify.member.purged`. |
 | `ledger.member.purged`, `notify.member.purged` | Ledger, Notify | Members | Once both arrive and the Keycloak account is gone, Members removes the profile. |
-| `ledger.spend.logged`, `ledger.spend.edited` | Ledger | Notify | If Spent just passed the saving line, keeps that month's Target Warning and sends the push. |
+| `ledger.spend.logged`, `ledger.spend.edited` | Ledger | Notify | If Spent just passed the warning line, keeps that month's Target Warning and sends the push. |
 | `ledger.currency.converted` | Ledger | Members | Sets the new Currency on the profile. |
+| `ledger.spend.deleted` | Ledger | No one yet | No queue is bound to it, so RabbitMQ drops it on arrival. |
 
 What happens to an event:
 
@@ -140,6 +141,8 @@ What happens to an event:
    its change. A repeat delivery finds the id and is skipped.
 4. **RabbitMQ then drops it.** The receiver acknowledges only after its transaction commits. A failure puts the
    event back on the queue. After five tries it moves to `<queue>.dead`, where it waits for a person.
+5. **Postgres keeps the record.** The sent `outbox` row stays until the Member is deleted, and the received ids
+   in `processed_events` stay for good.
 
 The Target Warning also has a quick path: after a write, the BFF asks Notify straight away, so the banner shows
 at once. The event covers the case where that call fails. Notify keeps one warning per month, so the push goes
