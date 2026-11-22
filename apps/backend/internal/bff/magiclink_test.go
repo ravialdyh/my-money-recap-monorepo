@@ -100,7 +100,7 @@ func request(email, key string) *connect.Request[moneyrecapv1.BffServiceRequestM
 	return req
 }
 
-func TestRequestMagicLinkAsksTheRealmOnA10sTermsAndMailsTheLink(t *testing.T) {
+func TestRequestMagicLinkAsksTheRealmForAOneUseLinkAndMailsIt(t *testing.T) {
 	realm, mailer := &fakeRealm{}, &fakeMailer{}
 	s := newMagicLinkService(t, realm, mailer)
 	claimed := auth.NewContext(context.Background(), auth.Claims{Subject: "sub-1", Email: "someone-else@example.test", Raw: "tok"})
