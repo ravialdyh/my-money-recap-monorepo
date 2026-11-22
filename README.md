@@ -28,7 +28,6 @@ flowchart TD
         keycloak["Keycloak sign-in"]
         bff["BFF"]
         subgraph services["Services"]
-            direction LR
             members["Members"]
             ledger["Ledger"]
             notify["Notify"]
@@ -36,13 +35,11 @@ flowchart TD
         end
     end
     subgraph storage["Storage"]
-        direction TB
         postgres[("Postgres")]
         rabbit[["RabbitMQ events"]]
         redis[("Redis")]
     end
     subgraph outside["Outside services"]
-        direction LR
         apns["Apple push"]
         mail["Email sender"]
         rates["Exchange rates"]
