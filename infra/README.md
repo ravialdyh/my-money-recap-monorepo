@@ -36,7 +36,7 @@ sequenceDiagram
 - **Apple and Google** go through Keycloak's identity providers, with "Trust email" on.
 - **The tokens** are an access token and a refresh token. The session lasts 30 days from last use. Each refresh
   token works once.
-- **Log out** is the app's ([iOS README, "How it works"](../apps/ios/README.md#how-it-works).
+- **Log out** is the app's ([iOS README, "How it works"](../apps/ios/README.md#how-it-works)).
 - **Clients in the realm**: `ios` for the app, `bff` for sign-in links, and one each for `notify` and `members`,
   whose background jobs have no Member token.
 
