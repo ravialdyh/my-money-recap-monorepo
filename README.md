@@ -75,11 +75,11 @@ flowchart TD
     bff --> ledger
     bff --> notify
     bff --> currency
-    bff -- "limits, replayed writes" --> redis
+    bff --> redis
     members --> mdb
     ledger --> ldb
     notify --> ndb
-    currency -- "today's rates" --> redis
+    currency --> redis
     notify --> apple
     notify --> mail
     currency --> rates
