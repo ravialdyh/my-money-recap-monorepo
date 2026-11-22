@@ -5,9 +5,15 @@ Home and in the Recap. The rules and a worked example are in [MONEY-RULES.md](MO
 
 ## Changing the Currency
 
-When a Member changes Currency with amounts saved, `ledger` rewrites them all in one go. The dashed arrow is an event that tells `members`.
+When a Member changes Currency with amounts saved, `ledger` rewrites them all in one go. The dashed arrow is an
+event that tells `members`. With nothing saved, the Currency changes at once, with no rate and no confirm.
 
 ```mermaid
+---
+config:
+  sequence:
+    mirrorActors: false
+---
 sequenceDiagram
     participant Phone
     participant BFF
@@ -16,7 +22,7 @@ sequenceDiagram
     participant Members
     Phone->>BFF: preview the change
     BFF->>Currency: today's rate
-    BFF->>Ledger: preview at that rate
+    BFF->>Ledger: preview with rate
     Phone->>BFF: confirm
     BFF->>Ledger: convert every amount
     Ledger-->>Members: currency converted event
@@ -26,27 +32,22 @@ sequenceDiagram
 
 - **Calls it answers**: Salary and Target saves, `LogSpend`, `EditSpend`, `DeleteSpend`, the month for Home,
   the Recap, the Spend list, Settings, the Currency preview and change, and the CSV export.
-- **Tables**: `salary_setting` and `saving_target_setting` (a new row per change, never edited),
-  `spend`, `currency_conversion`, and `member_facts`, its copy of each Member's zone, sign-up date and Currency.
+- **Tables**: `salary_setting` and `saving_target_setting` (a new row per change, never edited), `spend`,
+  `currency_conversion`, and `member_facts`. `member_facts` is its copy of each Member's zone, sign-up date and
+  Currency.
 - **Events it reads**: `members.created` and `members.updated` keep `member_facts` fresh. `members.deleted`
   removes everything it holds for that Member.
 - **Events it sends**: `ledger.spend.logged`, `ledger.spend.edited`, `ledger.spend.deleted`,
   `ledger.currency.converted` and `ledger.member.purged`.
 - **Background job**: `notify`'s own token may call only `GetSpentToday` and `ListMonthsWithData`.
 
-Its image, token check, start-up and shared settings are the same as every service's
+Its image, token check, start-up, shared tables and shared settings are the same as every service's
 ([apps/README.md](../../../README.md)).
-
-## Settings
-
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `LEDGER_MEMBERS_URL` | required | `members`, to fill `member_facts` on a miss: `http://members:8080` in Compose |
-| `LEDGER_AMQP_URL` | required | RabbitMQ, for the events it reads and sends |
 
 ## Run it
 
-The whole stack starts it (`infra/compose/README.md`, "Run it"), after `ledger-migrate` has run.
+The whole stack starts it ([compose README, "Run it"](../../../../infra/compose/README.md#run-it)), after
+`ledger-migrate` has run.
 
 ## Test it
 
@@ -56,6 +57,12 @@ From `apps/backend`:
 go test ./internal/ledger/
 ```
 
-Most tests need the stack's `ledger` database; a few also need `members` and Keycloak (`infra/compose/TESTING.md`,
-"Running the Go tests against this stack"). `TestTheAnswerKey` runs every file in
-`packages/contract/fixtures/ledger/`.
+Most tests need the stack's `ledger` database; a few also need `members` and Keycloak ([TESTING.md, "Running the
+Go tests against this stack"](../../../../infra/compose/TESTING.md#running-the-go-tests-against-this-stack)).
+`TestTheAnswerKey` runs every file in [`packages/contract/fixtures/ledger/`](../../../../packages/contract/fixtures/ledger/README.md).
+
+## Settings
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `LEDGER_MEMBERS_URL` | required | `members`, to fill `member_facts` on a miss: `http://members:8080` in Compose |

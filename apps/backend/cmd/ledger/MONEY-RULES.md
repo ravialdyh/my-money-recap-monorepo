@@ -6,7 +6,8 @@ the Recap. Every number in the examples comes from a test file in `packages/cont
 
 ## How one month is worked out
 
-Each box is worked out from the boxes above it.
+Each box is worked out from the boxes that point to it. From the Spends, the Archetype also uses the Streak and
+the Splurge.
 
 ```mermaid
 flowchart TD
@@ -26,13 +27,14 @@ flowchart TD
     spent --> saved
     saved --> archetype
     line --> archetype
+    spends --> archetype
 ```
 
 ## The rules
 
 - **Month**: a calendar month, in the Member's own time zone.
-- **Payday**: the Salary lands on that day. A Payday of 29 to 31, or "Last day", moves to the month's last day
-  in a shorter month.
+- **Payday**: the Salary lands on that day. "Last day" is always the month's last day. A Payday of 29 to 31
+  moves to the last day of a shorter month.
 - **Money In**: the Salary once Payday has come, and 0 before it.
 - **Spent**: the total of the month's Spends. A deleted Spend counts nowhere.
 - **Saved**: Money In minus Spent. It is not shown at all while Money In is 0.
@@ -50,8 +52,9 @@ flowchart TD
   - a past month that missed it: "{amount} short of your target."
 - **Streak**: the longest run of days with no Spend. It starts no earlier than the sign-up date and never crosses
   into another month. Of two equal runs, the earlier one counts.
-- **Target Warning**: fires once a month, the first time Spent goes past Salary minus the Target amount.
-  Editing or deleting a Spend never takes it back. `notify` sends it.
+- **Target Warning**: fires once a month, the first time Spent goes past the warning line: Salary minus the
+  Target amount. Only a Spend dated in the current month can fire it. Editing or deleting a Spend never takes it
+  back. `notify` sends it.
 - **Partial month**: the sign-up month when Payday came before sign-up, or a past month with Spends but no Money
   In. It has no Saved and no Archetype.
 
@@ -69,12 +72,14 @@ A full month with Money In and a Saving Target gets one Archetype. The first mat
 ## Changing things later
 
 - **Salary amount**: saved before this month's Payday, it applies this month. Saved on or after Payday, the
-  Member says whether it is this month's pay or next month's.
+  Member says whether it is this month's Salary or next month's.
 - **Payday and Saving Target**: a change always starts next month. A Saving Target needs a Salary first.
 - **First save**: a Salary or Target saved during setup counts from the sign-up month. The first one saved after
   setup counts from this month.
 - **Spend**: dated in the last 60 days including today, never in the future, never before the sign-up month.
-  Amounts are above 0, at most 11 digits before the decimal point. A note is at most 80 characters.
+  A Spend already older than 60 days can still be edited, but its date cannot change. Amounts are above 0,
+  with at most 11 digits before the decimal point and at most the Currency's decimals. A note is at most 80
+  characters.
 - **Currency change**: every Salary and Spend amount is multiplied by the rate and rounded half up to the new
   Currency's decimals, never below its smallest unit. The original amounts are kept. The Target percent stays.
 
@@ -94,8 +99,8 @@ line is £2,400 minus £480, or £1,920.
 
 More from the same files:
 
-- **Salary edit** on 27 September, £2,400 to £2,800: as this month's pay, September's Target amount becomes £560
-  (`maya-27-september-this-month.json`); as next month's, September stays at £2,400
+- **Salary edit** on 27 September, £2,400 to £2,800. As this month's Salary, September's Target amount becomes
+  £560 (`maya-27-september-this-month.json`). As next month's, September stays at £2,400
   (`maya-27-september-next-month.json`).
 - **Currency change** to IDR at 20,150: £2,400 becomes Rp48.360.000 and her £1,760 of Spends become
   Rp35.464.000; the Target stays 20% (`maya-gbp-to-idr.json`).

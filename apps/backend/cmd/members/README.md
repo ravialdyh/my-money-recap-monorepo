@@ -5,7 +5,8 @@ zone and sign-up date. It also runs account deletion.
 
 ## Deleting an account
 
-A Member can cancel within 24 hours. After that, every service removes its data and Keycloak removes the login.
+A Member can cancel within 24 hours. After that, every service removes its data and `members` deletes the
+Keycloak login.
 
 ```mermaid
 flowchart TD
@@ -30,27 +31,18 @@ flowchart TD
 - **Checks**: a Display Name is 1 to 30 letters, spaces, hyphens or apostrophes. The Avatar is one of six.
   The Currency is a real ISO 4217 code. The time zone is a real IANA zone.
 - **Sign-up date**: set once, on the first `SetTimezone`, as the local date in that zone.
-- **Tables**: `member`, `deletion_progress`, `idempotency`, `outbox` and `processed_events`.
+- **Tables**: `member` and `deletion_progress`.
 - **Events it sends**: `members.created`, `members.updated`, `members.deletion.requested`,
   `members.deletion.cancelled` and `members.deleted`.
 - **Events it reads**: `ledger.currency.converted`, and the two purged events from `ledger` and `notify`.
 - **Deletion job**: runs every 10 minutes. It deletes the Keycloak login with `members`' own service account.
 
-Its image, token check, start-up and shared settings are the same as every service's
+Its image, token check, start-up, shared tables and shared settings are the same as every service's
 ([apps/README.md](../../../README.md)).
-
-## Settings
-
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `MEMBERS_AMQP_URL` | required | RabbitMQ, for the events it reads and sends |
-| `MEMBERS_REALM_URL` | required | The realm that issues `members`' own token: `http://keycloak:8080/realms/mmr` in Compose |
-| `MEMBERS_REALM_ADMIN_URL` | required | Where it deletes logins: `http://keycloak:8080/admin/realms/mmr` in Compose |
-| `MEMBERS_CLIENT_SECRET` | required | The `members` client's secret |
 
 ## Run it
 
-The whole stack starts it (`infra/compose/README.md`, "Run it"), after `members-migrate` has run.
+The whole stack starts it ([compose README, "Run it"](../../../../infra/compose/README.md#run-it)), after `members-migrate` has run.
 
 To run it by hand against that stack, on a port the stack does not use:
 
@@ -59,7 +51,7 @@ cd apps/backend
 export MEMBERS_DATABASE_URL="postgres://members:$MEMBERS_DB_PASSWORD@localhost:5432/members"
 go run ./cmd/members migrate
 export MEMBERS_AMQP_URL="amqp://mmr:$RABBITMQ_PASSWORD@localhost:5672/"
-MEMBERS_OIDC_ISSUER=http://localhost:8080/realms/mmr MEMBERS_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs MEMBERS_REALM_URL=http://localhost:8080/realms/mmr MEMBERS_REALM_ADMIN_URL=http://localhost:8080/admin/realms/mmr MEMBERS_CLIENT_SECRET="$MEMBERS_CLIENT_SECRET" MEMBERS_LISTEN=:8086 go run ./cmd/members
+MEMBERS_OIDC_ISSUER=http://localhost:8080/realms/mmr MEMBERS_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs MEMBERS_REALM_URL=http://localhost:8080/realms/mmr MEMBERS_REALM_ADMIN_URL=http://localhost:8080/admin/realms/mmr MEMBERS_CLIENT_SECRET="$MEMBERS_CLIENT_SECRET" MEMBERS_LISTEN=:8088 go run ./cmd/members
 ```
 
 ## Test it
@@ -70,5 +62,12 @@ From `apps/backend`:
 go test ./internal/members/
 ```
 
-Most tests need the stack's Postgres; the deletion tests also need Keycloak (`infra/compose/TESTING.md`,
-"Running the Go tests against this stack").
+Most tests need the stack's Postgres; the deletion tests also need Keycloak ([TESTING.md, "Running the Go tests against this stack"](../../../../infra/compose/TESTING.md#running-the-go-tests-against-this-stack)).
+
+## Settings
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `MEMBERS_REALM_URL` | required | The realm that issues `members`' own token: `http://keycloak:8080/realms/mmr` in Compose |
+| `MEMBERS_REALM_ADMIN_URL` | required | Where it deletes logins: `http://keycloak:8080/admin/realms/mmr` in Compose |
+| `MEMBERS_CLIENT_SECRET` | required | The `members` client's secret |

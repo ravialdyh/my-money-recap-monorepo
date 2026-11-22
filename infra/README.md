@@ -18,6 +18,11 @@ A Member signs in with Apple, Google or an email link. Keycloak issues the token
 password. This is the email link; the dashed arrow is an answer:
 
 ```mermaid
+---
+config:
+  sequence:
+    mirrorActors: false
+---
 sequenceDiagram
     participant Phone
     participant BFF

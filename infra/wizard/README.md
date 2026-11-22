@@ -1,21 +1,22 @@
 # infra/wizard
 
-One script for the nine setup steps only a person can do. Each step ends with a value pasted into
+One script for the nine setup steps only a person can do. Steps 3 to 9 each end with a value pasted into
 `infra/secrets/prod.yaml`. Any step can be skipped and done later.
 
 ## The nine steps
 
-The script walks the steps in this order. Step 1 comes first because it creates the file the others fill.
+The script walks the steps in this order; each box shows its step number. Step 1 comes first because it creates
+the file the others fill.
 
 ```mermaid
 flowchart TD
-    s1["1. Age key pair"]
-    apple["2 to 4. Apple"]
-    google["5. Google sign-in"]
-    rates["6. Exchange rates"]
-    mail["7. Mail provider"]
-    domain["8. Domain"]
-    cloud["9. Cloud and deploy key"]
+    s1["Age key pair (1)"]
+    apple["Apple (2 to 4)"]
+    google["Google (5)"]
+    rates["Exchange rates (6)"]
+    mail["Mail provider (7)"]
+    domain["Domain (8)"]
+    cloud["Cloud, deploy key (9)"]
     s1 --> apple
     apple --> google
     google --> rates
@@ -30,7 +31,8 @@ two `.p8` keys.
 ## How it works
 
 - **Step 1** makes the age key, or uses one already in `~/.config/sops/age/keys.txt`. It writes `.sops.yaml`
-  and creates `prod.yaml` from `infra/secrets/example.yaml`. It never overwrites either.
+  and creates `prod.yaml` from `infra/secrets/example.yaml`. It never overwrites the key or `prod.yaml`. It
+  rewrites `.sops.yaml` when that file does not name this key.
 - **Step 9** also runs `ssh-keygen` for the deploy key, once `prod.yaml` exists.
 - **`--check`** changes nothing. It reports each step done or missing, and exits non-zero while any is missing.
 - **Done means** the key is in `prod.yaml`, no longer holds its placeholder, and the file decrypts.
