@@ -6,7 +6,8 @@ Test coverage may not fall. The target is 80% for Go and for iOS, and each langu
 ## How it works
 
 - **Fails** when coverage drops more than 0.5 points below the floor.
-- **Passes** when coverage rises, and prints the command that records the new floor.
+- **Passes** when coverage rises. While a floor is below the target, it prints the command that records the
+  new floor.
 - **Stops rising** once a language reaches the target.
 - **Go** leaves out the generated code in `apps/backend/gen/` and the test helpers `internal/testauth` and
   `internal/testdb`.

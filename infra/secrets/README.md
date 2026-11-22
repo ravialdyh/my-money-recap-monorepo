@@ -1,11 +1,12 @@
 # infra/secrets
 
 Every secret lives in one file, `prod.yaml`, encrypted with SOPS and an age key. The age private key is the
-only secret a person ever holds; everything else is ciphertext in git.
+only secret a person ever holds; everything else is kept as ciphertext.
 
 ## How a secret reaches a container
 
-The deploy decrypts on the GitHub runner, never on the server.
+The deploy decrypts on the GitHub runner, and `infra/compose/machine-env.sh` writes the server's `.env`. The
+server never holds the age key.
 
 ```mermaid
 flowchart TD
@@ -31,8 +32,8 @@ flowchart TD
 | `decrypt.sh` | yes | Decrypts to one file per key, mode 0400. |
 | `decrypt-smoke.sh` | yes | Proves `decrypt.sh` and `infra/compose/machine-env.sh` with a throwaway key. |
 | `keyset.sh` | yes | The one reader of `example.yaml`'s keys, shared by the smoke test, the wizard and `machine-env.sh`. |
-| `prod.yaml` | not yet | The real values. Committed once it holds them (#87). |
-| `.sops.yaml` at the repository root | not yet | Names the age public key. Written by the wizard's first step. |
+| `prod.yaml` | no, git-ignored | The real values. Once it holds them, delete its line in `.gitignore` and commit it with `.sops.yaml` ([#87](https://github.com/ravialdyh/my-money-recap-monorepo/issues/87)). |
+| `.sops.yaml` at the repository root | no, git-ignored | Names the age public key. Written by the wizard's first step. |
 
 No age key exists yet, so the repository holds the shape and no real value.
 
@@ -42,7 +43,8 @@ No age key exists yet, so the repository holds the shape and no real value.
   values. `STEPS` in `infra/wizard/setup.sh` says which step fills which key.
 - **For the stack itself** (`keyset.sh stack`): the Postgres, Keycloak and RabbitMQ passwords, the
   connection strings built from them, and the `bff`, `notify` and `members` client secrets.
-- Each database password appears twice, once alone and once inside its connection string. Change both together.
+- Each database password, and the RabbitMQ password, appears twice: once alone and once inside its connection
+  string. Change both together.
 
 ## Keycloak's file vault
 
@@ -51,7 +53,8 @@ the values from files Compose mounts in `/run/secrets`, named with every undersc
 files are `infra/compose/vault/`, holding `replace-me`.
 
 The Google secret works this way. The Apple extension in the pinned image does not read the vault, so Sign in
-with Apple cannot finish with real values yet.
+with Apple cannot finish with real values yet ([#87](https://github.com/ravialdyh/my-money-recap-monorepo/issues/87),
+item 10).
 
 ## Run it
 

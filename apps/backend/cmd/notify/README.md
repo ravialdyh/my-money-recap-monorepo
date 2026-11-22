@@ -42,36 +42,19 @@ flowchart TD
   whichever comes first. The stamp shows Home's banner and sends the push.
 - **Schedules**: each Member's next Recap time and next reminder time are kept in their own time zone. It reads
   `ledger` with its own service-account token.
-- **Tables**: `month_flag`, `sent_log`, `device`, `notification_preference`, `member_facts`,
-  `magic_link_send`, `idempotency`, `outbox` and `processed_events`.
+- **Tables**: `month_flag`, `sent_log`, `device`, `notification_preference`, `member_facts` and
+  `magic_link_send`.
 - **Events it reads**: `ledger.spend.logged`, `ledger.spend.edited`, and every `members.*` event.
 - **Events it sends**: `notify.member.purged`.
 - **No push key** (every laptop): a push is logged and not sent.
 
-Its image, token check, start-up and shared settings are the same as every service's
+Its image, token check, start-up, shared tables and shared settings are the same as every service's
 ([apps/README.md](../../../README.md)).
-
-## Settings
-
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `NOTIFY_SMTP_ADDR` | required | The mail host: `mailpit:1025` in Compose |
-| `NOTIFY_MAIL_FROM` | required | The sender address |
-| `NOTIFY_MEMBERS_URL` | required | `members`: `http://members:8080` in Compose |
-| `NOTIFY_LEDGER_URL` | required | `ledger`: `http://ledger:8080` in Compose |
-| `NOTIFY_AMQP_URL` | required | RabbitMQ, for the events it reads and sends |
-| `NOTIFY_REALM_URL` | required | The realm that issues `notify`'s own token |
-| `NOTIFY_CLIENT_SECRET` | required | The `notify` client's secret |
-| `NOTIFY_APNS_HOST` | `https://api.push.apple.com` | Apple's push service |
-| `NOTIFY_APNS_TOPIC` | `com.mymoneyrecap.app` | The app's bundle id |
-| `NOTIFY_APPLE_TEAM_ID` | empty | The Apple Team ID |
-| `NOTIFY_APPLE_PUSH_KEY_ID` | empty | The push key's Key ID |
-| `NOTIFY_APPLE_PUSH_KEY` | empty | The `.p8` push key, in base64 on one line |
 
 ## Run it
 
-The whole stack starts it with `--profile mail` (`infra/compose/README.md`, "Run it"), after `notify-migrate`
-has run. Without that profile it has no mail host.
+The whole stack starts it with `--profile mail` ([compose README, "Run it"](../../../../infra/compose/README.md#run-it)), after
+`notify-migrate` has run.
 
 To run it by hand against that stack, on a port the stack does not use:
 
@@ -82,7 +65,7 @@ go run ./cmd/notify migrate
 NOTIFY_OIDC_ISSUER=http://localhost:8080/realms/mmr NOTIFY_OIDC_JWKS_URL=http://localhost:8080/realms/mmr/protocol/openid-connect/certs NOTIFY_SMTP_ADDR=localhost:1025 NOTIFY_MAIL_FROM=no-reply@mymoneyrecap.test NOTIFY_MEMBERS_URL=http://localhost:8081 NOTIFY_AMQP_URL="amqp://mmr:$RABBITMQ_PASSWORD@localhost:5672/" NOTIFY_LEDGER_URL=http://localhost:8084 NOTIFY_REALM_URL=http://localhost:8080/realms/mmr NOTIFY_CLIENT_SECRET="$NOTIFY_CLIENT_SECRET" NOTIFY_LISTEN=:8087 go run ./cmd/notify
 ```
 
-The sign-in email it sends shows up in Mailpit (`infra/compose/README.md`, "Mailpit").
+The sign-in email it sends shows up in Mailpit ([TESTING.md, "Mailpit"](../../../../infra/compose/TESTING.md#mailpit)).
 
 ## Test it
 
@@ -93,4 +76,20 @@ go test ./internal/notify/
 ```
 
 Most tests need the stack's `notify` database, and some also Mailpit, `members` and RabbitMQ
-(`infra/compose/TESTING.md`, "Running the Go tests against this stack").
+([TESTING.md, "Running the Go tests against this stack"](../../../../infra/compose/TESTING.md#running-the-go-tests-against-this-stack)).
+
+## Settings
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `NOTIFY_SMTP_ADDR` | required | The mail host: `mailpit:1025` in Compose |
+| `NOTIFY_MAIL_FROM` | required | The sender address |
+| `NOTIFY_MEMBERS_URL` | required | `members`: `http://members:8080` in Compose |
+| `NOTIFY_LEDGER_URL` | required | `ledger`: `http://ledger:8080` in Compose |
+| `NOTIFY_REALM_URL` | required | The realm that issues `notify`'s own token |
+| `NOTIFY_CLIENT_SECRET` | required | The `notify` client's secret |
+| `NOTIFY_APNS_HOST` | `https://api.push.apple.com` | Apple's push service |
+| `NOTIFY_APNS_TOPIC` | `com.mymoneyrecap.app` | The app's bundle id |
+| `NOTIFY_APPLE_TEAM_ID` | empty | The Apple Team ID |
+| `NOTIFY_APPLE_PUSH_KEY_ID` | empty | The push key's Key ID |
+| `NOTIFY_APPLE_PUSH_KEY` | empty | The `.p8` push key, in base64 on one line |

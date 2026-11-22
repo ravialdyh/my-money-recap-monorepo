@@ -1,6 +1,36 @@
 # Testing against the Compose stack
 
-How to run the backend's tests against the stack that `infra/compose/README.md` ("Run it") starts.
+How to try the backend by hand, and run its tests, against the stack that the [compose README, "Run
+it"](README.md#run-it) starts.
+
+## Try it by hand
+
+A token for the test Member, kept in `$TOKEN`:
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:8080/realms/mmr/protocol/openid-connect/token -d grant_type=password -d client_id=ios -d username=test -d "password=$TEST_USER_PASSWORD" | jq -r .access_token)
+```
+
+Home through the BFF with that token. Until the test Member has saved setup steps 1 and 2, it answers
+`failed_precondition`.
+
+```bash
+curl -s http://localhost:8082/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+```
+
+The same call through the edge answers the same:
+
+```bash
+curl -s http://localhost:8090/api/money_recap.v1.BffService/GetHome -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+```
+
+## Mailpit
+
+Every email `notify` sends lands in Mailpit. Read it at `http://localhost:8025`, or over its API:
+
+```bash
+curl -s "http://localhost:8025/api/v1/search?query=to:someone@example.test" | jq '.messages[0].ID'
+```
 
 ## Running the Go tests against this stack
 
@@ -29,7 +59,7 @@ The tests that need the stack skip unless their variables are set. With the stac
 Run them one package at a time, because several suites sign in as the one test Member:
 
 ```bash
-cd apps/backend && go test -p 1 ./...
+(cd apps/backend && go test -p 1 ./...)
 ```
 
 ## Smoke tests

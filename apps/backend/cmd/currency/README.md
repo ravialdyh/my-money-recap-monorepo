@@ -27,20 +27,9 @@ flowchart TD
 
 Its image and token check are the same as every service's ([apps/README.md](../../../README.md)).
 
-## Settings
-
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `CURRENCY_OIDC_ISSUER` | required | The `iss` Keycloak puts in tokens |
-| `CURRENCY_OIDC_JWKS_URL` | required | Where it fetches Keycloak's signing keys |
-| `CURRENCY_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry |
-| `CURRENCY_REDIS_ADDR` | required | Redis: `redis:6379` in Compose |
-| `CURRENCY_OPEN_EXCHANGE_RATES_APP_ID` | empty | The Open Exchange Rates App ID (`infra/secrets/README.md`) |
-| `CURRENCY_LISTEN` | `:8080` | Listen address |
-
 ## Run it
 
-The whole stack starts it (`infra/compose/README.md`, "Run it") on `CURRENCY_HOST_PORT`, 8085 by default.
+The whole stack starts it ([compose README, "Run it"](../../../../infra/compose/README.md#run-it)) on `CURRENCY_HOST_PORT`, 8085 by default.
 
 ## Test it
 
@@ -51,3 +40,14 @@ go test ./internal/currency/
 ```
 
 The tests use a fake rates site and the stack's Redis (`BFF_TEST_REDIS`).
+
+## Settings
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `CURRENCY_OIDC_ISSUER` | required | The `iss` Keycloak puts in tokens |
+| `CURRENCY_OIDC_JWKS_URL` | required | Where it fetches Keycloak's signing keys |
+| `CURRENCY_OIDC_AUDIENCE` | `bff` | The `aud` a token must carry |
+| `CURRENCY_REDIS_ADDR` | required | Redis: `redis:6379` in Compose |
+| `CURRENCY_OPEN_EXCHANGE_RATES_APP_ID` | empty | The Open Exchange Rates App ID ([secrets README](../../../../infra/secrets/README.md)) |
+| `CURRENCY_LISTEN` | `:8080` | Listen address |

@@ -1,7 +1,8 @@
 # Glossary
 
 The words this project uses, and the words it avoids. Use each term exactly as written here: in code, tests,
-issues and documents.
+issues and documents. The rules behind the money terms are in
+[MONEY-RULES.md](../apps/backend/cmd/ledger/MONEY-RULES.md).
 
 ## System
 
@@ -27,26 +28,32 @@ _Avoid_: Profile picture, photo
 ## Money
 
 **Salary**:
-The fixed take-home amount, after tax, the Member expects each month. Set at setup and editable later. It is the
-only income the app knows.
+The fixed take-home amount, after tax, the Member expects each month. Set at setup and editable later.
 _Avoid_: Allowance, wage, pay, earnings, monthly income
 
 **Spend**:
-One purchase the Member logs by hand, with an amount, a Category and a date.
+One amount the Member spent, logged by hand with a Category and a date.
 _Avoid_: Transaction, expense, purchase, payment
 
 **Category**:
 One of eight fixed labels for a Spend: Snacks, Games, Toys, Rides, Clothes, Bills, Gifts, Other.
 _Avoid_: Tag, type
 
+**Spent**:
+The total of a month's Spends.
+_Avoid_: Expenses, spending total
+
+**Target amount**:
+The Saving Target as money: the Salary times its percent. Salary minus the Target amount is the **warning line**.
+_Avoid_: Goal amount, budget
+
 **Target Warning**:
-The once-a-month alert raised the first time a month's Spends pass the **warning line**: Salary minus the Saving
-Target amount. Its wording differs before and after Payday.
+The once-a-month alert raised the first time Spent passes the warning line. Its wording differs before and after
+Payday.
 _Avoid_: Budget alert, overspend alert
 
 **Payday**:
-The day of the month the Salary counts as received: 1 to 31, or `last`, shown as `Last day`. A 29, 30 or 31
-moves to the last day of a shorter month.
+The day of the month the Salary counts as received: 1 to 31, or `last`, shown as `Last day`.
 _Avoid_: Pay date, salary date
 
 **Money In**:
@@ -59,7 +66,7 @@ moment's rate.
 _Avoid_: Locale, region
 
 **Saved**:
-Money In minus the month's Spends. It is worked out, never logged, and not shown at all while Money In is 0.
+Money In minus Spent. It is worked out, never logged.
 _Avoid_: Savings, balance, leftover
 
 **Saving Target**:
@@ -73,7 +80,7 @@ _Avoid_: Biggest purchase, top expense
 ## Recap
 
 **Recap**:
-The read-only story of one calendar month, four screens long, worked out live from that month's data.
+The read-only story of one calendar month, four pages long, worked out live from that month's data.
 _Avoid_: Report, summary, Wrapped
 
 **Recap Month**:
@@ -81,16 +88,14 @@ The calendar month a Recap covers, in the Member's local dates. Never a pay peri
 _Avoid_: Period, cycle
 
 **Streak**:
-The longest run of days in the month with no Spend. In the sign-up month it starts on the sign-up day, not the 1st.
+The longest run of days in the month with no Spend.
 _Avoid_: No-spend run
 
 **Partial Recap**:
-The Recap of a partial month: the sign-up month when Payday came before sign-up, or a past month with Spends but
-no Money In. It shows Spent, with no Saved, no Archetype and no sharing. The same four screens show the current
-month's preview. "Partial month" is the month; "Partial Recap" is its Recap.
+The Recap of a partial month. It shows Spent, with no Saved, no Archetype and no sharing. The same four pages
+show the current month's preview. "Partial month" is the month; "Partial Recap" is its Recap.
 _Avoid_: Mini recap, preview recap
 
 **Archetype**:
-The money personality a Member gets for one month: Squirrel, Hustler, Treat-Yourself or Slow Burner. The rules are
-in `apps/backend/cmd/ledger/MONEY-RULES.md`.
+The money personality a Member gets for one month: Squirrel, Hustler, Treat-Yourself or Slow Burner.
 _Avoid_: Personality type, badge, persona
