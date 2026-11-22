@@ -54,11 +54,10 @@ The app signs in with Keycloak, then calls the BFF for every screen. The BFF che
 services. Each service that keeps data has its own Postgres database, and no service reads another's.
 
 ```mermaid
-flowchart LR
+flowchart TD
     app["iPhone app"]
     keycloak["Keycloak sign-in"]
     bff["BFF"]
-    redis[("Redis")]
     members["Members"]
     ledger["Ledger"]
     notify["Notify"]
@@ -66,23 +65,24 @@ flowchart LR
     mdb[("Postgres: members")]
     ldb[("Postgres: ledger")]
     ndb[("Postgres: notify")]
-    rates["Exchange rates"]
+    redis[("Redis")]
     apple["Apple push"]
     mail["Email"]
+    rates["Exchange rates"]
     app -- "sign in" --> keycloak
     app -- "every screen" --> bff
-    bff -- "limits, replayed writes" --> redis
     bff --> members
     bff --> ledger
     bff --> notify
     bff --> currency
+    bff -- "limits, replayed writes" --> redis
     members --> mdb
     ledger --> ldb
     notify --> ndb
     currency -- "today's rates" --> redis
-    currency --> rates
     notify --> apple
     notify --> mail
+    currency --> rates
 ```
 
 Calls the diagram leaves out, to stay readable:
