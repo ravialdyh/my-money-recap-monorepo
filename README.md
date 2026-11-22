@@ -36,13 +36,13 @@ flowchart TD
         end
     end
     subgraph outside["Outside services"]
-        direction TB
+        direction LR
         apns["Apple push"]
         mail["Email sender"]
         rates["Exchange rates"]
     end
     subgraph storage["Storage"]
-        direction LR
+        direction TB
         postgres[("Postgres")]
         rabbit[["RabbitMQ events"]]
         redis[("Redis")]
