@@ -35,25 +35,24 @@ flowchart TD
             currency["Currency"]
         end
     end
+    subgraph outside["Outside services"]
+        direction TB
+        apns["Apple push"]
+        mail["Email sender"]
+        rates["Exchange rates"]
+    end
     subgraph storage["Storage"]
         direction LR
         postgres[("Postgres")]
         rabbit[["RabbitMQ events"]]
         redis[("Redis")]
     end
-    subgraph outside["Outside services"]
-        direction LR
-        apns["Apple push"]
-        mail["Email sender"]
-        rates["Exchange rates"]
-    end
     phone --> keycloak
     phone --> bff
     phone -- "sign-in link" --> edge
     bff --> services
-    backend -- "save data" --> storage
-    storage ~~~ outside
     services -- "call out" --> outside
+    backend -- "save data" --> storage
 ```
 
 ## How it works
