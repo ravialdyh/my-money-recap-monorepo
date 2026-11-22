@@ -52,7 +52,7 @@ flowchart TD
     phone -- "sign-in link" --> edge
     bff --> services
     backend -- "save data" --> storage
-    services -- "call out" --> outside
+    backend -- "call out" --> outside
 ```
 
 ## How it works
