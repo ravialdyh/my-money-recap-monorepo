@@ -24,17 +24,17 @@ class EmDash(unittest.TestCase):
     said = "em dash; use a full stop, a comma or a colon"
 
     def test_an_em_dash_in_code_is_rejected(self):
-        self.assertEqual(problems("a.swift", 'let copy = "a — b"\n'), [self.said])
+        self.assertEqual(problems("a.swift", 'let copy = "a \u2014 b"\n'), [self.said])
 
     def test_an_em_dash_in_a_document_the_cap_skips_is_rejected(self):
-        self.assertEqual(problems("a.md", "# Title — subtitle\n"), [self.said])
+        self.assertEqual(problems("a.md", "# Title \u2014 subtitle\n"), [self.said])
 
     def test_an_escaped_em_dash_is_rejected(self):
         self.assertEqual(problems("a.swift", 'let copy = "a \\u{2014} b"\n'), [self.said])
         self.assertEqual(problems("a.html", "<p>a &mdash; b</p>\n"), [self.said])
 
     def test_an_en_dash_is_allowed(self):
-        self.assertEqual(problems("a.md", "Payday 1–31\n"), [])
+        self.assertEqual(problems("a.md", "Payday 1\u201331\n"), [])
 
 
 class Length(unittest.TestCase):

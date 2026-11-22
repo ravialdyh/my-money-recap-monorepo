@@ -9,7 +9,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 CONFIG = json.loads((pathlib.Path(__file__).parent / "policy.json").read_text())
 
-EM_DASH = re.compile(r"—|&mdash;|&#8212;|&#x2014;|\\u\{?2014\}?", re.IGNORECASE)
+EM_DASH = re.compile("\u2014" + r"|&mdash;|&#8212;|&#x2014;|\\u\{?2014\}?", re.IGNORECASE)
 EM_DASH_NAMED_BY = ("tools/policy/check_policy.py", "tools/policy/test_policy.py")
 
 
