@@ -164,7 +164,7 @@ out once.
 
 | Path | What lives here |
 | --- | --- |
-| [`docs/`](docs/CONTEXT.md) | The glossary (`CONTEXT.md`), the README screenshots (`media/`) and the settings the coding agents read (`agents/`) |
+| [`docs/`](docs/CONTEXT.md) | The glossary (`CONTEXT.md`), the README screenshots and demos (`media/`) and the settings the coding agents read (`agents/`) |
 | [`my-money-recap/`](my-money-recap/README.md) | The illustrations and the scripts that make them |
 | [`design-tokens/`](design-tokens/README.md) | The colours, type and spacing, generated into `Tokens.swift` |
 | [`apps/`](apps/README.md) | The Go backend and the SwiftUI app |
