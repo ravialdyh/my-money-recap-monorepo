@@ -9,7 +9,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/connectrpc/connect-swift.git", exact: "1.2.3"),
-        .package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.39.0"),
+        .package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.41.0"),
     ],
     targets: [
         .target(
