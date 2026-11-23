@@ -5,6 +5,10 @@ Salary, Spends and saving. It looks like a playful kids' app, and at the end of 
 month went.
 
 <p align="center">
+  <img src="docs/media/demo.gif" width="100%" alt="A 17 second demo: log a Spend, see the month on Home, get a Target Warning and its push, then swipe through the October Recap to the Archetype">
+</p>
+
+<p align="center">
   <img src="docs/media/home.png" width="200" alt="Home: Spent so far, Money in, Saved and the Saving target">
   <img src="docs/media/log-a-spend.gif" width="200" alt="Logging a 4.50 Spend in a few taps, then Home updates">
   <img src="docs/media/recap-personality.png" width="200" alt="The October Recap names the Archetype of the month">
