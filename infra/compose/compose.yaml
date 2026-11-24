@@ -1,7 +1,7 @@
 name: ${COMPOSE_PROJECT_NAME:-mmr}
 
 include:
-  - edge.yaml
+  - compose.edge.yaml
 
 x-migrate: &migrate
   pull_policy: never
