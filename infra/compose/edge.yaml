@@ -1,0 +1,33 @@
+services:
+  nginx:
+    image: nginx:1.30.8@sha256:54d32270ba0c72499b8ffb13e5a013ff82f64d4410d3b63b4583c5fa500b6f04
+    restart: unless-stopped
+    ports:
+      - "${NGINX_HOST_PORT:-8090}:80"
+    volumes:
+      - ../nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../nginx/html:/usr/share/nginx/html:ro
+      - acme-certs:/etc/nginx/certs:ro
+    depends_on:
+      bff:
+        condition: service_healthy
+        restart: true
+      keycloak:
+        condition: service_healthy
+        restart: true
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1/magic"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  acme:
+    image: neilpang/acme.sh:3.1.6@sha256:fd072646a6acf330795e63ff231ec9fd65d80ca00ddaa83ca10617ab7fd48a9b
+    command: ["daemon"]
+    volumes:
+      - acme-certs:/certs
+      - acme-config:/acme.sh
+
+volumes:
+  acme-certs:
+  acme-config:

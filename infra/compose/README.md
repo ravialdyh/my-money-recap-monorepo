@@ -1,7 +1,10 @@
 # infra/compose
 
-The whole backend in one `compose.yaml`. A laptop, CI and the server all run it. Every command here uses
+The whole backend in `compose.yaml`, which includes the edge (Nginx) from `edge.yaml`. A laptop, CI and the server all run it. Every command here uses
 `--profile mail`, because Mailpit, the only mail host `notify` has, sits behind that profile.
+
+Every outside image is pinned to an exact version and digest, and Dependabot proposes each new one as a pull
+request. Every long-running service restarts on its own unless it was stopped by hand.
 
 To try it by hand or run the tests against it, see [TESTING.md](TESTING.md). When something goes wrong, see
 [TROUBLESHOOTING.md](TROUBLESHOOTING.md). To run the app on a real iPhone, see the

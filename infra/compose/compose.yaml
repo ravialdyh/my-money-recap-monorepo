@@ -1,5 +1,8 @@
 name: ${COMPOSE_PROJECT_NAME:-mmr}
 
+include:
+  - edge.yaml
+
 x-migrate: &migrate
   pull_policy: never
   command: ["migrate"]
@@ -9,7 +12,8 @@ x-migrate: &migrate
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17.12@sha256:87c8b42f423b45d5247e6aa8fdb2e7762fec164c68a50fe3eb07e7bfcaf4dbcf
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
       KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:?set in .env}
@@ -24,7 +28,8 @@ services:
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"], interval: 5s, timeout: 3s, retries: 12 }
 
   keycloak:
-    image: quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980
+    image: quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980@sha256:0bcb17b2172daeb6d9bae3492224d98f631ca6fc139e92c3e9328072b99a05e4
+    restart: unless-stopped
     command: ["start"]
     environment:
       KC_DB: postgres
@@ -54,7 +59,7 @@ services:
       start_period: 60s
 
   realm-apply:
-    image: ghcr.io/opentofu/opentofu:1.12.6
+    image: ghcr.io/opentofu/opentofu:1.12.6@sha256:22cb52f6c5bf5c72a48a8f56d993d8df3e9462b1cdfb5db7e77143c87e8d159f
     entrypoint:
       - /bin/sh
       - -c
@@ -85,13 +90,15 @@ services:
         condition: service_healthy
 
   redis:
-    image: redis:8
+    image: redis:8.12.0@sha256:3c4881844c6421f29fb9f9e8ca4f573d9fbdfb35967d65834504b6994cf6cd3b
+    restart: unless-stopped
     ports:
       - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
     healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, timeout: 3s, retries: 12 }
 
   rabbitmq:
-    image: rabbitmq:4-management
+    image: rabbitmq:4.4.1-management@sha256:61f90c401a5b5ed2486771973ea92ad66046471eacab9c9149f1a6e091c91677
+    restart: unless-stopped
     user: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: mmr
@@ -117,6 +124,7 @@ services:
   members:
     build: { context: ../../apps/backend, args: { CMD: members } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-members
+    restart: unless-stopped
     environment:
       MEMBERS_DATABASE_URL_FILE: *members-db-file
       MEMBERS_OIDC_ISSUER: &issuer http://${MMR_HOST:-localhost}:${KEYCLOAK_HOST_PORT:-8080}/realms/mmr
@@ -142,7 +150,8 @@ services:
       retries: 12
 
   mailpit:
-    image: axllent/mailpit:v1.31.2
+    image: axllent/mailpit:v1.31.2@sha256:74d609a42ec279aa63c6b4622a6fa9b5408d1ad5b1d76a1c4be40a265ce0863d
+    restart: unless-stopped
     profiles: [mail]
     ports:
       - "127.0.0.1:${MAILPIT_HOST_PORT:-8025}:8025"
@@ -159,6 +168,7 @@ services:
   notify:
     build: { context: ../../apps/backend, args: { CMD: notify } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-notify
+    restart: unless-stopped
     environment:
       NOTIFY_DATABASE_URL_FILE: *notify-db-file
       NOTIFY_OIDC_ISSUER: *issuer
@@ -192,6 +202,7 @@ services:
   ledger:
     build: { context: ../../apps/backend, args: { CMD: ledger } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-ledger
+    restart: unless-stopped
     environment:
       LEDGER_DATABASE_URL_FILE: *ledger-db-file
       LEDGER_OIDC_ISSUER: *issuer
@@ -215,6 +226,7 @@ services:
   bff:
     build: { context: ../../apps/backend, args: { CMD: bff } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-bff
+    restart: unless-stopped
     environment:
       BFF_OIDC_ISSUER: *issuer
       BFF_OIDC_JWKS_URL: *jwks
@@ -240,6 +252,7 @@ services:
   currency:
     build: { context: ../../apps/backend, args: { CMD: currency } }
     image: ${COMPOSE_PROJECT_NAME:-mmr}-currency
+    restart: unless-stopped
     environment:
       CURRENCY_OIDC_ISSUER: *issuer
       CURRENCY_OIDC_JWKS_URL: *jwks
@@ -248,34 +261,6 @@ services:
     ports: ["127.0.0.1:${CURRENCY_HOST_PORT:-8085}:8080"]
     depends_on: { redis: { condition: service_healthy } }
     healthcheck: *go-healthcheck
-
-  nginx:
-    image: nginx:stable
-    ports:
-      - "${NGINX_HOST_PORT:-8090}:80"
-    volumes:
-      - ../nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ../nginx/html:/usr/share/nginx/html:ro
-      - acme-certs:/etc/nginx/certs:ro
-    depends_on:
-      bff:
-        condition: service_healthy
-        restart: true
-      keycloak:
-        condition: service_healthy
-        restart: true
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1/magic"]
-      interval: 5s
-      timeout: 3s
-      retries: 12
-
-  acme:
-    image: neilpang/acme.sh:3.1.6
-    command: ["daemon"]
-    volumes:
-      - acme-certs:/certs
-      - acme-config:/acme.sh
 
 secrets:
   members_database_url:
@@ -295,5 +280,3 @@ volumes:
   postgres-data:
   rabbitmq-data:
   realm-state:
-  acme-certs:
-  acme-config:
