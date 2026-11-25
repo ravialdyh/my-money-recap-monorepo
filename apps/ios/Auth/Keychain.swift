@@ -44,19 +44,25 @@ enum Keychain {
         read(context: nil)?.data
     }
 
-    static func write(_ data: Data) {
+    @discardableResult
+    static func write(_ data: Data) -> Bool {
         SecItemDelete(query as CFDictionary)
         guard let lock = SecAccessControlCreateWithFlags(
             nil, kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, .userPresence, nil
-        ) else { return }
+        ) else { return false }
         var q = query
         q[kSecValueData] = data
         q[kSecAttrAccessControl] = lock
-        SecItemAdd(q as CFDictionary, nil)
+        return SecItemAdd(q as CFDictionary, nil) == errSecSuccess
     }
 
     static func delete() {
         SecItemDelete(query as CFDictionary)
+    }
+
+    static func confirmPresence(_ context: LAContext) async -> Bool {
+        await (try? context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: context.localizedReason)) ??
+            false
     }
 
     static func passcodeSet() -> Bool {

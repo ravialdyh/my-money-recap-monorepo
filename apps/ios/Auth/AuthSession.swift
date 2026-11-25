@@ -55,6 +55,9 @@ final class AuthSession {
             }
             return
         }
+        if !stored.locked, await !vault.confirmPresence(context) {
+            return
+        }
         guard let state = try? NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: stored.data) else {
             signOut()
             return
@@ -67,7 +70,7 @@ final class AuthSession {
     }
 
     func returned(after away: TimeInterval) {
-        guard lock == .unlocked, away > Self.relockAfter, vault.exists() else { return }
+        guard lock == .unlocked, away > Self.relockAfter else { return }
         authState = nil
         lock = .locked
     }
@@ -168,7 +171,9 @@ final class AuthSession {
             signOut(message: Self.noPasscodeCopy)
             return
         }
-        vault.write(data)
+        if !vault.write(data) {
+            signOut(message: Self.refusedCopy)
+        }
     }
 
     private func endRealmSession() async {

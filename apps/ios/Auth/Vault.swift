@@ -4,7 +4,8 @@ import LocalAuthentication
 struct Vault {
     var exists: () -> Bool
     var read: (LAContext) async -> Keychain.Stored?
-    var write: (Data) -> Void
+    var write: (Data) -> Bool
+    var confirmPresence: (LAContext) async -> Bool
     var delete: () -> Void
     var passcodeSet: () -> Bool
 
@@ -18,6 +19,7 @@ struct Vault {
             }
         },
         write: Keychain.write,
+        confirmPresence: Keychain.confirmPresence,
         delete: Keychain.delete,
         passcodeSet: Keychain.passcodeSet
     )

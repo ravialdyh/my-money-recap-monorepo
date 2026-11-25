@@ -10,6 +10,9 @@ final class FakeVault {
     var reads: [LAContext] = []
     var writes: [Data] = []
     var deletes = 0
+    var writable = true
+    var confirmed = true
+    var confirms = 0
 
     init(stored: Keychain.Stored? = nil) {
         self.stored = stored
@@ -23,7 +26,14 @@ final class FakeVault {
                 self.reads.append(context)
                 return self.stored
             },
-            write: { self.writes.append($0) },
+            write: {
+                self.writes.append($0)
+                return self.writable
+            },
+            confirmPresence: { _ in
+                self.confirms += 1
+                return self.confirmed
+            },
             delete: {
                 self.deletes += 1
                 self.present = false
@@ -59,6 +69,7 @@ final class SessionLockTests: XCTestCase {
         XCTAssertNotNil(session.authState)
         XCTAssertEqual(fake.reads.first?.localizedReason, "Unlock My Money Recap with Face ID.")
         XCTAssertTrue(fake.writes.isEmpty, "an entry already under the lock is not rewritten")
+        XCTAssertEqual(fake.confirms, 0, "the Keychain read itself asked")
     }
 
     func testACancelledUnlockStaysLockedAndKeepsTheEntry() async {
@@ -87,6 +98,7 @@ final class SessionLockTests: XCTestCase {
         await session.unlock()
         XCTAssertEqual(session.lock, .unlocked)
         XCTAssertEqual(fake.writes.count, 1)
+        XCTAssertEqual(fake.confirms, 1)
         XCTAssertNotNil(try NSKeyedUnarchiver.unarchivedObject(
             ofClass: OIDAuthState.self,
             from: XCTUnwrap(fake.writes.first)
@@ -116,10 +128,22 @@ final class SessionLockTests: XCTestCase {
         XCTAssertEqual(fake.deletes, 0)
     }
 
-    func testReturningWithNothingStoredKeepsTheSessionOpen() {
-        let session = AuthSession(authState: Self.state(), vault: FakeVault().vault)
-        session.returned(after: 3600)
-        XCTAssertEqual(session.lock, .unlocked, "relocking an unstored session would strand the Member")
+    func testAFailedKeychainWriteSignsOutRatherThanStayOpenUnlocked() {
+        let fake = FakeVault()
+        fake.writable = false
+        let session = AuthSession(authState: Self.state(), vault: fake.vault)
+        session.persist()
+        XCTAssertEqual(session.lock, .signedOut, "an unstored session could never relock")
+    }
+
+    func testAnEntryFromBeforeTheLockNeedsPresenceFirst() async {
+        let fake = FakeVault(stored: Self.stored(locked: false))
+        fake.confirmed = false
+        let session = AuthSession(vault: fake.vault)
+        await session.unlock()
+        XCTAssertEqual(session.lock, .locked, "an entry with no lock of its own must not open without Face ID")
+        XCTAssertNil(session.authState)
+        XCTAssertTrue(fake.writes.isEmpty)
     }
 
     func testSignOutDeletesTheEntry() async {
