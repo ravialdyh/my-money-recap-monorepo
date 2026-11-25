@@ -99,6 +99,21 @@ final class AuthSessionTests: XCTestCase {
         XCTAssertEqual(reloaded?.lastTokenResponse?.accessToken, "refreshed")
     }
 
+    func testARefreshThatLandsAfterARelockStillStoresTheRotatedToken() async throws {
+        let fake = FakeVault()
+        let session = signedIn(realm: "slow-refreshing.invalid", vault: fake.vault)
+        let refresh = Task { try await session.freshAccessToken() }
+        try await Task.sleep(for: .milliseconds(50))
+        let start = ContinuousClock.now
+        session.left(at: start)
+        session.returned(at: start + .seconds(301))
+        XCTAssertEqual(session.lock, .locked)
+        _ = try await refresh.value
+        let stored = try XCTUnwrap(fake.writes.last, "else the next unlock refreshes with a spent token")
+        let reloaded = try NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: stored)
+        XCTAssertEqual(reloaded?.lastTokenResponse?.accessToken, "refreshed")
+    }
+
     func testLogOutForgetsThenEndsTheRealmSessionThenErases() async throws {
         let session = signedIn(realm: "ending.invalid")
         try Keychain.write(NSKeyedArchiver.archivedData(
@@ -150,7 +165,7 @@ final class AuthSessionTests: XCTestCase {
         }
     }
 
-    private func signedIn(realm: String, expiresIn: Int = 0) -> AuthSession {
+    private func signedIn(realm: String, expiresIn: Int = 0, vault: Vault = .live) -> AuthSession {
         StubRealm.install()
         let endpoint = URL(string: "https://\(realm)/token")!
         let request = OIDAuthorizationRequest(
@@ -168,12 +183,13 @@ final class AuthSessionTests: XCTestCase {
         ])
         return AuthSession(authState: OIDAuthState(
             authorizationResponse: authorization, tokenResponse: token, registrationResponse: nil
-        ))
+        ), vault: vault)
     }
 }
 
 final class StubRealm: StubURLProtocol {
     nonisolated(unsafe) static var loggedOut: [String] = []
+    static let refreshed = #"{"access_token":"refreshed","expires_in":300,"token_type":"Bearer"}"#
 
     override func startLoading() {
         switch request.url?.host {
@@ -181,7 +197,9 @@ final class StubRealm: StubURLProtocol {
             Self.loggedOut.append(String(bytes: body, encoding: .utf8) ?? "")
             respond(204, "")
         case "refusing.invalid": respond(400, #"{"error":"invalid_grant"}"#)
-        case "refreshing.invalid": respond(200, #"{"access_token":"refreshed","expires_in":300,"token_type":"Bearer"}"#)
+        case "refreshing.invalid": respond(200, Self.refreshed)
+        case "slow-refreshing.invalid":
+            DispatchQueue.global().asyncAfter(deadline: .now() + 0.3) { self.respond(200, Self.refreshed) }
         default: client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
         }
     }

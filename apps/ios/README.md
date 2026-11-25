@@ -58,6 +58,7 @@ flowchart TD
 | Screen | What it does |
 | --- | --- |
 | Sign in | Apple, Google or email |
+| Unlock | Face ID, Touch ID or the passcode, after a force quit or five minutes away |
 | Enter email | Asks for the address and sends a sign-in link |
 | Check your inbox | Names the address and counts down to Resend |
 | Name and avatar | Setup step 1: a first name and one of six Avatars |
@@ -93,7 +94,7 @@ flowchart TD
 | `Auth/` | AppAuth set-up, the sign-in link handler, the Keychain |
 | `Networking/` | The BFF client, the token interceptor, the network monitor |
 | `Snapshots/` | The stored answer for each screen |
-| `Screens/` | One folder per area: `SignIn`, `Onboarding`, `Account`, `Home`, `Recap`, `Settings` |
+| `Screens/` | One folder per area: `SignIn`, `Unlock`, `Onboarding`, `Account`, `Home`, `Recap`, `Settings` |
 | `DesignSystem/` | The generated `Tokens.swift` (do not edit) and the SwiftUI components |
 | `Resources/` | Illustrations, Avatars and the Fredoka and Nunito fonts |
 | `Tests/`, `UITests/`, `scripts/` | Unit tests, UI tests and the simulator scripts |

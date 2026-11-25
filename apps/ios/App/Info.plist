@@ -13,6 +13,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Fredoka.ttf</string>
+		<string>Nunito.ttf</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
@@ -20,10 +25,10 @@
 	</dict>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Unlock My Money Recap with Face ID.</string>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Fredoka.ttf</string>
-		<string>Nunito.ttf</string>
-	</array>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
 </dict>
 </plist>

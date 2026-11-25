@@ -3,16 +3,18 @@ import LocalAuthentication
 import Security
 
 enum Keychain {
-    struct Stored {
-        let data: Data
-        let locked: Bool
+    enum Read: Equatable {
+        case found(Data)
+        case missing
+        case refused
     }
 
-    private static let query: [CFString: Any] = [
+    private static let everyEntry: [CFString: Any] = [
         kSecClass: kSecClassGenericPassword,
         kSecAttrService: "com.mymoneyrecap.auth",
-        kSecAttrAccount: "authState",
     ]
+
+    private static let query = everyEntry.merging([kSecAttrAccount: "session"]) { $1 }
 
     static func exists() -> Bool {
         let silent = LAContext()
@@ -24,32 +26,25 @@ enum Keychain {
         return status == errSecSuccess || status == errSecInteractionNotAllowed
     }
 
-    static func read(context: LAContext? = nil) -> Stored? {
+    static func read(context: LAContext) -> Read {
         var q = query
         q[kSecReturnData] = true
-        q[kSecReturnAttributes] = true
         q[kSecMatchLimit] = kSecMatchLimitOne
-        if let context {
-            q[kSecUseAuthenticationContext] = context
-        }
+        q[kSecUseAuthenticationContext] = context
         var out: AnyObject?
-        guard SecItemCopyMatching(q as CFDictionary, &out) == errSecSuccess,
-              let item = out as? [CFString: Any], let data = item[kSecValueData] as? Data
-        else { return nil }
-        let protection = item[kSecAttrAccessible] as? String
-        return Stored(data: data, locked: protection == kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly as String)
-    }
-
-    static func read() -> Data? {
-        read(context: nil)?.data
+        switch SecItemCopyMatching(q as CFDictionary, &out) {
+        case errSecSuccess: return (out as? Data).map(Read.found) ?? .refused
+        case errSecItemNotFound: return .missing
+        default: return .refused
+        }
     }
 
     @discardableResult
     static func write(_ data: Data) -> Bool {
-        SecItemDelete(query as CFDictionary)
         guard let lock = SecAccessControlCreateWithFlags(
             nil, kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, .userPresence, nil
         ) else { return false }
+        delete()
         var q = query
         q[kSecValueData] = data
         q[kSecAttrAccessControl] = lock
@@ -57,12 +52,7 @@ enum Keychain {
     }
 
     static func delete() {
-        SecItemDelete(query as CFDictionary)
-    }
-
-    static func confirmPresence(_ context: LAContext) async -> Bool {
-        await (try? context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: context.localizedReason)) ??
-            false
+        SecItemDelete(everyEntry as CFDictionary)
     }
 
     static func passcodeSet() -> Bool {

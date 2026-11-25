@@ -18,25 +18,27 @@ struct RootView: View {
     @Environment(AuthSession.self) private var session
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var phase
-    @State private var leftAt: ContinuousClock.Instant?
 
     var body: some View {
         Group {
             switch session.lock {
             case .unlocked where session.isSignedIn: LaunchView(session: session, context: context)
             case .locked: UnlockView(session: session)
-            default: SignInView(session: session)
+            default: SignInView(session: session).id(session.signOuts)
             }
         }
         .onChange(of: phase) { _, now in
             if now == .background {
-                leftAt = .now
-            } else if now == .active, let leftAt {
-                session.returned(after: TimeInterval((ContinuousClock.now - leftAt).components.seconds))
-                self.leftAt = nil
+                session.left()
+                if session.lock == .unlocked {
+                    PrivacyCover.show()
+                }
+            } else if now == .active {
+                session.returned()
+                PrivacyCover.hide()
             }
         }
-        .onChange(of: session.isSignedIn) { _, signedIn in
+        .onChange(of: session.isSignedIn, initial: true) { _, signedIn in
             if !signedIn {
                 HomeSnapshot.erase(from: context)
                 PushRegistration.signedOut()

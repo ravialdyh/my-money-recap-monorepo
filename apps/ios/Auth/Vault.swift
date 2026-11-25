@@ -1,15 +1,14 @@
 import Foundation
-import LocalAuthentication
+@preconcurrency import LocalAuthentication
 
 struct Vault {
     var exists: () -> Bool
-    var read: (LAContext) async -> Keychain.Stored?
+    var read: (LAContext) async -> Keychain.Read
     var write: (Data) -> Bool
-    var confirmPresence: (LAContext) async -> Bool
     var delete: () -> Void
     var passcodeSet: () -> Bool
 
-    static let keychain = Vault(
+    static let live = Vault(
         exists: Keychain.exists,
         read: { context in
             await withCheckedContinuation { done in
@@ -19,7 +18,6 @@ struct Vault {
             }
         },
         write: Keychain.write,
-        confirmPresence: Keychain.confirmPresence,
         delete: Keychain.delete,
         passcodeSet: Keychain.passcodeSet
     )

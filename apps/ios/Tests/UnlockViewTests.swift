@@ -4,8 +4,8 @@ import XCTest
 @MainActor
 final class UnlockViewTests: XCTestCase {
     func testTheUnlockScreenAsksForFaceIDAsItAppears() {
-        let fake = FakeVault(stored: SessionLockTests.stored(locked: true))
-        fake.stored = nil
+        let fake = FakeVault(stored: SessionLockTests.found())
+        fake.stored = .refused
         let session = AuthSession(vault: fake.vault)
         XCTAssertNotNil(picture(UnlockView(session: session)))
         XCTAssertFalse(fake.reads.isEmpty, "the prompt comes up without a tap")
