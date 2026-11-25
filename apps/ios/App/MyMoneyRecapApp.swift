@@ -18,7 +18,7 @@ struct RootView: View {
     @Environment(AuthSession.self) private var session
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var phase
-    @State private var leftAt: TimeInterval?
+    @State private var leftAt: ContinuousClock.Instant?
 
     var body: some View {
         Group {
@@ -30,9 +30,9 @@ struct RootView: View {
         }
         .onChange(of: phase) { _, now in
             if now == .background {
-                leftAt = ProcessInfo.processInfo.systemUptime
+                leftAt = .now
             } else if now == .active, let leftAt {
-                session.returned(after: ProcessInfo.processInfo.systemUptime - leftAt)
+                session.returned(after: TimeInterval((ContinuousClock.now - leftAt).components.seconds))
                 self.leftAt = nil
             }
         }
