@@ -30,9 +30,6 @@ struct RootView: View {
         .onChange(of: phase) { _, now in
             if now == .background {
                 session.left()
-                if session.lock == .unlocked {
-                    PrivacyCover.show()
-                }
             } else if now == .active {
                 session.returned()
                 PrivacyCover.hide()
@@ -42,6 +39,11 @@ struct RootView: View {
             if !signedIn {
                 HomeSnapshot.erase(from: context)
                 PushRegistration.signedOut()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIScene.didEnterBackgroundNotification)) { _ in
+            if session.lock == .unlocked {
+                PrivacyCover.show()
             }
         }
         .task {
