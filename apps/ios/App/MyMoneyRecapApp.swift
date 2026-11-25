@@ -17,13 +17,23 @@ struct MyMoneyRecapApp: App {
 struct RootView: View {
     @Environment(AuthSession.self) private var session
     @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var phase
+    @State private var leftAt: Date?
 
     var body: some View {
         Group {
-            if session.isSignedIn {
-                LaunchView(session: session, context: context)
-            } else {
-                SignInView(session: session)
+            switch session.lock {
+            case .unlocked where session.isSignedIn: LaunchView(session: session, context: context)
+            case .locked: UnlockView(session: session)
+            default: SignInView(session: session)
+            }
+        }
+        .onChange(of: phase) { _, now in
+            if now == .background {
+                leftAt = Date()
+            } else if now == .active, let leftAt {
+                session.returned(after: Date().timeIntervalSince(leftAt))
+                self.leftAt = nil
             }
         }
         .onChange(of: session.isSignedIn) { _, signedIn in

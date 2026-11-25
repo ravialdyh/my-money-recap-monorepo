@@ -48,7 +48,7 @@ final class MagicLinkSessionTests: XCTestCase {
         XCTAssertFalse(session.isSignedIn)
     }
 
-    func testTheArchivedStateStillBuildsARefreshWithAnEndpointAndAClientID() throws {
+    func testTheArchivedStateStillBuildsARefreshWithAnEndpointAndAClientID() async throws {
         let endpoint = try XCTUnwrap(URL(string: "https://realm.invalid/token"))
         let configuration = OIDServiceConfiguration(authorizationEndpoint: endpoint, tokenEndpoint: endpoint)
         let redeemed = OIDTokenResponse(
@@ -60,7 +60,9 @@ final class MagicLinkSessionTests: XCTestCase {
         )
         AuthSession(authState: MagicLink.authState(configuration, tokenResponse: redeemed)).persist()
 
-        let reloaded = try XCTUnwrap(AuthSession().authState, "the archived magic-link state did not come back")
+        let relaunched = AuthSession()
+        await relaunched.unlock()
+        let reloaded = try XCTUnwrap(relaunched.authState, "the archived magic-link state did not come back")
         _ = try XCTUnwrap(reloaded.refreshToken, "applied before the synthesized response, which clears it")
         let refresh = try XCTUnwrap(reloaded.tokenRefreshRequest()) as NSObject
         XCTAssertNotNil(
