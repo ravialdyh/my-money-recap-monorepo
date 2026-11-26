@@ -28,7 +28,7 @@ services:
     healthcheck: { test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"], interval: 5s, timeout: 3s, retries: 12 }
 
   keycloak:
-    image: quay.io/phasetwo/phasetwo-keycloak:26.6.6.1789466980@sha256:0bcb17b2172daeb6d9bae3492224d98f631ca6fc139e92c3e9328072b99a05e4
+    image: quay.io/phasetwo/phasetwo-keycloak:26.8.2.1795462429@sha256:67f091b60bb8522961e1e005a2a99e5126968aa748963c4707bff04521b9bdfc
     restart: unless-stopped
     command: ["start"]
     environment:
