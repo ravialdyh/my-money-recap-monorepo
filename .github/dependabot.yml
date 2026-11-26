@@ -36,6 +36,12 @@ updates:
     cooldown: { default-days: 7 }
     commit-message: { prefix: "build(backend)" }
 
+  - package-ecosystem: docker-compose
+    directory: /infra/compose
+    schedule: { interval: weekly, day: monday }
+    cooldown: { default-days: 7 }
+    commit-message: { prefix: "build(compose)" }
+
   - package-ecosystem: pre-commit
     directory: /
     schedule: { interval: weekly, day: monday }

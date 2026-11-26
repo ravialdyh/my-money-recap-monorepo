@@ -25,7 +25,7 @@ if [ -z "$(sops_url "$ci")" ] || [ "$(sops_url "$ci")" != "$(sops_url "$deploy")
   disagree "sops pins disagree: $ci and $deploy must download the same URL with the same sha256"
 fi
 
-image=$(sed -n 's|.*ghcr\.io/opentofu/opentofu:\([^ ]*\).*|\1|p' infra/compose/compose.yaml)
+image=$(sed -n 's|.*ghcr\.io/opentofu/opentofu:\([^ @]*\).*|\1|p' infra/compose/compose.yaml)
 zip=$(sed -n 's|.*/opentofu/releases/download/v\([^/]*\)/.*|\1|p' "$ci")
 if [ -z "$image" ] || [ "$image" != "$zip" ]; then
   disagree "OpenTofu pins disagree: compose.yaml's realm-apply runs ${image:-nothing}, $ci installs ${zip:-nothing}"

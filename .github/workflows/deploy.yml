@@ -67,7 +67,7 @@ jobs:
         run: |
           umask 077
           infra/compose/machine-env.sh "$RUNNER_TEMP/secrets" >"$RUNNER_TEMP/machine.env"
-          tar -cf - infra/compose/compose.yaml infra/compose/postgres infra/tofu/realm \
+          tar -cf - infra/compose/compose.yaml infra/compose/compose.edge.yaml infra/compose/postgres infra/tofu/realm \
             infra/nginx/default.conf infra/nginx/html |
             ssh machine 'rm -rf mmr && mkdir mmr && tar -xf - -C mmr'
           ssh machine 'umask 077 && cat >mmr/infra/compose/.env' <"$RUNNER_TEMP/machine.env"
