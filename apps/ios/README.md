@@ -1,6 +1,6 @@
 # apps/ios
 
-The SwiftUI app for iPhone and iPad, iOS 17 and later. It shows numbers the backend works out. The one sum it
+The SwiftUI app for iPhone and iPad, iOS 26 and later. It shows numbers the backend works out. The one sum it
 does itself is the Saving target screen's live preview, "£480 of £2,400 each month": the Salary times the percent,
 rounded half up. It keeps the last answer for each screen, so Home and every Recap open with no network.
 
@@ -12,12 +12,14 @@ Each arrow is one way the app can go at launch; the labels say when.
 flowchart TD
     open["Open the app"]
     signin["Sign in"]
+    unlock["Unlock with Face ID or the passcode"]
     check["Check the account"]
     restore["Restore account"]
     setup["Setup, four steps"]
     home["Home"]
     open -- "not signed in" --> signin
-    open -- "signed in" --> check
+    open -- "signed in" --> unlock
+    unlock --> check
     signin --> check
     check -- "deletion pending" --> restore
     check -- "setup unfinished" --> setup
@@ -56,6 +58,7 @@ flowchart TD
 | Screen | What it does |
 | --- | --- |
 | Sign in | Apple, Google or email |
+| Unlock | Face ID, Touch ID or the passcode, after a force quit or five minutes away |
 | Enter email | Asks for the address and sends a sign-in link |
 | Check your inbox | Names the address and counts down to Resend |
 | Name and avatar | Setup step 1: a first name and one of six Avatars |
@@ -74,8 +77,9 @@ flowchart TD
 ## How it works
 
 - **Sign-in** uses AppAuth with Keycloak ([infra README, "Signing in"](../../infra/README.md#signing-in)). The
-  session sits in the Keychain on this device only; how long it lasts is in that section. A Face ID unlock is not
-  built yet.
+  session sits in the Keychain on this device only, and iOS releases it only after Face ID, Touch ID or the
+  passcode. The app asks again after five minutes away. A phone with no passcode keeps no session. How long a
+  session lasts is in that section.
 - **Calls** go through the generated Connect client from `packages/contract`. Every write sends an
   `Idempotency-Key` that stays the same across its retries.
 - **Offline**: each screen's last answer is stored with SwiftData. With no network, Home shows a grey banner and
@@ -90,7 +94,7 @@ flowchart TD
 | `Auth/` | AppAuth set-up, the sign-in link handler, the Keychain |
 | `Networking/` | The BFF client, the token interceptor, the network monitor |
 | `Snapshots/` | The stored answer for each screen |
-| `Screens/` | One folder per area: `SignIn`, `Onboarding`, `Account`, `Home`, `Recap`, `Settings` |
+| `Screens/` | One folder per area: `SignIn`, `Unlock`, `Onboarding`, `Account`, `Home`, `Recap`, `Settings` |
 | `DesignSystem/` | The generated `Tokens.swift` (do not edit) and the SwiftUI components |
 | `Resources/` | Illustrations, Avatars and the Fredoka and Nunito fonts |
 | `Tests/`, `UITests/`, `scripts/` | Unit tests, UI tests and the simulator scripts |

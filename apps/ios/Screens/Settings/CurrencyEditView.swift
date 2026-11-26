@@ -77,7 +77,8 @@ struct ConvertSheet: View {
 
     private func paragraph(_ line: String) -> some View {
         let lead = line.isEmpty ? Text("") : Text("\(line) ").foregroundStyle(Tokens.Text.secondary)
-        return (lead + Text("This can't be undone.").foregroundStyle(Tokens.Text.primary))
+        let last = Text("This can't be undone.").foregroundStyle(Tokens.Text.primary)
+        return Text("\(lead)\(last)")
             .textStyle(Tokens.TypeRamp.bodyM).fontWeight(.heavy)
             .fixedSize(horizontal: false, vertical: true)
     }

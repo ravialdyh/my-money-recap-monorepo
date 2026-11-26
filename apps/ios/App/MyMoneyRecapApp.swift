@@ -17,19 +17,33 @@ struct MyMoneyRecapApp: App {
 struct RootView: View {
     @Environment(AuthSession.self) private var session
     @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var phase
 
     var body: some View {
         Group {
-            if session.isSignedIn {
-                LaunchView(session: session, context: context)
-            } else {
-                SignInView(session: session)
+            switch session.lock {
+            case .unlocked where session.isSignedIn: LaunchView(session: session, context: context)
+            case .locked: UnlockView(session: session)
+            default: SignInView(session: session).id(session.signOuts)
             }
         }
-        .onChange(of: session.isSignedIn) { _, signedIn in
+        .onChange(of: phase) { _, now in
+            if now == .background {
+                session.left()
+            } else if now == .active {
+                session.returned()
+                PrivacyCover.hide()
+            }
+        }
+        .onChange(of: session.isSignedIn, initial: true) { _, signedIn in
             if !signedIn {
                 HomeSnapshot.erase(from: context)
                 PushRegistration.signedOut()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIScene.didEnterBackgroundNotification)) { _ in
+            if session.lock == .unlocked {
+                PrivacyCover.show()
             }
         }
         .task {

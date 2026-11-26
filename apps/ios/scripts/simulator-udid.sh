@@ -5,11 +5,11 @@ import json, subprocess, sys
 
 want = sys.argv[1] if len(sys.argv) > 1 else ""
 data = json.load(sys.stdin)
-runtimes = [r for r in data["runtimes"] if r["platform"] == "iOS" and r["isAvailable"]]
-if not runtimes:
-    sys.exit("no available iOS simulator runtime; install one through Xcode > Settings > Components")
-
 def version(r): return tuple(int(p) for p in r["version"].split("."))
+runtimes = [r for r in data["runtimes"] if r["platform"] == "iOS" and r["isAvailable"] and version(r) >= (26, 0)]
+if not runtimes:
+    sys.exit("no available iOS 26.0 or later simulator runtime; install one through Xcode > Settings > Components")
+
 def phones(runtime_id):
     return [d for d in data["devices"].get(runtime_id, []) if d["isAvailable"] and "iPhone" in d["deviceTypeIdentifier"]]
 

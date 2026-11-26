@@ -1,32 +1,90 @@
 import AppAuth
+import LocalAuthentication
 import SwiftUI
 
 @Observable
 @MainActor
 final class AuthSession {
+    enum Lock: Equatable {
+        case signedOut, locked, unlocked
+    }
+
     static let refusedCopy = "Your session expired. Sign in again."
+    static let noPasscodeCopy = "Set a passcode in iOS Settings to use My Money Recap."
+    static let unlockReason = "Unlock My Money Recap."
+    static let relockAfter: Duration = .seconds(300)
+
+    private(set) var lock: Lock
 
     private(set) var authState: OIDAuthState?
     private(set) var signInMessage: String?
     private(set) var magicLinkFailure: MagicLinkFailure?
+    private(set) var signOuts = 0
+    private var leftAt: ContinuousClock.Instant?
+    private var unlocking = false
     private var flow: OIDExternalUserAgentSession?
     private var redeemed: Set<String> = []
+    private let vault: Vault
 
-    init() {
+    init(vault: Vault = .live) {
+        self.vault = vault
         if CommandLine.arguments.contains("--reset-session") {
-            Keychain.delete()
+            vault.delete()
         }
-        if let data = Keychain.read() {
-            authState = try? NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: data)
+        lock = vault.exists() ? .locked : .signedOut
+        if !vault.passcodeSet() {
+            signInMessage = Self.noPasscodeCopy
         }
     }
 
-    init(authState: OIDAuthState) {
+    init(authState: OIDAuthState, vault: Vault = .live) {
+        self.vault = vault
         self.authState = authState
+        lock = .unlocked
     }
 
     var isSignedIn: Bool {
-        authState?.isAuthorized ?? false
+        switch lock {
+        case .signedOut: false
+        case .locked: true
+        case .unlocked: authState?.isAuthorized ?? false
+        }
+    }
+
+    func unlock() async {
+        guard lock == .locked, !unlocking else { return }
+        unlocking = true
+        defer { unlocking = false }
+        let context = LAContext()
+        context.localizedReason = Self.unlockReason
+        switch await vault.read(context) {
+        case .refused:
+            return
+        case .missing:
+            signOut(message: vault.passcodeSet() ? nil : Self.noPasscodeCopy)
+        case let .found(data):
+            guard let state = try? NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: data) else {
+                signOut()
+                return
+            }
+            authState = state
+            lock = .unlocked
+        }
+    }
+
+    func left(at now: ContinuousClock.Instant = .now) {
+        leftAt = leftAt ?? now
+    }
+
+    func returned(at now: ContinuousClock.Instant = .now) {
+        defer { leftAt = nil }
+        guard vault.passcodeSet() else {
+            signOut(message: Self.noPasscodeCopy)
+            return
+        }
+        guard lock == .unlocked, let leftAt, now - leftAt > Self.relockAfter else { return }
+        authState = nil
+        lock = .locked
     }
 
     func signIn(identityProvider: IdentityProvider? = nil) async throws {
@@ -43,11 +101,13 @@ final class AuthSession {
         }
         flow = nil
         authState = state
+        lock = .unlocked
         signInMessage = nil
-        persist()
+        persist(state)
     }
 
     func openMagicLink(_ url: URL) async {
+        guard lock == .signedOut else { return }
         magicLinkFailure = nil
         guard let token = MagicLink.loginToken(in: url) else {
             magicLinkFailure = .generic
@@ -57,9 +117,11 @@ final class AuthSession {
             let configuration = try await discover()
             let response = try await redeem(MagicLink.tokenRequest(configuration, loginToken: token))
             redeemed.insert(token)
-            authState = MagicLink.authState(configuration, tokenResponse: response)
+            let state = MagicLink.authState(configuration, tokenResponse: response)
+            authState = state
+            lock = .unlocked
             signInMessage = nil
-            persist()
+            persist(state)
         } catch {
             magicLinkFailure = MagicLink.failure(redeeming: error, alreadyRedeemed: redeemed.contains(token))
         }
@@ -84,8 +146,8 @@ final class AuthSession {
                     }
                 }
             }
-            if authState.lastTokenResponse !== held {
-                persist()
+            if authState.lastTokenResponse !== held, lock != .signedOut {
+                persist(authState)
             }
             return token
         } catch {
@@ -110,15 +172,23 @@ final class AuthSession {
     func signOut(message: String? = nil) {
         signInMessage = message
         authState = nil
-        Keychain.delete()
+        lock = .signedOut
+        signOuts += 1
+        vault.delete()
     }
 
-    func persist() {
-        guard let authState, let data = try? NSKeyedArchiver.archivedData(
-            withRootObject: authState,
+    func persist(_ state: OIDAuthState) {
+        guard let data = try? NSKeyedArchiver.archivedData(
+            withRootObject: state,
             requiringSecureCoding: true
         ) else { return }
-        Keychain.write(data)
+        guard vault.passcodeSet() else {
+            signOut(message: Self.noPasscodeCopy)
+            return
+        }
+        if !vault.write(data) {
+            signOut(message: Self.refusedCopy)
+        }
     }
 
     private func endRealmSession() async {

@@ -34,6 +34,7 @@ final class MagicLinkSessionTests: XCTestCase {
         let session = AuthSession()
         let link = try XCTUnwrap(URL(string: "mymoneyrecap://magic?lt=lt%3Aone"))
         await session.openMagicLink(link)
+        session.signOut()
         await session.openMagicLink(link)
         XCTAssertEqual(session.magicLinkFailure, .alreadyUsed, "this session redeemed that token itself")
         StubLoginTokenRealm.refused.insert("lt:stale")
@@ -48,7 +49,7 @@ final class MagicLinkSessionTests: XCTestCase {
         XCTAssertFalse(session.isSignedIn)
     }
 
-    func testTheArchivedStateStillBuildsARefreshWithAnEndpointAndAClientID() throws {
+    func testTheArchivedStateStillBuildsARefreshWithAnEndpointAndAClientID() async throws {
         let endpoint = try XCTUnwrap(URL(string: "https://realm.invalid/token"))
         let configuration = OIDServiceConfiguration(authorizationEndpoint: endpoint, tokenEndpoint: endpoint)
         let redeemed = OIDTokenResponse(
@@ -58,9 +59,12 @@ final class MagicLinkSessionTests: XCTestCase {
                 "refresh_token": "refresh" as NSString, "token_type": "Bearer" as NSString,
             ]
         )
-        AuthSession(authState: MagicLink.authState(configuration, tokenResponse: redeemed)).persist()
+        let state = MagicLink.authState(configuration, tokenResponse: redeemed)
+        AuthSession(authState: state).persist(state)
 
-        let reloaded = try XCTUnwrap(AuthSession().authState, "the archived magic-link state did not come back")
+        let relaunched = AuthSession()
+        await relaunched.unlock()
+        let reloaded = try XCTUnwrap(relaunched.authState, "the archived magic-link state did not come back")
         _ = try XCTUnwrap(reloaded.refreshToken, "applied before the synthesized response, which clears it")
         let refresh = try XCTUnwrap(reloaded.tokenRefreshRequest()) as NSObject
         XCTAssertNotNil(

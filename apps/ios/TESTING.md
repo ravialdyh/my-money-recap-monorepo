@@ -51,7 +51,7 @@ scripts/ui-test.sh
 ```
 
 They run on the newest and the oldest installed iOS runtime; `scripts/ui-test.sh newest` or `oldest` runs one.
-Xcode 27 offers no iOS 17 or 18 runtime, so the oldest that can be installed is iOS 26.0:
+The app needs iOS 26.0 or later, the oldest runtime Xcode 27 installs:
 
 ```bash
 xcodebuild -downloadPlatform iOS -buildVersion 26.0
