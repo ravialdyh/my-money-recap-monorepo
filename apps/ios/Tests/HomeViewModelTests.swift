@@ -216,4 +216,58 @@ final class HomeViewModelTests: XCTestCase {
         XCTAssertFalse(model.offline)
         XCTAssertEqual(model.spendList(switching: false)?.offline, false)
     }
+
+    private func storedAt(_ date: Date, online: Bool) throws -> (HomeViewModel, Connection) {
+        let context = try freshContext()
+        try context.insert(HomeSnapshot(bytes: recordedHome().serializedBytes(), updatedAt: date))
+        let path = Connection(online: online)
+        let model = HomeViewModel(
+            fetch: { throw URLError(.notConnectedToInternet) },
+            screens: HomeScreens(context: context, locale: Locale(identifier: "en_GB"), connection: path)
+        )
+        return (model, path)
+    }
+
+    private var tuesdayAfternoon: Date {
+        get throws {
+            try XCTUnwrap(Calendar.current.date(from: DateComponents(
+                year: 2026,
+                month: 11,
+                day: 24,
+                hour: 14,
+                minute: 5
+            )))
+        }
+    }
+
+    func testLastUpdatedOfflineFromSnapshot() throws {
+        let (model, _) = try storedAt(tuesdayAfternoon, online: false)
+        let line = try XCTUnwrap(model.lastUpdated)
+        XCTAssertTrue(line.hasPrefix("Last updated "), line)
+        XCTAssertTrue(line.contains("Tue"), line)
+        XCTAssertTrue(line.contains("24 Nov"), line)
+        XCTAssertTrue(line.contains("14:05"), "the device's own zone: \(line)")
+    }
+
+    func testLastUpdatedHiddenOnline() throws {
+        let (model, path) = try storedAt(tuesdayAfternoon, online: true)
+        XCTAssertNil(model.lastUpdated)
+        path.online = false
+        XCTAssertNotNil(model.lastUpdated, "the line follows the path with no relaunch")
+    }
+
+    func testLastUpdatedHiddenWithNoSnapshot() throws {
+        let model = try HomeViewModel(
+            fetch: { throw URLError(.notConnectedToInternet) },
+            screens: HomeScreens(context: freshContext(), connection: Connection(online: false))
+        )
+        XCTAssertNil(model.lastUpdated, "the skeleton has no age to show")
+    }
+
+    func testLastUpdatedMovesOnReplace() throws {
+        let (model, _) = try storedAt(tuesdayAfternoon, online: false)
+        let before = model.lastUpdated
+        try model.replace(with: recordedHome())
+        XCTAssertNotEqual(model.lastUpdated, before, "the numbers on screen are new now")
+    }
 }

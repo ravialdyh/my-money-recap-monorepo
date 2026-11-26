@@ -7,6 +7,7 @@ import SwiftData
 @MainActor
 final class HomeViewModel {
     private(set) var home: MoneyRecap_V1_HomeView?
+    private var updatedAt: Date?
     private let fetch: () async throws -> MoneyRecap_V1_HomeView
     private let screens: HomeScreens
     private let onboardingNeeded: () -> Void
@@ -27,6 +28,7 @@ final class HomeViewModel {
         self.dismissals = dismissals ?? .session
         if let snapshot = HomeSnapshot.load(from: screens.context) {
             home = try? MoneyRecap_V1_HomeView(serializedBytes: snapshot.bytes)
+            updatedAt = snapshot.updatedAt
         }
     }
 
@@ -60,6 +62,7 @@ final class HomeViewModel {
     func replace(with fresh: MoneyRecap_V1_HomeView) {
         try? HomeSnapshot.replace(with: fresh, in: screens.context)
         home = fresh
+        updatedAt = .now
     }
 
     func logged(_ fresh: MoneyRecap_V1_HomeView) {
@@ -79,6 +82,13 @@ final class HomeViewModel {
 
     var offline: Bool {
         !screens.connection.online
+    }
+
+    var lastUpdated: String? {
+        guard offline, home != nil, let updatedAt else { return nil }
+        let style = Date.FormatStyle(locale: screens.locale).weekday(.abbreviated).day().month(.abbreviated)
+            .hour().minute()
+        return "Last updated \(updatedAt.formatted(style))"
     }
 
     var greeting: String? {

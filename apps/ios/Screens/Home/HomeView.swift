@@ -40,6 +40,9 @@ struct HomeView: View {
                         Chip(text: "Settings", tappable: true) { settings = model.settings() }
                     }
                     .padding(.top, 8)
+                    if let updated = model.lastUpdated {
+                        Text(updated).textStyle(Tokens.TypeRamp.labelS).foregroundStyle(Tokens.Text.onGroundMuted)
+                    }
                     if model.offline {
                         Banner(tone: .offline, text: "No connection. You can look, but not log.")
                     }

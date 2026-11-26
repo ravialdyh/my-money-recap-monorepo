@@ -184,8 +184,11 @@ final class HomeViewTests: XCTestCase {
         var warned = calm
         warned.targetWarning.message = "You've spent £2,000 of the £1,920 you meant to spend this month."
         let path = Connection(online: true)
-        let draw = { (home: MoneyRecap_V1_HomeView) -> Data? in
-            try? HomeSnapshot.replace(with: home, in: context)
+        let draw = { (home: MoneyRecap_V1_HomeView, hour: Int) -> Data? in
+            try? context.delete(model: HomeSnapshot.self)
+            let at = Calendar.current.date(from: DateComponents(year: 2026, month: 11, day: 24, hour: hour))
+            try? context.insert(HomeSnapshot(bytes: home.serializedBytes(), updatedAt: at ?? .now))
+            try? context.save()
             let model = HomeViewModel(
                 fetch: { throw URLError(.notConnectedToInternet) },
                 screens: HomeScreens(context: context, locale: Locale(identifier: "en_GB"), connection: path),
@@ -193,16 +196,18 @@ final class HomeViewTests: XCTestCase {
             )
             return self.picture(HomeView(model: model))
         }
-        let online = draw(calm)
-        let onlineWarned = draw(warned)
+        let online = draw(calm, 9)
+        let onlineWarned = draw(warned, 9)
+        XCTAssertEqual(draw(calm, 14), online, "online, the Last updated line is hidden")
         path.online = false
-        let offline = draw(calm)
-        let offlineWarned = draw(warned)
+        let offline = draw(calm, 9)
+        let offlineWarned = draw(warned, 9)
         XCTAssertNotEqual(offline, online, "the banner draws")
+        XCTAssertNotEqual(draw(calm, 14), offline, "offline, the line under the month shows the snapshot's time")
         XCTAssertNotEqual(offlineWarned, offline, "the warning still draws offline")
         XCTAssertNotEqual(offlineWarned, onlineWarned)
         path.online = true
-        XCTAssertEqual(draw(calm), online, "back online, Home draws as before")
+        XCTAssertEqual(draw(calm, 9), online, "back online, Home draws as before")
         for (name, png) in [("b1-offline", offline), ("b1-offline-with-warning", offlineWarned)] {
             let attachment = try XCTAttachment(data: XCTUnwrap(png), uniformTypeIdentifier: "public.png")
             attachment.name = name
