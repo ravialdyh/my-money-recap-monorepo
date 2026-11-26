@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: nginx:1.30.8@sha256:54d32270ba0c72499b8ffb13e5a013ff82f64d4410d3b63b4583c5fa500b6f04
+    image: nginx:1.31.0@sha256:800e7c98538c6bf725f5177e841aa720ae0ed1c378bbea368b6330bfe18a36b3
     restart: unless-stopped
     ports:
       - "${NGINX_HOST_PORT:-8090}:80"
